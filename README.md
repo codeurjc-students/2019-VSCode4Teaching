@@ -7,4 +7,5 @@ Visit this [Medium blog](https://medium.com/@ivchicano) for updates on the devel
 - [ ] Teachers can see a student's exercise.
 - [ ] Teachers can place requisites on each exercise for the student to accomplish.
 - [ ] Teachers can comment on a student's exercise.  
-Note: This roadmap is subject to changes as requirements change.
+Note: This roadmap is subject to changes as requirements change.  
+Check [Issues](https://github.com/codeurjc-students/2019-VSCode4Teaching/issues) and [Project](https://github.com/codeurjc-students/2019-VSCode4Teaching/projects) for more specific information about development of these milestones.
