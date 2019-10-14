@@ -12,5 +12,5 @@ matrix:
       script:
         - ./mvnw test -B -q
       before_script:
-        - cd ./webtests2-back/
+        - cd ./vscode4teaching-server/
         - chmod +x mvnw
