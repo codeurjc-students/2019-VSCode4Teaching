@@ -20,7 +20,7 @@ public class ExceptionController {
 
     @ExceptionHandler(CourseNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<String> handleConstraintViolationException(NullPointerException e) {
+    public ResponseEntity<String> handleConstraintViolationException(CourseNotFoundException e) {
         return new ResponseEntity<>("Not found: " + e.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
