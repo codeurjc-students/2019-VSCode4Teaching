@@ -6,9 +6,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.validators.ValidationGroupInterfaces.OnCreate;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
@@ -49,23 +50,23 @@ public class CourseController {
 
     @PostMapping("/courses")
     @JsonView(CourseViews.GeneralView.class)
-    @Validated(OnCreate.class)
-    public ResponseEntity<Course> addCourse(@Valid @RequestBody Course course) {
+    public ResponseEntity<Course> addCourse(@Valid @RequestBody CourseDTO courseDTO) {
+        Course course = new Course(courseDTO.name);
         Course savedCourse = courseService.registerNewCourse(course);
         logger.info("Course saved: {}", savedCourse);
-        return new ResponseEntity<Course>(savedCourse, HttpStatus.CREATED);
+        return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
     @PostMapping("/courses/{courseId}/exercises")
     @JsonView(CourseViews.ExercisesView.class)
-    @Validated(OnCreate.class)
     public ResponseEntity<Course> addExercise(@PathVariable @Min(1) Long courseId,
-            @Valid @RequestBody Exercise exercise) throws CourseNotFoundException {
+            @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException {
+        Exercise exercise = new Exercise(exerciseDTO.name);
         Course savedCourse = courseService.addExerciseToCourse(courseId, exercise);
         // Fetching exercises of course (Lazy initialization)
         List<Exercise> exercises = savedCourse.getExercises();
         logger.info("Exercises of course: {}", exercises);
-        return new ResponseEntity<Course>(savedCourse, HttpStatus.CREATED);
+        return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
 }

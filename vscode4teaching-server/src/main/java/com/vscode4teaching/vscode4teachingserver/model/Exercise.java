@@ -5,25 +5,23 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.vscode4teaching.vscode4teachingserver.model.validators.ValidationGroupInterfaces.OnCreate;
-import com.vscode4teaching.vscode4teachingserver.model.validators.ValidationGroupInterfaces.OnUpdate;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
+
+import org.hibernate.validator.constraints.Length;
 
 @Entity
 public class Exercise {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonView(ExerciseViews.GeneralView.class)
-    @Null(groups = OnCreate.class)
-    @NotNull(groups = OnUpdate.class)
     private Long id;
 
     @JsonView(ExerciseViews.GeneralView.class)
-    @NotNull(groups = OnCreate.class)
+    @NotEmpty(message = "Name cannot be empty")
+    @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters")
     private String name;
 
     @ManyToOne
@@ -32,16 +30,19 @@ public class Exercise {
 
     // TODO add files relationship
 
-    public Exercise() {
+    public Exercise(
+            @NotEmpty(message = "Name cannot be empty") @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters") String name) {
+        this.name = name;
     }
 
-    public Exercise(String name, Course course) {
+    public Exercise(
+            @NotEmpty(message = "Name cannot be empty") @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters") String name,
+            Course course) {
         this.name = name;
         this.course = course;
     }
 
-    public Exercise(String name) {
-        this.name = name;
+    public Exercise() {
     }
 
     public Long getId() {
