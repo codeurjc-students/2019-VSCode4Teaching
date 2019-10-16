@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,15 +102,17 @@ public class CourseControllerTests {
                 course.setName("Spring Boot Course");
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(1l);
-                when(courseService.registerNewCourse(any(Course.class))).thenReturn(expectedCourse);
+                when(courseService.registerNewCourse(any(Course.class), anyLong(), anyString()))
+                                .thenReturn(expectedCourse);
 
-                MvcResult mvcResult = mockMvc
-                                .perform(post("/api/courses").contentType("application/json")
-                                                .content(objectMapper.writeValueAsString(course)))
+                // The JWT Token is a random token, it is not needed for the test
+                MvcResult mvcResult = mockMvc.perform(post("/api/teachers/20/courses").contentType("application/json")
+                                .content(objectMapper.writeValueAsString(course)).header("Authorization",
+                                                "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNTcxMjQ3MzAwLCJpYXQiOjE1NzEyMjkzMDB9.hbgCrn_KAGxn1QIVBOAOQt6RswYgCnplPUJJO9LL-i--GSoKAAq3lj4PeloQZOnxNQ_oDqkLJyvCGogxTQrG6w"))
                                 .andExpect(status().isCreated()).andReturn();
 
                 ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
-                verify(courseService, times(1)).registerNewCourse(courseCaptor.capture());
+                verify(courseService, times(1)).registerNewCourse(courseCaptor.capture(), anyLong(), anyString());
                 assertThat(courseCaptor.getValue().getName()).isEqualTo("Spring Boot Course");
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
                 String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
@@ -123,11 +127,11 @@ public class CourseControllerTests {
                 logger.info("Test postCourse_invalid() begins.");
 
                 CourseDTO course = new CourseDTO();
-                mockMvc.perform(post("/api/courses").contentType("application/json")
+                mockMvc.perform(post("/api/teachers/20/courses").contentType("application/json")
                                 .content(objectMapper.writeValueAsString(course))).andExpect(status().isBadRequest());
 
                 // Business logic should not be called.
-                verify(courseService, times(0)).registerNewCourse(any(Course.class));
+                verify(courseService, times(0)).registerNewCourse(any(Course.class), anyLong(), anyString());
 
                 logger.info("Test postCourse_invalid() ends.");
         }
@@ -145,15 +149,18 @@ public class CourseControllerTests {
                 expectedCourse.addExercise(exercise);
                 ExerciseDTO exerciseDTO = new ExerciseDTO();
                 exerciseDTO.setName("Spring Boot Exercise 1");
-                when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class)))
+                when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
                                 .thenReturn(expectedCourse);
 
                 MvcResult mvcResult = mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId)
-                                .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO)))
+                                .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO))
+                                .header("Authorization",
+                                                "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNTcxMjQ3MzAwLCJpYXQiOjE1NzEyMjkzMDB9.hbgCrn_KAGxn1QIVBOAOQt6RswYgCnplPUJJO9LL-i--GSoKAAq3lj4PeloQZOnxNQ_oDqkLJyvCGogxTQrG6w"))
                                 .andExpect(status().isCreated()).andReturn();
 
                 ArgumentCaptor<Exercise> exerciseCaptor = ArgumentCaptor.forClass(Exercise.class);
-                verify(courseService, times(1)).addExerciseToCourse(any(Long.class), exerciseCaptor.capture());
+                verify(courseService, times(1)).addExerciseToCourse(any(Long.class), exerciseCaptor.capture(),
+                                anyString());
                 assertThat(exerciseCaptor.getValue().getName()).isEqualTo("Spring Boot Exercise 1");
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
                 String expectedResponseBody = objectMapper.writerWithView(CourseViews.ExercisesView.class)
@@ -175,7 +182,7 @@ public class CourseControllerTests {
                 mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
                                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
 
-                verify(courseService, times(0)).addExerciseToCourse(any(Long.class), any(Exercise.class));
+                verify(courseService, times(0)).addExerciseToCourse(any(Long.class), any(Exercise.class), anyString());
 
                 logger.info("Test addExercise_invalid() ends.");
         }

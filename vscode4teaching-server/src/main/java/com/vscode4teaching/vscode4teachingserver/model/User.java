@@ -54,6 +54,10 @@ public class User {
     @JsonView(UserViews.GeneralView.class)
     private List<Role> roles = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "usersInCourse")
+    @JsonView(UserViews.CourseView.class)
+    private List<Course> courses = new ArrayList<>();
+
     public User() {
     }
 
@@ -62,8 +66,7 @@ public class User {
             @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters") String username,
             @NotEmpty(message = "Please provide a password") String password,
             @NotEmpty(message = "Please provide your name") String name,
-            @NotEmpty(message = "Please provide your last name") String lastName,
-            Role... roles) {
+            @NotEmpty(message = "Please provide your last name") String lastName, Role... roles) {
         this.email = email;
         this.username = username;
         this.password = password;
@@ -132,4 +135,15 @@ public class User {
         this.roles.add(role);
     }
 
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
+
+    public void addCourse(Course course) {
+        this.courses.add(course);
+    }
 }

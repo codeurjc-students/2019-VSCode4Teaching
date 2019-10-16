@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotEmpty;
 
@@ -31,7 +32,9 @@ public class Course {
     @JsonView(CourseViews.ExercisesView.class)
     private List<Exercise> exercises = new ArrayList<>();
 
-    // TODO add user relationship
+    @ManyToMany
+    @JsonView(CourseViews.UsersView.class)
+    private List<User> usersInCourse = new ArrayList<>(); // Includes teachers and students
 
     public Course() {
     }
@@ -74,5 +77,17 @@ public class Course {
 
     public void addExercise(Exercise exercise) {
         this.exercises.add(exercise);
+    }
+
+    public List<User> getUsersInCourse() {
+        return usersInCourse;
+    }
+
+    public void setUsersInCourse(List<User> usersInCourse) {
+        this.usersInCourse = usersInCourse;
+    }
+
+    public void addUserInCourse(User user) {
+        this.usersInCourse.add(user);
     }
 }

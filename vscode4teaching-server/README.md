@@ -126,7 +126,7 @@ Register a new user as a teacher.
 - **Required role:**  
    Teacher
 - **URL**  
-   `/api/teacher/register`
+   `/api/teachers/register`
 - **Method**  
    `POST`
 - **Data Params**
@@ -233,14 +233,17 @@ Get all available courses.
 
 ---
 
-Add a course to the system.
+Add a course to the system. Logged user has to be the same teacher that the id of the teacher passed in the URL.
 
 - **Required role:**  
    Teacher
 - **URL**  
-   `/api/courses`
+   `/api/teachers/:id/courses`
 - **Method**  
    `POST`
+- **URL Params**  
+  - **Required:**  
+    `id: [long]`  
 - **Data Params**
   - **Required:**  
     `"name": [string]` - Between 10 and 100 characters

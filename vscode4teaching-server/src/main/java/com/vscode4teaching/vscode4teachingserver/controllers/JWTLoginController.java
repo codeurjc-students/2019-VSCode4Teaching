@@ -67,7 +67,7 @@ public class JWTLoginController {
         return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
     }
 
-    @PostMapping("/teacher/register")
+    @PostMapping("/teachers/register")
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<User> saveTeacher(@Valid @RequestBody UserDTO userDto) {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());

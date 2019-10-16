@@ -128,7 +128,7 @@ public class JWTLoginControllerTests {
         when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(true)))
                 .thenReturn(expectedUser);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/teacher/register").contentType("application/json")
+        MvcResult mvcResult = mockMvc.perform(post("/api/teachers/register").contentType("application/json")
                 .content(objectMapper.writeValueAsString(userDTO))).andExpect(status().isCreated()).andReturn();
 
         String actualResponseBody = mvcResult.getResponse().getContentAsString();

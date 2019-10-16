@@ -6,4 +6,8 @@ public class UserViews {
 
     public static interface GeneralView extends RoleViews.GeneralView {
     }
+
+    public static interface CourseView extends GeneralView, CourseViews.GeneralView {
+        
+    }
 }

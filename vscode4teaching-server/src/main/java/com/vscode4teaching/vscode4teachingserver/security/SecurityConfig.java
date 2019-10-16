@@ -42,9 +42,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
         .authorizeRequests()
-            .antMatchers("/api/login", "/api/register")
+            .antMatchers(HttpMethod.GET, "/api/courses")
                 .permitAll()
-            .antMatchers("/api/register/teacher")
+            .antMatchers(HttpMethod.POST, "/api/login", "/api/register")
+                .permitAll()
+            .antMatchers(HttpMethod.POST, "/api/teachers/register")
                 .hasAnyRole("TEACHER")
             .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises")
                 .hasAnyRole("TEACHER")
