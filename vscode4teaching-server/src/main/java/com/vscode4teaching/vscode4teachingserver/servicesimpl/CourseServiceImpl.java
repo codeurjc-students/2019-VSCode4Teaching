@@ -24,14 +24,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<Course> getAllCourses() {
-        List<Course> courses = this.courseRepo.findAll();
-        return courses;
+        return this.courseRepo.findAll();
     }
 
     @Override
     public Course registerNewCourse(Course course) {
-        Course savedCourse = this.courseRepo.save(course);
-        return savedCourse;
+        return this.courseRepo.save(course);
     }
 
     @Override
@@ -39,10 +37,11 @@ public class CourseServiceImpl implements CourseService {
         Course course = this.courseRepo.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found."));
         exercise.setCourse(course);
+        // Fetching exercises of course (Lazy initialization)
+        course.getExercises();
         course.addExercise(exercise);
         exerciseRepo.save(exercise);
-        Course savedCourse = courseRepo.save(course);
-        return savedCourse;
+        return courseRepo.save(course);
     }
 
 }

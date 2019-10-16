@@ -1,5 +1,26 @@
 # REST API Documentation  
 Document explaining how the REST API for the server is used.  
+## Login
+----
+Log in on the server and receive the JWT Token. The token should be in an Authorization header like:
+`Authorization: Bearer [token]`
+where [token] is the token received in this request.
+* **URL**
+    `/api/login`
+* **Method**
+    `POST`
+* **Data Params**  
+    * **Required:**  
+    `"username": [string]`
+    `"password": [string]`
+    * **Example:**  
+    ```json
+    {  
+	    "username": "johndoe",
+        "password": "johnpassword"
+    }
+    ```
+* **Success Response**
 
 ## Get all courses
 ----

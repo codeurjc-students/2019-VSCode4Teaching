@@ -63,9 +63,6 @@ public class CourseController {
             @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException {
         Exercise exercise = new Exercise(exerciseDTO.name);
         Course savedCourse = courseService.addExerciseToCourse(courseId, exercise);
-        // Fetching exercises of course (Lazy initialization)
-        List<Exercise> exercises = savedCourse.getExercises();
-        logger.info("Exercises of course: {}", exercises);
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 

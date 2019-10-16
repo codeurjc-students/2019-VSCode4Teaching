@@ -8,4 +8,14 @@ public class CourseDTO {
     @NotEmpty(message = "Name cannot be null")
     @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters")
     public String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    
 }

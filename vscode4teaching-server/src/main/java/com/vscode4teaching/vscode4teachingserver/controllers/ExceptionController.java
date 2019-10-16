@@ -6,6 +6,10 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFo
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,7 +24,31 @@ public class ExceptionController {
 
     @ExceptionHandler(CourseNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<String> handleConstraintViolationException(CourseNotFoundException e) {
+    public ResponseEntity<String> handleCourseNotFoundException(CourseNotFoundException e) {
         return new ResponseEntity<>("Not found: " + e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<String> handleBadCredentialsException(BadCredentialsException e) {
+        return new ResponseEntity<>("Invalid credentials: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<String> handleDisabledException(DisabledException e) {
+        return new ResponseEntity<>("This user is disabled: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(LockedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<String> handleLockedException(LockedException e) {
+        return new ResponseEntity<>("This user is locked: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        return new ResponseEntity<>("This user does not exist: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 }

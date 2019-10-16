@@ -1,7 +1,8 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vscode4teaching.vscode4teachingserver.controllers.CourseController;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
@@ -13,8 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -29,8 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
-@WebMvcTest(controllers = CourseController.class)
+@SpringBootTest
+@TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
+@WithMockUser(roles = { "STUDENT", "TEACHER" })
 public class CourseControllerTests {
         @Autowired
         private MockMvc mockMvc;
@@ -57,9 +62,7 @@ public class CourseControllerTests {
                 courses.add(c2);
                 when(courseService.getAllCourses()).thenReturn(courses);
 
-                MvcResult mvcResult = mockMvc
-                                .perform(get("/api/courses").contentType("application/json")
-                                                .content(objectMapper.writeValueAsString(courses)))
+                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
                                 .andExpect(status().isOk()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
@@ -78,9 +81,7 @@ public class CourseControllerTests {
                 List<Course> courses = new ArrayList<>();
                 when(courseService.getAllCourses()).thenReturn(courses);
 
-                MvcResult mvcResult = mockMvc
-                                .perform(get("/api/courses").contentType("application/json")
-                                                .content(objectMapper.writeValueAsString(courses)))
+                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
                                 .andExpect(status().isNoContent()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
@@ -95,7 +96,8 @@ public class CourseControllerTests {
         public void postCourse_valid() throws Exception {
                 logger.info("Test postCourse_valid() begins.");
 
-                Course course = new Course("Spring Boot Course");
+                CourseDTO course = new CourseDTO();
+                course.setName("Spring Boot Course");
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(1l);
                 when(courseService.registerNewCourse(any(Course.class))).thenReturn(expectedCourse);
@@ -120,7 +122,7 @@ public class CourseControllerTests {
         public void postCourse_invalid() throws Exception {
                 logger.info("Test postCourse_invalid() begins.");
 
-                Course course = new Course(null);
+                CourseDTO course = new CourseDTO();
                 mockMvc.perform(post("/api/courses").contentType("application/json")
                                 .content(objectMapper.writeValueAsString(course))).andExpect(status().isBadRequest());
 
@@ -141,11 +143,13 @@ public class CourseControllerTests {
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(courseId);
                 expectedCourse.addExercise(exercise);
+                ExerciseDTO exerciseDTO = new ExerciseDTO();
+                exerciseDTO.setName("Spring Boot Exercise 1");
                 when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class)))
                                 .thenReturn(expectedCourse);
 
                 MvcResult mvcResult = mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId)
-                                .contentType("application/json").content(objectMapper.writeValueAsString(exercise)))
+                                .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO)))
                                 .andExpect(status().isCreated()).andReturn();
 
                 ArgumentCaptor<Exercise> exerciseCaptor = ArgumentCaptor.forClass(Exercise.class);
@@ -166,7 +170,7 @@ public class CourseControllerTests {
                 Course course = new Course("Spring Boot Course");
                 Long courseId = 1l;
                 course.setId(courseId);
-                Exercise exercise = new Exercise(null);
+                ExerciseDTO exercise = new ExerciseDTO();
 
                 mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
                                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
