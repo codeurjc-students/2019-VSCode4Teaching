@@ -46,6 +46,12 @@ public class ExceptionController {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleHibernateConstraintViolationException(org.hibernate.exception.ConstraintViolationException e) {
+        return new ResponseEntity<>(e.getSQLException().getMessage().split(" for key ")[0] + ".", HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(CourseNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<String> handleCourseNotFoundException(CourseNotFoundException e) {

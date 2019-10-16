@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -29,10 +30,12 @@ public class User {
     @Email(message = "Please provide a valid email")
     @NotEmpty(message = "Please provide an email")
     @JsonView(UserViews.GeneralView.class)
+    @Column(unique = true)
     private String email;
 
     @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
     @JsonView(UserViews.GeneralView.class)
+    @Column(unique = true)
     private String username;
 
     @NotEmpty(message = "Please provide a password")
