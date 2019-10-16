@@ -7,39 +7,48 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.vscode4teaching.vscode4teachingserver.model.validators.ValidationGroupInterfaces.OnCreate;
-import com.vscode4teaching.vscode4teachingserver.model.validators.ValidationGroupInterfaces.OnUpdate;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
+
+import org.hibernate.validator.constraints.Length;
 
 @Entity
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonView(CourseViews.GeneralView.class)
-    @Null(groups = OnCreate.class)
-    @NotNull(groups = OnUpdate.class)
     private Long id;
 
     @JsonView(CourseViews.GeneralView.class)
-    @NotNull(groups = OnCreate.class)
+    @NotEmpty(message = "Name cannot be null")
+    @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters")
     private String name;
 
     @OneToMany(mappedBy = "course")
     @JsonView(CourseViews.ExercisesView.class)
     private List<Exercise> exercises = new ArrayList<>();
 
-    // TODO add user relationship
+    @ManyToMany
+    @JsonView(CourseViews.UsersView.class)
+    private List<User> usersInCourse = new ArrayList<>(); // Includes teachers and students
 
     public Course() {
     }
 
-    public Course(@NotNull String name) {
+    public Course(
+            @NotEmpty(message = "Name cannot be null") @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters") String name) {
         this.name = name;
+    }
+
+    public Course(
+            @NotEmpty(message = "Name cannot be null") @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters") String name,
+            List<Exercise> exercises) {
+        this.name = name;
+        this.exercises = exercises;
     }
 
     public Long getId() {
@@ -68,5 +77,17 @@ public class Course {
 
     public void addExercise(Exercise exercise) {
         this.exercises.add(exercise);
+    }
+
+    public List<User> getUsersInCourse() {
+        return usersInCourse;
+    }
+
+    public void setUsersInCourse(List<User> usersInCourse) {
+        this.usersInCourse = usersInCourse;
+    }
+
+    public void addUserInCourse(User user) {
+        this.usersInCourse.add(user);
     }
 }

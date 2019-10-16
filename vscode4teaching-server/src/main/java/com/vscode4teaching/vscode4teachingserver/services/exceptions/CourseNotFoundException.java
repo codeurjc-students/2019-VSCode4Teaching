@@ -1,7 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.services.exceptions;
 
-public class CourseNotFoundException extends Exception {
-    private static final long serialVersionUID = 1L;
+public class CourseNotFoundException extends NotFoundException {
+    private static final long serialVersionUID = 984981314488442L;
 
     public CourseNotFoundException(String message) {
         super(message);
