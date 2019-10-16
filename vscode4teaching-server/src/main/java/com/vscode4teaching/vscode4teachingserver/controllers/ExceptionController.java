@@ -1,7 +1,14 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
+import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse;
+import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse.ErrorDetail;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +17,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,8 +27,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ExceptionController {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
-        return new ResponseEntity<>("Validation error: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Set<ConstraintViolation<?>>> handleConstraintViolationException(ConstraintViolationException e) {
+        Set<ConstraintViolation<?>> errors = e.getConstraintViolations();
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        List<FieldError> errors = e.getBindingResult().getFieldErrors();
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        for (FieldError fieldError : errors) {
+            ErrorDetail error = new ErrorDetail(fieldError.getField(), fieldError.getDefaultMessage());
+            errorDetails.add(error);
+        }
+
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(CourseNotFoundException.class)
