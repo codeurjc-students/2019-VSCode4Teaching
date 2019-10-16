@@ -6,6 +6,7 @@ import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -45,8 +46,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
             .antMatchers("/api/register/teacher")
                 .hasAnyRole("TEACHER")
+            .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises")
+                .hasAnyRole("TEACHER")
             .anyRequest()
-                .hasAnyRole("STUDENT") // TODO: Select correct methods to ask for authentication
+                .hasAnyRole("STUDENT")
         .and()
         .csrf()
             .disable()
