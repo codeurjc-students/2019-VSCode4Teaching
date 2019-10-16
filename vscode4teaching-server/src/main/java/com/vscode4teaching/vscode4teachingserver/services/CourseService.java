@@ -17,11 +17,11 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 public interface CourseService {
-    public List<Course> getAllCourses();
+        public List<Course> getAllCourses();
 
-    public Course registerNewCourse(@Valid Course course, Long teacherId, String requestUsername)
-            throws TeacherNotFoundException, NotSameTeacherException;
+        public Course registerNewCourse(@Valid Course course, Long teacherId, String requestUsername)
+                        throws TeacherNotFoundException, NotSameTeacherException;
 
-    public Course addExerciseToCourse(@Min(1) Long courseId, @Valid Exercise exercise, String requestUsername)
-            throws CourseNotFoundException, NotSameTeacherException;
+        public Course addExerciseToCourse(@Min(1) Long courseId, @Valid Exercise exercise, String requestUsername)
+                        throws CourseNotFoundException, NotSameTeacherException;
 }

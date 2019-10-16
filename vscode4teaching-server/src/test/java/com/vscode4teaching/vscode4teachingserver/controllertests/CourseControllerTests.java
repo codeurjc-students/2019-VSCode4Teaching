@@ -3,6 +3,8 @@ package com.vscode4teaching.vscode4teachingserver.controllertests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
@@ -16,10 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +39,6 @@ import java.util.List;
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
-@WithMockUser(roles = { "STUDENT", "TEACHER" })
 public class CourseControllerTests {
         @Autowired
         private MockMvc mockMvc;
@@ -65,7 +66,7 @@ public class CourseControllerTests {
                 when(courseService.getAllCourses()).thenReturn(courses);
 
                 MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
-                                .andExpect(status().isOk()).andReturn();
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
@@ -84,7 +85,7 @@ public class CourseControllerTests {
                 when(courseService.getAllCourses()).thenReturn(courses);
 
                 MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
-                                .andExpect(status().isNoContent()).andReturn();
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isNoContent()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
@@ -104,11 +105,22 @@ public class CourseControllerTests {
                 expectedCourse.setId(1l);
                 when(courseService.registerNewCourse(any(Course.class), anyLong(), anyString()))
                                 .thenReturn(expectedCourse);
+                // Get token
+                JWTRequest jwtRequest = new JWTRequest();
+                jwtRequest.setUsername("johndoe");
+                jwtRequest.setPassword("teacherpassword");
 
-                // The JWT Token is a random token, it is not needed for the test
-                MvcResult mvcResult = mockMvc.perform(post("/api/teachers/20/courses").contentType("application/json")
-                                .content(objectMapper.writeValueAsString(course)).header("Authorization",
-                                                "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNTcxMjQ3MzAwLCJpYXQiOjE1NzEyMjkzMDB9.hbgCrn_KAGxn1QIVBOAOQt6RswYgCnplPUJJO9LL-i--GSoKAAq3lj4PeloQZOnxNQ_oDqkLJyvCGogxTQrG6w"))
+                MvcResult loginResult = mockMvc
+                                .perform(post("/api/login").contentType("application/json")
+                                                .content(objectMapper.writeValueAsString(jwtRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
+                                JWTResponse.class);
+
+                MvcResult mvcResult = mockMvc
+                                .perform(post("/api/teachers/20/courses").contentType("application/json")
+                                                .content(objectMapper.writeValueAsString(course))
+                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isCreated()).andReturn();
 
                 ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
@@ -127,7 +139,18 @@ public class CourseControllerTests {
                 logger.info("Test postCourse_invalid() begins.");
 
                 CourseDTO course = new CourseDTO();
-                mockMvc.perform(post("/api/teachers/20/courses").contentType("application/json")
+                // Get token
+                JWTRequest jwtRequest = new JWTRequest();
+                jwtRequest.setUsername("johndoe");
+                jwtRequest.setPassword("teacherpassword");
+
+                MvcResult loginResult = mockMvc
+                                .perform(post("/api/login").contentType("application/json")
+                                                .content(objectMapper.writeValueAsString(jwtRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
+                                JWTResponse.class);
+                mockMvc.perform(post("/api/teachers/20/courses").contentType("application/json").header("Authorization", "Bearer " + jwtToken.getJwtToken())
                                 .content(objectMapper.writeValueAsString(course))).andExpect(status().isBadRequest());
 
                 // Business logic should not be called.
@@ -151,12 +174,21 @@ public class CourseControllerTests {
                 exerciseDTO.setName("Spring Boot Exercise 1");
                 when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
                                 .thenReturn(expectedCourse);
+                // Get token
+                JWTRequest jwtRequest = new JWTRequest();
+                jwtRequest.setUsername("johndoe");
+                jwtRequest.setPassword("teacherpassword");
 
+                MvcResult loginResult = mockMvc
+                                .perform(post("/api/login").contentType("application/json")
+                                                .content(objectMapper.writeValueAsString(jwtRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
+                                JWTResponse.class);
                 MvcResult mvcResult = mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId)
                                 .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO))
-                                .header("Authorization",
-                                                "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNTcxMjQ3MzAwLCJpYXQiOjE1NzEyMjkzMDB9.hbgCrn_KAGxn1QIVBOAOQt6RswYgCnplPUJJO9LL-i--GSoKAAq3lj4PeloQZOnxNQ_oDqkLJyvCGogxTQrG6w"))
-                                .andExpect(status().isCreated()).andReturn();
+                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
 
                 ArgumentCaptor<Exercise> exerciseCaptor = ArgumentCaptor.forClass(Exercise.class);
                 verify(courseService, times(1)).addExerciseToCourse(any(Long.class), exerciseCaptor.capture(),
@@ -178,8 +210,18 @@ public class CourseControllerTests {
                 Long courseId = 1l;
                 course.setId(courseId);
                 ExerciseDTO exercise = new ExerciseDTO();
+                // Get token
+                JWTRequest jwtRequest = new JWTRequest();
+                jwtRequest.setUsername("johndoe");
+                jwtRequest.setPassword("teacherpassword");
 
-                mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
+                MvcResult loginResult = mockMvc
+                                .perform(post("/api/login").contentType("application/json")
+                                                .content(objectMapper.writeValueAsString(jwtRequest)))
+                                .andExpect(status().isOk()).andReturn();
+                JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
+                                JWTResponse.class);
+                mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json").header("Authorization", "Bearer " + jwtToken.getJwtToken())
                                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
 
                 verify(courseService, times(0)).addExerciseToCourse(any(Long.class), any(Exercise.class), anyString());

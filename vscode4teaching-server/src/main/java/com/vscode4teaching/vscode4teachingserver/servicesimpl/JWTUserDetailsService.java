@@ -55,4 +55,8 @@ public class JWTUserDetailsService implements UserDetailsService {
         }
         user.addRole(role);
     }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 }

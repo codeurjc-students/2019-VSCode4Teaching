@@ -58,10 +58,9 @@ public class CourseController {
     @JsonView(CourseViews.GeneralView.class)
     public ResponseEntity<Course> addCourse(HttpServletRequest request, @PathVariable Long id,
             @Valid @RequestBody CourseDTO courseDTO) throws TeacherNotFoundException, NotSameTeacherException {
-        // Get token to check if the logged user is the same as the id passed
-        String jwtToken = request.getHeader("Authorization").substring(7); // remove Bearer
+
         Course course = new Course(courseDTO.name);
-        Course savedCourse = courseService.registerNewCourse(course, id, jwtTokenUtil.getUsernameFromToken(jwtToken));
+        Course savedCourse = courseService.registerNewCourse(course, id, getUsernameFromToken(request));
         logger.info("Course saved: {}", savedCourse);
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
@@ -70,12 +69,13 @@ public class CourseController {
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> addExercise(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
             @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotSameTeacherException {
-        // Get token to check if the logged teacher belongs to this course
-        String jwtToken = request.getHeader("Authorization").substring(7); // remove Bearer
         Exercise exercise = new Exercise(exerciseDTO.name);
-        Course savedCourse = courseService.addExerciseToCourse(courseId, exercise,
-                jwtTokenUtil.getUsernameFromToken(jwtToken));
+        Course savedCourse = courseService.addExerciseToCourse(courseId, exercise, getUsernameFromToken(request));
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
+    private String getUsernameFromToken(HttpServletRequest request) {
+        String jwtToken = request.getHeader("Authorization").substring(7); // remove Bearer
+        return jwtTokenUtil.getUsernameFromToken(jwtToken);
+    }
 }
