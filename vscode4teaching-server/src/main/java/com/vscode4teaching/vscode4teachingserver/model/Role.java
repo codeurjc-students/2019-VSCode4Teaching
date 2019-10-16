@@ -6,13 +6,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.vscode4teaching.vscode4teachingserver.model.views.RoleViews;
+
 @Entity
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonIgnore
     private Long id;
 
     @NotEmpty
+    @JsonView(RoleViews.GeneralView.class)
     private String roleName;
 
     public Role() {

@@ -63,7 +63,8 @@ public class JWTLoginController {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
                 userDto.getLastName());
-        return new ResponseEntity<>(userDetailsService.save(user, false), HttpStatus.CREATED);
+        User saveduser = userDetailsService.save(user, false);
+        return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
     }
 
     @PostMapping("/teacher/register")
@@ -72,6 +73,7 @@ public class JWTLoginController {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
                 userDto.getLastName());
-        return new ResponseEntity<>(userDetailsService.save(user, true), HttpStatus.CREATED);
+        User saveduser = userDetailsService.save(user, true);
+        return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
     }
 }

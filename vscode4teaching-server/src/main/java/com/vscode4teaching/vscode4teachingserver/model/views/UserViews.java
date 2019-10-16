@@ -4,6 +4,6 @@ public class UserViews {
     private UserViews() {
     }
 
-    public static interface GeneralView {
+    public static interface GeneralView extends RoleViews.GeneralView {
     }
 }

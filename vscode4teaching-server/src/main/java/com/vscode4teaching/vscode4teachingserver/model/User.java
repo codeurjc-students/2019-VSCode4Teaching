@@ -32,11 +32,11 @@ public class User {
     private String email;
 
     @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
-    @JsonIgnore
+    @JsonView(UserViews.GeneralView.class)
     private String username;
 
-    @JsonIgnore
     @NotEmpty(message = "Please provide a password")
+    @JsonIgnore
     private String password;
 
     @NotEmpty(message = "Please provide your name")
