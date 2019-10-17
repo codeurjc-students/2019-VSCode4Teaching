@@ -38,14 +38,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course registerNewCourse(Course course, Long teacherId, String requestUsername)
-            throws TeacherNotFoundException, NotSameTeacherException {
-        Optional<User> teacherOpt = userRepo.findById(teacherId);
-        User teacher = teacherOpt.orElseThrow(() -> new TeacherNotFoundException("Teacher not found."));
-        if (!teacher.getUsername().equals(requestUsername)) {
-            throw new NotSameTeacherException(
-                    "The request to add a course to a teacher has to be from the same teacher.");
-        }
+    public Course registerNewCourse(Course course, String requestUsername) throws TeacherNotFoundException {
+        Optional<User> teacherOpt = userRepo.findByUsername(requestUsername);
+        User teacher = teacherOpt.orElseThrow(() -> new TeacherNotFoundException("Teacher not found: " + requestUsername));
         course.addUserInCourse(teacher);
         return this.courseRepo.save(course);
     }
@@ -54,7 +49,49 @@ public class CourseServiceImpl implements CourseService {
     public Course addExerciseToCourse(Long courseId, Exercise exercise, String requestUsername)
             throws CourseNotFoundException, NotSameTeacherException {
         Course course = this.courseRepo.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException("Course not found."));
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotSameTeacher(course, requestUsername);
+        exercise.setCourse(course);
+        // Fetching exercises of course (Lazy initialization)
+        course.getExercises();
+        course.addExercise(exercise);
+        exerciseRepo.save(exercise);
+        return courseRepo.save(course);
+    }
+
+    @Override
+    public Course editCourse(Long courseId, Course courseData, String requestUsername) throws CourseNotFoundException, NotSameTeacherException {
+        Course courseToEdit = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotSameTeacher(courseToEdit, requestUsername);
+        courseToEdit.setName(courseData.getName());
+        return courseRepo.save(courseToEdit);        
+    }
+
+    @Override
+    public void deleteCourse(Long courseId, String requestUsername) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public Course getExercises(Long courseId, String requestUsername) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Exercise editExercise(Long courseId, Long exerciseId, Exercise exerciseData, String requestUsername) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void deleteExercise(Long courseId, Long exerciseId, String requestUsername) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void throwExceptionIfNotSameTeacher(Course course, String requestUsername) throws NotSameTeacherException {
         Predicate<Role> getTeacherRole = role -> role.getRoleName().equals("ROLE_TEACHER");
         Predicate<User> getTeachers = user -> user.getRoles()
                 .contains(user.getRoles().stream().filter(getTeacherRole).findFirst().get());
@@ -65,12 +102,6 @@ public class CourseServiceImpl implements CourseService {
             throw new NotSameTeacherException(
                     "The request to add an exercise to a course has to be from a course's teacher.");
         }
-        exercise.setCourse(course);
-        // Fetching exercises of course (Lazy initialization)
-        course.getExercises();
-        course.addExercise(exercise);
-        exerciseRepo.save(exercise);
-        return courseRepo.save(course);
     }
 
 }

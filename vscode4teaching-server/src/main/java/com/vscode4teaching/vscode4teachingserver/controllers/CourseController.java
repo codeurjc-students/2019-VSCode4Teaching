@@ -12,6 +12,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
+import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
@@ -24,9 +25,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,15 +57,37 @@ public class CourseController {
         return !courses.isEmpty() ? ResponseEntity.ok(courses) : ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/teachers/{id}/courses")
+    @PostMapping("/courses")
     @JsonView(CourseViews.GeneralView.class)
-    public ResponseEntity<Course> addCourse(HttpServletRequest request, @PathVariable Long id,
-            @Valid @RequestBody CourseDTO courseDTO) throws TeacherNotFoundException, NotSameTeacherException {
+    public ResponseEntity<Course> addCourse(HttpServletRequest request, @Valid @RequestBody CourseDTO courseDTO)
+            throws TeacherNotFoundException, NotSameTeacherException {
 
-        Course course = new Course(courseDTO.name);
-        Course savedCourse = courseService.registerNewCourse(course, id, getUsernameFromToken(request));
+        Course course = new Course(courseDTO.getName());
+        Course savedCourse = courseService.registerNewCourse(course, getUsernameFromToken(request));
         logger.info("Course saved: {}", savedCourse);
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/courses/{id}")
+    @JsonView(CourseViews.GeneralView.class)
+    public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
+            @Valid @RequestBody CourseDTO courseDTO) throws CourseNotFoundException, NotSameTeacherException {
+        Course course = new Course(courseDTO.getName());
+        Course savedCourse = courseService.editCourse(id, course, getUsernameFromToken(request));
+        return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/courses/{id}")
+    public ResponseEntity<Void> deleteCourse(HttpServletRequest request, @PathVariable @Min(1) Long id) {
+        // TODO
+        return null;
+    }
+
+    @GetMapping("/courses/{courseId}/exercises")
+    @JsonView(CourseViews.ExercisesView.class)
+    public ResponseEntity<Course> getExercises(@PathVariable @Min(1) Long courseId) {
+        // TODO
+        return null;
     }
 
     @PostMapping("/courses/{courseId}/exercises")
@@ -72,6 +97,22 @@ public class CourseController {
         Exercise exercise = new Exercise(exerciseDTO.name);
         Course savedCourse = courseService.addExerciseToCourse(courseId, exercise, getUsernameFromToken(request));
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/courses/{courseId}/exercises/{exerciseId}")
+    @JsonView(ExerciseViews.GeneralView.class)
+    public ResponseEntity<Exercise> updateExercise(@PathVariable @Min(1) Long courseId,
+            @PathVariable @Min(1) Long exerciseId, @RequestBody ExerciseDTO exercoseDTO) {
+        // TODO
+        return null;
+    }
+
+    @DeleteMapping("/courses/{courseId}/exercises/{exerciseId}")
+    @JsonView(ExerciseViews.GeneralView.class)
+    public ResponseEntity<Void> deleteExercise(@PathVariable @Min(1) Long courseId,
+            @PathVariable @Min(1) Long exerciseId) {
+        // TODO
+        return null;
     }
 
     private String getUsernameFromToken(HttpServletRequest request) {

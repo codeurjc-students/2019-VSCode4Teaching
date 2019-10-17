@@ -19,9 +19,19 @@ import org.springframework.validation.annotation.Validated;
 public interface CourseService {
         public List<Course> getAllCourses();
 
-        public Course registerNewCourse(@Valid Course course, Long teacherId, String requestUsername)
-                        throws TeacherNotFoundException, NotSameTeacherException;
+        public Course registerNewCourse(@Valid Course course, String requestUsername)
+                        throws TeacherNotFoundException;
 
         public Course addExerciseToCourse(@Min(1) Long courseId, @Valid Exercise exercise, String requestUsername)
                         throws CourseNotFoundException, NotSameTeacherException;
+
+        public Course editCourse(@Min(1) Long courseId, @Valid Course courseData, String requestUsername) throws CourseNotFoundException, NotSameTeacherException;
+
+        public void deleteCourse(@Min(1) Long courseId, String requestUsername);
+
+        public Course getExercises(@Min(1) Long courseId, String requestUsername);
+
+        public Exercise editExercise(@Min(1) Long courseId, @Min(1) Long exerciseId, @Valid Exercise exerciseData, String requestUsername);
+
+        public void deleteExercise(@Min(1) Long courseId, @Min(1) Long exerciseId, String requestUsername);
 }

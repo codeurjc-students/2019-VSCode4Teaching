@@ -5,8 +5,6 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.User;
-import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +29,6 @@ public class IntegrationTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private JWTUserDetailsService userService;
-
     @Test
     public void login_into_createCourse() throws Exception {
         JWTRequest jwtRequest = new JWTRequest();
@@ -48,9 +43,8 @@ public class IntegrationTests {
         CourseDTO course = new CourseDTO();
         course.setName("Spring Boot Course");
 
-        User teacher = userService.findByUsername("johndoe");
         MvcResult mvcResult = mockMvc
-                .perform(post("/api/teachers/" + teacher.getId() + "/courses").contentType("application/json")
+                .perform(post("/api/courses").contentType("application/json")
                         .content(objectMapper.writeValueAsString(course))
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andExpect(status().isCreated()).andReturn();

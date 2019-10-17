@@ -1,5 +1,20 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.Role;
@@ -19,20 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
 
 @ExtendWith(MockitoExtension.class)
 public class CourseServiceImplTests {
@@ -64,9 +65,9 @@ public class CourseServiceImplTests {
         Course expectedCourse = new Course("Spring Boot Course");
         expectedCourse.setId(1l);
         when(courseRepository.save(course)).thenReturn(expectedCourse);
-        when(userRepository.findById(anyLong())).thenReturn(userOpt);
+        when(userRepository.findByUsername(anyString())).thenReturn(userOpt);
 
-        Course savedCourse = courseServiceImpl.registerNewCourse(course, 1l, "johndoe");
+        Course savedCourse = courseServiceImpl.registerNewCourse(course, "johndoe");
         logger.info("Course to save: {}.\n Course saved: {}", course, savedCourse);
 
         assertThat(savedCourse.getId()).isEqualTo(1l);
@@ -78,25 +79,6 @@ public class CourseServiceImplTests {
         logger.info("Test registerNewCourse_valid() ends.");
     }
 
-    @Test
-    public void registerNewCourse_notSameTeacher() {
-        logger.info("Test registerNewCourse_notSameTeacher() begins.");
-        User user = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        user.setId(1l);
-        Optional<User> userOpt = Optional.of(user);
-        Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
-        Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
-        Course course = new Course("Spring Boot Course");
-        Course expectedCourse = new Course("Spring Boot Course");
-        expectedCourse.setId(1l);
-        when(userRepository.findById(anyLong())).thenReturn(userOpt);
-
-        assertThrows(NotSameTeacherException.class,() -> courseServiceImpl.registerNewCourse(course, 1l, "manolo"));
-
-        logger.info("Test registerNewCourse_notSameTeacher() ends.");
-    }
     @Test
     public void getAllCourses_valid() {
         logger.info("Test getAllCourses_valid() begins.");
@@ -136,7 +118,7 @@ public class CourseServiceImplTests {
         teacher.addCourse(course);
         course.addUserInCourse(teacher);
         Optional<Course> courseOpt = Optional.of(course);
-        
+
         when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).then(returnsFirstArg());
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
@@ -166,4 +148,36 @@ public class CourseServiceImplTests {
 
         logger.info("Test addExerciseToCourse_exception() ends.");
     }
+
+    @Test
+    public void editCourse_valid() throws Exception {
+        logger.info("Test editCourse_valid() begins.");
+
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        Course oldCourse = new Course("Spring Boot Course");
+        Course courseData = new Course("New Spring Boot Course");
+        Course expectedCourse = new Course("New Spring Boot Course");
+        expectedCourse.setId(1l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(oldCourse);
+        oldCourse.addUserInCourse(teacher);
+        Optional<Course> oldCourseOpt = Optional.of(oldCourse);
+        when(courseRepository.save(any(Course.class))).thenReturn(expectedCourse);
+        when(courseRepository.findById(1l)).thenReturn(oldCourseOpt);
+
+        Course savedCourse = courseServiceImpl.editCourse(1l, courseData, "johndoe");
+
+        assertThat(savedCourse.getId()).isEqualTo(1l);
+        assertThat(savedCourse.getName()).isEqualTo("New Spring Boot Course");
+        verify(courseRepository, times(1)).save(any(Course.class));
+        verify(courseRepository, times(1)).findById(anyLong());
+
+        logger.info("Test editCourse_valid() ends.");
+    }
+
 }
