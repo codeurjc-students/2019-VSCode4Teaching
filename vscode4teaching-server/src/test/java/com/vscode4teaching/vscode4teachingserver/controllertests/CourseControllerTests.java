@@ -1,5 +1,18 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
@@ -23,19 +36,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
@@ -216,7 +216,7 @@ public class CourseControllerTests {
                                 .perform(put("/api/courses/1").contentType("application/json")
                                                 .content(objectMapper.writeValueAsString(course))
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
-                                .andExpect(status().isCreated()).andReturn();
+                                .andExpect(status().isOk()).andReturn();
 
                 ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
                 verify(courseService, times(1)).editCourse(anyLong(), courseCaptor.capture(), anyString());
@@ -227,5 +227,16 @@ public class CourseControllerTests {
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
                 logger.info("Test editCourse_valid() ends.");
+        }
+
+        @Test
+        public void deleteCourse_valid() throws Exception {
+                logger.info("Test deleteCourse_valid() begins.");
+                mockMvc.perform(delete("/api/courses/1").contentType("application/json").header("Authorization",
+                                "Bearer " + jwtToken.getJwtToken())).andExpect(status().isNoContent());
+
+                verify(courseService, times(1)).deleteCourse(anyLong(), anyString());
+
+                logger.info("Test deleteCourse_valid() ends.");
         }
 }

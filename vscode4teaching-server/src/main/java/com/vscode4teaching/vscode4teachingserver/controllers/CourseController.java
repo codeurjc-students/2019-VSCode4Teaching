@@ -74,13 +74,14 @@ public class CourseController {
             @Valid @RequestBody CourseDTO courseDTO) throws CourseNotFoundException, NotSameTeacherException {
         Course course = new Course(courseDTO.getName());
         Course savedCourse = courseService.editCourse(id, course, getUsernameFromToken(request));
-        return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
+        return ResponseEntity.ok(savedCourse);
     }
 
     @DeleteMapping("/courses/{id}")
-    public ResponseEntity<Void> deleteCourse(HttpServletRequest request, @PathVariable @Min(1) Long id) {
-        // TODO
-        return null;
+    public ResponseEntity<Void> deleteCourse(HttpServletRequest request, @PathVariable @Min(1) Long id)
+            throws CourseNotFoundException, NotSameTeacherException {
+        courseService.deleteCourse(id, getUsernameFromToken(request));
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/courses/{courseId}/exercises")

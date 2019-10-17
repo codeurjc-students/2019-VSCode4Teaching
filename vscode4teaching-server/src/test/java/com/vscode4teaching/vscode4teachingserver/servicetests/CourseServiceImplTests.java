@@ -180,4 +180,31 @@ public class CourseServiceImplTests {
         logger.info("Test editCourse_valid() ends.");
     }
 
+    @Test
+    public void deleteCourse_valid() throws CourseNotFoundException, NotSameTeacherException {
+        Course course = new Course("Spring Boot Course");
+        Long courseTestId = 1l;
+        course.setId(1l);
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        Optional<Course> courseOpt = Optional.of(course);
+        Optional<Course> emptyOpt = Optional.empty();
+
+        when(courseRepository.findById(courseTestId)).thenReturn(courseOpt).thenReturn(emptyOpt);
+
+        courseServiceImpl.deleteCourse(courseTestId, "johndoe");
+
+        // Uncomment when getExercises() is implemented
+        // assertThrows(CourseNotFoundException.class, () -> courseServiceImpl.getExercises(courseTestId, "johndoe"));
+        verify(courseRepository, times(1)).findById(courseTestId);
+
+    }
+
 }

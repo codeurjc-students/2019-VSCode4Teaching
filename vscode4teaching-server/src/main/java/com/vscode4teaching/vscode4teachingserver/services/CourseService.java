@@ -27,7 +27,7 @@ public interface CourseService {
 
         public Course editCourse(@Min(1) Long courseId, @Valid Course courseData, String requestUsername) throws CourseNotFoundException, NotSameTeacherException;
 
-        public void deleteCourse(@Min(1) Long courseId, String requestUsername);
+        public void deleteCourse(@Min(1) Long courseId, String requestUsername) throws CourseNotFoundException, NotSameTeacherException;
 
         public Course getExercises(@Min(1) Long courseId, String requestUsername);
 

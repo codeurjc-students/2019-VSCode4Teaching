@@ -68,9 +68,10 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void deleteCourse(Long courseId, String requestUsername) {
-        // TODO Auto-generated method stub
-
+    public void deleteCourse(Long courseId, String requestUsername) throws CourseNotFoundException, NotSameTeacherException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotSameTeacher(course, requestUsername);
+        this.courseRepo.delete(course);
     }
 
     @Override
