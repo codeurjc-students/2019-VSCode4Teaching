@@ -9,7 +9,7 @@ Note: All requests can respond with code 401 if the required role isn't fulfille
 
 Log in on the server and receive the JWT Token. The token should be in an Authorization header like:
 `Authorization: Bearer [token]`
-where [token] is the token received in this request.
+where `token` is the token received in this request.
 
 - **Required role:**  
    None
@@ -33,7 +33,7 @@ where [token] is the token received in this request.
   - **Content:**
   ```json
   {
-    "jwtToken": [token]
+    "jwtToken": "token"
   }
   ```
 - **Error Response**
@@ -374,7 +374,7 @@ Edit course fields. Currently you can edit with this method: name.
   }
   ```
 - **Success Response**
-  - **Code:** 201
+  - **Code:** 200
   - **Content:**
   ```json
   {
@@ -403,5 +403,85 @@ Edit course fields. Currently you can edit with this method: name.
   - **Code:** 404
   - **Content:**
   ```text
-      Not found: Course not found.
+      Not found: Course not found: 15.
+  ```
+
+## Delete a course
+
+---
+
+Remove a course. Logged user has to be a teacher of this course.
+
+- **Required role:**
+  Teacher
+- **URL**
+  `/api/courses/:id`
+- **Method**
+  `DELETE`
+- **URL Params**
+  `id=[long]`
+- **Success Response**
+  - **Code:** 204
+- **Error Response**
+
+  - **Code**: 404
+  - **Content:**
+
+  ```text
+  Not found: Course not found: 15
+  ```
+
+## Get exercises of a course
+
+---
+
+Get all exercise of a course. Logged user has to be a member of this course.
+
+- **Required role:**  
+   Student, Teacher
+- **URL**  
+   `/api/courses/:id/exercises`
+- **Method**  
+   `GET`
+- **URL Params**
+  `id=[long]`
+- **Success Response**
+  - **Code:** 200
+  - **Content:**
+  ```json
+  [
+    {
+      "id": 10,
+      "name": "Exercise 1",
+      "course": {
+        "id": 7,
+        "name": "Spring Boot Course"
+      }
+    },
+    {
+      "id": 11,
+      "name": "Exercise 2",
+      "course": {
+        "id": 7,
+        "name": "Spring Boot Course"
+      }
+    },
+    {
+      "id": 12,
+      "name": "Exercise 3",
+      "course": {
+        "id": 7,
+        "name": "Spring Boot Course"
+      }
+    }
+  ]
+  ```
+- **Success Response (No courses found)**
+  - **Code:** 204
+  - **Content:** Empty
+- **Error Response**
+  - **Code**: 404
+  - **Content:**
+  ```text
+  Not found: Course not found: 15
   ```

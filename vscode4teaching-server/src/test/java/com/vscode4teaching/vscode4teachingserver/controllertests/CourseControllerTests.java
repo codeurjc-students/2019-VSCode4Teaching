@@ -15,11 +15,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
-import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 
@@ -151,57 +149,6 @@ public class CourseControllerTests {
                 verify(courseService, times(0)).registerNewCourse(any(Course.class), anyString());
 
                 logger.info("Test postCourse_invalid() ends.");
-        }
-
-        @Test
-        public void addExercise_valid() throws Exception {
-                logger.info("Test addExercise_valid() begins.");
-
-                Course course = new Course("Spring Boot Course");
-                Long courseId = 1l;
-                course.setId(courseId);
-                Exercise exercise = new Exercise("Spring Boot Exercise 1");
-                Course expectedCourse = new Course("Spring Boot Course");
-                expectedCourse.setId(courseId);
-                expectedCourse.addExercise(exercise);
-                ExerciseDTO exerciseDTO = new ExerciseDTO();
-                exerciseDTO.setName("Spring Boot Exercise 1");
-                when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
-                                .thenReturn(expectedCourse);
-
-                MvcResult mvcResult = mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId)
-                                .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO))
-                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
-                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
-
-                ArgumentCaptor<Exercise> exerciseCaptor = ArgumentCaptor.forClass(Exercise.class);
-                verify(courseService, times(1)).addExerciseToCourse(any(Long.class), exerciseCaptor.capture(),
-                                anyString());
-                assertThat(exerciseCaptor.getValue().getName()).isEqualTo("Spring Boot Exercise 1");
-                String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(CourseViews.ExercisesView.class)
-                                .writeValueAsString(expectedCourse);
-                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-
-                logger.info("Test addExercise_valid() ends.");
-        }
-
-        @Test
-        public void addExercise_invalid() throws Exception {
-                logger.info("Test addExercise_invalid() begins.");
-
-                Course course = new Course("Spring Boot Course");
-                Long courseId = 1l;
-                course.setId(courseId);
-                ExerciseDTO exercise = new ExerciseDTO();
-
-                mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
-                                .header("Authorization", "Bearer " + jwtToken.getJwtToken())
-                                .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
-
-                verify(courseService, times(0)).addExerciseToCourse(any(Long.class), any(Exercise.class), anyString());
-
-                logger.info("Test addExercise_invalid() ends.");
         }
 
         @Test

@@ -14,7 +14,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepo
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotSameTeacherException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 
 import org.springframework.stereotype.Service;
@@ -40,44 +40,50 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Course registerNewCourse(Course course, String requestUsername) throws TeacherNotFoundException {
         Optional<User> teacherOpt = userRepo.findByUsername(requestUsername);
-        User teacher = teacherOpt.orElseThrow(() -> new TeacherNotFoundException("Teacher not found: " + requestUsername));
+        User teacher = teacherOpt
+                .orElseThrow(() -> new TeacherNotFoundException("Teacher not found: " + requestUsername));
         course.addUserInCourse(teacher);
         return this.courseRepo.save(course);
     }
 
     @Override
-    public Course addExerciseToCourse(Long courseId, Exercise exercise, String requestUsername)
-            throws CourseNotFoundException, NotSameTeacherException {
-        Course course = this.courseRepo.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotSameTeacher(course, requestUsername);
+    public Exercise addExerciseToCourse(Long courseId, Exercise exercise, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotInCourse(course, requestUsername, true);
         exercise.setCourse(course);
         // Fetching exercises of course (Lazy initialization)
         course.getExercises();
         course.addExercise(exercise);
-        exerciseRepo.save(exercise);
-        return courseRepo.save(course);
+        Exercise savedExercise = exerciseRepo.save(exercise);
+        courseRepo.save(course);
+        return savedExercise;
     }
 
     @Override
-    public Course editCourse(Long courseId, Course courseData, String requestUsername) throws CourseNotFoundException, NotSameTeacherException {
-        Course courseToEdit = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotSameTeacher(courseToEdit, requestUsername);
+    public Course editCourse(Long courseId, Course courseData, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException {
+        Course courseToEdit = this.courseRepo.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotInCourse(courseToEdit, requestUsername, true);
         courseToEdit.setName(courseData.getName());
-        return courseRepo.save(courseToEdit);        
+        return courseRepo.save(courseToEdit);
     }
 
     @Override
-    public void deleteCourse(Long courseId, String requestUsername) throws CourseNotFoundException, NotSameTeacherException {
+    public void deleteCourse(Long courseId, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotSameTeacher(course, requestUsername);
+        throwExceptionIfNotInCourse(course, requestUsername, true);
         this.courseRepo.delete(course);
     }
 
     @Override
-    public Course getExercises(Long courseId, String requestUsername) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Exercise> getExercises(Long courseId, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        throwExceptionIfNotInCourse(course, requestUsername, false);
+        return course.getExercises();
     }
 
     @Override
@@ -92,16 +98,27 @@ public class CourseServiceImpl implements CourseService {
 
     }
 
-    private void throwExceptionIfNotSameTeacher(Course course, String requestUsername) throws NotSameTeacherException {
+    private void throwExceptionIfNotInCourse(Course course, String requestUsername, boolean hasToBeTeacher)
+            throws NotInCourseException {
         Predicate<Role> getTeacherRole = role -> role.getRoleName().equals("ROLE_TEACHER");
-        Predicate<User> getTeachers = user -> user.getRoles()
-                .contains(user.getRoles().stream().filter(getTeacherRole).findFirst().get());
-        List<User> teachers = course.getUsersInCourse().stream().filter(getTeachers).collect(Collectors.toList());
-
-        List<String> teacherUsernames = teachers.stream().map(user -> user.getUsername()).collect(Collectors.toList());
-        if (!teacherUsernames.contains(requestUsername)) {
-            throw new NotSameTeacherException(
-                    "The request to add an exercise to a course has to be from a course's teacher.");
+        Predicate<User> getUsers;
+        List<User> users;
+        if (hasToBeTeacher) {
+            getUsers = user -> user.getRoles()
+                    .contains(user.getRoles().stream().filter(getTeacherRole).findFirst().get());
+            users = course.getUsersInCourse().stream().filter(getUsers).collect(Collectors.toList());
+        } else {
+            users = course.getUsersInCourse();
+        }
+        List<String> usernames = users.stream().map(user -> user.getUsername()).collect(Collectors.toList());
+        if (!usernames.contains(requestUsername)) {
+            String exceptionMessage;
+            if (hasToBeTeacher) {
+                exceptionMessage = "User is not in course or teacher is not in this course.";
+            } else {
+                exceptionMessage = "User is not in course.";
+            }
+            throw new NotInCourseException(exceptionMessage);
         }
     }
 

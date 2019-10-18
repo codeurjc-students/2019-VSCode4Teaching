@@ -23,7 +23,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseReposi
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotSameTeacherException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
 
@@ -53,7 +53,7 @@ public class CourseServiceImplTests {
     private static final Logger logger = LoggerFactory.getLogger(CourseServiceImplTests.class);
 
     @Test
-    public void registerNewCourse_valid() throws TeacherNotFoundException, NotSameTeacherException {
+    public void registerNewCourse_valid() throws TeacherNotFoundException, NotInCourseException {
         logger.info("Test registerNewCourse_valid() begins.");
         User user = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
         Optional<User> userOpt = Optional.of(user);
@@ -124,11 +124,9 @@ public class CourseServiceImplTests {
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
         Exercise exercise = new Exercise("Unit testing in Spring Boot");
 
-        Course savedCourse = courseServiceImpl.addExerciseToCourse(courseTestId, exercise, "johndoe");
+        Exercise savedExercise = courseServiceImpl.addExerciseToCourse(courseTestId, exercise, "johndoe");
 
-        assertThat(savedCourse.getName()).isEqualTo("Spring Boot Course");
-        Exercise savedExerciseInCourse = savedCourse.getExercises().get(0);
-        assertThat(savedExerciseInCourse.getName()).isEqualTo("Unit testing in Spring Boot");
+        assertThat(savedExercise.getName()).isEqualTo("Unit testing in Spring Boot");
         verify(courseRepository, times(1)).findById(courseTestId);
         verify(courseRepository, times(1)).save(course);
         verify(exerciseRepository, times(1)).save(exercise);
@@ -181,7 +179,7 @@ public class CourseServiceImplTests {
     }
 
     @Test
-    public void deleteCourse_valid() throws CourseNotFoundException, NotSameTeacherException {
+    public void deleteCourse_valid() throws CourseNotFoundException, NotInCourseException {
         Course course = new Course("Spring Boot Course");
         Long courseTestId = 1l;
         course.setId(1l);
@@ -206,5 +204,41 @@ public class CourseServiceImplTests {
         verify(courseRepository, times(1)).findById(courseTestId);
 
     }
+    
+    @Test
+    public void getExercises_valid() throws CourseNotFoundException, NotInCourseException {
+        Course course = new Course("Spring Boot Course");
+        Long courseTestId = 1l;
+        course.setId(courseTestId);
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        User student = new User("johndoejr2@gmail.com", "johndoe2", "pass", "John", "Doe 2");
+        Role studentRole = new Role("ROLE_STUDENT");
+        Role teacherRole = new Role("ROLE_TEACHER");
+        studentRole.setId(2l);
+        teacherRole.setId(3l);
+        teacher.setId(4l);
+        student.setId(5l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        student.addRole(studentRole);
+        teacher.addCourse(course);
+        student.addCourse(course);
+        course.addUserInCourse(teacher);
+        course.addUserInCourse(student);
+        Exercise exercise = new Exercise("Spring Boot Exercise 1");
+        exercise.setId(6l);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        Optional<Course> courseOpt = Optional.of(course);
+        when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
 
+        List<Exercise> exercises1 = courseServiceImpl.getExercises(courseTestId, "johndoe");
+        List<Exercise> exercises2 = courseServiceImpl.getExercises(courseTestId, "johndoe2");
+
+        assertThat(exercises1).contains(exercise);
+        assertThat(exercises2).isEqualTo(exercises1);
+        verify(courseRepository, times(2)).findById(courseTestId);
+    }
+
+  
 }
