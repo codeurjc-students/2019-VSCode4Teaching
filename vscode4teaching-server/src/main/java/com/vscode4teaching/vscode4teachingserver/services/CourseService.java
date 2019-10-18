@@ -11,6 +11,7 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFo
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -39,4 +40,6 @@ public interface CourseService {
 
         public void deleteExercise(@Min(1) Long exerciseId, String requestUsername)
                         throws NotInCourseException, ExerciseNotFoundException;
+
+        public List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
 }

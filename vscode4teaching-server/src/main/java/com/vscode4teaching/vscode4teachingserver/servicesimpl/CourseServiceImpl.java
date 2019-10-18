@@ -2,8 +2,6 @@ package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
@@ -17,6 +15,7 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFo
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 
 import org.springframework.stereotype.Service;
 
@@ -98,7 +97,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void deleteExercise(Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException {
+    public void deleteExercise(Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
@@ -106,28 +106,35 @@ public class CourseServiceImpl implements CourseService {
 
     }
 
+    @Override
+    public List<Course> getUserCourses(Long userId) throws UserNotFoundException {
+        User user = this.userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        return user.getCourses();
+    }
+
     private void throwExceptionIfNotInCourse(Course course, String requestUsername, boolean hasToBeTeacher)
             throws NotInCourseException {
-        Predicate<Role> getTeacherRole = role -> role.getRoleName().equals("ROLE_TEACHER");
-        Predicate<User> getUsers;
-        List<User> users;
-        if (hasToBeTeacher) {
-            getUsers = user -> user.getRoles()
-                    .contains(user.getRoles().stream().filter(getTeacherRole).findFirst().get());
-            users = course.getUsersInCourse().stream().filter(getUsers).collect(Collectors.toList());
-        } else {
-            users = course.getUsersInCourse();
-        }
-        List<String> usernames = users.stream().map(user -> user.getUsername()).collect(Collectors.toList());
-        if (!usernames.contains(requestUsername)) {
-            String exceptionMessage;
-            if (hasToBeTeacher) {
-                exceptionMessage = "User is not in course or teacher is not in this course.";
-            } else {
-                exceptionMessage = "User is not in course.";
+        for (User user : course.getUsersInCourse()) {
+            if (user.getUsername().equals(requestUsername)) {
+                if (hasToBeTeacher) {
+                    for (Role role : user.getRoles()) {
+                        if (role.getRoleName().equals("ROLE_TEACHER")) {
+                            return;
+                        }
+                    }
+                } else {
+                    return;
+                }
             }
-            throw new NotInCourseException(exceptionMessage);
         }
+        String exceptionMessage;
+        if (hasToBeTeacher) {
+            exceptionMessage = "User is not in course or teacher is not in this course.";
+        } else {
+            exceptionMessage = "User is not in course.";
+        }
+        throw new NotInCourseException(exceptionMessage);
     }
 
 }

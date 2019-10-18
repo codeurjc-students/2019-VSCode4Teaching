@@ -15,6 +15,7 @@ import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,4 +82,9 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/users/{id}/courses")
+    @JsonView(CourseViews.GeneralView.class)
+    public ResponseEntity<List<Course>> getUserCourses(@PathVariable @Min(1) Long id) throws UserNotFoundException {
+        return ResponseEntity.ok(courseService.getUserCourses(id));
+    }
 }

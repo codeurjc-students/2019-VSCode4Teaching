@@ -7,7 +7,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
+import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 
@@ -185,5 +189,35 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).deleteCourse(anyLong(), anyString());
 
                 logger.info("Test deleteCourse_valid() ends.");
+        }
+
+        @Test
+        public void getUserCourses_valid() throws Exception {
+                logger.info("Test getUserCourses_valid() begins.");
+                List<Course> courses = new ArrayList<>();
+                Course c0 = new Course("Spring Boot Course");
+                Course c1 = new Course("Angular Course");
+                Course c2 = new Course("VS Code API Course");
+
+                courses.add(c0);
+                courses.add(c1);
+                courses.add(c2);
+                User user = new User("johndoe@john.com", "johndoejr", "password", "John", "Doe");
+                user.setCourses(courses);
+                user.setId(4l);
+                when(courseService.getUserCourses(4l)).thenReturn(courses);
+
+                MvcResult mvcResult = mockMvc
+                                .perform(get("/api/users/4/courses").contentType("application/json")
+                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andExpect(status().isOk()).andReturn();
+
+                String actualResponseBody = mvcResult.getResponse().getContentAsString();
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
+                                .writeValueAsString(courses);
+                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+                verify(courseService, times(1)).getUserCourses(anyLong());
+
+                logger.info("Test getUserCourses_valid() ends.");
         }
 }

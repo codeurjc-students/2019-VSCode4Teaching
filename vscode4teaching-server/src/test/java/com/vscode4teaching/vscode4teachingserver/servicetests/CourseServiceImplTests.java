@@ -26,6 +26,7 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFo
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
 
 import org.junit.jupiter.api.Test;
@@ -305,5 +306,28 @@ public class CourseServiceImplTests {
 
         assertThat(savedExercises).isEmpty();
         verify(exerciseRepository, times(1)).findById(6l);
+    }
+
+    @Test
+    public void getUserCourses() throws UserNotFoundException {
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        Course course = new Course("Spring Boot Course");
+        teacher.setId(4l);
+        course.setId(1l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        Optional<User> userOpt = Optional.of(teacher);
+        when(userRepository.findById(anyLong())).thenReturn(userOpt);
+
+        List<Course> courses = courseServiceImpl.getUserCourses(1l);
+
+        assertThat(courses).contains(course);
+        verify(userRepository, times(1)).findById(anyLong());
     }
 }
