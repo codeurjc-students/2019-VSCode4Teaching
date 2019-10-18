@@ -90,15 +90,19 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Exercise editExercise(Long exerciseId, Exercise exerciseData, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
-        Exercise exercise = this.exerciseRepo.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        Exercise exercise = this.exerciseRepo.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
         exercise.setName(exerciseData.getName());
         return exerciseRepo.save(exercise);
     }
 
     @Override
-    public void deleteExercise(Long exerciseId, String requestUsername) {
-        // TODO Auto-generated method stub
+    public void deleteExercise(Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = this.exerciseRepo.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        this.exerciseRepo.delete(exercise);
 
     }
 

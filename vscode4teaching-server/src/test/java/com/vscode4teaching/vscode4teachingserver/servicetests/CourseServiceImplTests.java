@@ -200,10 +200,8 @@ public class CourseServiceImplTests {
 
         courseServiceImpl.deleteCourse(courseTestId, "johndoe");
 
-        // Uncomment when getExercises() is implemented
-        // assertThrows(CourseNotFoundException.class, () ->
-        // courseServiceImpl.getExercises(courseTestId, "johndoe"));
-        verify(courseRepository, times(1)).findById(courseTestId);
+        assertThrows(CourseNotFoundException.class, () -> courseServiceImpl.getExercises(courseTestId, "johndoe"));
+        verify(courseRepository, times(2)).findById(courseTestId);
 
     }
 
@@ -277,4 +275,35 @@ public class CourseServiceImplTests {
         verify(exerciseRepository, times(1)).save(any(Exercise.class));
     }
 
+    @Test
+    public void deleteExercise_valid() throws CourseNotFoundException, NotInCourseException, ExerciseNotFoundException {
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        Course course = new Course("Spring Boot Course");
+        course.setId(1l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        Exercise exercise = new Exercise("Spring Boot Exercise 1");
+        exercise.setId(6l);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        Optional<Exercise> exerciseOpt = Optional.of(exercise);
+        Course courseWithoutExercises = new Course("Spring Boot Course");
+        courseWithoutExercises.addUserInCourse(teacher);
+        Optional<Course> courseOpt = Optional.of(courseWithoutExercises);
+        doNothing().when(exerciseRepository).delete(any(Exercise.class));
+        when(exerciseRepository.findById(6l)).thenReturn(exerciseOpt);
+        when(courseRepository.findById(1l)).thenReturn(courseOpt);
+
+        courseServiceImpl.deleteExercise(6l, "johndoe");
+        List<Exercise> savedExercises = courseServiceImpl.getExercises(1l, "johndoe");
+
+        assertThat(savedExercises).isEmpty();
+        verify(exerciseRepository, times(1)).findById(6l);
+    }
 }

@@ -70,8 +70,9 @@ public class ExerciseController {
 
     @DeleteMapping("/exercises/{exerciseId}")
     @JsonView(ExerciseViews.CourseView.class)
-    public ResponseEntity<Void> deleteExercise(@PathVariable @Min(1) Long exerciseId) {
-        // TODO
-        return null;
+    public ResponseEntity<Void> deleteExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId)
+            throws ExerciseNotFoundException, NotInCourseException {
+        courseService.deleteExercise(exerciseId, jwtTokenUtil.getUsernameFromToken(request));
+        return ResponseEntity.noContent().build();
     }
 }

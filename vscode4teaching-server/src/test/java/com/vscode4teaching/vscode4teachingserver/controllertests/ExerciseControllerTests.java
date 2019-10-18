@@ -7,9 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -23,7 +21,6 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 
@@ -180,5 +177,16 @@ public class ExerciseControllerTests {
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
                 logger.info("Test editCourse_valid() ends.");
+        }
+
+        @Test
+        public void deleteExercise_valid() throws Exception {
+                logger.info("Test deleteExercise_valid() begins.");
+                mockMvc.perform(delete("/api/exercises/1").contentType("application/json").header("Authorization",
+                                "Bearer " + jwtToken.getJwtToken())).andExpect(status().isNoContent());
+
+                verify(courseService, times(1)).deleteExercise(anyLong(), anyString());
+
+                logger.info("Test deleteExercise_valid() ends.");
         }
 }

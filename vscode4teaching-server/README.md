@@ -485,3 +485,28 @@ Get all exercise of a course. Logged user has to be a member of this course.
   ```text
   Not found: Course not found: 15
   ```
+
+## Delete an exercise
+
+---
+
+Remove a course. Logged user has to be a teacher of this course.
+
+- **Required role:**
+  Teacher
+- **URL**
+  `/api/exercises/:id`
+- **Method**
+  `DELETE`
+- **URL Params**
+  `id=[long]`
+- **Success Response**
+  - **Code:** 204
+- **Error Response**
+
+  - **Code**: 404
+  - **Content:**
+
+  ```text
+  Not found: Exercise not found: 15
+  ```
