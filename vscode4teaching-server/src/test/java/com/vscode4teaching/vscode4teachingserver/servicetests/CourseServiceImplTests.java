@@ -23,6 +23,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseReposi
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
@@ -200,11 +201,12 @@ public class CourseServiceImplTests {
         courseServiceImpl.deleteCourse(courseTestId, "johndoe");
 
         // Uncomment when getExercises() is implemented
-        // assertThrows(CourseNotFoundException.class, () -> courseServiceImpl.getExercises(courseTestId, "johndoe"));
+        // assertThrows(CourseNotFoundException.class, () ->
+        // courseServiceImpl.getExercises(courseTestId, "johndoe"));
         verify(courseRepository, times(1)).findById(courseTestId);
 
     }
-    
+
     @Test
     public void getExercises_valid() throws CourseNotFoundException, NotInCourseException {
         Course course = new Course("Spring Boot Course");
@@ -240,5 +242,39 @@ public class CourseServiceImplTests {
         verify(courseRepository, times(2)).findById(courseTestId);
     }
 
-  
+    @Test
+    public void editExercise_valid() throws ExerciseNotFoundException, NotInCourseException {
+        Course course = new Course("Spring Boot Course");
+        Long courseTestId = 1l;
+        course.setId(courseTestId);
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        Role teacherRole = new Role("ROLE_TEACHER");
+        studentRole.setId(2l);
+        teacherRole.setId(3l);
+        teacher.setId(4l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        Exercise oldExercise = new Exercise("Spring Boot Exercise 1");
+        Exercise exerciseData = new Exercise("Spring Boot Exercise 2");
+        Exercise newExercise = new Exercise("Spring Boot Exercise 2");
+        oldExercise.setId(5l);
+        newExercise.setId(5l);
+        oldExercise.setCourse(course);
+        course.addExercise(oldExercise);
+        newExercise.setCourse(course);
+        Optional<Exercise> exerciseOpt = Optional.of(oldExercise);
+        when(exerciseRepository.findById(5l)).thenReturn(exerciseOpt);
+        when(exerciseRepository.save(any(Exercise.class))).thenReturn(newExercise);
+
+        Exercise savedExercise = courseServiceImpl.editExercise(5l, exerciseData, "johndoe");
+
+        assertThat(savedExercise.getName()).isEqualTo("Spring Boot Exercise 2");
+        assertThat(savedExercise.getCourse()).isEqualTo(course);
+        verify(exerciseRepository, times(1)).findById(anyLong());
+        verify(exerciseRepository, times(1)).save(any(Exercise.class));
+    }
+
 }

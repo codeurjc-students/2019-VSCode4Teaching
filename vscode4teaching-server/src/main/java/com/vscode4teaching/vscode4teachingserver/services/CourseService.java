@@ -8,6 +8,7 @@ import javax.validation.constraints.Min;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 
@@ -33,9 +34,9 @@ public interface CourseService {
         public List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
                         throws CourseNotFoundException, NotInCourseException;
 
-        public Exercise editExercise(@Min(1) Long courseId, @Min(1) Long exerciseId, @Valid Exercise exerciseData,
-                        String requestUsername) throws CourseNotFoundException, NotInCourseException;
+        public Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData,
+                        String requestUsername) throws NotInCourseException, ExerciseNotFoundException;
 
-        public void deleteExercise(@Min(1) Long courseId, @Min(1) Long exerciseId, String requestUsername)
-                        throws CourseNotFoundException, NotInCourseException;
+        public void deleteExercise(@Min(1) Long exerciseId, String requestUsername)
+                        throws NotInCourseException, ExerciseNotFoundException;
 }

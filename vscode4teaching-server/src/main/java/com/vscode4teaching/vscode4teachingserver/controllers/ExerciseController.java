@@ -13,6 +13,7 @@ import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.springframework.http.HttpStatus;
@@ -59,18 +60,17 @@ public class ExerciseController {
         return new ResponseEntity<>(savedExercise, HttpStatus.CREATED);
     }
 
-    @PutMapping("/courses/{courseId}/exercises/{exerciseId}")
+    @PutMapping("/exercises/{exerciseId}")
     @JsonView(ExerciseViews.CourseView.class)
-    public ResponseEntity<Exercise> updateExercise(@PathVariable @Min(1) Long courseId,
-            @PathVariable @Min(1) Long exerciseId, @RequestBody ExerciseDTO exercoseDTO) {
-        // TODO
-        return null;
+    public ResponseEntity<Exercise> updateExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId,
+            @RequestBody ExerciseDTO exerciseDTO) throws ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = new Exercise(exerciseDTO.getName());
+        return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
-    @DeleteMapping("/courses/{courseId}/exercises/{exerciseId}")
+    @DeleteMapping("/exercises/{exerciseId}")
     @JsonView(ExerciseViews.CourseView.class)
-    public ResponseEntity<Void> deleteExercise(@PathVariable @Min(1) Long courseId,
-            @PathVariable @Min(1) Long exerciseId) {
+    public ResponseEntity<Void> deleteExercise(@PathVariable @Min(1) Long exerciseId) {
         // TODO
         return null;
     }

@@ -14,6 +14,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepo
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 
@@ -87,13 +88,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Exercise editExercise(Long courseId, Long exerciseId, Exercise exerciseData, String requestUsername) {
-        // TODO Auto-generated method stub
-        return null;
+    public Exercise editExercise(Long exerciseId, Exercise exerciseData, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = this.exerciseRepo.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        exercise.setName(exerciseData.getName());
+        return exerciseRepo.save(exercise);
     }
 
     @Override
-    public void deleteExercise(Long courseId, Long exerciseId, String requestUsername) {
+    public void deleteExercise(Long exerciseId, String requestUsername) {
         // TODO Auto-generated method stub
 
     }
