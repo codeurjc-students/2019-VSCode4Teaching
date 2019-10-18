@@ -10,7 +10,7 @@ import javax.validation.ConstraintViolationException;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse.ErrorDetail;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotSameTeacherException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,9 +83,9 @@ public class ExceptionController {
         return new ResponseEntity<>("This user does not exist: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(NotSameTeacherException.class)
+    @ExceptionHandler(NotInCourseException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<String> handleNotSameTeacherException(NotSameTeacherException e) {
+    public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 }

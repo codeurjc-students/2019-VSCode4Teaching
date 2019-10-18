@@ -7,6 +7,7 @@ import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,10 +29,8 @@ public class JWTUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
         List<GrantedAuthority> authorities = new ArrayList<>();
         for (Role role : user.getRoles()) {
             authorities.add(new SimpleGrantedAuthority(role.getRoleName()));
@@ -54,5 +53,10 @@ public class JWTUserDetailsService implements UserDetailsService {
             role = roleRepository.save(new Role(roleName));
         }
         user.addRole(role);
+    }
+
+    public User findByUsername(String username) throws NotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User '" + username + "' not found"));
     }
 }

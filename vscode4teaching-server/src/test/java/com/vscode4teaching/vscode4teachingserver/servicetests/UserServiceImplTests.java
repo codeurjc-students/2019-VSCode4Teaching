@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
@@ -33,7 +35,7 @@ public class UserServiceImplTests {
 
     @InjectMocks
     private JWTUserDetailsService userService;
-    
+
     private User user;
     private Role studentRole;
     private Role teacherRole;
@@ -50,16 +52,18 @@ public class UserServiceImplTests {
 
     @Test
     public void loadUserByUsername() {
-        when(userRepository.findByUsername(anyString())).thenReturn(user);
+        Optional<User> userOpt = Optional.of(user);
+        when(userRepository.findByUsername(anyString())).thenReturn(userOpt);
         UserDetails result = userService.loadUserByUsername("johndoe");
         assertThat("johndoe").isEqualTo(result.getUsername());
     }
 
     @Test
     public void loadUserByUsername_exception() {
-        when(userRepository.findByUsername(anyString())).thenReturn(null);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername("johndoe"));
     }
+
     @Test
     public void save() {
         when(userRepository.save(any(User.class))).thenReturn(user);
