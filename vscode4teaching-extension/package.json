@@ -1,0 +1,49 @@
+{
+	"name": "vscode4teaching",
+	"displayName": "VS Code 4 Teaching",
+	"description": "Bring the programming exercises of a course directly to the student’s editor, so that the teacher of that course can check the progress of the students and help them.",
+	"version": "0.0.1-SNAPSHOT",
+	"license": "Apache-2.0",
+	"engines": {
+		"vscode": "^1.39.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:extension.login"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.login",
+				"title": "Log in to VS Code 4 Teaching",
+				"category": "VSCode 4 Teaching"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.14.22",
+		"@types/simple-mock": "^0.8.1",
+		"@types/vscode": "^1.39.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.2.2",
+		"simple-mock": "^0.8.0",
+		"tslint": "^5.12.1",
+		"typescript": "^3.6.4",
+		"vscode-test": "^1.2.0"
+	},
+	"dependencies": {
+		"axios": "^0.19.0"
+	}
+}
