@@ -1,512 +1,86 @@
-# REST API Documentation
+# VS Code 4 Teaching Server
 
-Document explaining how the REST API for the server is used.  
-Note: All requests can respond with code 401 if the required role isn't fulfilled.
+## Table of Contents
 
-## Login
+- [REST API Documentation](README.md#rest-api-documentation)
+- [Installing](README.md#installing)
+  - [Arguments/Environment variables](README.md#argumentsenvironment-variables)
+- [Development](README.md#development)
+  - [Prerequisites](README.md#prerequisites)
+  - [Compiling](README.md#compiling)
+  - [Running tests](README.md#running-tests)
+- [Docker](README.md#docker)
 
----
+## REST API Documentation
 
-Log in on the server and receive the JWT Token. The token should be in an Authorization header like:
-`Authorization: Bearer [token]`
-where `token` is the token received in this request.
+Click [HERE](API.md) for the documentation on the REST API running on the server.
 
-- **Required role:**  
-   None
-- **URL**  
-   `/api/login`
-- **Method**  
-   `POST`
-- **Data Params**
-  - **Required:**  
-    `"username": [string]`  
-    `"password": [string]`
-  - **Example:**
-  ```json
-  {
-    "username": "johndoe",
-    "password": "johnpassword"
-  }
-  ```
-- **Success Response**
-  - **Code:** 200
-  - **Content:**
-  ```json
-  {
-    "jwtToken": "token"
-  }
-  ```
-- **Error Response**
-  - **Code:** 401
-  - **Content:**
-  ```text
-  Invalid credentials: Bad credentials
-  ```
+## Installing
 
-## Register a new student
+It is recommended to use docker-compose to run the server. [Link to the section about Docker](README.md#Docker).
+If you want to run the application standalone, check below for information:  
+Important: the server needs a MySQL database running. Check below for possible arguments for configuring database host, user, password, etc.  
+No installation required, just run the JAR file as follows.  
+`java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar`  
+Where `vscode4teaching-server-0.0.1-SNAPSHOT.jar` is the route of the JAR file in you file system.  
+Note that the name of the .jar file can change depending on the version of the server you're running.
 
----
+### Arguments/Environment variables
 
-Register a new user as a student.
+You can pass arguments to the command to change default configurations. You can also have environment variables set for the configurations to apply.
+List of allowed arguments:
 
-- **Required role:**  
-   None
-- **URL**  
-   `/api/register`
-- **Method**  
-   `POST`
-- **Data Params**
-  - **Required:**  
-    `"email": [string]` - valid email, unique  
-    `"username": [string]` - Between 4 and 50 characters, unique  
-    `"password": [string]` - Longer than 8 characters  
-    `"name": [string]`  
-    `"lastName": [string]`
-  - **Example:**
-  ```json
-  {
-    "email": "johndoe@john.com",
-    "username": "johndoe",
-    "password": "johnpassword",
-    "name": "John",
-    "lastName": "Doe"
-  }
-  ```
-- **Success Response**
-  - **Code:** 201
-  - **Content:**
-  ```json
-  {
-    "id": 23,
-    "email": "johndoe@john.com",
-    "username": "johndoe",
-    "name": "John",
-    "lastName": "Doe",
-    "roles": [
-      {
-        "roleName": "ROLE_STUDENT"
-      }
-    ]
-  }
-  ```
-- **Error response**
-  - **Code:** 400
-  - **Content**
-  ```json
-  {
-    "errors": [
-      {
-        "fieldName": "lastName",
-        "message": "Please provide your last name"
-      },
-      {
-        "fieldName": "email",
-        "message": "Please provide an email"
-      },
-      {
-        "fieldName": "name",
-        "message": "Please provide your name"
-      }
-    ]
-  }
-  ```
-  OR
-  - **Code:** 400
-  - **Content**
-  ```text
-  Duplicate entry 'johndoe'.
-  ```
+- --server.port=[number]
+  Set the port the server will run in.
+  Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090`
+- --spring.datasource.url=[jdbc:mysql://url]  
+  Database host url.  
+  Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach`
+- --spring.datasource.username=[username]  
+  Database username.  
+  Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.username=root`
+- --spring.datasource.password=[password]  
+  Database password.  
+  Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.password=root`
+- --jwt.secret="[key]"  
+   Secret key for JWT.  
+   Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --jwt.secret="vscode4teaching"`  
+  Example with all arguments:  
+  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret="vscode4teaching"`
 
-## Register a new teacher
+  For environment variables, just choose an argument above, put it in all caps and change the . (dots) into \_ (underscores) eg.: SPRING_DATASOURCE_URL
+  and set the value to the value desired (see the examples above for guidance).
 
----
+## Development
 
-Register a new user as a teacher.
+### Prerequisites
 
-- **Required role:**  
-   Teacher
-- **URL**  
-   `/api/teachers/register`
-- **Method**  
-   `POST`
-- **Data Params**
-  - **Required:**  
-    `"email": [string]` - valid email, unique  
-    `"username": [string]` - Between 4 and 50 characters, unique  
-    `"password": [string]` - Longer than 8 characters  
-    `"name": [string]`  
-    `"lastName": [string]`
-  - **Example:**
-  ```json
-  {
-    "email": "johndoe@john.com",
-    "username": "johndoe",
-    "password": "johnpassword",
-    "name": "John",
-    "lastName": "Doe"
-  }
-  ```
-- **Success Response**
-  - **Code:** 201
-  - **Content:**
-  ```json
-  {
-    "id": 23,
-    "email": "johndoe@john.com",
-    "username": "johndoe",
-    "name": "John",
-    "lastName": "Doe",
-    "roles": [
-      {
-        "roleName": "ROLE_STUDENT"
-      },
-      {
-        "roleName": "ROLE_TEACHER"
-      }
-    ]
-  }
-  ```
-- **Error response**
-  - **Code:** 400
-  - **Content**
-  ```json
-  {
-    "errors": [
-      {
-        "fieldName": "lastName",
-        "message": "Please provide your last name"
-      },
-      {
-        "fieldName": "email",
-        "message": "Please provide an email"
-      },
-      {
-        "fieldName": "name",
-        "message": "Please provide your name"
-      }
-    ]
-  }
-  ```
-  OR
-  - **Code:** 400
-  - **Content**
-  ```text
-  Duplicate entry 'johndoe'.
-  ```
+- JDK (Version 8 or higher): https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+- Recommended: Maven: https://maven.apache.org/download.cgi
+- Recommended: Spring Tools: https://spring.io/tools
+- Recommended: Docker: https://www.docker.com/
 
-## Get all courses
+### Compiling
 
----
+Note: If you don't have maven installed there is a maven wrapper inside the **server** directory, instead of running maven as **mvn** you can run it as **./mvnw**. This needs execute permissions.  
+In a terminal, inside the server directory (there should be the pom.xml file in there) run the following command:  
+`mvn clean install`  
+You can run the server with the following command:  
+`java -jar ./target/vscode4teaching-server-0.0.1-SNAPSHOT.jar`  
+Note that the name of the .jar file can change depending on the version of the server you're running.
 
-Get all available courses.
+### Running tests
 
-- **Required role:**  
-   Student
-- **URL**  
-   `/api/courses`
-- **Method**  
-   `GET`
-- **Success Response (Courses Found)**
-  - **Code:** 200
-  - **Content:**
-  ```json
-  [
-    {
-      "id": 1,
-      "name": "Spring Boot Course"
-    },
-    {
-      "id": 2,
-      "name": "Angular Course"
-    },
-    {
-      "id": 3,
-      "name": "VSCode Extension API Course"
-    }
-  ]
-  ```
-- **Success Response (No courses found)**
-  - **Code**: 204
-  - **Content**: Empty
+You can run the tests with the following command in a terminal inside the **server** directory.  
+`mvn test`
 
-## Add a course
+## Docker
 
----
-
-Add a course to the system. Saves the course in the name of the current logged in teacher.
-
-- **Required role:**  
-   Teacher
-- **URL**  
-   `/api/courses`
-- **Method**  
-   `POST`
-- **Data Params**
-  - **Required:**  
-    `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
-  ```json
-  {
-    "name": "Spring Boot Course"
-  }
-  ```
-- **Success Response**
-  - **Code:** 201
-  - **Content:**
-  ```json
-  {
-    "id": 1,
-    "name": "Spring Boot Course"
-  }
-  ```
-- **Error Response**
-  - **Code:** 400
-  - **Content:**
-  ```json
-  {
-    "errors": [
-      {
-        "errors": [
-          {
-            "fieldName": "name",
-            "message": "Course name should be between 10 and 100 characters"
-          },
-          {
-            "fieldName": "name",
-            "message": "Name cannot be null"
-          }
-        ]
-      }
-    ]
-  }
-  ```
-
-## Add an exercise to a course
-
----
-
-Adds a new exercise to an existing course.
-
-- **Required role:**  
-   Teacher
-- **URL**  
-   `/api/courses/:id/exercises`
-- **Method**  
-   `POST`
-- **URL Params**
-  - **Required:**  
-     `id=[long]`
-  - **Example:**  
-    `/api/courses/1/exercises`
-- **Data Params**
-  - **Required:**  
-    `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
-  ```json
-  {
-    "name": "Spring Boot Exercise 1"
-  }
-  ```
-- **Success Response**
-  - **Code:** 201
-  - **Content:**
-  ```json
-  {
-    "id": 1,
-    "name": "Spring Boot Course",
-    "exercises": [
-      {
-        "id": 2,
-        "name": "Spring Boot Exercise 1"
-      }
-    ]
-  }
-  ```
-- **Error Response**
-  - **Code:** 400
-  - **Content:**
-  ```json
-  {
-    "errors": [
-      {
-        "fieldName": "name",
-        "message": "Name cannot be empty"
-      },
-      {
-        "fieldName": "name",
-        "message": "Exercise name should be between 10 and 100 characters"
-      }
-    ]
-  }
-  ```
-  OR
-  - **Code:** 404
-  - **Content:**
-  ```text
-      Not found: Course not found.
-  ```
-
-## Edit a course
-
----
-
-Edit course fields. Currently you can edit with this method: name.
-
-- **Required role:**  
-   Teacher
-- **URL**  
-   `/api/courses/:courseId/exercises/:exerciseId`
-- **Method**  
-   `POST`
-- **URL Params**
-  - **Required:**  
-     `courseId=[long]`  
-     `exerciseId=[long]`
-  - **Example:**  
-    `/api/courses/1/exercises`
-- **Data Params**
-  - **Required:**  
-    `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
-  ```json
-  {
-    "name": "Spring Boot Course v2"
-  }
-  ```
-- **Success Response**
-  - **Code:** 200
-  - **Content:**
-  ```json
-  {
-    "id": 1,
-    "name": "Spring Boot Course v2"
-  }
-  ```
-- **Error Response**
-  - **Code:** 400
-  - **Content:**
-  ```json
-  {
-    "errors": [
-      {
-        "fieldName": "name",
-        "message": "Name cannot be empty"
-      },
-      {
-        "fieldName": "name",
-        "message": "Exercise name should be between 10 and 100 characters"
-      }
-    ]
-  }
-  ```
-  OR
-  - **Code:** 404
-  - **Content:**
-  ```text
-      Not found: Course not found: 15.
-  ```
-
-## Delete a course
-
----
-
-Remove a course. Logged user has to be a teacher of this course.
-
-- **Required role:**
-  Teacher
-- **URL**
-  `/api/courses/:id`
-- **Method**
-  `DELETE`
-- **URL Params**
-  `id=[long]`
-- **Success Response**
-  - **Code:** 204
-- **Error Response**
-
-  - **Code**: 404
-  - **Content:**
-
-  ```text
-  Not found: Course not found: 15
-  ```
-
-## Get exercises of a course
-
----
-
-Get all exercise of a course. Logged user has to be a member of this course.
-
-- **Required role:**  
-   Student, Teacher
-- **URL**  
-   `/api/courses/:id/exercises`
-- **Method**  
-   `GET`
-- **URL Params**
-  `id=[long]`
-- **Success Response**
-  - **Code:** 200
-  - **Content:**
-  ```json
-  [
-    {
-      "id": 10,
-      "name": "Exercise 1",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
-      }
-    },
-    {
-      "id": 11,
-      "name": "Exercise 2",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
-      }
-    },
-    {
-      "id": 12,
-      "name": "Exercise 3",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
-      }
-    }
-  ]
-  ```
-- **Success Response (No courses found)**
-  - **Code:** 204
-  - **Content:** Empty
-- **Error Response**
-  - **Code**: 404
-  - **Content:**
-  ```text
-  Not found: Course not found: 15
-  ```
-
-## Delete an exercise
-
----
-
-Remove a course. Logged user has to be a teacher of this course.
-
-- **Required role:**
-  Teacher
-- **URL**
-  `/api/exercises/:id`
-- **Method**
-  `DELETE`
-- **URL Params**
-  `id=[long]`
-- **Success Response**
-  - **Code:** 204
-- **Error Response**
-
-  - **Code**: 404
-  - **Content:**
-
-  ```text
-  Not found: Exercise not found: 15
-  ```
+You can build the server image with the command:  
+`docker build .`  
+Also you can download the image from Docker Hub:  
+`docker pull ivchicano/vscode4teaching-server`  
+Link to Docker Hub: (https://cloud.docker.com/u/ivchicano/repository/docker/ivchicano/vscode4teaching-server)
+You can run a docker compose with the image and a mysql database by going to the **docker** directory inside the server directory and running the following command:  
+`docker-compose up`
+The server will run in port 8080.
