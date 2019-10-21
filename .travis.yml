@@ -26,6 +26,7 @@ matrix:
         fi
     script:
       - |
+        cd ./vscode4teaching-extension
         yarn && yarn compile
         cd sample
         yarn && yarn compile && yarn test
