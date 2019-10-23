@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserDTO;
 import com.vscode4teaching.vscode4teachingserver.controllertests.utils.MockAuthentication;
+import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
@@ -123,7 +124,7 @@ public class JWTLoginControllerTests {
                 Role studentRole = new Role("ROLE_STUDENT");
                 studentRole.setId(2l);
                 Role teacherRole = new Role("ROLE_TEACHER");
-                studentRole.setId(3l);
+                teacherRole.setId(3l);
                 com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
                                 "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
                 expectedUser.setId(1l);
@@ -155,17 +156,21 @@ public class JWTLoginControllerTests {
                 Role studentRole = new Role("ROLE_STUDENT");
                 studentRole.setId(2l);
                 Role teacherRole = new Role("ROLE_TEACHER");
-                studentRole.setId(3l);
+                teacherRole.setId(3l);
                 com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
                                 "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
                 expectedUser.setId(1l);
                 expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
+                Course course = new Course("Spring Boot Course");
+                course.addUserInCourse(expectedUser);
+                course.setId(4l);
+                expectedUser.addCourse(course);
                 when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
                 when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");
                 MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json"))
                                 .andExpect(status().isOk()).andReturn();
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(UserViews.CourseView.class)
                                 .writeValueAsString(expectedUser);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
         }

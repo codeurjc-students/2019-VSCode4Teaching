@@ -81,7 +81,7 @@ public class JWTLoginController {
     }
 
     @GetMapping("/currentuser")
-    @JsonView(UserViews.GeneralView.class)
+    @JsonView(UserViews.CourseView.class)
     public ResponseEntity<User> getCurrentUser(HttpServletRequest request) throws NotFoundException {
         User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.ok(user);

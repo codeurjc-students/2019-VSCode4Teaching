@@ -271,6 +271,46 @@ Get all available courses.
   - **Code**: 204
   - **Content**: Empty
 
+## Get user courses
+
+---
+
+Get courses available to the user. User indicated has to be the same as the user logged. 
+
+- **Required role:**  
+   Student or Teacher
+- **URL**  
+   `/api/users/:id/courses`
+- **Method**  
+   `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    `/api/users/1/courses`
+- **Success Response (Courses Found)**
+  - **Code:** 200
+  - **Content:**
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Spring Boot Course"
+    },
+    {
+      "id": 2,
+      "name": "Angular Course"
+    },
+    {
+      "id": 3,
+      "name": "VSCode Extension API Course"
+    }
+  ]
+  ```
+- **Success Response (No courses found)**
+  - **Code**: 204
+  - **Content**: Empty
+
 ## Add a course
 
 ---
@@ -337,7 +377,7 @@ Adds a new exercise to an existing course.
    `POST`
 - **URL Params**
   - **Required:**  
-     `id=[long]`
+    - `id=[long]`
   - **Example:**  
     `/api/courses/1/exercises`
 - **Data Params**
@@ -461,7 +501,10 @@ Remove a course. Logged user has to be a teacher of this course.
 - **Method**
   `DELETE`
 - **URL Params**
-  `id=[long]`
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/courses/7`
 - **Success Response**
   - **Code:** 204
 - **Error Response**
@@ -486,7 +529,10 @@ Get all exercise of a course. Logged user has to be a member of this course.
 - **Method**  
    `GET`
 - **URL Params**
-  `id=[long]`
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/courses/7`
 - **Success Response**
   - **Code:** 200
   - **Content:**
@@ -541,14 +587,15 @@ Remove a course. Logged user has to be a teacher of this course.
 - **Method**
   `DELETE`
 - **URL Params**
-  `id=[long]`
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/courses/7`
 - **Success Response**
   - **Code:** 204
 - **Error Response**
-
   - **Code**: 404
   - **Content:**
-
   ```text
   Not found: Exercise not found: 15
   ```
