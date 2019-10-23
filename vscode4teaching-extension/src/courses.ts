@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
+import * as path from 'path';
+
 export class CoursesProvider implements vscode.TreeDataProvider<Course> {
     private _onDidChangeTreeData: vscode.EventEmitter<Course | undefined> = new vscode.EventEmitter<Course | undefined>();
     readonly onDidChangeTreeData?: vscode.Event<Course | null | undefined> = this._onDidChangeTreeData.event;
@@ -63,6 +65,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<Course> {
     }
 
     validateInputCustomUrl(value: string): string | undefined | null | Thenable<string | undefined | null> {
+        // Regular expresion for urls
         let regexp = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
         let pattern = new RegExp(regexp);
         if (pattern.test(value)) {
@@ -88,4 +91,8 @@ export class Course extends vscode.TreeItem {
         super(label, collapsibleState);
     }
 
+    iconPath = {
+        light: path.join(__filename, '..', '..', 'resources', 'light', 'login.png'),
+        dark: path.join(__filename, '..', '..', 'resources', 'dark', 'login.png')
+    };
 }
