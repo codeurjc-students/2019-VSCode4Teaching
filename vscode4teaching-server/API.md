@@ -6,6 +6,7 @@ Note: All requests can respond with code 401 if the required role isn't fulfille
 ## Table of Contents
 
 - [Login](API.md#login)
+- [Get current user info](API.md#get-current-user-info)
 - [Register a new student](API.md#register-a-new-student)
 - [Register a new teacher](API.md#register-a-new-teacher)
 - [Get all courses](API.md#get-all-courses)
@@ -48,13 +49,41 @@ where `token` is the token received in this request.
   {
     "jwtToken": "token"
   }
+
+## Get current user info
+
+---
+
+Get information on current logged user (JWT Token information).
+
+- **Required role:**  
+   Student or Teacher
+- **URL**  
+   `/api/currentuser`
+- **Method**  
+   `GET`
+- **Success Response**
+  - **Code:** 200
+  - **Content:**
+  ```json
+  {
+    "id": 3,
+    "email": "johndoe@teacher.com",
+    "username": "johndoe",
+    "name": "John",
+    "lastName": "Doe",
+    "roles": [
+      {
+        "roleName": "ROLE_STUDENT"
+      },
+      {
+        "roleName": "ROLE_TEACHER"
+      }
+    ]
+  }
   ```
 - **Error Response**
   - **Code:** 401
-  - **Content:**
-  ```text
-  Invalid credentials: Bad credentials
-  ```
 
 ## Register a new student
 
