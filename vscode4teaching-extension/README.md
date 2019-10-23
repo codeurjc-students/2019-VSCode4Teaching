@@ -32,5 +32,6 @@ Use the following command to run the tests:
 
 ## Features
 
-You will need to log in to the server first to do anything. Open the command palette (Ctrl + Shift + P) and choose **Log in to VS Code 4 Teaching**.  
+VS Code 4 Teaching extension features a new view accessible from the V4T icon in the activity bar.
+You will need to log in to the server first to do anything.
 You will be prompted to choose server, username and password.
