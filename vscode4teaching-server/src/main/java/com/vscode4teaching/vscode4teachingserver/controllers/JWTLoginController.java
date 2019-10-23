@@ -1,5 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -9,6 +10,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserDTO;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,5 +78,12 @@ public class JWTLoginController {
                 userDto.getLastName());
         User saveduser = userDetailsService.save(user, true);
         return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/currentuser")
+    @JsonView(UserViews.GeneralView.class)
+    public ResponseEntity<User> getCurrentUser(HttpServletRequest request) throws NotFoundException {
+        User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
+        return ResponseEntity.ok(user);
     }
 }
