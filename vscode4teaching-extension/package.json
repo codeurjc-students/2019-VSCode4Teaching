@@ -1,7 +1,7 @@
 {
 	"name": "vscode4teaching",
 	"displayName": "VS Code 4 Teaching",
-	"description": "Bring the programming exercises of a course directly to the student’s editor, so that the teacher of that course can check the progress of the students and help them.",
+	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.0.1-SNAPSHOT",
 	"license": "Apache-2.0",
 	"engines": {
@@ -11,17 +11,38 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.login"
+		"onView:vscode4teaching"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "vscode4teachingcontainer",
+					"title": "V4T",
+					"icon": "resources/v4t.png"
+				}
+			]
+		},
+		"views": {
+			"vscode4teachingcontainer": [
+				{
+					"id": "vscode4teaching",
+					"name": "VS Code 4 Teaching"
+				}
+			]
+		}
+
+	},
+	"menus": {
+		"view/title": [
 			{
-				"command": "extension.login",
-				"title": "Log in to VS Code 4 Teaching",
-				"category": "VSCode 4 Teaching"
+				"command": "vscode4teaching.login",
+				"when": "view == vscode4teaching"
 			}
-		]
+		]	
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
