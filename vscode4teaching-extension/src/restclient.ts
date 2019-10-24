@@ -44,6 +44,10 @@ export class RestClient {
         this.jwtToken = jwtToken;
     }
 
+    getJwtToken() {
+        return this.jwtToken;
+    }
+
     setUrl(url: string) {
         this.baseUrl = url;
     }
