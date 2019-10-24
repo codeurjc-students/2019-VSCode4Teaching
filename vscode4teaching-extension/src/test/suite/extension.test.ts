@@ -17,12 +17,26 @@ suite('Extension Test Suite', () => {
 		mockLogin.resolveWith({ "jwtToken": "mockToken" });
 		let mockSetUrl = simple.mock(extension.coursesProvider.getClient(), "setUrl");
 		let mockSetJwtToken = simple.mock(extension.coursesProvider.getClient(), "setJwtToken");
+		let mockGetUserInfo = simple.mock(extension.coursesProvider.getClient(), "getUserInfo");
+		mockGetUserInfo.resolveWith({
+			id: 20,
+			username: "johndoe",
+			courses: [
+				{
+					name: "Spring Boot Course 1"
+				},
+				{
+					name: "Angular Course 1"
+				}
+			]
+		});
 		extension.coursesProvider.login().then(
 			() => {
 				assert.equal(mockVSCodeInputBox.callCount, 3, "vs code should ask for server, username and password");
 				assert.equal(mockLogin.callCount, 1, "login should be called 1 time");
 				assert.equal(mockSetUrl.callCount, 1, "login should set server url in client");
 				assert.equal(mockSetJwtToken.callCount, 1, "login should set the JWT Token for next operations");
+				assert.equal(mockGetUserInfo.callCount, 1, "login should get user info");
 			}
 		);
 	});

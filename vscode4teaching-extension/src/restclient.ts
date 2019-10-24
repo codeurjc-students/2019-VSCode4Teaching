@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosPromise } from 'axios';
+import { User } from './model';
 
 export class RestClient {
     private baseUrl: string | undefined;
@@ -7,12 +8,16 @@ export class RestClient {
     constructor() {
     }
 
-    login(username: string, password: string): AxiosPromise<any> {
+    login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {
         const data = {
             "username": username,
             "password": password
         };
-        return axios(this.buildOptions("/login", "POST", data));
+        return axios(this.buildOptions("/api/login", "POST", data));
+    }
+
+    getUserInfo(): AxiosPromise<User> {
+        return axios(this.buildOptions("/api/currentuser", "GET"));
     }
 
     private buildOptions(url: string, method: Method, data?: any): AxiosRequestConfig {

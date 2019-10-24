@@ -1,28 +1,32 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
+import { User } from './model';
 
-export class CoursesProvider implements vscode.TreeDataProvider<Course> {
-    private _onDidChangeTreeData: vscode.EventEmitter<Course | undefined> = new vscode.EventEmitter<Course | undefined>();
-    readonly onDidChangeTreeData?: vscode.Event<Course | null | undefined> = this._onDidChangeTreeData.event;
+export class CoursesProvider implements vscode.TreeDataProvider<CourseItem> {
+    private _onDidChangeTreeData: vscode.EventEmitter<CourseItem | undefined> = new vscode.EventEmitter<CourseItem | undefined>();
+    readonly onDidChangeTreeData?: vscode.Event<CourseItem | null | undefined> = this._onDidChangeTreeData.event;
     private client = new RestClient();
+    private userinfo: User | undefined;
     private logged: boolean = false;
 
-    getTreeItem(element: Course): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: CourseItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
-    getChildren(element?: Course | undefined): vscode.ProviderResult<Course[]> {
+    getChildren(element?: CourseItem | undefined): vscode.ProviderResult<CourseItem[]> {
         if (element) {
             return [element];
         }
         else {
             if (!this.logged) {
-                return [new Course("Login", vscode.TreeItemCollapsibleState.None, {
+                return [new CourseItem("Login", vscode.TreeItemCollapsibleState.None, {
                     "command": "vscode4teaching.login",
                     "title": "Log in to VS Code 4 Teaching"
                 })];
             } else {
-                //TODO get courses
+                if (this.userinfo && this.userinfo.courses) {
+                    return this.userinfo.courses.map(course => new CourseItem(course.name, vscode.TreeItemCollapsibleState.None));
+                }
             }
         }
     }
@@ -52,6 +56,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<Course> {
             vscode.window.showInformationMessage("Logged in");
             this.client.setJwtToken(response.data['jwtToken']);
             this.logged = true;
+            let coursesThenable = this.client.getUserInfo();
+            vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
+            let userResponse = await coursesThenable;
+            this.userinfo = userResponse.data;
             this._onDidChangeTreeData.fire();
         } catch (error) {
             if (error.response) {
@@ -81,7 +89,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<Course> {
     }
 }
 
-export class Course extends vscode.TreeItem {
+export class CourseItem extends vscode.TreeItem {
 
     constructor(
         public readonly label: string,
