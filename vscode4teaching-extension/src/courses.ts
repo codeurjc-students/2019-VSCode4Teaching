@@ -56,25 +56,31 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (username) {
                 let password: string | undefined = await vscode.window.showInputBox({ "prompt": "Password", "password": true });
                 if (password) {
-                    this.callLogin(username, password);
+                    this.callLogin(username, password).catch(error => {
+                        if (error.response) {
+                            vscode.window.showErrorMessage(error.response.data);
+                        } else if (error.request) {
+                            vscode.window.showErrorMessage("Can't connect to the server");
+                        } else {
+                            vscode.window.showErrorMessage(error.message);
+                        }
+                    });
                 }
             }
         }
     }
 
-    private callLogin(username: string, password: string) {
+    private async callLogin(username: string, password: string) {
         let loginThenable = this.client.login(username, password);
         vscode.window.setStatusBarMessage("Logging in to VS Code 4 Teaching...", loginThenable);
-        this.handleClientError(async () => {
-            let response = await loginThenable;
-            vscode.window.showInformationMessage("Logged in");
-            this.client.jwtToken = response.data['jwtToken'];
-            let coursesThenable = this.client.getUserInfo();
-            vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
-            let userResponse = await coursesThenable;
-            this.userinfo = userResponse.data;
-            this._onDidChangeTreeData.fire();
-        });
+        let response = await loginThenable;
+        vscode.window.showInformationMessage("Logged in");
+        this.client.jwtToken = response.data['jwtToken'];
+        let coursesThenable = this.client.getUserInfo();
+        vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
+        let userResponse = await coursesThenable;
+        this.userinfo = userResponse.data;
+        this._onDidChangeTreeData.fire();
     }
 
     validateInputCustomUrl(value: string): string | undefined | null | Thenable<string | undefined | null> {
@@ -112,11 +118,15 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    private handleClientError(callback: () => void) {
-        try {
-            callback();
-        }
-        catch (error) {
+    private getExercises(item: V4TItem, course: Course) {
+        let exercisesThenable = this.client.getExercises(course.id);
+        vscode.window.setStatusBarMessage("Getting exercises...", exercisesThenable);
+        exercisesThenable.then(response => {
+            if (course) {
+                course.exercises = response.data;
+                this._onDidChangeTreeData.fire(item);
+            }
+        }).catch(error => {
             if (error.response) {
                 vscode.window.showErrorMessage(error.response.data);
             } else if (error.request) {
@@ -124,19 +134,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             } else {
                 vscode.window.showErrorMessage(error.message);
             }
-        }
-    }
-
-    private getExercises(item: V4TItem, course: Course) {
-        this.handleClientError(() => {
-            let exercisesThenable = this.client.getExercises(course.id);
-            vscode.window.setStatusBarMessage("Getting exercises...", exercisesThenable);
-            exercisesThenable.then(response => {
-                if (course) {
-                    course.exercises = response.data;
-                    this._onDidChangeTreeData.fire(item);
-                }
-            });
         });
 
     }
