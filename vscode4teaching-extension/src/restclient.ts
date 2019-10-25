@@ -1,18 +1,27 @@
 import axios, { AxiosRequestConfig, Method, AxiosPromise } from 'axios';
+import { User, Exercise } from './model';
 
 export class RestClient {
-    private baseUrl: string | undefined;
-    private jwtToken: string | undefined;
+    private _baseUrl: string | undefined;
+    private _jwtToken: string | undefined;
 
     constructor() {
     }
 
-    login(username: string, password: string): AxiosPromise<any> {
+    login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {
         const data = {
             "username": username,
             "password": password
         };
-        return axios(this.buildOptions("/login", "POST", data));
+        return axios(this.buildOptions("/api/login", "POST", data));
+    }
+
+    getUserInfo(): AxiosPromise<User> {
+        return axios(this.buildOptions("/api/currentuser", "GET"));
+    }
+
+    getExercises(courseId: number): AxiosPromise<Exercise[]> {
+        return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET"));
     }
 
     private buildOptions(url: string, method: Method, data?: any): AxiosRequestConfig {
@@ -35,11 +44,19 @@ export class RestClient {
         }
     }
 
-    setJwtToken(jwtToken: string) {
-        this.jwtToken = jwtToken;
+    set jwtToken(jwtToken: string | undefined) {
+        this._jwtToken = jwtToken;
     }
 
-    setUrl(url: string) {
-        this.baseUrl = url;
+    get jwtToken() {
+        return this._jwtToken;
+    }
+
+    get baseUrl() {
+        return this._baseUrl;
+    }
+
+    set baseUrl(url: string | undefined) {
+        this._baseUrl = url;
     }
 }
