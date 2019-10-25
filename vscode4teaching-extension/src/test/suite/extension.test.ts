@@ -3,60 +3,40 @@ import { afterEach, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import * as extension from '../../extension';
 import * as simple from 'simple-mock';
-import { CourseItem } from '../../courses';
+import { V4TItem, V4TItemType } from '../../courses';
+import { Course, Exercise, User } from '../../model';
+import { RestClient } from '../../restclient';
 
 suite('Extension Test Suite', () => {
 
 	afterEach(() => {
 		simple.restore();
+		extension.coursesProvider.client = new RestClient();
+		extension.coursesProvider.userinfo = undefined;
 	});
 
-	test('login', () => {
+	test('login', async () => {
 		let mockVSCodeInputBox = simple.mock(vscode.window, "showInputBox");
 		mockVSCodeInputBox.resolveWith("http://test.com").resolveWith("johndoe").resolveWith("password");
 		let mockLogin = simple.mock(extension.coursesProvider.client, "login");
-		mockLogin.resolveWith({ "jwtToken": "mockToken" });
-		let mockSetUrl = simple.mock(extension.coursesProvider.client, "setUrl");
-		let mockSetJwtToken = simple.mock(extension.coursesProvider.client, "setJwtToken");
-		let mockGetUserInfo = simple.mock(extension.coursesProvider.client, "getUserInfo");
-		let user = {
-			id: 20,
-			username: "johndoe",
-			courses: [
-				{
-					id: 23,
-					name: "Spring Boot Course 1"
-				},
-				{
-					id: 52,
-					name: "Angular Course 1"
-				}
-			]
+		let loginResponse = {
+			data: { "jwtToken": "mockToken" }
 		};
-		mockGetUserInfo.resolveWith(user);
-		extension.coursesProvider.login().then(
-			() => {
-				assert.deepStrictEqual(mockVSCodeInputBox.callCount, 3, "vs code should ask for server, username and password");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[0].returned, "http://test.com", "server input box should return test url");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[1].returned, "johndoe", "username input box should return test username");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[2].returned, "password", "password input box should return test password");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, { "prompt": "Server", "value": "http://localhost:8080" },
-					"config for the server input box should have correct prompt and default value localhost:8080");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, { "prompt": "Username" },
-					"config for the username input box should have correct prompt");
-				assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, { "prompt": "Password", "password": true },
-					"config for the password input box should have correct prompt and hide the input");
-				assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
-				assert.deepStrictEqual(mockLogin.lastCall.returned, { "jwtToken": "mockToken" }, "client login mock should resolve with a mock token");
-				assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password"], "client should login with the credentials above");
-				assert.deepStrictEqual(mockSetUrl.callCount, 1, "login should set server url in client");
-				assert.deepStrictEqual(mockSetUrl.lastCall.arg, "http://test.com", "API url should be set to the url above");
-				assert.deepStrictEqual(mockSetJwtToken.callCount, 1, "login should set the JWT Token for next operations");
-				assert.deepStrictEqual(mockSetJwtToken.lastCall.arg, "mockToken", "setJwtToken should set the token received before");
-				assert.deepStrictEqual(mockGetUserInfo.callCount, 1, "login should get user info");
-				assert.deepStrictEqual(mockGetUserInfo.lastCall.returned, user, "user gotten should be the expected one");
-			}
-		);
+		mockLogin.resolveWith(loginResponse);
+		await extension.coursesProvider.login();
+		assert.deepStrictEqual(mockVSCodeInputBox.callCount, 3, "vs code should ask for server, username and password");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].returned, Promise.resolve("http://test.com"), "server input box should return test url");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].returned, Promise.resolve("johndoe"), "username input box should return test username");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].returned, Promise.resolve("password"), "password input box should return test password");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, { "prompt": "Server", "validateInput": extension.coursesProvider.validateInputCustomUrl, "value": "http://localhost:8080" },
+			"config for the server input box should have correct prompt, be validated and default value localhost:8080");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, { "prompt": "Username" },
+			"config for the username input box should have correct prompt");
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, { "prompt": "Password", "password": true },
+			"config for the password input box should have correct prompt and hide the input");
+		assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
+		assert.deepStrictEqual(mockLogin.lastCall.returned, Promise.resolve(loginResponse), "client login mock should resolve with a mock token");
+		assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password"], "client should login with the credentials above");
 	});
 
 	test('validate URL', () => {
@@ -71,7 +51,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('get login button (get children, not logged in)', () => {
-		let expectedButton = new CourseItem("Login", vscode.TreeItemCollapsibleState.None, {
+		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
@@ -102,8 +82,9 @@ suite('Extension Test Suite', () => {
 				}
 			]
 		};
-		let expectedButtons = user.courses.map(course => new CourseItem(course.name, vscode.TreeItemCollapsibleState.None));
+		let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
 		extension.coursesProvider.userinfo = user;
+		extension.coursesProvider.client.jwtToken = "mockToken";
 
 		let courseButtons = extension.coursesProvider.getChildren();
 
@@ -112,5 +93,42 @@ suite('Extension Test Suite', () => {
 		} else {
 			assert.fail("loginButton is not an array");
 		}
+	});
+
+	test('get exercises (get children, element)', async () => {
+		let user: User = {
+			id: 343,
+			username: "johndoe"
+		};
+		let course: Course = {
+			id: 123,
+			name: "Spring Boot Course"
+		};
+		user.courses = [course];
+		let courseItem = new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed);
+		extension.coursesProvider.userinfo = user;
+		let exercises: Exercise[] = [{
+			id: 4,
+			name: "Exercise 1"
+		},
+		{
+			id: 5,
+			name: "Exercise 2"
+		},
+		{
+			id: 6,
+			name: "Exercise 3"
+		}];
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None));
+		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExercises");
+		getExercisesMock.resolveWith({ data: exercises });
+
+		extension.coursesProvider.getChildren(courseItem);
+
+		await new Promise(resolve => setTimeout(resolve, 10)); // Wait for exercises to "download"
+
+		let newExerciseItems = extension.coursesProvider.getChildren(courseItem);
+		assert.deepStrictEqual(exerciseItems, newExerciseItems);
+
 	});
 });

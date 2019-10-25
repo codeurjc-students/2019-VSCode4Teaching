@@ -1,30 +1,43 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
-import { User } from './model';
+import { User, Course, Exercise } from './model';
 
-export class CoursesProvider implements vscode.TreeDataProvider<CourseItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<CourseItem | undefined> = new vscode.EventEmitter<CourseItem | undefined>();
-    readonly onDidChangeTreeData?: vscode.Event<CourseItem | null | undefined> = this._onDidChangeTreeData.event;
+export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
+    private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
+    readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = this._onDidChangeTreeData.event;
     private _client = new RestClient();
     private _userinfo: User | undefined;
 
-    getTreeItem(element: CourseItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: V4TItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
-    getChildren(element?: CourseItem | undefined): vscode.ProviderResult<CourseItem[]> {
+
+    getChildren(element?: V4TItem | undefined): vscode.ProviderResult<V4TItem[]> {
         if (element) {
-            return [element];
+            // Only collapsable items are courses
+            let course = this.findCourseByName(element.label);
+            if (course) {
+                // If exercises were downloaded previously show them, else get them from server
+                if (course.exercises) {
+                    // Map exercises to TreeItems
+                    return course.exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None));
+                } else {
+                    this.getExercises(element, course);
+                }
+            }
         }
         else {
-            if (!this.client.getJwtToken()) {
-                return [new CourseItem("Login", vscode.TreeItemCollapsibleState.None, {
+            // If not logged add login button, else show courses
+            if (!this.client.jwtToken) {
+                return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
                     "command": "vscode4teaching.login",
                     "title": "Log in to VS Code 4 Teaching"
                 })];
             } else {
                 if (this.userinfo && this.userinfo.courses) {
-                    return this.userinfo.courses.map(course => new CourseItem(course.name, vscode.TreeItemCollapsibleState.None));
+                    // Map courses to TreeItems
+                    return this.userinfo.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
                 } else {
                     return [];
                 }
@@ -38,38 +51,30 @@ export class CoursesProvider implements vscode.TreeDataProvider<CourseItem> {
         serverInputOptions.validateInput = this.validateInputCustomUrl;
         let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
         if (url) {
-            this.client.setUrl(url);
+            this.client.baseUrl = url;
             let username: string | undefined = await vscode.window.showInputBox({ "prompt": "Username" });
             if (username) {
                 let password: string | undefined = await vscode.window.showInputBox({ "prompt": "Password", "password": true });
                 if (password) {
-                    await this.callLogin(username, password);
+                    this.callLogin(username, password);
                 }
             }
         }
     }
 
-    private async callLogin(username: string, password: string) {
+    private callLogin(username: string, password: string) {
         let loginThenable = this.client.login(username, password);
         vscode.window.setStatusBarMessage("Logging in to VS Code 4 Teaching...", loginThenable);
-        try {
+        this.handleClientError(async () => {
             let response = await loginThenable;
             vscode.window.showInformationMessage("Logged in");
-            this.client.setJwtToken(response.data['jwtToken']);
+            this.client.jwtToken = response.data['jwtToken'];
             let coursesThenable = this.client.getUserInfo();
             vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
             let userResponse = await coursesThenable;
             this.userinfo = userResponse.data;
             this._onDidChangeTreeData.fire();
-        } catch (error) {
-            if (error.response) {
-                vscode.window.showErrorMessage(error.response.data);
-            } else if (error.request) {
-                vscode.window.showErrorMessage("Can't connect to the server");
-            } else {
-                vscode.window.showErrorMessage(error.message);
-            }
-        }
+        });
     }
 
     validateInputCustomUrl(value: string): string | undefined | null | Thenable<string | undefined | null> {
@@ -87,6 +92,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<CourseItem> {
     get client(): RestClient {
         return this._client;
     }
+    set client(client: RestClient) {
+        this._client = client;
+    }
 
     get userinfo(): User | undefined {
         if (this._userinfo) {
@@ -97,12 +105,48 @@ export class CoursesProvider implements vscode.TreeDataProvider<CourseItem> {
     set userinfo(userinfo: User | undefined) {
         this._userinfo = userinfo;
     }
+
+    private findCourseByName(name: string): Course | undefined {
+        if (this.userinfo && this.userinfo.courses) {
+            return this.userinfo.courses.filter(course => course.name === name)[0];
+        }
+    }
+
+    private handleClientError(callback: () => void) {
+        try {
+            callback();
+        }
+        catch (error) {
+            if (error.response) {
+                vscode.window.showErrorMessage(error.response.data);
+            } else if (error.request) {
+                vscode.window.showErrorMessage("Can't connect to the server");
+            } else {
+                vscode.window.showErrorMessage(error.message);
+            }
+        }
+    }
+
+    private getExercises(item: V4TItem, course: Course) {
+        this.handleClientError(() => {
+            let exercisesThenable = this.client.getExercises(course.id);
+            vscode.window.setStatusBarMessage("Getting exercises...", exercisesThenable);
+            exercisesThenable.then(response => {
+                if (course) {
+                    course.exercises = response.data;
+                    this._onDidChangeTreeData.fire(item);
+                }
+            });
+        });
+
+    }
 }
 
-export class CourseItem extends vscode.TreeItem {
+export class V4TItem extends vscode.TreeItem {
 
     constructor(
         public readonly label: string,
+        public readonly type: V4TItemType,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly command?: vscode.Command
     ) {
@@ -110,16 +154,17 @@ export class CourseItem extends vscode.TreeItem {
     }
 
     get iconPath() {
-        if (this.label === "Login") {
-            return {
-                light: path.join(__filename, '..', '..', 'resources', 'light', 'login.png'),
-                dark: path.join(__filename, '..', '..', 'resources', 'dark', 'login.png')
-            };
-        } else {
+        if (this.type === V4TItemType.Login) {
             return {
                 light: path.join(__filename, '..', '..', 'resources', 'light', 'login.png'),
                 dark: path.join(__filename, '..', '..', 'resources', 'dark', 'login.png')
             };
         }
     }
+}
+
+export enum V4TItemType {
+    Login,
+    Course,
+    Exercise
 }

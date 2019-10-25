@@ -1,9 +1,9 @@
 import axios, { AxiosRequestConfig, Method, AxiosPromise } from 'axios';
-import { User } from './model';
+import { User, Exercise } from './model';
 
 export class RestClient {
-    private baseUrl: string | undefined;
-    private jwtToken: string | undefined;
+    private _baseUrl: string | undefined;
+    private _jwtToken: string | undefined;
 
     constructor() {
     }
@@ -18,6 +18,10 @@ export class RestClient {
 
     getUserInfo(): AxiosPromise<User> {
         return axios(this.buildOptions("/api/currentuser", "GET"));
+    }
+
+    getExercises(courseId: number): AxiosPromise<Exercise[]> {
+        return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET"));
     }
 
     private buildOptions(url: string, method: Method, data?: any): AxiosRequestConfig {
@@ -40,15 +44,19 @@ export class RestClient {
         }
     }
 
-    setJwtToken(jwtToken: string) {
-        this.jwtToken = jwtToken;
+    set jwtToken(jwtToken: string | undefined) {
+        this._jwtToken = jwtToken;
     }
 
-    getJwtToken() {
-        return this.jwtToken;
+    get jwtToken() {
+        return this._jwtToken;
     }
 
-    setUrl(url: string) {
-        this.baseUrl = url;
+    get baseUrl() {
+        return this._baseUrl;
+    }
+
+    set baseUrl(url: string | undefined) {
+        this._baseUrl = url;
     }
 }

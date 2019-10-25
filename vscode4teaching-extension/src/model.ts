@@ -7,4 +7,10 @@ export interface User {
 export interface Course {
     id: number;
     name: string;
+    exercises?: Exercise[];
+}
+
+export interface Exercise {
+    id: number;
+    name: string;
 }
