@@ -9,6 +9,7 @@ import javax.validation.ConstraintViolationException;
 
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse.ErrorDetail;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
@@ -28,14 +29,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ExceptionController {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Set<ConstraintViolation<?>>> handleConstraintViolationException(ConstraintViolationException e) {
+    public ResponseEntity<Set<ConstraintViolation<?>>> handleConstraintViolationException(
+            ConstraintViolationException e) {
         Set<ConstraintViolation<?>> errors = e.getConstraintViolations();
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
         List<FieldError> errors = e.getBindingResult().getFieldErrors();
         List<ErrorDetail> errorDetails = new ArrayList<>();
         for (FieldError fieldError : errors) {
@@ -49,8 +52,10 @@ public class ExceptionController {
 
     @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleHibernateConstraintViolationException(org.hibernate.exception.ConstraintViolationException e) {
-        return new ResponseEntity<>(e.getSQLException().getMessage().split(" for key ")[0] + ".", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> handleHibernateConstraintViolationException(
+            org.hibernate.exception.ConstraintViolationException e) {
+        return new ResponseEntity<>(e.getSQLException().getMessage().split(" for key ")[0] + ".",
+                HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -88,4 +93,11 @@ public class ExceptionController {
     public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(NoTemplateException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<String> handleNoTemplateException(NoTemplateException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
 }

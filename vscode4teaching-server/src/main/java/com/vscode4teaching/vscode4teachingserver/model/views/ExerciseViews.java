@@ -9,4 +9,7 @@ public class ExerciseViews {
 
     public static interface CourseView extends GeneralView, CourseViews.GeneralView {
     }
+
+    public static interface FileView extends GeneralView, FileViews.GeneralView {
+    }
 }

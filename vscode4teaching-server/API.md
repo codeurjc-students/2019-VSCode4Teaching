@@ -16,6 +16,7 @@ Note: All requests can respond with code 401 if the required role isn't fulfille
 - [Delete a course](API.md#delete-a-course)
 - [Get exercises of a course](API.md#get-exercises-of-a-course)
 - [Delete an exercise](API.md#delete-an-exercise)
+- [Download exercise files](API.md#download-exercise-files)
 
 ## Login
 
@@ -44,11 +45,12 @@ where `token` is the token received in this request.
   ```
 - **Success Response**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   {
     "jwtToken": "token"
   }
+  ```
 
 ## Get current user info
 
@@ -64,7 +66,7 @@ Get information on current logged user (JWT Token information).
    `GET`
 - **Success Response**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 3,
@@ -116,7 +118,7 @@ Register a new user as a student.
   ```
 - **Success Response**
   - **Code:** 201
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 23,
@@ -190,7 +192,7 @@ Register a new user as a teacher.
   ```
 - **Success Response**
   - **Code:** 201
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 23,
@@ -250,7 +252,7 @@ Get all available courses.
    `GET`
 - **Success Response (Courses Found)**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   [
     {
@@ -275,7 +277,7 @@ Get all available courses.
 
 ---
 
-Get courses available to the user. User indicated has to be the same as the user logged. 
+Get courses available to the user. User indicated has to be the same as the user logged.
 
 - **Required role:**  
    Student or Teacher
@@ -290,7 +292,7 @@ Get courses available to the user. User indicated has to be the same as the user
     `/api/users/1/courses`
 - **Success Response (Courses Found)**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   [
     {
@@ -334,7 +336,7 @@ Add a course to the system. Saves the course in the name of the current logged i
   ```
 - **Success Response**
   - **Code:** 201
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 1,
@@ -343,7 +345,7 @@ Add a course to the system. Saves the course in the name of the current logged i
   ```
 - **Error Response**
   - **Code:** 400
-  - **Content:**
+  - **Content**:
   ```json
   {
     "errors": [
@@ -376,7 +378,7 @@ Adds a new exercise to an existing course.
 - **Method**  
    `POST`
 - **URL Params**
-  - **Required:**  
+  - **Required:**
     - `id=[long]`
   - **Example:**  
     `/api/courses/1/exercises`
@@ -391,7 +393,7 @@ Adds a new exercise to an existing course.
   ```
 - **Success Response**
   - **Code:** 201
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 1,
@@ -406,7 +408,7 @@ Adds a new exercise to an existing course.
   ```
 - **Error Response**
   - **Code:** 400
-  - **Content:**
+  - **Content**:
   ```json
   {
     "errors": [
@@ -423,7 +425,7 @@ Adds a new exercise to an existing course.
   ```
   OR
   - **Code:** 404
-  - **Content:**
+  - **Content**:
   ```text
       Not found: Course not found.
   ```
@@ -457,7 +459,7 @@ Edit course fields. Currently you can edit with this method: name.
   ```
 - **Success Response**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   {
     "id": 1,
@@ -466,7 +468,7 @@ Edit course fields. Currently you can edit with this method: name.
   ```
 - **Error Response**
   - **Code:** 400
-  - **Content:**
+  - **Content**:
   ```json
   {
     "errors": [
@@ -483,7 +485,7 @@ Edit course fields. Currently you can edit with this method: name.
   ```
   OR
   - **Code:** 404
-  - **Content:**
+  - **Content**:
   ```text
       Not found: Course not found: 15.
   ```
@@ -510,7 +512,7 @@ Remove a course. Logged user has to be a teacher of this course.
 - **Error Response**
 
   - **Code**: 404
-  - **Content:**
+  - **Content**:
 
   ```text
   Not found: Course not found: 15
@@ -532,10 +534,10 @@ Get all exercise of a course. Logged user has to be a member of this course.
   - **Required**
     - `id=[long]`
   - **Example**
-    - `/api/courses/7`
+    - `/api/courses/7/exercises`
 - **Success Response**
   - **Code:** 200
-  - **Content:**
+  - **Content**:
   ```json
   [
     {
@@ -566,10 +568,10 @@ Get all exercise of a course. Logged user has to be a member of this course.
   ```
 - **Success Response (No courses found)**
   - **Code:** 204
-  - **Content:** Empty
+  - **Content**: Empty
 - **Error Response**
   - **Code**: 404
-  - **Content:**
+  - **Content**:
   ```text
   Not found: Course not found: 15
   ```
@@ -590,12 +592,48 @@ Remove a course. Logged user has to be a teacher of this course.
   - **Required**
     - `id=[long]`
   - **Example**
-    - `/api/courses/7`
+    - `/api/exercises/7`
 - **Success Response**
   - **Code:** 204
 - **Error Response**
   - **Code**: 404
-  - **Content:**
+  - **Content**:
   ```text
   Not found: Exercise not found: 15
+  ```
+
+## Download exercise files
+
+---
+
+Note: Content-Type is application/zip
+Download the files assigned to an exercise in a zip file.
+The files downloaded will be the template of the exercise if the current logged user doesn't have saved files, and his/her files if he/she does.
+Name of the file if template was downloaded: `template-{id}.zip` where {id} is the id of the exercise.
+Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` where {id} is the id of the exercise and {username} is the username of the logged user.
+
+- **Required role:**
+  Student or Teacher
+- **URL**
+  `/api/exercises/:id/files`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files`
+- **Success Response**
+  - **Code:** 200
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+  ```text
+  Not found: Exercise not found: 11
+  ```
+  OR
+  - **Code**: 404
+  - **Content** :
+  ```text
+  No template found for exercise: 11
   ```

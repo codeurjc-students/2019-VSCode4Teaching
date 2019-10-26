@@ -36,8 +36,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.context.TestPropertySource;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource(locations = "classpath:test.properties")
 public class CourseServiceImplTests {
 
     @Mock
@@ -124,7 +126,8 @@ public class CourseServiceImplTests {
         when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).then(returnsFirstArg());
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
-        Exercise exercise = new Exercise("Unit testing in Spring Boot");
+        Exercise exercise = new Exercise();
+        exercise.setName("Unit testing in Spring Boot");
 
         Exercise savedExercise = courseServiceImpl.addExerciseToCourse(courseTestId, exercise, "johndoe");
 
@@ -141,7 +144,8 @@ public class CourseServiceImplTests {
         logger.info("Test addExerciseToCourse_exception() begins.");
         Long courseTestId = 1l;
         Optional<Course> courseOpt = Optional.empty();
-        Exercise exercise = new Exercise("Unit testing in Spring Boot");
+        Exercise exercise = new Exercise();
+        exercise.setName("Unit testing in Spring Boot");
         when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
         assertThrows(CourseNotFoundException.class,
                 () -> courseServiceImpl.addExerciseToCourse(courseTestId, exercise, "johndoe"));
@@ -226,7 +230,8 @@ public class CourseServiceImplTests {
         student.addCourse(course);
         course.addUserInCourse(teacher);
         course.addUserInCourse(student);
-        Exercise exercise = new Exercise("Spring Boot Exercise 1");
+        Exercise exercise = new Exercise();
+        exercise.setName("Spring Boot Exercise 1");
         exercise.setId(6l);
         exercise.setCourse(course);
         course.addExercise(exercise);
@@ -256,9 +261,12 @@ public class CourseServiceImplTests {
         teacher.addRole(teacherRole);
         teacher.addCourse(course);
         course.addUserInCourse(teacher);
-        Exercise oldExercise = new Exercise("Spring Boot Exercise 1");
-        Exercise exerciseData = new Exercise("Spring Boot Exercise 2");
-        Exercise newExercise = new Exercise("Spring Boot Exercise 2");
+        Exercise oldExercise = new Exercise();
+        oldExercise.setName("Spring Boot Exercise 1");
+        Exercise exerciseData = new Exercise();
+        exerciseData.setName("Spring Boot Exercise 2");
+        Exercise newExercise = new Exercise();
+        newExercise.setName("Spring Boot Exercise 2");
         oldExercise.setId(5l);
         newExercise.setId(5l);
         oldExercise.setCourse(course);
@@ -289,7 +297,8 @@ public class CourseServiceImplTests {
         teacher.addRole(teacherRole);
         teacher.addCourse(course);
         course.addUserInCourse(teacher);
-        Exercise exercise = new Exercise("Spring Boot Exercise 1");
+        Exercise exercise = new Exercise();
+        exercise.setName("Spring Boot Exercise 1");
         exercise.setId(6l);
         exercise.setCourse(course);
         course.addExercise(exercise);
