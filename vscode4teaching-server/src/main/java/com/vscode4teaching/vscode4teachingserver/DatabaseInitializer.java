@@ -66,13 +66,14 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
+        String studentPassword = "studentpassword";
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");
-        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode("studentpassword"),
+        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 1");
-        User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode("studentpassword"),
+        User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 2");
-        User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode("studentpassword"),
+        User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 3");
         List<User> users = new ArrayList<>();
         users.add(saveUser(teacher, true));
@@ -99,8 +100,11 @@ public class DatabaseInitializer implements CommandLineRunner {
                 File file = new File(path);
                 file.getParentFile().mkdirs();
                 FileWriter templateFileWriter = new FileWriter(file, false);
-                templateFileWriter.write("<html>template</html>");
-                templateFileWriter.close();
+                try {
+                    templateFileWriter.write("<html>template</html>");
+                } finally {
+                    templateFileWriter.close();
+                }
                 ExerciseFile template = new ExerciseFile(path);
                 Exercise exercise = new Exercise("Exercise " + j, course, template);
                 fileRepository.save(template);
@@ -114,7 +118,11 @@ public class DatabaseInitializer implements CommandLineRunner {
         File file = new File(path);
         file.getParentFile().mkdirs();
         FileWriter c1e1s1FileWriter = new FileWriter(file, false);
-        c1e1s1FileWriter.write("<html>ex done</html>");
+        try {
+            c1e1s1FileWriter.write("<html>ex done</html>");
+        } finally {
+            c1e1s1FileWriter.close();
+        }
         c1e1s1FileWriter.close();
         ExerciseFile c1e1s1File = new ExerciseFile(path, student1);
         Exercise c1e1 = courses.get(0).getExercises().get(0);

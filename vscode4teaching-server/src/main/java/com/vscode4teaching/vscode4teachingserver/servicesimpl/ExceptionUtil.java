@@ -6,6 +6,9 @@ import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 public class ExceptionUtil {
+    private ExceptionUtil() {
+    }
+
     public static void throwExceptionIfNotInCourse(Course course, String requestUsername, boolean hasToBeTeacher)
             throws NotInCourseException {
         for (User user : course.getUsersInCourse()) {

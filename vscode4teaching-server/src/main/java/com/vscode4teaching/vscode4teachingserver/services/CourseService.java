@@ -35,8 +35,8 @@ public interface CourseService {
         public List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
                         throws CourseNotFoundException, NotInCourseException;
 
-        public Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData,
-                        String requestUsername) throws NotInCourseException, ExerciseNotFoundException;
+        public Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData, String requestUsername)
+                        throws NotInCourseException, ExerciseNotFoundException;
 
         public void deleteExercise(@Min(1) Long exerciseId, String requestUsername)
                         throws NotInCourseException, ExerciseNotFoundException;

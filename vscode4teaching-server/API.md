@@ -637,3 +637,80 @@ Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` w
   ```text
   No template found for exercise: 11
   ```
+
+## Upload user file
+
+Upload a file to the user files of an exercise.
+Body has to be multipart/form-data with key = `file` and value = the file.
+
+---
+
+- **Required role:**
+  Student or Teacher
+- **URL**
+  `/api/exercises/:id/files`
+- **Method**
+  `POST`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files`
+- **Success Response**
+  - **Code:** 200
+  - **Content**:
+  ```json
+  {
+    "fileName": "test.html",
+    "fileType": "text/html",
+    "size": 18
+  }
+  ```
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+  ```text
+  Not found: Exercise not found: 11
+  ```
+
+## Upload multiple user files
+
+Upload multiple files to the user files of an exercise.
+Body has to be multipart/form-data with key = `files` and value = the file.
+
+---
+
+- **Required role:**
+  Student or Teacher
+- **URL**
+  `/api/exercises/:id/files/multi`
+- **Method**
+  `POST`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files/multi`
+- **Success Response**
+  - **Code:** 200
+  - **Content**:
+  ```json
+  [
+    {
+      "fileName": "test.html",
+      "fileType": "text/html",
+      "size": 18
+    },
+    {
+      "fileName": "test2.html",
+      "fileType": "text/html",
+      "size": 18
+    }
+  ]
+  ```
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+  ```text
+  Not found: Exercise not found: 11
+  ```

@@ -137,7 +137,7 @@ public class Exercise {
 
     public List<ExerciseFile> getFilesByOwner(String username) {
         return userFiles.stream()
-                .filter(file -> file.getOwner() == null ? false : file.getOwner().getUsername().equals(username))
+                .filter(file -> file.getOwner() != null && file.getOwner().getUsername().equals(username))
                 .collect(Collectors.toList());
     }
 }

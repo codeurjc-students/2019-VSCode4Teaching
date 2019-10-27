@@ -58,7 +58,7 @@ public class CourseController {
     @PostMapping("/courses")
     @JsonView(CourseViews.GeneralView.class)
     public ResponseEntity<Course> addCourse(HttpServletRequest request, @Valid @RequestBody CourseDTO courseDTO)
-            throws TeacherNotFoundException, NotInCourseException {
+            throws TeacherNotFoundException {
 
         Course course = new Course(courseDTO.getName());
         Course savedCourse = courseService.registerNewCourse(course, jwtTokenUtil.getUsernameFromToken(request));
