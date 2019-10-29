@@ -69,8 +69,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         String studentPassword = "studentpassword";
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");
-        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode(studentPassword),
-                "John", "Doe Jr 1");
+        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode(studentPassword), "John",
+                "Doe Jr 1");
         User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 2");
         User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode(studentPassword),
@@ -95,8 +95,16 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         for (Course course : courses) {
             for (int j = 1; j < 6; j++) {
-                String path = fileDirectory + "/" + course.getName().toLowerCase().replace(' ', '_') + "_"
-                        + course.getId() + "/template/ej.html";
+                ExerciseFile template = new ExerciseFile();
+                Exercise exercise = new Exercise("Exercise " + j, course, template);
+                fileRepository.save(template);
+                course.addExercise(exercise);
+                exerciseRepository.save(exercise);
+                String path = fileDirectory + File.separator + course.getName().toLowerCase().replace(' ', '_') + "_"
+                        + course.getId() + File.separator + exercise.getName().toLowerCase().replace(' ', '_') + "_"
+                        + exercise.getId() + File.separator + "template" + File.separator + "ej.html";
+                template.setPath(path);
+                fileRepository.save(template);
                 File file = new File(path);
                 file.getParentFile().mkdirs();
                 FileWriter templateFileWriter = new FileWriter(file, false);
@@ -105,16 +113,15 @@ public class DatabaseInitializer implements CommandLineRunner {
                 } finally {
                     templateFileWriter.close();
                 }
-                ExerciseFile template = new ExerciseFile(path);
-                Exercise exercise = new Exercise("Exercise " + j, course, template);
-                fileRepository.save(template);
-                course.addExercise(exercise);
-                exerciseRepository.save(exercise);
+
             }
             courseRepository.save(course);
         }
-        String path = fileDirectory + "/" + courses.get(0).getName().toLowerCase().replace(' ', '_') + "_"
-                + courses.get(0).getId() + "/johndoejr/ej.html";
+        String path = fileDirectory + File.separator + courses.get(0).getName().toLowerCase().replace(' ', '_') + "_"
+                + courses.get(0).getId() + File.separator
+                + courses.get(0).getExercises().get(0).getName().toLowerCase().replace(' ', '_') + "_"
+                + courses.get(0).getExercises().get(0).getId() + File.separator + "johndoejr" + File.separator
+                + "ej.html";
         File file = new File(path);
         file.getParentFile().mkdirs();
         FileWriter c1e1s1FileWriter = new FileWriter(file, false);

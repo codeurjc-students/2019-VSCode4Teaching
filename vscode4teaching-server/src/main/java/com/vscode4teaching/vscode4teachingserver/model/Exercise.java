@@ -40,7 +40,7 @@ public class Exercise {
     private Course course;
 
     @OneToMany
-    @JsonView
+    @JsonIgnore
     private List<ExerciseFile> template = new ArrayList<>();
 
     @OneToMany

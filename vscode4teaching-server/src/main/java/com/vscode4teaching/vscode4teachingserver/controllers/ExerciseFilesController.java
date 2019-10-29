@@ -3,9 +3,9 @@ package com.vscode4teaching.vscode4teachingserver.controllers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -20,6 +20,7 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateE
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,6 +39,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class ExerciseFilesController {
     private final ExerciseFilesService filesService;
     private final JWTTokenUtil jwtTokenUtil;
+    @Value("${v4t.filedirectory}")
+    private String rootPath;
 
     public ExerciseFilesController(ExerciseFilesService filesService, JWTTokenUtil jwtTokenUtil) {
         this.filesService = filesService;
@@ -55,7 +58,14 @@ public class ExerciseFilesController {
         response.addHeader("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {
-            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+            String fileSeparatorPattern = Pattern.quote(File.separator);
+            String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
+            String[] filePath = file.getCanonicalPath().split(pattern);
+            if (filePath.length < 2) {
+                pattern = fileSeparatorPattern + username + fileSeparatorPattern;
+                filePath = file.getCanonicalPath().split(pattern);
+            }
+            zipOutputStream.putNextEntry(new ZipEntry(filePath[filePath.length - 1]));
             FileInputStream fileInputStream = new FileInputStream(file);
 
             IOUtils.copy(fileInputStream, zipOutputStream);
@@ -67,23 +77,28 @@ public class ExerciseFilesController {
     }
 
     @PostMapping("/exercises/{id}/files")
-    public ResponseEntity<UploadFileResponse> uploadFile(@PathVariable Long id,
-            @RequestParam("file") MultipartFile file, HttpServletRequest request)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
-        MultipartFile[] array = { file };
-        uploadMultipleFiles(id, array, request);
-        return ResponseEntity
-                .ok(new UploadFileResponse(file.getOriginalFilename(), file.getContentType(), file.getSize()));
-    }
-
-    @PostMapping("/exercises/{id}/files/multi")
-    public ResponseEntity<List<UploadFileResponse>> uploadMultipleFiles(@PathVariable Long id,
-            @RequestParam("files") MultipartFile[] files, HttpServletRequest request)
+    public ResponseEntity<List<UploadFileResponse>> uploadZip(@PathVariable Long id,
+            @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        filesService.saveExerciseFiles(id, files, username);
-        return ResponseEntity.ok(Arrays.asList(files).stream()
-                .map(file -> new UploadFileResponse(file.getOriginalFilename(), file.getContentType(), file.getSize()))
-                .collect(Collectors.toList()));
+        List<File> files = filesService.saveExerciseFiles(id, zip, username);
+        List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
+        String fileSeparatorPattern = Pattern.quote(File.separator);
+        String pattern = fileSeparatorPattern + username + fileSeparatorPattern;
+        for (File file : files) {
+            String[] filePath = file.getCanonicalPath().split(pattern);
+            uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
+                    file.toURI().toURL().openConnection().getContentType(), file.length()));
+        }
+        return ResponseEntity.ok(uploadResponse);
     }
+
+    @PostMapping("/exercises/{id}/files/template")
+    public ResponseEntity<List<UploadFileResponse>> uploadTemplate(@PathVariable Long id,
+            @RequestParam("file") MultipartFile zip, HttpServletRequest request)
+            throws ExerciseNotFoundException, NotInCourseException {
+        // TODO
+        return null;
+    }
+
 }

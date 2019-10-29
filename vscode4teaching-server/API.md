@@ -638,10 +638,11 @@ Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` w
   No template found for exercise: 11
   ```
 
-## Upload user file
+## Upload user files
 
-Upload a file to the user files of an exercise.
+Upload a ZIP file to the user files of an exercise.
 Body has to be multipart/form-data with key = `file` and value = the file.
+Files with the same name will be overriden.
 
 ---
 
@@ -660,51 +661,16 @@ Body has to be multipart/form-data with key = `file` and value = the file.
   - **Code:** 200
   - **Content**:
   ```json
-  {
-    "fileName": "test.html",
-    "fileType": "text/html",
-    "size": 18
-  }
-  ```
-- **Error Response**
-  - **Code**: 404
-  - **Content**:
-  ```text
-  Not found: Exercise not found: 11
-  ```
-
-## Upload multiple user files
-
-Upload multiple files to the user files of an exercise.
-Body has to be multipart/form-data with key = `files` and value = the file.
-
----
-
-- **Required role:**
-  Student or Teacher
-- **URL**
-  `/api/exercises/:id/files/multi`
-- **Method**
-  `POST`
-- **URL Params**
-  - **Required**
-    - `id=[long]`
-  - **Example**
-    - `/api/exercises/11/files/multi`
-- **Success Response**
-  - **Code:** 200
-  - **Content**:
-  ```json
   [
     {
-      "fileName": "test.html",
+      "fileName": "ex1.html",
       "fileType": "text/html",
-      "size": 18
+      "size": 23
     },
     {
-      "fileName": "test2.html",
+      "fileName": "ex2.html",
       "fileType": "text/html",
-      "size": 18
+      "size": 23
     }
   ]
   ```

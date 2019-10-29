@@ -17,9 +17,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @Validated
 public interface ExerciseFilesService {
-    public List<File> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
-            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
+        public List<File> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
+                        throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 
-    public void saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile[] files, String requestUsername)
-            throws ExerciseNotFoundException, NotInCourseException, IOException;
+        public List<File> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile zip, String requestUsername)
+                        throws ExerciseNotFoundException, NotInCourseException, IOException;
+
+        public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip, String requestUsername)
+                        throws ExerciseNotFoundException, NotInCourseException;
 }

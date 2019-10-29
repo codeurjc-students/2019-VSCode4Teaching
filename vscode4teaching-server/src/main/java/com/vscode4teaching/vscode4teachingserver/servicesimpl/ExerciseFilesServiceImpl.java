@@ -1,13 +1,16 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.validation.constraints.Min;
 
@@ -25,7 +28,6 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourse
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -66,7 +68,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     }
 
     @Override
-    public void saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile[] files, String requestUsername)
+    public List<File> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
@@ -74,20 +76,58 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         User user = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, false);
-        Path targetDirectory = Paths.get(rootPath + "/" + course.getName().toLowerCase().replace(" ", "_") + "_"
-                + course.getId() + "/" + requestUsername).toAbsolutePath().normalize();
+        Path targetDirectory = Paths.get(rootPath + File.separator + course.getName().toLowerCase().replace(" ", "_")
+                + "_" + course.getId() + File.separator + exercise.getName().toLowerCase().replace(" ", "_") + "_"
+                + exercise.getId() + File.separator + requestUsername).toAbsolutePath().normalize();
         if (!Files.exists(targetDirectory)) {
             Files.createDirectories(targetDirectory);
         }
-        for (MultipartFile file : files) {
-            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-            Path targetLocation = targetDirectory.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            ExerciseFile exFile = new ExerciseFile(targetLocation.toString());
-            exFile.setOwner(user);
-            ExerciseFile savedFile = fileRepository.save(exFile);
-            exercise.addUserFile(savedFile);
+        byte[] buffer = new byte[1024];
+        ZipInputStream zis = new ZipInputStream(file.getInputStream());
+        ZipEntry zipEntry = zis.getNextEntry();
+        List<File> files = new ArrayList<>();
+        while (zipEntry != null) {
+            File destFile = newFile(targetDirectory.toFile(), zipEntry);
+            if (zipEntry.isDirectory()) {
+                Files.createDirectories(destFile.toPath());
+            } else {
+                files.add(destFile);
+                FileOutputStream fos = new FileOutputStream(destFile);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+                ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
+                exFile.setOwner(user);
+                ExerciseFile savedFile = fileRepository.save(exFile);
+                exercise.addUserFile(savedFile);
+            }
+            zipEntry = zis.getNextEntry();
         }
+        zis.closeEntry();
+        zis.close();
         exerciseRepository.save(exercise);
+        return files;
+    }
+
+    @Override
+    public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException {
+        // TODO Auto-generated method stub
+        return null;
+
+    }
+
+    private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+        File destFile = new File(destinationDir, zipEntry.getName());
+
+        String destDirPath = destinationDir.getCanonicalPath();
+        String destFilePath = destFile.getCanonicalPath();
+
+        if (!destFilePath.startsWith(destDirPath + File.separator)) {
+            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+        }
+        return destFile;
     }
 }

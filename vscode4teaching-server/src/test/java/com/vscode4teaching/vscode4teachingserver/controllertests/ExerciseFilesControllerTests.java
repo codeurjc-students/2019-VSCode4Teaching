@@ -13,11 +13,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,17 +75,21 @@ public class ExerciseFilesControllerTests {
         }
 
         @AfterEach
-        public void cleanup() throws IOException {
+        public void cleanup() {
                 // Cleanup
-                FileUtils.deleteDirectory(Paths.get("v4t-course-test/").toFile());
-                FileUtils.deleteDirectory(Paths.get("test-uploads/").toFile());
+                try {
+                        FileUtils.deleteDirectory(Paths.get("v4t-course-test/").toFile());
+                        FileUtils.deleteDirectory(Paths.get("test-uploads/").toFile());
+                } catch (IOException e) {
+                        logger.error(e.getMessage());
+                }
         }
 
         @Test
         public void downloadFilesFromExercise_exercise() throws Exception {
                 List<File> files = new ArrayList<>();
-                files.add(new File("v4t-course-test/spring-boot-course/johndoe/ej1.txt"));
-                files.add(new File("v4t-course-test/spring-boot-course/johndoe/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej2.txt"));
                 for (File file : files) {
                         file.getParentFile().mkdirs();
                         file.createNewFile();
@@ -106,8 +110,8 @@ public class ExerciseFilesControllerTests {
         @Test
         public void downloadFilesFromExercise_template() throws Exception {
                 List<File> files = new ArrayList<>();
-                files.add(new File("v4t-course-test/spring-boot-course/template/ej1.txt"));
-                files.add(new File("v4t-course-test/spring-boot-course/template/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej2.txt"));
                 for (File file : files) {
                         file.getParentFile().mkdirs();
                         file.createNewFile();
@@ -127,47 +131,40 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void uploadFile() throws Exception {
-                // Create files
-                Files.createDirectories(Paths.get("test-uploads/"));
-                Path file1 = Files.write(Paths.get("test-uploads/ex1.html"), "<html>Exercise 1</html>".getBytes());
-                MockMultipartFile mockFile1 = new MockMultipartFile("file", file1.getFileName().toString(), "text/html",
-                                new FileInputStream(file1.toFile()));
+                byte[] mock = null;
+                MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
+                Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3"));
+                Path path1 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex1.html");
+                Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex1.html");
+                Files.copy(path1, path1Copy, StandardCopyOption.REPLACE_EXISTING);
+                Path path2 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex2.html");
+                Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex2.html");
+                Files.copy(path2, path2Copy, StandardCopyOption.REPLACE_EXISTING);
+                Path path3 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex3/ex3.html");
+                Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3/ex3.html");
+                Files.copy(path3, path3Copy, StandardCopyOption.REPLACE_EXISTING);
+
+                File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex1.html");
+                File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex2.html");
+                File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex3/ex3.html");
+                when(filesService.saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString()))
+                                .thenReturn(Arrays.asList(mockFile1, mockFile2, mockFile3));
 
                 MvcResult result = mockMvc
-                                .perform(multipart("/api/exercises/1/files").file(mockFile1).header("Authorization",
-                                                "Bearer " + jwtToken.getJwtToken()))
-                                .andExpect(status().isOk()).andReturn();
-
-                UploadFileResponse expectedResponse = new UploadFileResponse(mockFile1.getOriginalFilename(),
-                                mockFile1.getContentType(), mockFile1.getSize());
-                assertThat(result.getResponse().getContentAsString())
-                                .isEqualToIgnoringWhitespace(objectMapper.writeValueAsString(expectedResponse));
-                verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile[].class), anyString());
-        }
-
-        @Test
-        public void uploadMultipleFiles() throws Exception {
-                // Create files
-                Files.createDirectories(Paths.get("test-uploads/"));
-                Path file1 = Files.write(Paths.get("test-uploads/ex1.html"), "<html>Exercise 1</html>".getBytes());
-                MockMultipartFile mockFile1 = new MockMultipartFile("files", file1.getFileName().toString(),
-                                "text/html", new FileInputStream(file1.toFile()));
-                Path file2 = Files.write(Paths.get("test-uploads/ex2.html"), "<html>Exercise 2</html>".getBytes());
-                MockMultipartFile mockFile2 = new MockMultipartFile("files", file2.getFileName().toString(),
-                                "text/html", new FileInputStream(file2.toFile()));
-
-                MvcResult result = mockMvc
-                                .perform(multipart("/api/exercises/1/files/multi").file(mockFile1).file(mockFile2)
+                                .perform(multipart("/api/exercises/1/files").file(mockMultiFile1)
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
 
-                UploadFileResponse expectedResponse1 = new UploadFileResponse(mockFile1.getOriginalFilename(),
-                                mockFile1.getContentType(), mockFile1.getSize());
-                UploadFileResponse expectedResponse2 = new UploadFileResponse(mockFile2.getOriginalFilename(),
-                                mockFile2.getContentType(), mockFile2.getSize());
-                assertThat(result.getResponse().getContentAsString()).isEqualToIgnoringWhitespace(
-                                objectMapper.writeValueAsString(Arrays.asList(expectedResponse1, expectedResponse2)));
-                verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile[].class), anyString());
+                List<UploadFileResponse> expectedResponse = new ArrayList<>();
+                expectedResponse.add(new UploadFileResponse("ex1.html", "text/html", 23l));
+                expectedResponse.add(new UploadFileResponse("ex2.html", "text/html", 23l));
+                expectedResponse.add(new UploadFileResponse("ex3\\ex3.html", "text/html", 23l));
+
+                assertThat(result.getResponse().getContentAsString())
+                                .isEqualToIgnoringWhitespace(objectMapper.writeValueAsString(expectedResponse));
+
+                logger.info(result.getResponse().getContentAsString());
+                verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString());
         }
 
         @Test
