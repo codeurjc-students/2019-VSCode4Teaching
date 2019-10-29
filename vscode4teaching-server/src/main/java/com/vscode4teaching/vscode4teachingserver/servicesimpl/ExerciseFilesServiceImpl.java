@@ -70,15 +70,27 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public List<File> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
+        return saveFiles(exerciseId, file, requestUsername, false);
+    }
+
+    @Override
+    public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
+        return saveFiles(exerciseId, file, requestUsername, true);
+    }
+
+    private List<File> saveFiles(Long exerciseId, MultipartFile file, String requestUsername, boolean isTemplate)
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
         User user = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
-        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, false);
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, isTemplate);
+        String lastFolderPath = isTemplate ? "template" : requestUsername;
         Path targetDirectory = Paths.get(rootPath + File.separator + course.getName().toLowerCase().replace(" ", "_")
                 + "_" + course.getId() + File.separator + exercise.getName().toLowerCase().replace(" ", "_") + "_"
-                + exercise.getId() + File.separator + requestUsername).toAbsolutePath().normalize();
+                + exercise.getId() + File.separator + lastFolderPath).toAbsolutePath().normalize();
         if (!Files.exists(targetDirectory)) {
             Files.createDirectories(targetDirectory);
         }
@@ -92,12 +104,12 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 Files.createDirectories(destFile.toPath());
             } else {
                 files.add(destFile);
-                FileOutputStream fos = new FileOutputStream(destFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
+                try (FileOutputStream fos = new FileOutputStream(destFile)) {
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
                 }
-                fos.close();
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 exFile.setOwner(user);
                 ExerciseFile savedFile = fileRepository.save(exFile);
@@ -111,14 +123,6 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         return files;
     }
 
-    @Override
-    public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
-            throws ExerciseNotFoundException, NotInCourseException {
-        // TODO Auto-generated method stub
-        return null;
-
-    }
-
     private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         File destFile = new File(destinationDir, zipEntry.getName());
 
@@ -129,5 +133,19 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
         }
         return destFile;
+    }
+
+    @Override
+    public List<File> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
+        List<ExerciseFile> template = exercise.getTemplate();
+        if (exercise.getTemplate().isEmpty()) {
+            throw new NoTemplateException(exerciseId);
+        } else {
+            return template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList());
+        }
     }
 }

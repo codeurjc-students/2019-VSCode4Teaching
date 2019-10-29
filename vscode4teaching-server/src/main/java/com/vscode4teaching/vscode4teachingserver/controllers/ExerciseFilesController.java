@@ -56,24 +56,7 @@ public class ExerciseFilesController {
                 : "exercise-" + id + "-" + username;
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-        for (File file : files) {
-            String fileSeparatorPattern = Pattern.quote(File.separator);
-            String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
-            String[] filePath = file.getCanonicalPath().split(pattern);
-            if (filePath.length < 2) {
-                pattern = fileSeparatorPattern + username + fileSeparatorPattern;
-                filePath = file.getCanonicalPath().split(pattern);
-            }
-            zipOutputStream.putNextEntry(new ZipEntry(filePath[filePath.length - 1]));
-            FileInputStream fileInputStream = new FileInputStream(file);
-
-            IOUtils.copy(fileInputStream, zipOutputStream);
-
-            fileInputStream.close();
-            zipOutputStream.closeEntry();
-        }
-        zipOutputStream.close();
+        exportToZip(response, files, username);
     }
 
     @PostMapping("/exercises/{id}/files")
@@ -96,9 +79,48 @@ public class ExerciseFilesController {
     @PostMapping("/exercises/{id}/files/template")
     public ResponseEntity<List<UploadFileResponse>> uploadTemplate(@PathVariable Long id,
             @RequestParam("file") MultipartFile zip, HttpServletRequest request)
-            throws ExerciseNotFoundException, NotInCourseException {
-        // TODO
-        return null;
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
+        String username = jwtTokenUtil.getUsernameFromToken(request);
+        List<File> files = filesService.saveExerciseTemplate(id, zip, username);
+        List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
+        String fileSeparatorPattern = Pattern.quote(File.separator);
+        String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
+        for (File file : files) {
+            String[] filePath = file.getCanonicalPath().split(pattern);
+            uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
+                    file.toURI().toURL().openConnection().getContentType(), file.length()));
+        }
+        return ResponseEntity.ok(uploadResponse);
     }
 
+    @GetMapping("/exercises/{id}/files/template")
+    public void getTemplate(@PathVariable Long id, HttpServletResponse response, HttpServletRequest request)
+            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
+        String username = jwtTokenUtil.getUsernameFromToken(request);
+        List<File> files = filesService.getExerciseTemplate(id, username);
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Disposition", "attachment; filename=\"template-" + id + ".zip\"");
+        exportToZip(response, files, username);
+    }
+
+    private void exportToZip(HttpServletResponse response, List<File> files, String username) throws IOException {
+        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+        for (File file : files) {
+            String fileSeparatorPattern = Pattern.quote(File.separator);
+            String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
+            String[] filePath = file.getCanonicalPath().split(pattern);
+            if (filePath.length < 2) {
+                pattern = fileSeparatorPattern + username + fileSeparatorPattern;
+                filePath = file.getCanonicalPath().split(pattern);
+            }
+            zipOutputStream.putNextEntry(new ZipEntry(filePath[filePath.length - 1]));
+            FileInputStream fileInputStream = new FileInputStream(file);
+
+            IOUtils.copy(fileInputStream, zipOutputStream);
+
+            fileInputStream.close();
+            zipOutputStream.closeEntry();
+        }
+        zipOutputStream.close();
+    }
 }

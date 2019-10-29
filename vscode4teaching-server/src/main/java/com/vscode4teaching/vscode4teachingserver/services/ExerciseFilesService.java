@@ -24,5 +24,8 @@ public interface ExerciseFilesService {
                         throws ExerciseNotFoundException, NotInCourseException, IOException;
 
         public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip, String requestUsername)
-                        throws ExerciseNotFoundException, NotInCourseException;
+                        throws ExerciseNotFoundException, NotInCourseException, IOException;
+
+        public List<File> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
+                        throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 }

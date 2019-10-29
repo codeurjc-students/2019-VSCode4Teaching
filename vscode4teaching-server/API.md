@@ -17,6 +17,8 @@ Note: All requests can respond with code 401 if the required role isn't fulfille
 - [Get exercises of a course](API.md#get-exercises-of-a-course)
 - [Delete an exercise](API.md#delete-an-exercise)
 - [Download exercise files](API.md#download-exercise-files)
+- [Download exercise template](API.md#download-exercise-template)
+- [Upload user files](API.md#upload-user-files)
 
 ## Login
 
@@ -638,6 +640,40 @@ Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` w
   No template found for exercise: 11
   ```
 
+## Download exercise template
+
+---
+
+Note: Content-Type is application/zip
+Download the files assigned to an exercise template in a zip file.
+Name of the file if template was downloaded: `template-{id}.zip` where {id} is the id of the exercise.
+
+- **Required role:**
+  Student or Teacher
+- **URL**
+  `/api/exercises/:id/files/template`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files/template`
+- **Success Response**
+  - **Code:** 200
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+  ```text
+  Not found: Exercise not found: 11
+  ```
+  OR
+  - **Code**: 404
+  - **Content** :
+  ```text
+  No template found for exercise: 11
+  ```
+
 ## Upload user files
 
 Upload a ZIP file to the user files of an exercise.
@@ -657,6 +693,49 @@ Files with the same name will be overriden.
     - `id=[long]`
   - **Example**
     - `/api/exercises/11/files`
+- **Success Response**
+  - **Code:** 200
+  - **Content**:
+  ```json
+  [
+    {
+      "fileName": "ex1.html",
+      "fileType": "text/html",
+      "size": 23
+    },
+    {
+      "fileName": "ex2.html",
+      "fileType": "text/html",
+      "size": 23
+    }
+  ]
+  ```
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+  ```text
+  Not found: Exercise not found: 11
+  ```
+
+## Upload exercise template
+
+Upload a ZIP file to the template of an exercise.
+Body has to be multipart/form-data with key = `file` and value = the file.
+Files with the same name will be overriden.
+
+---
+
+- **Required role:**
+  Teacher
+- **URL**
+  `/api/exercises/:id/files/template`
+- **Method**
+  `POST`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files/template`
 - **Success Response**
   - **Code:** 200
   - **Content**:

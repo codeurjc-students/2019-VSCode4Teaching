@@ -54,6 +54,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasAnyRole("TEACHER")
             .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole("TEACHER")
+            .antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
+                .hasAnyRole("TEACHER")
             .anyRequest()
                 .hasAnyRole("STUDENT")
         .and()
