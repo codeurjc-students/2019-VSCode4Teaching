@@ -1,18 +1,23 @@
 package com.vscode4teaching.vscode4teachingserver;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -33,7 +38,14 @@ public class DatabaseInitializer implements CommandLineRunner {
     private RoleRepository roleRepository;
 
     @Autowired
+    private ExerciseFileRepository fileRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    // Value in application.properties
+    @Value("${v4t.filedirectory}")
+    private String fileDirectory;
 
     private void addRole(User user, String roleName) {
         Role role = roleRepository.findByRoleName(roleName);
@@ -54,13 +66,14 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
+        String studentPassword = "studentpassword";
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");
-        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode("studentpassword"),
-                "John", "Doe Jr 1");
-        User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode("studentpassword"),
+        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode(studentPassword), "John",
+                "Doe Jr 1");
+        User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 2");
-        User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode("studentpassword"),
+        User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode(studentPassword),
                 "John", "Doe Jr 3");
         List<User> users = new ArrayList<>();
         users.add(saveUser(teacher, true));
@@ -82,13 +95,46 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         for (Course course : courses) {
             for (int j = 1; j < 6; j++) {
-                Exercise exercise = new Exercise("Exercise " + j);
+                ExerciseFile template = new ExerciseFile();
+                Exercise exercise = new Exercise("Exercise " + j, course, template);
+                fileRepository.save(template);
                 course.addExercise(exercise);
-                exercise.setCourse(course);
                 exerciseRepository.save(exercise);
+                String path = fileDirectory + File.separator + course.getName().toLowerCase().replace(' ', '_') + "_"
+                        + course.getId() + File.separator + exercise.getName().toLowerCase().replace(' ', '_') + "_"
+                        + exercise.getId() + File.separator + "template" + File.separator + "ej.html";
+                template.setPath(path);
+                fileRepository.save(template);
+                File file = new File(path);
+                file.getParentFile().mkdirs();
+                FileWriter templateFileWriter = new FileWriter(file, false);
+                try {
+                    templateFileWriter.write("<html>template</html>");
+                } finally {
+                    templateFileWriter.close();
+                }
+
             }
             courseRepository.save(course);
         }
-
+        String path = fileDirectory + File.separator + courses.get(0).getName().toLowerCase().replace(' ', '_') + "_"
+                + courses.get(0).getId() + File.separator
+                + courses.get(0).getExercises().get(0).getName().toLowerCase().replace(' ', '_') + "_"
+                + courses.get(0).getExercises().get(0).getId() + File.separator + "johndoejr" + File.separator
+                + "ej.html";
+        File file = new File(path);
+        file.getParentFile().mkdirs();
+        FileWriter c1e1s1FileWriter = new FileWriter(file, false);
+        try {
+            c1e1s1FileWriter.write("<html>ex done</html>");
+        } finally {
+            c1e1s1FileWriter.close();
+        }
+        c1e1s1FileWriter.close();
+        ExerciseFile c1e1s1File = new ExerciseFile(path, student1);
+        Exercise c1e1 = courses.get(0).getExercises().get(0);
+        c1e1.addUserFile(c1e1s1File);
+        fileRepository.save(c1e1s1File);
+        exerciseRepository.save(c1e1);
     }
 }

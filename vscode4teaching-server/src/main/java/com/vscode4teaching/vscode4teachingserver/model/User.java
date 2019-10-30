@@ -1,5 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
@@ -57,6 +60,14 @@ public class User {
     @ManyToMany(mappedBy = "usersInCourse")
     @JsonView(UserViews.CourseView.class)
     private List<Course> courses = new ArrayList<>();
+
+    @CreationTimestamp
+    @JsonView(UserViews.GeneralView.class)
+    private LocalDateTime createDateTime;
+
+    @UpdateTimestamp
+    @JsonView(UserViews.GeneralView.class)
+    private LocalDateTime updateDateTime;
 
     public User() {
     }
@@ -146,4 +157,13 @@ public class User {
     public void addCourse(Course course) {
         this.courses.add(course);
     }
+
+    public LocalDateTime getCreateDateTime() {
+        return createDateTime;
+    }
+
+    public LocalDateTime getUpdateDateTime() {
+        return updateDateTime;
+    }
+
 }

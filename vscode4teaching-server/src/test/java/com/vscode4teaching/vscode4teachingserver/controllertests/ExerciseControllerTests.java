@@ -78,7 +78,8 @@ public class ExerciseControllerTests {
                 Course course = new Course("Spring Boot Course");
                 Long courseId = 1l;
                 course.setId(courseId);
-                Exercise expectedExercise = new Exercise("Spring Boot Exercise 1");
+                Exercise expectedExercise = new Exercise();
+                expectedExercise.setName("Spring Boot Exercise 1");
                 expectedExercise.setId(2l);
                 expectedExercise.setCourse(course);
                 ExerciseDTO exerciseDTO = new ExerciseDTO();
@@ -128,10 +129,12 @@ public class ExerciseControllerTests {
                 Course course = new Course("Spring Boot Course");
                 Long courseId = 1l;
                 course.setId(courseId);
-                Exercise exercise1 = new Exercise("Spring Boot Exercise 1");
+                Exercise exercise1 = new Exercise();
+                exercise1.setName("Spring Boot Exercise 1");
                 exercise1.setId(2l);
                 exercise1.setCourse(course);
-                Exercise exercise2 = new Exercise("Spring Boot Exercise 2");
+                Exercise exercise2 = new Exercise();
+                exercise2.setName("Spring Boot Exercise 2");
                 exercise2.setId(3l);
                 exercise2.setCourse(course);
                 course.addExercise(exercise1);
@@ -159,7 +162,8 @@ public class ExerciseControllerTests {
                 logger.info("Test editCourse_valid() begins.");
 
                 ExerciseDTO exercise = new ExerciseDTO();
-                Exercise expectedExercise = new Exercise("Spring Boot Exercise 1 v2");
+                Exercise expectedExercise = new Exercise();
+                expectedExercise.setName("Spring Boot Exercise 1 v2");
                 expectedExercise.setId(1l);
                 expectedExercise.setCourse(new Course("Spring Boot Course"));
                 exercise.setName("Spring Boot Exercise 1 v2");

@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
@@ -50,7 +49,7 @@ public class CourseServiceImpl implements CourseService {
     public Exercise addExerciseToCourse(Long courseId, Exercise exercise, String requestUsername)
             throws CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotInCourse(course, requestUsername, true);
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         exercise.setCourse(course);
         // Fetching exercises of course (Lazy initialization)
         course.getExercises();
@@ -65,7 +64,7 @@ public class CourseServiceImpl implements CourseService {
             throws CourseNotFoundException, NotInCourseException {
         Course courseToEdit = this.courseRepo.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotInCourse(courseToEdit, requestUsername, true);
+        ExceptionUtil.throwExceptionIfNotInCourse(courseToEdit, requestUsername, true);
         courseToEdit.setName(courseData.getName());
         return courseRepo.save(courseToEdit);
     }
@@ -74,7 +73,7 @@ public class CourseServiceImpl implements CourseService {
     public void deleteCourse(Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotInCourse(course, requestUsername, true);
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         this.courseRepo.delete(course);
     }
 
@@ -82,7 +81,7 @@ public class CourseServiceImpl implements CourseService {
     public List<Exercise> getExercises(Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        throwExceptionIfNotInCourse(course, requestUsername, false);
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, false);
         return course.getExercises();
     }
 
@@ -91,7 +90,7 @@ public class CourseServiceImpl implements CourseService {
             throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
-        throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
         exercise.setName(exerciseData.getName());
         return exerciseRepo.save(exercise);
     }
@@ -101,7 +100,7 @@ public class CourseServiceImpl implements CourseService {
             throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
-        throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
         this.exerciseRepo.delete(exercise);
 
     }
@@ -111,30 +110,6 @@ public class CourseServiceImpl implements CourseService {
         User user = this.userRepo.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
         return user.getCourses();
-    }
-
-    private void throwExceptionIfNotInCourse(Course course, String requestUsername, boolean hasToBeTeacher)
-            throws NotInCourseException {
-        for (User user : course.getUsersInCourse()) {
-            if (user.getUsername().equals(requestUsername)) {
-                if (hasToBeTeacher) {
-                    for (Role role : user.getRoles()) {
-                        if (role.getRoleName().equals("ROLE_TEACHER")) {
-                            return;
-                        }
-                    }
-                } else {
-                    return;
-                }
-            }
-        }
-        String exceptionMessage;
-        if (hasToBeTeacher) {
-            exceptionMessage = "User is not in course or teacher is not in this course.";
-        } else {
-            exceptionMessage = "User is not in course.";
-        }
-        throw new NotInCourseException(exceptionMessage);
     }
 
 }
