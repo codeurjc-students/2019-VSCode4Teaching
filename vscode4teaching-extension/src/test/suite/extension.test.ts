@@ -174,7 +174,7 @@ suite('Extension Test Suite', () => {
 		});
 		extension.coursesProvider.userinfo = user;
 		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", "Exercise 1", 4);
-		await new Promise(resolve => setTimeout(resolve, 40)); // Wait for exercises to "download"
+		await new Promise(resolve => setTimeout(resolve, 100)); // Wait for exercises to "download"
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex1.html'), true, "ex1 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex2.html'), true, "ex2 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex3.html'), true, "ex3 exists");
