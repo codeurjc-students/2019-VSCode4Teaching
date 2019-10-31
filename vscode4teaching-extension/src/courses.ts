@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
 import { User, Course, Exercise } from './model';
+import * as fs from 'fs';
+import * as JSZip from 'jszip';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -21,7 +23,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // If exercises were downloaded previously show them, else get them from server
                 if (course.exercises) {
                     // Map exercises to TreeItems
-                    return course.exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None));
+                    return course.exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None, {
+                        "command": "vscode4teaching.getexercisefiles",
+                        "title": "Get exercise files",
+                        "arguments": [course ? course.name : null, exercise.name, exercise.id] // course condition is needed to avoid compilation error, shouldn't be false
+                    }));
                 } else {
                     this.getExercises(element, course);
                 }
@@ -57,13 +63,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let password: string | undefined = await vscode.window.showInputBox({ "prompt": "Password", "password": true });
                 if (password) {
                     this.callLogin(username, password).catch(error => {
-                        if (error.response) {
-                            vscode.window.showErrorMessage(error.response.data);
-                        } else if (error.request) {
-                            vscode.window.showErrorMessage("Can't connect to the server");
-                        } else {
-                            vscode.window.showErrorMessage(error.message);
-                        }
+                        this.handleAxiosError(error);
                     });
                 }
             }
@@ -98,6 +98,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     get client(): RestClient {
         return this._client;
     }
+
     set client(client: RestClient) {
         this._client = client;
     }
@@ -127,15 +128,59 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 this._onDidChangeTreeData.fire(item);
             }
         }).catch(error => {
-            if (error.response) {
-                vscode.window.showErrorMessage(error.response.data);
-            } else if (error.request) {
-                vscode.window.showErrorMessage("Can't connect to the server");
-            } else {
-                vscode.window.showErrorMessage(error.message);
-            }
+            this.handleAxiosError(error);
         });
 
+    }
+
+    async getExerciseFiles(courseName: string, exerciseName: string, exerciseId: number): Promise<string | null> {
+        if (this.userinfo && !fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName)) {
+            if (!fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName)) {
+                if (!fs.existsSync('v4tdownloads/' + this.userinfo.username)) {
+                    if (!fs.existsSync('v4tdownloads/')) {
+                        fs.mkdirSync('v4tdownloads/');
+                    }
+                    fs.mkdirSync('v4tdownloads/' + this.userinfo.username);
+                }
+                fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName);
+            }
+            fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName);
+        }
+        let requestThenable = this.client.getExerciseFiles(exerciseId);
+        vscode.window.setStatusBarMessage("Downloading exercise files...", requestThenable);
+        await requestThenable.then(response => {
+            JSZip.loadAsync(response.data).then(zip => {
+                zip.forEach((relativePath, file) => {
+                    if (this.userinfo) {
+                        let v4tpath = 'v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName + '/' + relativePath;
+                        if (this.userinfo && file.dir) {
+                            fs.mkdirSync(v4tpath);
+                        } else {
+                            file.async('nodebuffer').then(fileData => {
+                                fs.writeFileSync(v4tpath, fileData);
+                            });
+                        }
+                    }
+                });
+            });
+        }).catch(error => {
+            this.handleAxiosError(error);
+        });
+        if (this.userinfo) {
+            return path.resolve('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exerciseName);
+        } else {
+            return Promise.resolve(null);
+        }
+    }
+
+    private handleAxiosError(error: any) {
+        if (error.response) {
+            vscode.window.showErrorMessage(error.response.data);
+        } else if (error.request) {
+            vscode.window.showErrorMessage("Can't connect to the server");
+        } else {
+            vscode.window.showErrorMessage(error.message);
+        }
     }
 }
 
