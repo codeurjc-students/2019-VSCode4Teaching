@@ -13,25 +13,30 @@ export class RestClient {
             "username": username,
             "password": password
         };
-        return axios(this.buildOptions("/api/login", "POST", data));
+        return axios(this.buildOptions("/api/login", "POST", false, data));
     }
 
     getUserInfo(): AxiosPromise<User> {
-        return axios(this.buildOptions("/api/currentuser", "GET"));
+        return axios(this.buildOptions("/api/currentuser", "GET", false));
     }
 
     getExercises(courseId: number): AxiosPromise<Exercise[]> {
-        return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET"));
+        return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET", false));
     }
 
-    private buildOptions(url: string, method: Method, data?: any): AxiosRequestConfig {
+    getExerciseFiles(exerciseId: number) {
+        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "GET", true));
+    }
+
+    private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
         if (this.jwtToken) {
             return {
                 url: url,
                 baseURL: this.baseUrl,
                 method: method,
                 data: data,
-                headers: { "Authorization": "Bearer " + this.jwtToken }
+                headers: { "Authorization": "Bearer " + this.jwtToken },
+                responseType: isArrayBuffer ? "arraybuffer" : "json"
             };
         }
         else {

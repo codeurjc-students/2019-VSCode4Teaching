@@ -1,5 +1,10 @@
 {
 	"name": "vscode4teaching",
+	"publisher": "codeurjc-students",
+	"author": {
+		"name": "Iván Chicano Capelo",
+		"email": "ivchicano@gmail.com"
+	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.0.1-SNAPSHOT",
@@ -15,8 +20,7 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-		],
+		"commands": [],
 		"viewsContainers": {
 			"activitybar": [
 				{
@@ -34,15 +38,18 @@
 				}
 			]
 		}
-
 	},
 	"menus": {
 		"view/title": [
 			{
 				"command": "vscode4teaching.login",
 				"when": "view == vscode4teaching"
+			},
+			{
+				"command": "vscode4teaching.getexercisefiles",
+				"when": "view == vscode4teaching"
 			}
-		]	
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -57,14 +64,18 @@
 		"@types/node": "^10.14.22",
 		"@types/simple-mock": "^0.8.1",
 		"@types/vscode": "^1.39.0",
+		"@types/rimraf": "^2.0.3",
 		"glob": "^7.1.4",
 		"mocha": "^6.2.2",
+		"rimraf": "^3.0.0",
 		"simple-mock": "^0.8.0",
 		"tslint": "^5.12.1",
 		"typescript": "^3.6.4",
 		"vscode-test": "^1.2.0"
 	},
 	"dependencies": {
-		"axios": "^0.19.0"
+		"@types/jszip": "^3.1.6",
+		"axios": "^0.19.0",
+		"jszip": "^3.2.2"
 	}
 }

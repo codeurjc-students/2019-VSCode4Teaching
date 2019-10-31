@@ -6,6 +6,9 @@ import * as simple from 'simple-mock';
 import { V4TItem, V4TItemType } from '../../courses';
 import { Course, Exercise, User } from '../../model';
 import { RestClient } from '../../restclient';
+import * as fs from 'fs';
+import * as path from 'path';
+import rimraf = require('rimraf');
 
 suite('Extension Test Suite', () => {
 
@@ -13,6 +16,29 @@ suite('Extension Test Suite', () => {
 		simple.restore();
 		extension.coursesProvider.client = new RestClient();
 		extension.coursesProvider.userinfo = undefined;
+		if (fs.existsSync('v4tdownloads')) {
+			rimraf('v4tdownloads', error => {
+				// console.log(error);
+			});
+		}
+		if (fs.existsSync('openworkspacetest')) {
+			rimraf('openworkspacetest', error => {
+				// console.log(error);
+			});
+		}
+	});
+
+	test('should be present', () => {
+		assert.ok(vscode.extensions.getExtension("codeurjc-students.vscode4teaching"));
+	});
+
+	test('should activate properly', () => {
+		const extensionActivator = vscode.extensions.getExtension("codeurjc-students.vscode4teaching");
+		if (extensionActivator && !extensionActivator.isActive) {
+			extensionActivator.activate().then(() => {
+				assert.ok(extension.coursesProvider);
+			});
+		}
 	});
 
 	test('login', async () => {
@@ -119,7 +145,11 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None));
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None, {
+			"command": "vscode4teaching.getexercisefiles",
+			"title": "Get exercise files",
+			"arguments": [course.name, exercise.name, exercise.id]
+		}));
 		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
 
@@ -130,5 +160,25 @@ suite('Extension Test Suite', () => {
 		let newExerciseItems = extension.coursesProvider.getChildren(courseItem);
 		assert.deepStrictEqual(exerciseItems, newExerciseItems);
 
+	});
+
+	test('get exercise files', async () => {
+		let user: User = {
+			id: 343,
+			username: "johndoe"
+		};
+		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExerciseFiles");
+		getExercisesMock.resolveWith({
+			data: fs.readFileSync(__dirname + path.sep + ".." + path.sep + ".." + path.sep + ".." +
+				path.sep + 'test-resources' + path.sep + 'files' + path.sep + 'exs.zip')
+		});
+		extension.coursesProvider.userinfo = user;
+		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", "Exercise 1", 4);
+		await new Promise(resolve => setTimeout(resolve, 40)); // Wait for exercises to "download"
+		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex1.html'), true, "ex1 exists");
+		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex2.html'), true, "ex2 exists");
+		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex3.html'), true, "ex3 exists");
+		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex4/ex4.html'), true, "ex4 exists");
+		assert.deepStrictEqual(newWorkspaceURI, path.resolve('v4tdownloads/johndoe/Spring Boot Course/Exercise 1'), "uri is correct");
 	});
 });
