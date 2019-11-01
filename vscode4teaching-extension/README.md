@@ -4,9 +4,9 @@
 
 - [Installing](README.md#installing)
 - [Development](README.md#development)
-    - [Prerequisites](README.md#prerequisites)
-    - [Compiling](README.md#compiling)
-    - [Running tests](README.md#running-tests)
+  - [Prerequisites](README.md#prerequisites)
+  - [Compiling](README.md#compiling)
+  - [Running tests](README.md#running-tests)
 - [Features](README.md#features)
 
 ## Installing
@@ -17,9 +17,9 @@ The extension will be uploaded to the marketplace when te first roadmap mileston
 
 ### Prerequisites
 
-- Visual Studio Code: https://code.visualstudio.com/
-- Node.js: https://nodejs.org
-- Git: https://git-scm.com/
+- Visual Studio Code: <https://code.visualstudio.com/>
+- Node.js: <https://nodejs.org>
+- Git: <https://git-scm.com/>
 
 ### Compiling
 

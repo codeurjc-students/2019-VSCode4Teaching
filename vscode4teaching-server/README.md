@@ -17,8 +17,10 @@
 Click [HERE](API.md) for the documentation on the REST API running on the server.  
 
 ## Database Initializer  
-The class DatabaseInitializer will initialize some data to the database. These include:  
-- Users:   
+
+The data.sql file in resources will initialize some data to the database. These include:  
+
+- Users:
   - Teacher:  
     - username: `johndoe`  
     - password: `teacherpassword`  
@@ -34,7 +36,13 @@ The class DatabaseInitializer will initialize some data to the database. These i
       - password: `studentpassword`  
 - Courses: Spring Boot Course, Angular Course, VSCode Extension API Course. Each course has every user above as a participant or teacher.  
 - Exercises: each course has 5 exercises: Exercise 1, Exercise 2 and so on.  
-- Files: each course has a template initialized. Student 1 has files for Exercise 1 in Spring Boot Course.  
+File data is not included (see below).  
+
+Also, if the directory specified in the `v4t.filedirectory` property exists, the server will try to initialize the files' data in the database, along with everything it needs.
+First, it will search for the ids of the courses (eg.: if there is a folder spring_boot_course_11 it will try to find course with id 11). Then, it will try to find the exercises ids inside that course. Last, for the template and each user in that folder it will try to find all files and save all information needed in the database.
+If at any point an element does not exist, it will be ignored (eg.: a course has not been found).  
+
+All of this is configurable (See [Arguments/Environment variables](README.md#argumentsenvironment-variables)).
 
 ## Installing
 
@@ -71,13 +79,21 @@ List of allowed arguments:
 - --jwt.secret=[key]  
    Secret key for JWT. IMPORTANT TO CHANGE IN PRODUCTION ENVIRONMENT.  
    Default: vscode4teaching  
-   Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --jwt.secret="vscode4teaching"` 
+   Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --jwt.secret=vscode4teaching`
 - --v4t.filedirectory=[directory]
     Directory where the exercises' files will be saved.
     Default: v4t-course  
-    Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --jwt.secret="vscode4teaching"` 
+    Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --v4t.filedirectory=C:\v4tfiles`
+- --file.initialization=[true|false]
+    Indicates whether to initialize file information in the database or not.
+    Default: true
+    Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --file.initialization=false`
+- --spring.datasource.initialization-mode=[always|none]
+    Indicates whether to initialize demo database information or not.
+    Default: always
+    Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.initialization-mode=none`
   Example with all arguments:  
-  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses`
+  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses --file.initialization=false --spring.datasource.initialization-mode=none`
 
   For environment variables, just choose an argument above, put it in all caps and change the . (dots) into \_ (underscores) eg.: SPRING_DATASOURCE_URL
   and set the value to the value desired (see the examples above for guidance).
@@ -86,10 +102,10 @@ List of allowed arguments:
 
 ### Prerequisites
 
-- JDK (Version 8 or higher): https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-- Recommended: Maven: https://maven.apache.org/download.cgi
-- Recommended: Spring Tools: https://spring.io/tools
-- Recommended: Docker: https://www.docker.com/
+- JDK (Version 8 or higher): <https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html>
+- Recommended: Maven: <https://maven.apache.org/download.cgi>
+- Recommended: Spring Tools: <https://spring.io/tools>
+- Recommended: Docker: <https://www.docker.com/>
 
 ### Compiling
 
@@ -111,7 +127,7 @@ You can build the server image with the command:
 `docker build .`  
 Also you can download the image from Docker Hub:  
 `docker pull ivchicano/vscode4teaching-server`  
-Link to Docker Hub: (https://cloud.docker.com/u/ivchicano/repository/docker/ivchicano/vscode4teaching-server)
+Link to Docker Hub: (<https://cloud.docker.com/u/ivchicano/repository/docker/ivchicano/vscode4teaching-server)>
 You can run a docker compose with the image and a mysql database by going to the **docker** directory inside the server directory and running the following command:  
 `docker-compose up`
 The server will run in port 8080.
