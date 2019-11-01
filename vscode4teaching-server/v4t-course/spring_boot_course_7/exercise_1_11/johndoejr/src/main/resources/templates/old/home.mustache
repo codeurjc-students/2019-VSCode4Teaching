@@ -1,0 +1,68 @@
+{{>old/header}}
+		<!-- Searchbar
+		<div class="row">
+			<div class="col-lg">
+				<div class="box">
+					<div class="container-1">
+						<span class="icon"><i class="fa fa-search"></i></span>
+						<input type="search" id="search" placeholder="Búsqueda" />
+					</div>
+				</div>
+			</div>
+		</div>-->
+		<script src="/assets/js/loadFunctions/loadChapter.js"></script>
+		<script src="/assets/js/loadFunctions/loadConcepts.js"></script>
+		<div class="row">
+			<div class="col-lg">
+				<div class="card">
+					<div class="card-body">
+						<div class="tab-content">
+							<div class="tab-pane active" id="home">
+								<div id="Chapters" role="tablist">
+									<script>loadChapters()</script>
+								</div>
+							</div>
+						</div>
+						{{#teacher}}
+						<div class="addQuestionSeeDiagram">
+							<button type="button" class="btn btn-primary btn-fab btn-fab-mini btn-round" data-toggle="modal" data-target="#addChapterModal">
+								<i class="material-icons">add</i>
+							</button>
+						</div>
+						{{/teacher}}
+						<button type="button" class="btn btn-primary" id="showMoreBtnChapters" data-target="#showMore" onclick="loadChapters();">
+							Más resultados
+						</button>
+						<div id="loadGifChapters"></div>
+						{{#seeDiagram}}
+						<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#diagramModal">Diagrama</button>
+						{{/seeDiagram}}
+					</div>
+				</div>
+			</div>
+		</div>
+	<div class="modal fade" id="addChapterModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	  <form action="/addChapter" method="post">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="exampleModalLabel">Inserte un nuevo capitulo</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	      	<p>Nombre</p>
+	      	<input type="text" name="chapterName">
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+		        <button type="submit" class="btn btn-primary">Guardar</button>
+		      </div>
+	      <input type="hidden" name="_csrf" value={{csrfToken}}>
+	    </div>
+	    </div>
+	    </div>
+	    </form>
+	  </div>
+	  {{>old/diagram}}
+{{>old/footer}}

@@ -20,7 +20,6 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateE
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,8 +38,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ExerciseFilesController {
     private final ExerciseFilesService filesService;
     private final JWTTokenUtil jwtTokenUtil;
-    @Value("${v4t.filedirectory}")
-    private String rootPath;
 
     public ExerciseFilesController(ExerciseFilesService filesService, JWTTokenUtil jwtTokenUtil) {
         this.filesService = filesService;

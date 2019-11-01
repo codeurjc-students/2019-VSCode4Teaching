@@ -4,9 +4,9 @@
 
 - [Installing](README.md#installing)
 - [Development](README.md#development)
-    - [Prerequisites](README.md#prerequisites)
-    - [Compiling](README.md#compiling)
-    - [Running tests](README.md#running-tests)
+  - [Prerequisites](README.md#prerequisites)
+  - [Compiling](README.md#compiling)
+  - [Running tests](README.md#running-tests)
 - [Features](README.md#features)
 
 ## Installing
@@ -17,9 +17,9 @@ The extension will be uploaded to the marketplace when te first roadmap mileston
 
 ### Prerequisites
 
-- Visual Studio Code: https://code.visualstudio.com/
-- Node.js: https://nodejs.org
-- Git: https://git-scm.com/
+- Visual Studio Code: <https://code.visualstudio.com/>
+- Node.js: <https://nodejs.org>
+- Git: <https://git-scm.com/>
 
 ### Compiling
 
@@ -35,3 +35,4 @@ Use the following command to run the tests:
 VS Code 4 Teaching extension features a new view accessible from the V4T icon in the activity bar.
 You will need to log in to the server first to do anything.
 You will be prompted to choose server, username and password.
+TODO: Complete this when ready for release (with animations and stuff)

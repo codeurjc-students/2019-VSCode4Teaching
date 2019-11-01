@@ -72,14 +72,14 @@ public class JWTLoginControllerTests {
                 List<GrantedAuthority> roles = new ArrayList<>();
                 roles.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
                 roles.add(new SimpleGrantedAuthority("ROLE_TEACHER"));
-                User expectedUser = new User("johndoe", "password", roles);
+                User expectedUser = new User("johndoe", "teacherpassword", roles);
                 when(userService.loadUserByUsername(anyString())).thenReturn(expectedUser);
                 when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                                 .thenReturn(new MockAuthentication());
                 when(jwtTokenUtil.generateToken(any(UserDetails.class))).thenReturn("mockToken");
                 JWTRequest jwtRequest = new JWTRequest();
                 jwtRequest.setUsername("johndoe");
-                jwtRequest.setPassword("password");
+                jwtRequest.setPassword("teacherpassword");
 
                 mockMvc.perform(post("/api/login").contentType("application/json")
                                 .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())

@@ -1,0 +1,30 @@
+		<!--  Diagram modal -->
+		<div class="modal fade" id="diagramModal" tabindex="-1" role="dialog" aria-labelledby="diagramModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-diagram">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="diagramModalLabel">Diagrama de resultados</h5>
+					</div>
+					<div class="modal-body">
+						<div id="diagram" style="height:400px; width: 400px"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="/assets/js/diagramgenerator.js" type="text/javascript"></script>
+		<script>
+			var chapterNames = [];
+			var unmarked = [];
+			var correct = [];
+			var incorrect = [];
+			{{#diagramInfo}}
+				chapterNames.push("{{chapterName}}");
+				unmarked.push({{unmarked}});
+				correct.push({{correct}});
+				incorrect.push({{incorrect}});
+			{{/diagramInfo}}
+			generateDiagram(chapterNames, unmarked, incorrect, correct);
+		</script>

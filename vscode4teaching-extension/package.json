@@ -5,6 +5,11 @@
 		"name": "Iván Chicano Capelo",
 		"email": "ivchicano@gmail.com"
 	},
+	"repository": {
+		"type" : "git",
+		"url" : "https://github.com/codeurjc-students/2019-VSCode4Teaching.git",
+		"directory": "vscode4teaching-extension"
+	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.0.1-SNAPSHOT",

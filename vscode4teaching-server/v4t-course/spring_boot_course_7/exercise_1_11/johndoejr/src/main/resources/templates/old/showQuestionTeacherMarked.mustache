@@ -1,0 +1,144 @@
+<div class="correctedAnswers">
+  <div class="uncorrectedAnswersJ">
+      <form
+        id="modifyForm{{ id }}"
+        action="/modifyAnswer/concept/{{ conceptId }}/answer/{{ id }}"
+        method="post"
+      >
+        <input
+          type="textarea"
+          name="answerText"
+          value="{{ answerText }}"
+          required
+        />
+        <div class="correction">
+          <div class="form-check form-check-radio">
+            <label class="form-check-label">
+              <input class="form-check-input" type="radio" name="correct"
+              id="correct{{ id }}" value="yes" {{#correct}}checked{{/correct}}
+              onclick="showJustification('incorrect{{ id }}',
+              'justificationAnswer{{ id }}-0', true, {{ id }})"> Correcta
+              <span class="circle">
+                <span class="check"></span>
+              </span>
+            </label>
+          </div>
+          <div class="form-check form-check-radio">
+            <label class="form-check-label">
+              <input class="form-check-input" type="radio" name="correct"
+              id="incorrect{{ id }}" value="no" {{^correct}}checked{{/correct}}
+              onclick="showJustification('incorrect{{ id }}',
+              'justificationAnswer{{ id }}-0', true, {{ id }})"> Incorrecta
+              <span class="circle">
+                <span class="check"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="uncorrectedAnswersButton">
+          <button
+            name="modifyAnswer"
+            class="btn btn-primary btn-fab btn-fab-mini btn-round"
+            data-toggle="modal"
+            onclick="document.getElementById('modifyForm{{ id }}').submit()"
+          >
+            <i class="material-icons">build</i>
+          </button>
+          <a
+            type="button" onclick="return confirmation()"
+            href="/delete/concept/{{ conceptId }}/answer/{{ id }}"
+            name="deleteAnswer"
+            class="btn btn-primary btn-fab btn-fab-mini btn-round"
+          >
+            <i class="material-icons">delete</i>
+          </a>
+        </div>
+        <div id="correctJust{{id}}">
+        <script> loadCorrectJust({{conceptId}}, {{id}}) </script>
+        </div>
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}" />
+      </form>
+  </div>
+  
+		{{^correct}}
+    <div>
+      <p>NUEVA JUSTIFICACIÓN:</p>
+        <div>
+        <input
+          type="textarea"
+          id="justificationTextNew{{id}}"
+          name="justificationText"
+          value=""
+          required
+         />
+         </div>
+          <div class="form-check form-check-radio">
+                  <label class="form-check-label">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="validityAddJust{{id}}"
+                      id="validAddNewJustification{{id}}"
+                      value="yes"
+                      onclick="showJustificationErrorNewJust({{id}})"
+                    />
+                    Valida
+                    <span class="circle">
+                      <span class="check"></span>
+                    </span>
+                  </label>
+                </div>
+                <div class="form-check form-check-radio">
+                  <label class="form-check-label">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="validityAddJust{{id}}"
+                      id="invalidAddNewJustification{{id}}"
+                      value="no"
+                      checked
+                      onclick="showJustificationErrorNewJust({{id}})"
+                    />
+                    Invalida
+                    <span class="circle">
+                      <span class="check"></span>
+                    </span>
+                  </label>
+           </div>
+          <input type="text" id="errorNewJust{{id}}" name="errorNew" style="display: block"/>
+        <button id="extraJustif{{id}}" class="btn btn-primary btn-fab btn-fab-mini btn-round"><i class="material-icons">exposure_plus_1</i>        
+        </button>
+		<script>
+		 $(document).ready(function(){
+      $("#extraJustif{{id}}").click(function(e){
+        e.preventDefault();
+        var text = document.getElementById("justificationTextNew{{id}}").value;
+        var radios = document.getElementsByName("validityAddJust{{id}}");
+        var valid;
+        for (var i = 0; i < radios.length; i++) {
+          if (radios[i].checked){
+            valid = radios[i].value;
+            break;
+          }
+        }	
+        console.log(valid);
+        var error = null;
+        if (valid=="no")
+          error = document.getElementById("errorNewJust{{id}}").value;
+        if(error){
+          window.location.href = "/extraJustification/concept/{{#concept}}{{id}}{{/concept}}/answer/{{id}}?jText=" + text + "&valid=" + valid + "&error="+error;
+        } else {
+          window.location.href = "/extraJustification/concept/{{#concept}}{{id}}{{/concept}}/answer/{{id}}?jText=" + text + "&valid=" + valid;
+        }
+      })
+    })
+		</script>
+    </div>
+	{{/correct}}
+</div>
+{{^correct}}
+	<button class="btn btn-primary" id="showMoreBtnJust{{ id }}" onclick="loadCorrectJust({{conceptId}}, {{id}});">
+		Más resultados
+	</button>
+	<div id="loadGifJust"></div>
+{{/correct}}

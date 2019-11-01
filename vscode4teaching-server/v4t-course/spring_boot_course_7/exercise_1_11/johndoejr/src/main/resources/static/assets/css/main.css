@@ -1,0 +1,168 @@
+
+/* CONCEPT STYLES */
+
+.content {
+  margin: 0 auto;
+  width: 98%;
+}
+
+.question {
+  overflow: auto;
+}
+
+.question h6 {
+  width: 45%;
+  float: left;
+}
+
+.question h5 {
+  width: 30%;
+  float: left;
+}
+
+.question p {
+  width: 30%;
+  margin-left: 15px;
+  float: left;
+
+}
+
+.question i {
+  width: 10%;
+  float: right;
+}
+
+.addQuestionSeeDiagram {
+  display: flex;
+  align-items: center;
+  padding-bottom: 2%;
+}
+
+.addQuestionSeeDiagram button {
+  margin: 0 auto;
+}
+
+/* CONCEPT TEACHER STYLES */
+
+.url {
+  overflow: auto;
+}
+
+.url h3 {
+  width: 5%;
+  float: left;
+  padding: 0px;
+  margin: 0px;
+}
+
+.url input {
+  width: 50%;
+  float: left;
+}
+
+.url hr {
+  display: block;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: inset;
+  border-width: 1px;
+}
+
+.uncorrectedAnswersJ {
+  overflow: auto;
+}
+
+.uncorrectedAnswersJ input {
+  width: 37%;
+  float: left;
+  text-align: center;
+  margin-right:10px;
+}
+
+.correction {
+  width: 16%;
+  float: left;
+}
+
+.uncorrectedAnswersButton {
+  width: 10%;
+  float: left;
+}
+
+.uncorrectedAnswersNJ {
+  overflow: auto;
+}
+
+.uncorrectedAnswersNJ p {
+  margin-bottom: 2px;
+}
+
+.justification {
+	width: 100%;
+	overflow: auto;
+}
+
+.justification input {
+  width: 37%;
+  float: left;
+}
+
+.justification2 {
+  width: 37%;
+  float: left;
+}
+
+.inputTextModal {
+	width: 100%;
+	padding-bottom: 10%;
+	margin-bottom: 5%;
+}
+
+.deleteButtonChapter {
+	float: right;
+}
+
+.justificationModal {
+	padding-top: 2%;
+}
+
+.contentModify {
+  width: 75%;
+  margin: 0 auto;
+}
+
+.chapterTitle {
+  overflow: auto;
+}
+
+.chapterTitle a {
+  width: 90%;
+  float: left;
+}
+
+.chapterDeleteButton {
+  width: 10%;
+  float: left;
+}
+
+.chapterInfo {
+  overflow: auto;
+}
+
+.chapterInfo a {
+  width: 75%;
+  float: left;
+}
+
+.conceptDeleteButton {
+  width: 25%;
+  float: right;
+}
+
+.conceptImage{
+	width: 100px;	
+	height: 100px;
+	float: left;
+}

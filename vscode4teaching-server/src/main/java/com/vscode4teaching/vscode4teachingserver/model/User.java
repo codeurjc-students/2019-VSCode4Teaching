@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -37,6 +38,7 @@ public class User {
     private String email;
 
     @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
+    @Pattern(regexp = "^(?:(?!template).)+$", message = "Username is not valid")
     @JsonView(UserViews.GeneralView.class)
     @Column(unique = true)
     private String username;

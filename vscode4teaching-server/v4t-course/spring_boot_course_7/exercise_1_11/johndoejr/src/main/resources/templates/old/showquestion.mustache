@@ -1,0 +1,35 @@
+{{#questions}}
+<div class="question">
+  <h6>{{questionText}}</h6>
+	{{#yesNoQuestion}}
+		{{#userResponse}}
+		<p>Sí</p>
+		{{/userResponse}}
+		{{^userResponse}}
+		<p>No</p>
+		{{/userResponse}}
+	{{/yesNoQuestion}}
+	{{^yesNoQuestion}}
+		{{#justification}}
+		<p>{{justificationText}}</p>
+		{{/justification}}
+		{{^justification}}
+		{{#answer}}
+		<p>{{answerText}}</p>
+		{{/answer}}
+		{{/justification}}
+	{{/yesNoQuestion}}
+	  {{#marked}}
+	  {{#correct}}
+	  <i class="material-icons">done</i>
+	  {{/correct}}
+	  {{^correct}}
+	  <i class="material-icons">clear</i>
+	  {{/correct}}
+	  {{/marked}} 
+</div>
+<hr/>
+{{/questions}}
+{{^questions}}
+	<p class="noMore">No hay más preguntas disponibles.</p>
+{{/questions}}

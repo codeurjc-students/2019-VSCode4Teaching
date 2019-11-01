@@ -28,26 +28,29 @@ Log in on the server and receive the JWT Token. The token should be in an Author
 `Authorization: Bearer [token]`
 where `token` is the token received in this request.
 
-- **Required role:**  
+- **Required role**:  
    None
 - **URL**  
    `/api/login`
 - **Method**  
    `POST`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"username": [string]`  
     `"password": [string]`
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "username": "johndoe",
     "password": "johnpassword"
   }
   ```
+
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   {
     "jwtToken": "token"
@@ -60,15 +63,16 @@ where `token` is the token received in this request.
 
 Get information on current logged user (JWT Token information).
 
-- **Required role:**  
+- **Required role**:  
    Student or Teacher
 - **URL**  
    `/api/currentuser`
 - **Method**  
    `GET`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   {
     "id": 3,
@@ -86,8 +90,9 @@ Get information on current logged user (JWT Token information).
     ]
   }
   ```
+
 - **Error Response**
-  - **Code:** 401
+  - **Code**: 401
 
 ## Register a new student
 
@@ -95,20 +100,21 @@ Get information on current logged user (JWT Token information).
 
 Register a new user as a student.
 
-- **Required role:**  
+- **Required role**:  
    None
 - **URL**  
    `/api/register`
 - **Method**  
    `POST`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"email": [string]` - valid email, unique  
     `"username": [string]` - Between 4 and 50 characters, unique  
     `"password": [string]` - Longer than 8 characters  
     `"name": [string]`  
     `"lastName": [string]`
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "email": "johndoe@john.com",
@@ -118,9 +124,11 @@ Register a new user as a student.
     "lastName": "Doe"
   }
   ```
+
 - **Success Response**
-  - **Code:** 201
+  - **Code**: 201
   - **Content**:
+
   ```json
   {
     "id": 23,
@@ -135,9 +143,11 @@ Register a new user as a student.
     ]
   }
   ```
+
 - **Error response**
-  - **Code:** 400
+  - **Code**: 400
   - **Content**
+
   ```json
   {
     "errors": [
@@ -155,10 +165,13 @@ Register a new user as a student.
       }
     ]
   }
+
   ```
+
   OR
-  - **Code:** 400
+  - **Code**: 400
   - **Content**
+
   ```text
   Duplicate entry 'johndoe'.
   ```
@@ -169,20 +182,21 @@ Register a new user as a student.
 
 Register a new user as a teacher.
 
-- **Required role:**  
+- **Required role**:  
    Teacher
 - **URL**  
    `/api/teachers/register`
 - **Method**  
    `POST`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"email": [string]` - valid email, unique  
     `"username": [string]` - Between 4 and 50 characters, unique  
     `"password": [string]` - Longer than 8 characters  
     `"name": [string]`  
     `"lastName": [string]`
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "email": "johndoe@john.com",
@@ -192,9 +206,11 @@ Register a new user as a teacher.
     "lastName": "Doe"
   }
   ```
+
 - **Success Response**
-  - **Code:** 201
+  - **Code**: 201
   - **Content**:
+
   ```json
   {
     "id": 23,
@@ -212,9 +228,11 @@ Register a new user as a teacher.
     ]
   }
   ```
+
 - **Error response**
-  - **Code:** 400
+  - **Code**: 400
   - **Content**
+
   ```json
   {
     "errors": [
@@ -233,9 +251,11 @@ Register a new user as a teacher.
     ]
   }
   ```
+
   OR
-  - **Code:** 400
+  - **Code**: 400
   - **Content**
+
   ```text
   Duplicate entry 'johndoe'.
   ```
@@ -246,15 +266,16 @@ Register a new user as a teacher.
 
 Get all available courses.
 
-- **Required role:**  
+- **Required role**:  
    Student
 - **URL**  
    `/api/courses`
 - **Method**  
    `GET`
 - **Success Response (Courses Found)**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   [
     {
@@ -271,6 +292,7 @@ Get all available courses.
     }
   ]
   ```
+
 - **Success Response (No courses found)**
   - **Code**: 204
   - **Content**: Empty
@@ -281,7 +303,7 @@ Get all available courses.
 
 Get courses available to the user. User indicated has to be the same as the user logged.
 
-- **Required role:**  
+- **Required role**:  
    Student or Teacher
 - **URL**  
    `/api/users/:id/courses`
@@ -293,8 +315,9 @@ Get courses available to the user. User indicated has to be the same as the user
   - **Example**
     `/api/users/1/courses`
 - **Success Response (Courses Found)**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   [
     {
@@ -311,6 +334,7 @@ Get courses available to the user. User indicated has to be the same as the user
     }
   ]
   ```
+
 - **Success Response (No courses found)**
   - **Code**: 204
   - **Content**: Empty
@@ -321,33 +345,38 @@ Get courses available to the user. User indicated has to be the same as the user
 
 Add a course to the system. Saves the course in the name of the current logged in teacher.
 
-- **Required role:**  
+- **Required role**:  
    Teacher
 - **URL**  
    `/api/courses`
 - **Method**  
    `POST`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "name": "Spring Boot Course"
   }
   ```
+
 - **Success Response**
-  - **Code:** 201
+  - **Code**: 201
   - **Content**:
+
   ```json
   {
     "id": 1,
     "name": "Spring Boot Course"
   }
   ```
+
 - **Error Response**
-  - **Code:** 400
+  - **Code**: 400
   - **Content**:
+
   ```json
   {
     "errors": [
@@ -373,29 +402,32 @@ Add a course to the system. Saves the course in the name of the current logged i
 
 Adds a new exercise to an existing course.
 
-- **Required role:**  
+- **Required role**:  
    Teacher
 - **URL**  
    `/api/courses/:id/exercises`
 - **Method**  
    `POST`
 - **URL Params**
-  - **Required:**
+  - **Required**:
     - `id=[long]`
-  - **Example:**  
+  - **Example**:  
     `/api/courses/1/exercises`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "name": "Spring Boot Exercise 1"
   }
   ```
+
 - **Success Response**
-  - **Code:** 201
+  - **Code**: 201
   - **Content**:
+
   ```json
   {
     "id": 1,
@@ -408,9 +440,11 @@ Adds a new exercise to an existing course.
     ]
   }
   ```
+
 - **Error Response**
-  - **Code:** 400
+  - **Code**: 400
   - **Content**:
+
   ```json
   {
     "errors": [
@@ -425,9 +459,11 @@ Adds a new exercise to an existing course.
     ]
   }
   ```
+
   OR
-  - **Code:** 404
+  - **Code**: 404
   - **Content**:
+
   ```text
       Not found: Course not found.
   ```
@@ -438,39 +474,44 @@ Adds a new exercise to an existing course.
 
 Edit course fields. Currently you can edit with this method: name.
 
-- **Required role:**  
+- **Required role**:  
    Teacher
 - **URL**  
    `/api/courses/:courseId/exercises/:exerciseId`
 - **Method**  
    `POST`
 - **URL Params**
-  - **Required:**  
+  - **Required**:  
      `courseId=[long]`  
      `exerciseId=[long]`
-  - **Example:**  
+  - **Example**:  
     `/api/courses/1/exercises`
 - **Data Params**
-  - **Required:**  
+  - **Required**:  
     `"name": [string]` - Between 10 and 100 characters
-  - **Example:**
+  - **Example**:
+
   ```json
   {
     "name": "Spring Boot Course v2"
   }
   ```
+
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   {
     "id": 1,
     "name": "Spring Boot Course v2"
   }
   ```
+
 - **Error Response**
-  - **Code:** 400
+  - **Code**: 400
   - **Content**:
+
   ```json
   {
     "errors": [
@@ -485,9 +526,11 @@ Edit course fields. Currently you can edit with this method: name.
     ]
   }
   ```
+
   OR
-  - **Code:** 404
+  - **Code**: 404
   - **Content**:
+
   ```text
       Not found: Course not found: 15.
   ```
@@ -498,7 +541,7 @@ Edit course fields. Currently you can edit with this method: name.
 
 Remove a course. Logged user has to be a teacher of this course.
 
-- **Required role:**
+- **Required role**:
   Teacher
 - **URL**
   `/api/courses/:id`
@@ -510,7 +553,7 @@ Remove a course. Logged user has to be a teacher of this course.
   - **Example**
     - `/api/courses/7`
 - **Success Response**
-  - **Code:** 204
+  - **Code**: 204
 - **Error Response**
 
   - **Code**: 404
@@ -526,7 +569,7 @@ Remove a course. Logged user has to be a teacher of this course.
 
 Get all exercise of a course. Logged user has to be a member of this course.
 
-- **Required role:**  
+- **Required role**:  
    Student, Teacher
 - **URL**  
    `/api/courses/:id/exercises`
@@ -538,8 +581,9 @@ Get all exercise of a course. Logged user has to be a member of this course.
   - **Example**
     - `/api/courses/7/exercises`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   [
     {
@@ -568,12 +612,14 @@ Get all exercise of a course. Logged user has to be a member of this course.
     }
   ]
   ```
+
 - **Success Response (No courses found)**
-  - **Code:** 204
+  - **Code**: 204
   - **Content**: Empty
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Course not found: 15
   ```
@@ -584,7 +630,7 @@ Get all exercise of a course. Logged user has to be a member of this course.
 
 Remove a course. Logged user has to be a teacher of this course.
 
-- **Required role:**
+- **Required role**:
   Teacher
 - **URL**
   `/api/exercises/:id`
@@ -596,10 +642,11 @@ Remove a course. Logged user has to be a teacher of this course.
   - **Example**
     - `/api/exercises/7`
 - **Success Response**
-  - **Code:** 204
+  - **Code**: 204
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Exercise not found: 15
   ```
@@ -614,7 +661,7 @@ The files downloaded will be the template of the exercise if the current logged 
 Name of the file if template was downloaded: `template-{id}.zip` where {id} is the id of the exercise.
 Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` where {id} is the id of the exercise and {username} is the username of the logged user.
 
-- **Required role:**
+- **Required role**:
   Student or Teacher
 - **URL**
   `/api/exercises/:id/files`
@@ -626,16 +673,19 @@ Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` w
   - **Example**
     - `/api/exercises/11/files`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Exercise not found: 11
   ```
+
   OR
   - **Code**: 404
   - **Content** :
+
   ```text
   No template found for exercise: 11
   ```
@@ -648,7 +698,7 @@ Note: Content-Type is application/zip
 Download the files assigned to an exercise template in a zip file.
 Name of the file if template was downloaded: `template-{id}.zip` where {id} is the id of the exercise.
 
-- **Required role:**
+- **Required role**:
   Student or Teacher
 - **URL**
   `/api/exercises/:id/files/template`
@@ -660,16 +710,19 @@ Name of the file if template was downloaded: `template-{id}.zip` where {id} is t
   - **Example**
     - `/api/exercises/11/files/template`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Exercise not found: 11
   ```
+
   OR
   - **Code**: 404
   - **Content** :
+
   ```text
   No template found for exercise: 11
   ```
@@ -682,7 +735,7 @@ Files with the same name will be overriden.
 
 ---
 
-- **Required role:**
+- **Required role**:
   Student or Teacher
 - **URL**
   `/api/exercises/:id/files`
@@ -694,8 +747,9 @@ Files with the same name will be overriden.
   - **Example**
     - `/api/exercises/11/files`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   [
     {
@@ -710,9 +764,11 @@ Files with the same name will be overriden.
     }
   ]
   ```
+
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Exercise not found: 11
   ```
@@ -725,7 +781,7 @@ Files with the same name will be overriden.
 
 ---
 
-- **Required role:**
+- **Required role**:
   Teacher
 - **URL**
   `/api/exercises/:id/files/template`
@@ -737,8 +793,9 @@ Files with the same name will be overriden.
   - **Example**
     - `/api/exercises/11/files/template`
 - **Success Response**
-  - **Code:** 200
+  - **Code**: 200
   - **Content**:
+
   ```json
   [
     {
@@ -753,9 +810,11 @@ Files with the same name will be overriden.
     }
   ]
   ```
+
 - **Error Response**
   - **Code**: 404
   - **Content**:
+
   ```text
   Not found: Exercise not found: 11
   ```

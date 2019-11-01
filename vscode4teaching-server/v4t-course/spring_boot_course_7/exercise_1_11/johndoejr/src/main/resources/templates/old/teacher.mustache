@@ -1,0 +1,244 @@
+{{>old/header}}
+<script src="/assets/js/loadFunctions/loadAnswers.js"></script>
+<script src="/assets/js/loadFunctions/loadUnmarkedJustifications.js"></script>
+<div class="content">
+  <div class="url">
+    <form action="/concept/{{ conceptId }}/saveURL" method="post">
+      <div class="form-group">
+        <h3>URL:</h3>
+        <input
+          type="url"
+          name="url"
+          class="form-control float-left"
+          value="{{conceptURL}}"
+          required
+        />
+        <input type="submit" class="btn btn-primary" value="Guardar" />
+        <input type="hidden" name="id" value="{{ conceptURL }}" />
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}" />
+      </div>
+    </form>
+  </div>
+  <br />
+  <!-- Image Upload -->
+  <h3>Subir imagen</h3>
+  <form action="/image/upload" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="conceptId" value="{{conceptId}}" />
+    <input
+      name="file"
+      onchange="this.form.submit()"
+      type="file"
+      class="form-control-file"
+      id="imageUpload"
+    />
+    <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+  </form>
+  <script src="/assets/js/showHideTeacher.js"></script>
+  <div class="row">
+    <div class="card">
+      <div class="card-header card-header-danger">
+        <h4 class="card-title text-center">RESPUESTAS CORREGIDAS</h4>
+      </div>
+      <div class="card-body" id="markedAnswerBody">
+        <script>loadMarkedAnswers({{conceptId}})</script>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-primary" id="showMoreBtnMarked" onclick="loadMarkedAnswers({{conceptId}});">
+          Más resultados
+        </button>
+        <div id="loadGifMarked"></div>
+        <br />
+        <button class="btn btn-primary btn-fab btn-fab-mini btn-round" 
+          data-toggle="modal"
+          data-target="#addAnswerModal"
+        >
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <div class="card-header card-header-danger">
+        <h4 class="card-title text-center">RESPUESTAS POR CORREGIR</h4>
+      </div>
+      <div class="card-body" id="unmarkedAnswerBody">
+        <script>loadUnmarkedAnswers({{conceptId}})</script>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-primary" id="showMoreBtnUnmarked" onclick="loadUnmarkedAnswers({{conceptId}});">
+          Más resultados
+        </button>
+        <div id="loadGifUnmarked"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+    <div class="card">
+      <div class="card-header card-header-danger">
+        <h4 class="card-title text-center">JUSTIFICACIONES POR CORREGIR</h4>
+      </div>
+      <div class="card-body" id="unmarkedJustificationsBody">
+        <script>
+          loadUnmarkedJustifications("loadGifUnmarkedJustifications", 
+            "/concept/{{id}}/loadUnmarkedJustifications", "unmarkedJustificationsBody")
+        </script>
+      </div>
+      <div class="card-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="showMoreBtnJustUnmarked"
+          data-target="#showMore"
+          onclick='loadUnmarkedJustifications("loadGifUnmarkedJustifications", 
+            "/concept/{{id}}/loadUnmarkedJustifications", "unmarkedJustificationsBody")'
+        >
+          Más resultados
+        </button>
+        <div id="loadGifUnmarkedJustifications"></div>
+      </div>
+    </div>
+  </div>
+<!-- Add answer Modal -->
+  <div
+    class="modal fade"
+    id="addAnswerModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="addModalLabel"
+    aria-hidden="true"
+  >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel">
+              Inserte una nueva respuesta
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form id="addAnswerForm" action="/concept/{{ conceptId }}/addAnswer" method="post">
+            <div class="modal-body">
+              <p>Respuesta:</p>
+              <input
+                type="text"
+                name="answerText"
+                class="inputTextModal"
+                required
+              />
+              <div class="form-check form-check-radio">
+                <label class="form-check-label">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="correct"
+                    id="correctAddModal"
+                    value="yes"
+                    checked
+                    onclick="showJustificationFieldAddModal()"
+                  />
+                  Correcta
+                  <span class="circle">
+                    <span class="check"></span>
+                  </span>
+                </label>
+              </div>
+              <div class="form-check form-check-radio">
+                <label class="form-check-label">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="correct"
+                    id="incorrectAddModal"
+                    value="no"
+                    onclick="showJustificationFieldAddModal()"
+                  />
+                  Incorrecta
+                  <span class="circle">
+                    <span class="check"></span>
+                  </span>
+                </label>
+              </div>
+              <div id="addJustificationInModal" style="display: none;">
+                <p class="justificationModal">Justificacion:</p>
+                <input
+                  type="text"
+                  name="justificationText"
+                  class="inputTextModal"
+                  required
+                />
+                <div class="form-check form-check-radio">
+                  <label class="form-check-label">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="validity"
+                      id="validAddModal"
+                      value="yes"
+                      onclick="showJustificationErrorFieldAddModal()"
+                    />
+                    Valida
+                    <span class="circle">
+                      <span class="check"></span>
+                    </span>
+                  </label>
+                </div>
+                <div class="form-check form-check-radio">
+                  <label class="form-check-label">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="validity"
+                      id="invalidAddModal"
+                      value="no"
+                      onclick="showJustificationErrorFieldAddModal()"
+                      checked
+                    />
+                    Invalida
+                    <span class="circle">
+                      <span class="check"></span>
+                    </span>
+                  </label>
+                </div>
+                <div id="errorAddModal">
+                  <p class="justificationModal">Error:</p>
+                  <input type="text" name="error">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+              <input type="submit" class="btn btn-primary" id="submitAddModal" value="Guardar">
+              <script>
+                $(document).ready(function(){
+                  $("#submitAddModal").click(function(e){
+                    e.preventDefault();
+                    $("#addAnswerForm").submit();
+                  })
+                })
+              </script>
+            </div>
+          </form>
+        </div>
+      </div>
+  </div>
+{{#deleteError}}
+	<script>
+		alert("No se puede borrar una justificación de una respuesta incorrecta si solo tiene una justificación.")
+	</script>
+{{/deleteError}}
+{{>old/footer}}
