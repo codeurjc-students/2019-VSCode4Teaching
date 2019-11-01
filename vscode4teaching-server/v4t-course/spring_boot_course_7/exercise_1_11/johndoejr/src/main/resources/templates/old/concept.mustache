@@ -1,0 +1,130 @@
+{{>old/header}}
+<script src="/assets/js/loadFunctions/loadQuestions.js"></script>
+<div class="content">
+  <!-- Question cards -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h4 class="card-title text-center">PREGUNTAS CORREGIDAS</h4>
+        </div>
+        <div class="card-body" id="markedQuestionsBody">
+          <script>loadMarkedQuestions({{conceptId}})</script>
+        </div>
+        <div class="card-footer">
+          <!-- Show more button -->
+          <div class="addQuestionSeeDiagram">
+            <button type="button" class="btn btn-primary" id="showMoreBtnMarked" onclick="loadMarkedQuestions({{conceptId}});">
+              Más resultados
+            </button>
+            <div id="loadGifMarked"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header card-header-danger">
+          <h4 class="card-title text-center">PREGUNTAS POR CORREGIR</h4>
+        </div>
+        <div class="card-body" id="unmarkedQuestionsBody">
+          <script>loadUnmarkedQuestions({{conceptId}})</script>
+        </div>
+        <div class="card-footer">
+          <!-- Show more button -->
+          <div class="addQuestionSeeDiagram">
+            <button type="button" class="btn btn-primary" id="showMoreBtnUnmarked" onclick="loadUnmarkedQuestions({{conceptId}});">
+              Más resultados
+            </button>
+            <div id="loadGifUnmarked"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Diagram button -->
+  <div class="addQuestionSeeDiagram">
+    <button
+      class="btn btn-primary"
+      data-toggle="modal"
+      data-target="#diagramModal"
+    >
+      DIAGRAMA
+    </button>
+  </div>
+
+  
+  <!-- Question button -->
+  <div class="addQuestionSeeDiagram">
+    <button
+      type="button"
+      class="btn btn-primary btn-fab btn-fab-mini btn-round"
+      data-toggle="modal"
+      data-target="#questionModal"
+    >
+      <i class="material-icons">add</i>
+    </button>
+  </div>
+  
+</div>
+
+<!-- Question Modal -->
+<div
+  class="modal fade"
+  id="questionModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="questionModalLabel"
+  aria-hidden="true"
+>
+
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="questionModalLabel">{{questionText}}</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/saveAnswer/concept/{{conceptId}}" method="post">
+        <div class="modal-body">
+            {{#openQuestion}}
+            <input
+              name="answerText"
+              type="textarea"
+              class="form-control"
+              id="openQuestion"
+              placeholder="Escribe aquí tu respuesta"
+              required
+            />
+            {{/openQuestion}}
+            {{^openQuestion}}
+            <div class="radio">
+              <label><input type="radio" name="answerOption" value="yes" onchange="enableButton()">Sí</label>
+            </div>
+            <div class="radio">
+              <label><input type="radio" name="answerOption" value="no" onchange="enableButton()">No</label>
+            </div>
+            {{/openQuestion}}
+        </div>
+        <div class="modal-footer">
+          <input type="submit" id="questionSubmit" class="btn btn-primary" value="Enviar">
+          <input type="hidden" name="questionText" value="{{questionText}}">
+          <input type="hidden" name="questionType" value="{{questionType}}">
+          <input type="hidden" name="answerQuestionId" value="{{#answerId}}{{answerId}}{{/answerId}}">
+          <input type="hidden" name="justificationQuestionId" value="{{#justificationId}}{{justificationId}}{{/justificationId}}">
+          <input type="hidden" name="_csrf" value={{csrfToken}}>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{>old/diagram}}
+
+{{>old/footer}}

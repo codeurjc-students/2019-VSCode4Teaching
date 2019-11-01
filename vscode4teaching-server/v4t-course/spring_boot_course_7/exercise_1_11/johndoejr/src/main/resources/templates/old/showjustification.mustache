@@ -1,0 +1,127 @@
+{{#justifications}}
+        {{#marked}}
+      <div
+        class="justification justificationAnswer{{#answer}}{{id}}{{/answer}}-0"
+      >
+        <p>JUSTIFICACIÓN:</p>
+        <input
+          type="textarea"
+          id="justificationText{{ id }}"
+          name="justificationText"
+          value="{{ justificationText }}"
+          required
+        />
+        <div class="justification2">
+          <div class="form-check form-check-radio">
+            <label class="form-check-label">
+              <input class="form-check-input" type="radio" name="valid{{ id }}"
+              id="valid{{ id }}" value="yes" {{#marked}}{{#valid}}checked{{/valid}}{{/marked}}
+               onclick="showError('invalid{{ id }}')" /> Válida
+              <span class="circle">
+                <span class="check"></span>
+              </span>
+            </label>
+          </div>
+          <div class="form-check form-check-radio">
+            <label class="form-check-label">
+              <input class="form-check-input" type="radio" name="valid{{ id }}"
+              id="invalid{{ id }}" value="no" {{#marked
+              }}{{^valid}}checked{{/valid}}{{/marked}} onclick="showError('invalid{{ id }}')" /> Inválida
+              <span class="circle">
+                <span class="check"></span>
+              </span>
+            </label>
+          </div>
+          <input class="errorAnswer" id="error{{ id }}"
+          {{#valid}}style="display: none"{{/valid}} type="textarea" value="{{#error}}{{ error }}{{/error}}" required/>
+          <button class="btn btn-primary btn-fab btn-fab-mini btn-round" id="modifyButton{{id}}" >
+            <i class="material-icons">build</i>
+          </button>
+          <script>
+              $("#modifyButton{{id}}").click(function(e){
+                e.preventDefault();
+                var text = document.getElementById("justificationText{{id}}").value;
+                var radios = document.getElementsByName("valid{{id}}");
+                var valid;
+                for (var i = 0; i < radios.length; i++) {
+                  if (radios[i].checked){
+                    valid = radios[i].value;
+                    break;
+                  }
+                }
+                var error = null;
+                if (valid=="no")
+                  error = document.getElementById("error{{id}}").value;
+                if(error){
+                  window.location.href = "/modifyJust/concept/{{conceptId}}/justification/{{id}}?jText=" + text + "&valid=" + valid + "&error="+error;
+                } else {
+                  window.location.href = "/modifyJust/concept/{{conceptId}}/justification/{{id}}?jText=" + text + "&valid=" + valid;
+                }
+              })
+          </script>
+            <a
+              type="button" onclick="return confirmation()"
+              href='/deleteJust/concept/{{conceptId}}/justification/{{ id }}'
+              name="deleteJustification"
+              class="btn btn-primary btn-fab btn-fab-mini btn-round"
+            >
+              <i class="material-icons">delete</i>
+            </a>
+        </div>
+        
+      </div>
+    {{/marked}}
+{{/justifications}}
+{{^justifications}}
+	{{^nothingMore}}
+	<div
+    	class="justification justificationAnswer{{ id }}-0"
+        style="display:none"
+    >
+    	<p>JUSTIFICACIÓN:</p>
+        <input type="textarea" name="justificationTextNew" required />
+        <div class="justification2">
+        	<div class="form-check form-check-radio">
+            	<label class="form-check-label">
+                	<input
+                  		class="form-check-input"
+                  		type="radio"
+                  		name="validNew"
+                  		id="valid{{ id }}-0"
+                  		value="yes"
+                  		onclick="showError('invalid{{ id }}-0')"
+                	/>
+                	Válida
+                	<span class="circle">
+                  		<span class="check"></span>
+                	</span>
+              	</label>
+            </div>
+            <div class="form-check form-check-radio">
+              	<label class="form-check-label">
+	                <input
+	                  class="form-check-input"
+	                  type="radio"
+	                  name="validNew"
+	                  id="invalid{{ id }}-0"
+	                  value="no"
+	                  checked
+	                  onclick="showError('invalid{{ id }}-0')"
+	                />
+	                Inválida
+	                <span class="circle">
+	                  	<span class="check"></span>
+	                </span>
+              	</label>
+            </div>
+        <input class="errorAnswer" {{#valid}}style="display: none"{{/valid}}
+            type="textarea" value="{{#error}}{{ error }}{{/error}}"
+        	name="errorNew" required
+        />
+    	</div>
+	</div>
+	{{/nothingMore}}
+	{{#nothingMore}}
+		<p class="noMore">No hay más justificaciones disponibles.</p>
+	{{/nothingMore}}
+{{/justifications}}

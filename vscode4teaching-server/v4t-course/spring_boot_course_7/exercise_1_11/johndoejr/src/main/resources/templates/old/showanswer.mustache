@@ -1,0 +1,16 @@
+{{#answers}}
+<div class="answer">
+	{{#marked}}
+		{{>old/showQuestionTeacherMarked}}
+		<hr />
+	{{/marked}}
+	{{^marked}} 
+		{{>old/showQuestionTeacherUnmarked}}
+		<hr />
+	{{/marked}} 
+</div>
+<hr/>
+{{/answers}}
+{{^answers}}
+	<p class="noMore">No hay más respuestas disponibles.</p>
+{{/answers}}

@@ -1,0 +1,18 @@
+{{#concepts}}
+    <li class="chapterInfo">
+        <img src='/image/concept/{{id}}' class="conceptImage" />
+        {{#seeDiagram}}<a href="/concept/{{id}}">{{ conceptName }}</a>{{/seeDiagram}}
+        {{^seeDiagram}}{{conceptName}}{{/seeDiagram}}
+        {{#teacher}}
+        <form action="/deleteConcept/concept/{{id}}" onclick="return confirmation()" method="post">
+            <button type="submit" class="btn btn-primary btn-fab btn-round">
+        		<i class="material-icons">delete</i>
+            </button>
+        	<input type="hidden" name="_csrf" value={{csrfToken}}>
+        </form>
+        {{/teacher}}
+    </li>
+{{/concepts}}
+{{^concepts}}
+    <p class="noMore">No hay más conceptos disponibles.</p>
+{{/concepts}}

@@ -1,0 +1,28 @@
+{{>old/header}}
+<div class="row contentModify">
+	<div class="card">
+		<div class="card-header card-header-text card-header-primary">
+			<div class="card-text">
+				<h4 class="card-title">Registro</h4>
+			</div>
+		</div>
+		<div class="card-body">
+			<form name="form" action="/newUser" onsubmit="return validatePass()" method="POST">
+				<div class="form-group">
+					<label for="usernameInput">Nombre de usuario</label>
+					<input type="text" class="form-control" id="usernameInput" aria-describedby="usernameHelp" name="username"
+					 placeholder="Introduzca su nombre de usuario" required>
+				</div>
+				<div class="form-group">
+					<label for="passwordInput">Contraseña</label>
+					<input type="password" class="form-control" id="passwordInput" name="password" placeholder="Introduzca su contraseña">
+				</div>
+				<button type="submit" class="btn btn-primary">Comenzar</button>
+				<input type="hidden" name="_csrf" value={{csrfToken}}>
+				<a class="btn btn-primary" href="/login">Login</a>
+			</form>
+			
+		</div>
+	</div>
+</div>
+{{>old/footer}}

@@ -1,0 +1,107 @@
+{{#unmarkedJustifications}}
+<div class="correctedAnswers">
+  <div class="uncorrectedAnswersJ">
+      <input
+        type="textarea"
+        name="answerText"
+        value="{{ answerText }}"
+        disabled
+		required
+      />
+      <div class="correction">
+        <div class="form-check form-check-radio">
+            <label class="form-check-label">
+                <input
+                class="form-check-input"
+                type="radio"
+                name="correct"
+                value="yes"
+                {{#correct}}checked{{/correct}}
+                disabled
+                />
+                Correcta
+                <span class="circle">
+                <span class="check"></span>
+                </span>
+            </label>
+            </div>
+            <div class="form-check form-check-radio">
+            <label class="form-check-label">
+                <input
+                class="form-check-input"
+                type="radio"
+                name="correct"
+                value="no"
+                {{^correct}}checked{{/correct}}
+                disabled
+                />
+                Incorrecta
+                <span class="circle">
+                <span class="check"></span>
+                </span>
+            </label>
+            </div>
+        </div>
+        {{#justifications}}
+            {{^marked}}
+                <form id="correctJustUnmarked{{id}}" action="/concept/{{#concept}}{{id}}{{/concept}}/markJust/{{id}}" method="post">
+                    <div
+                    class="justification justificationUnmarked{{ id }}"
+                    >
+                        <p>JUSTIFICACIÓN:</p>
+                        <input type="textarea" name="justificationText" value="{{justificationText}}" disabled/>
+                        <div class="justification2">
+                            <div class="form-check form-check-radio">
+                            <label class="form-check-label">
+                                <input
+                                class="form-check-input"
+                                type="radio"
+                                name="validUnmarked"
+                                id="valid{{ id }}-0"
+                                value="yes"
+                                onclick="showError('invalid{{ id }}-0')"
+                                />
+                                Válida
+                                <span class="circle">
+                                <span class="check"></span>
+                                </span>
+                            </label>
+                            </div>
+                            <div class="form-check form-check-radio">
+                                <label class="form-check-label">
+                                    <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="validUnmarked"
+                                    id="invalid{{ id }}-0"
+                                    value="no"
+                                    checked
+                                    onclick="showError('invalid{{ id }}-0')"
+                                    />
+                                    Inválida
+                                    <span class="circle">
+                                    <span class="check"></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <input class="errorAnswer"
+                            type="textarea"
+                            name="errorUnmarked"/>
+                            <button
+                                type="submit"
+                                class="btn btn-primary btn-fab btn-fab-mini btn-round"
+                            >
+                                <i class="material-icons">add</i>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="_csrf" value="{{ csrfToken }}" />
+                </form>
+          {{/marked}}
+        {{/justifications}}
+  </div>
+</div>
+{{/unmarkedJustifications}}
+{{^unmarkedJustifications}}
+    <p class="noMore">No hay justificaciones por corregir</p>
+{{/unmarkedJustifications}}

@@ -1,0 +1,67 @@
+{{#chapters}}
+<div class="card card-collapse">
+    <div class="card-header card-header-warning" role="tab" id="{{ id }}">
+        <h5 class="mb-0 card-title chapterTitle">
+            <a class="collapsed title" data-toggle="collapse" href="#collapse{{ id }}" aria-expanded="false" aria-controls="collapse{{ id }}">
+                <i class="material-icons">keyboard_arrow_right</i>
+                {{ chapterName }}
+            </a>
+            {{#teacher}}
+            <div  class="chapterDeleteButton">
+              <form action="/deleteChapter/chapter/{{id}}" onclick="return confirmation()" method="post">
+  	        	    <button type="submit" class=" btn btn-primary btn-fab btn-fab-mini btn-round deleteButtonChapter" data-toggle="modal" data-target="#deleteModal">
+  					<i class="material-icons">delete</i>
+                  </button>
+  			          <input type="hidden" name="_csrf" value={{csrfToken}}>
+  			      </form>
+            </div>
+          {{/teacher}}
+      </h5>
+    </div>
+    <div id="collapse{{ id }}" class="collapse" role="tabpanel" aria-labelledby="{{ id }}" data-parent="#accordion">
+        <div class="card-body">
+					<ul id="concepts{{id}}"></ul>
+            <script> loadConcepts("{{id}}") </script>
+            {{#teacher}}
+            <div class="addQuestionSeeDiagram">
+                <button type="button" class="btn btn-primary btn-fab btn-fab-mini btn-round" data-toggle="modal" data-target="#addConceptModal{{id}}">
+                    <i class="material-icons">add</i>
+                </button>
+            </div>
+            {{/teacher}}
+        </div>
+        <button type="button" class="btn btn-primary" id="showMoreBtnConcept{{id}}" onclick="loadConcepts('{{id}}');">
+			Más resultados
+		</button>
+		<div id="loadGifConcept{{id}}"></div>
+    </div>
+</div>
+<div class="modal fade" id="addConceptModal{{id}}" tabindex="-1" role="dialog" aria-labelledby="conceptModalLabel{{id}}" aria-hidden="true">
+	  <form action="/addConcept" method="post">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="conceptModalLabel{{id}}">Inserte un nuevo concepto</h5>
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true">&times;</span>
+	        </button>
+	      </div>
+	      <div class="modal-body">
+	      	<p>Nombre</p>
+	      	<input type="text" name="conceptName">
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+		        <button type="submit" class="btn btn-primary">Guardar</button>
+		      </div>
+            <input type="hidden" name="chapterId" value="{{id}}">
+	      <input type="hidden" name="_csrf" value={{csrfToken}}>
+	    </div>
+	    </div>
+	    </div>
+	    </form>
+	  </div>
+<br />
+{{/chapters}}
+{{^chapters}}
+    <p class="noMore">No hay más temas disponibles.</p>
+{{/chapters}}
