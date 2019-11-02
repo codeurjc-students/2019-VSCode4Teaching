@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
-import { User, Course } from './model';
+import { User, Course, Exercise } from './model';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 
@@ -10,8 +10,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = this._onDidChangeTreeData.event;
     private _client = new RestClient();
     private _userinfo: User | undefined;
-    private error401thrown = false;
-    private error403thrown = false;
 
     getTreeItem(element: V4TItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
@@ -79,14 +77,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         let response = await loginThenable;
         vscode.window.showInformationMessage("Logged in");
         this.client.jwtToken = response.data['jwtToken'];
-        fs.writeFileSync("vscode4teaching", this.client.jwtToken);
         let coursesThenable = this.client.getUserInfo();
         vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
         let userResponse = await coursesThenable;
         this.userinfo = userResponse.data;
         this._onDidChangeTreeData.fire();
-        this.error401thrown = false;
-        this.error403thrown = false;
     }
 
     validateInputCustomUrl(value: string): string | undefined | null | Thenable<string | undefined | null> {
@@ -133,8 +128,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 course.exercises = response.data;
                 this._onDidChangeTreeData.fire(item);
             }
-            this.error401thrown = false;
-            this.error403thrown = false;
         }).catch(error => {
             this.handleAxiosError(error);
         });
@@ -171,8 +164,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     }
                 });
             });
-            this.error401thrown = false;
-            this.error403thrown = false;
         }).catch(error => {
             this.handleAxiosError(error);
         });
@@ -183,28 +174,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    handleAxiosError(error: any) {
+    private handleAxiosError(error: any) {
         if (error.response) {
-            if (error.response.status === 401 && !this.error401thrown) {
-                this.error401thrown = true;
-                this.login().catch(err => this.handleAxiosError(err));
-                vscode.window.showWarningMessage("You session has expired, log in again.");
-            } else if (error.response.status === 403 && !this.error403thrown) {
-                this.error403thrown = true;
-                this.client.getCsrfToken().catch(err => this.handleAxiosError(err));
-                vscode.window.showWarningMessage("Looks like something went wrong, please try again.");
-            } else {
-                this.error401thrown = false;
-                this.error403thrown = false;
-                vscode.window.showErrorMessage("Error " + error.response.status + ". " + error.response.data);
-            }
+            vscode.window.showErrorMessage("Error " + error.response.status + ". " + error.response.data);
         } else if (error.request) {
-            this.error401thrown = false;
-            this.error403thrown = false;
             vscode.window.showErrorMessage("Can't connect to the server");
         } else {
-            this.error401thrown = false;
-            this.error403thrown = false;
             vscode.window.showErrorMessage(error.message);
         }
     }
