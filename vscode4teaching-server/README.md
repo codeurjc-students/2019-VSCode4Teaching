@@ -89,12 +89,12 @@ List of allowed arguments:
     Indicates whether to initialize file information in the database or not.
     Default: true
     Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --file.initialization=false`
-- --spring.datasource.initialization-mode=[always|none]
+- --data.initialization=[true|false]
     Indicates whether to initialize demo database information or not.
-    Default: always
+    Default: true
     Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.initialization-mode=none`
   Example with all arguments:  
-  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses --file.initialization=false --spring.datasource.initialization-mode=none`
+  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses --file.initialization=false --data.initialization=true`
 
   For environment variables, just choose an argument above, put it in all caps and change the . (dots) into \_ (underscores) eg.: SPRING_DATASOURCE_URL
   and set the value to the value desired (see the examples above for guidance).

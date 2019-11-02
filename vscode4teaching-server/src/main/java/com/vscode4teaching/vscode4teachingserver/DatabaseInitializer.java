@@ -16,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "spring.jpa.database-platform", havingValue = "org.hibernate.dialect.H2Dialect", matchIfMissing = false)
-public class TestDatabaseInitializer implements CommandLineRunner {
+@ConditionalOnProperty(value = "data.initialization", havingValue = "true", matchIfMissing = false)
+@Order(0)
+public class DatabaseInitializer implements CommandLineRunner {
 
     @Autowired
     private CourseRepository courseRepository;
