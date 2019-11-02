@@ -184,4 +184,28 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex4/ex4.html'), true, "ex4 exists");
 		assert.deepStrictEqual(newWorkspaceURI, path.resolve('v4tdownloads/johndoe/Spring Boot Course/Exercise 1'), "uri is correct");
 	});
+
+	test('on 401 should try to log in again', () => {
+		let loginMock = simple.mock(extension.coursesProvider, "login");
+		loginMock.resolveWith(null);
+		let error = {
+			response: {
+				status: 401
+			}
+		};
+		extension.coursesProvider.handleAxiosError(error);
+		assert.deepStrictEqual(loginMock.callCount, 1, "login should be called");
+	});
+
+	test('on 403 should try to get csrf token again', () => {
+		let csrfMock = simple.mock(extension.coursesProvider.client, "getCsrfToken");
+		csrfMock.resolveWith(null);
+		let error = {
+			response: {
+				status: 403
+			}
+		};
+		extension.coursesProvider.handleAxiosError(error);
+		assert.deepStrictEqual(csrfMock.callCount, 1, "get csrf should be called");
+	});
 });
