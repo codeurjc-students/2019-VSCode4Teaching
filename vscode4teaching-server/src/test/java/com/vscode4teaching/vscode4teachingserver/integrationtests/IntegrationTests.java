@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 // Databse is initialized in class DatabaseInitializer
 @SpringBootTest
@@ -36,7 +37,7 @@ public class IntegrationTests {
         jwtRequest.setPassword("teacherpassword");
 
         MvcResult loginResult = mockMvc.perform(
-                post("/api/login").contentType("application/json").content(objectMapper.writeValueAsString(jwtRequest)))
+                post("/api/login").contentType("application/json").with(csrf()).content(objectMapper.writeValueAsString(jwtRequest)))
                 .andExpect(status().isOk()).andReturn();
         JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
                 JWTResponse.class);
@@ -44,7 +45,7 @@ public class IntegrationTests {
         course.setName("Spring Boot Course");
 
         MvcResult mvcResult = mockMvc
-                .perform(post("/api/courses").contentType("application/json")
+                .perform(post("/api/courses").contentType("application/json").with(csrf())
                         .content(objectMapper.writeValueAsString(course))
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andExpect(status().isCreated()).andReturn();

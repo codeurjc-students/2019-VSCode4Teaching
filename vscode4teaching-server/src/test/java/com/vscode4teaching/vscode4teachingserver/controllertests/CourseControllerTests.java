@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class CourseControllerTests {
                 jwtRequest.setPassword("teacherpassword");
 
                 MvcResult loginResult = mockMvc
-                                .perform(post("/api/login").contentType("application/json")
+                                .perform(post("/api/login").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(jwtRequest)))
                                 .andExpect(status().isOk()).andReturn();
                 jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(), JWTResponse.class);
@@ -83,7 +84,7 @@ public class CourseControllerTests {
                 courses.add(c2);
                 when(courseService.getAllCourses()).thenReturn(courses);
 
-                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
+                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json").with(csrf()))
                                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
@@ -102,7 +103,7 @@ public class CourseControllerTests {
                 List<Course> courses = new ArrayList<>();
                 when(courseService.getAllCourses()).thenReturn(courses);
 
-                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json"))
+                MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json").with(csrf()))
                                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isNoContent()).andReturn();
 
                 verify(courseService, times(1)).getAllCourses();
@@ -124,7 +125,7 @@ public class CourseControllerTests {
                 when(courseService.registerNewCourse(any(Course.class), anyString())).thenReturn(expectedCourse);
 
                 MvcResult mvcResult = mockMvc
-                                .perform(post("/api/courses").contentType("application/json")
+                                .perform(post("/api/courses").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(course))
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isCreated()).andReturn();
@@ -145,7 +146,7 @@ public class CourseControllerTests {
                 logger.info("Test postCourse_invalid() begins.");
 
                 CourseDTO course = new CourseDTO();
-                mockMvc.perform(post("/api/courses").contentType("application/json")
+                mockMvc.perform(post("/api/courses").contentType("application/json").with(csrf())
                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken())
                                 .content(objectMapper.writeValueAsString(course))).andExpect(status().isBadRequest());
 
@@ -164,7 +165,7 @@ public class CourseControllerTests {
                 course.setName("Spring Boot Course v2");
                 when(courseService.editCourse(anyLong(), any(Course.class), anyString())).thenReturn(expectedCourse);
                 MvcResult mvcResult = mockMvc
-                                .perform(put("/api/courses/1").contentType("application/json")
+                                .perform(put("/api/courses/1").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(course))
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
@@ -183,8 +184,9 @@ public class CourseControllerTests {
         @Test
         public void deleteCourse_valid() throws Exception {
                 logger.info("Test deleteCourse_valid() begins.");
-                mockMvc.perform(delete("/api/courses/1").contentType("application/json").header("Authorization",
-                                "Bearer " + jwtToken.getJwtToken())).andExpect(status().isNoContent());
+                mockMvc.perform(delete("/api/courses/1").contentType("application/json").with(csrf())
+                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andExpect(status().isNoContent());
 
                 verify(courseService, times(1)).deleteCourse(anyLong(), anyString());
 
@@ -208,7 +210,7 @@ public class CourseControllerTests {
                 when(courseService.getUserCourses(4l)).thenReturn(courses);
 
                 MvcResult mvcResult = mockMvc
-                                .perform(get("/api/users/4/courses").contentType("application/json")
+                                .perform(get("/api/users/4/courses").contentType("application/json").with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
 

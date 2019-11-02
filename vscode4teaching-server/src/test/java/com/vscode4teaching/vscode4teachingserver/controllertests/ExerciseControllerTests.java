@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public class ExerciseControllerTests {
                 jwtRequest.setPassword("teacherpassword");
 
                 MvcResult loginResult = mockMvc
-                                .perform(post("/api/login").contentType("application/json")
+                                .perform(post("/api/login").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(jwtRequest)))
                                 .andExpect(status().isOk()).andReturn();
                 jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(), JWTResponse.class);
@@ -88,7 +89,7 @@ public class ExerciseControllerTests {
                                 .thenReturn(expectedExercise);
 
                 MvcResult mvcResult = mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId)
-                                .contentType("application/json").content(objectMapper.writeValueAsString(exerciseDTO))
+                                .contentType("application/json").with(csrf()).content(objectMapper.writeValueAsString(exerciseDTO))
                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
 
@@ -113,7 +114,7 @@ public class ExerciseControllerTests {
                 course.setId(courseId);
                 ExerciseDTO exercise = new ExerciseDTO();
 
-                mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
+                mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json").with(csrf())
                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken())
                                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
 
@@ -144,7 +145,7 @@ public class ExerciseControllerTests {
 
                 MvcResult mvcResult = mockMvc
                                 .perform(get("/api/courses/{courseId}/exercises", courseId)
-                                                .contentType("application/json")
+                                                .contentType("application/json").with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
 
@@ -170,7 +171,7 @@ public class ExerciseControllerTests {
                 when(courseService.editExercise(anyLong(), any(Exercise.class), anyString()))
                                 .thenReturn(expectedExercise);
                 MvcResult mvcResult = mockMvc
-                                .perform(put("/api/exercises/1").contentType("application/json")
+                                .perform(put("/api/exercises/1").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(exercise))
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
@@ -189,7 +190,7 @@ public class ExerciseControllerTests {
         @Test
         public void deleteExercise_valid() throws Exception {
                 logger.info("Test deleteExercise_valid() begins.");
-                mockMvc.perform(delete("/api/exercises/1").contentType("application/json").header("Authorization",
+                mockMvc.perform(delete("/api/exercises/1").contentType("application/json").with(csrf()).header("Authorization",
                                 "Bearer " + jwtToken.getJwtToken())).andExpect(status().isNoContent());
 
                 verify(courseService, times(1)).deleteExercise(anyLong(), anyString());
