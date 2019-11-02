@@ -3,6 +3,8 @@ package com.vscode4teaching.vscode4teachingserver;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -53,6 +55,13 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                 String[] courseParts = parts[1].split("_");
                 long course_id = Long.valueOf(courseParts[courseParts.length - 1]);
                 Optional<Course> courseOpt = courseRepository.findById(course_id);
+                // If not found build course name and try to find it
+                if (!courseOpt.isPresent()) {
+                    List<String> coursePartsList = Arrays.asList(courseParts);
+                    coursePartsList.remove(courseParts[courseParts.length - 1]);
+                    String courseName = String.join(" ", coursePartsList);
+                    courseOpt = courseRepository.findByNameIgnoreCase(courseName);
+                }
                 if (courseOpt.isPresent()) {
                     Course course = courseOpt.get();
                     List<Exercise> exercises = course.getExercises();
@@ -60,6 +69,12 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                     long exercise_id = Long.valueOf(exerciseParts[exerciseParts.length - 1]);
                     Optional<Exercise> exerciseOpt = exercises.stream()
                             .filter(exercise -> exercise.getId().equals(exercise_id)).findFirst();
+                    if (!exerciseOpt.isPresent()) {
+                        List<String> exercisePartsList = new ArrayList<>(Arrays.asList(exerciseParts));
+                        exercisePartsList.remove(exerciseParts[exerciseParts.length - 1]);
+                        String exerciseName = String.join(" ", exercisePartsList);
+                        exerciseOpt = exerciseRepository.findByCourseAndNameIgnoreCase(course, exerciseName);
+                    }
                     if (exerciseOpt.isPresent()) {
                         Exercise exercise = exerciseOpt.get();
                         if (parts[3].equals("template")) {
