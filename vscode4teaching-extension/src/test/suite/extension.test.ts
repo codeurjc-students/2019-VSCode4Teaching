@@ -49,6 +49,8 @@ suite('Extension Test Suite', () => {
 			data: { "jwtToken": "mockToken" }
 		};
 		mockLogin.resolveWith(loginResponse);
+		let mockCsrf = simple.mock(extension.coursesProvider.client, "getCsrfToken");
+		mockCsrf.resolveWith(null);
 		await extension.coursesProvider.login();
 		assert.deepStrictEqual(mockVSCodeInputBox.callCount, 3, "vs code should ask for server, username and password");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].returned, Promise.resolve("http://test.com"), "server input box should return test url");
@@ -60,6 +62,7 @@ suite('Extension Test Suite', () => {
 			"config for the username input box should have correct prompt");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, { "prompt": "Password", "password": true },
 			"config for the password input box should have correct prompt and hide the input");
+		assert.deepStrictEqual(mockCsrf.callCount, 1, "csrf should be set");
 		assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
 		assert.deepStrictEqual(mockLogin.lastCall.returned, Promise.resolve(loginResponse), "client login mock should resolve with a mock token");
 		assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password"], "client should login with the credentials above");
