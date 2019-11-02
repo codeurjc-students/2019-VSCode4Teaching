@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,7 +82,7 @@ public class JWTLoginControllerTests {
                 jwtRequest.setUsername("johndoe");
                 jwtRequest.setPassword("teacherpassword");
 
-                mockMvc.perform(post("/api/login").contentType("application/json")
+                mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
                                 .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())
                                 .andExpect(jsonPath("$.jwtToken", equalTo("mockToken")));
 
@@ -108,7 +109,7 @@ public class JWTLoginControllerTests {
                                 .thenReturn(expectedUser);
 
                 MvcResult mvcResult = mockMvc
-                                .perform(post("/api/register").contentType("application/json")
+                                .perform(post("/api/register").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(userDTO)))
                                 .andExpect(status().isCreated()).andReturn();
 
@@ -139,7 +140,7 @@ public class JWTLoginControllerTests {
                                 .thenReturn(expectedUser);
 
                 MvcResult mvcResult = mockMvc
-                                .perform(post("/api/teachers/register").contentType("application/json")
+                                .perform(post("/api/teachers/register").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(userDTO)))
                                 .andExpect(status().isCreated()).andReturn();
 
@@ -167,7 +168,7 @@ public class JWTLoginControllerTests {
                 expectedUser.addCourse(course);
                 when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
                 when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");
-                MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json"))
+                MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json").with(csrf()))
                                 .andExpect(status().isOk()).andReturn();
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
                 String expectedResponseBody = objectMapper.writerWithView(UserViews.CourseView.class)

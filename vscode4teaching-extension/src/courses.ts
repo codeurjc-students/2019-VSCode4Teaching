@@ -71,6 +71,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     private async callLogin(username: string, password: string) {
+        await this.client.getCsrfToken();
         let loginThenable = this.client.login(username, password);
         vscode.window.setStatusBarMessage("Logging in to VS Code 4 Teaching...", loginThenable);
         let response = await loginThenable;
@@ -175,7 +176,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private handleAxiosError(error: any) {
         if (error.response) {
-            vscode.window.showErrorMessage(error.response.data);
+            vscode.window.showErrorMessage("Error " + error.response.status + ". " + error.response.data);
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server");
         } else {

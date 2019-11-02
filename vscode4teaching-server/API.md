@@ -2,10 +2,15 @@
 
 Document explaining how the REST API for the server is used.  
 Note: All requests can respond with code 401 if the required role isn't fulfilled.
+This REST server uses JWT for authentication, and CSRF Cookie for CSRF security.  
+Every non GET request needs a header with the CSRF Token that comes with the cookie.  
+Cookie key: `XSRF-TOKEN`  
+Needed header key: `X-XSRF-TOKEN`
 
 ## Table of Contents
 
 - [Login](API.md#login)
+- [Get CSRF Token](API.md#get-csrf-token)
 - [Get current user info](API.md#get-current-user-info)
 - [Register a new student](API.md#register-a-new-student)
 - [Register a new teacher](API.md#register-a-new-teacher)
@@ -57,42 +62,21 @@ where `token` is the token received in this request.
   }
   ```
 
-## Get current user info
+## Get CSRF Token
 
 ---
 
-Get information on current logged user (JWT Token information).
+Empty method aimed to help getting the CSRF Cookie without getting any data. Note that you can get this CSRF Token from any request.
 
 - **Required role**:  
-   Student or Teacher
+   None
 - **URL**  
-   `/api/currentuser`
+   `/api/csrf`
 - **Method**  
    `GET`
 - **Success Response**
   - **Code**: 200
-  - **Content**:
-
-  ```json
-  {
-    "id": 3,
-    "email": "johndoe@teacher.com",
-    "username": "johndoe",
-    "name": "John",
-    "lastName": "Doe",
-    "roles": [
-      {
-        "roleName": "ROLE_STUDENT"
-      },
-      {
-        "roleName": "ROLE_TEACHER"
-      }
-    ]
-  }
-  ```
-
-- **Error Response**
-  - **Code**: 401
+  - **Content**: Empty
 
 ## Register a new student
 

@@ -86,4 +86,9 @@ public class JWTLoginController {
         User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.ok(user);
     }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<Void> getCsrfToken() {
+        return ResponseEntity.ok().build();
+    }
 }

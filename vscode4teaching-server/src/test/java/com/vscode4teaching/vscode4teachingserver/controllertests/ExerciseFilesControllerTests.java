@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class ExerciseFilesControllerTests {
                 jwtRequest.setPassword("teacherpassword");
 
                 MvcResult loginResult = mockMvc
-                                .perform(post("/api/login").contentType("application/json")
+                                .perform(post("/api/login").contentType("application/json").with(csrf())
                                                 .content(objectMapper.writeValueAsString(jwtRequest)))
                                 .andExpect(status().isOk()).andReturn();
                 jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(), JWTResponse.class);
@@ -97,7 +98,7 @@ public class ExerciseFilesControllerTests {
                 when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(files);
 
                 MvcResult result = mockMvc
-                                .perform(get("/api/exercises/1/files").contentType("application/zip")
+                                .perform(get("/api/exercises/1/files").contentType("application/zip").with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
                 logger.info(result.toString());
@@ -119,7 +120,7 @@ public class ExerciseFilesControllerTests {
                 when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(files);
 
                 MvcResult result = mockMvc
-                                .perform(get("/api/exercises/1/files").contentType("application/zip")
+                                .perform(get("/api/exercises/1/files").contentType("application/zip").with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
                 logger.info(result.toString());
@@ -151,7 +152,7 @@ public class ExerciseFilesControllerTests {
                                 .thenReturn(Arrays.asList(mockFile1, mockFile2, mockFile3));
 
                 MvcResult result = mockMvc
-                                .perform(multipart("/api/exercises/1/files").file(mockMultiFile1)
+                                .perform(multipart("/api/exercises/1/files").file(mockMultiFile1).with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
 
@@ -169,7 +170,7 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void uploadFile_noBody() throws Exception {
-                mockMvc.perform(multipart("/api/exercises/1/files").header("Authorization",
+                mockMvc.perform(multipart("/api/exercises/1/files").with(csrf()).header("Authorization",
                                 "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest());
 
         }
@@ -177,7 +178,7 @@ public class ExerciseFilesControllerTests {
         @Test
         public void uploadFile_noMultipart() throws Exception {
 
-                mockMvc.perform(post("/api/exercises/1/files").header("Authorization",
+                mockMvc.perform(post("/api/exercises/1/files").with(csrf()).header("Authorization",
                                 "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest());
         }
 
@@ -198,12 +199,13 @@ public class ExerciseFilesControllerTests {
 
                 File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/", "ex1.html");
                 File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/", "ex2.html");
-                File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/", "ex3/ex3.html");
+                File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/",
+                                "ex3/ex3.html");
                 when(filesService.saveExerciseTemplate(anyLong(), any(MultipartFile.class), anyString()))
                                 .thenReturn(Arrays.asList(mockFile1, mockFile2, mockFile3));
 
                 MvcResult result = mockMvc
-                                .perform(multipart("/api/exercises/1/files/template").file(mockMultiFile1)
+                                .perform(multipart("/api/exercises/1/files/template").file(mockMultiFile1).with(csrf())
                                                 .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
 
@@ -230,9 +232,8 @@ public class ExerciseFilesControllerTests {
                 }
                 when(filesService.getExerciseTemplate(1l, "johndoe")).thenReturn(files);
 
-                MvcResult result = mockMvc
-                                .perform(get("/api/exercises/1/files/template").contentType("application/zip")
-                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                MvcResult result = mockMvc.perform(get("/api/exercises/1/files/template").contentType("application/zip")
+                                .with(csrf()).header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                                 .andExpect(status().isOk()).andReturn();
                 logger.info(result.toString());
 
