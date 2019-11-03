@@ -19,3 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() { }
+
+// Meant to be used for tests
+export function createNewCoursesProvider() {
+	coursesProvider = new CoursesProvider();
+}
