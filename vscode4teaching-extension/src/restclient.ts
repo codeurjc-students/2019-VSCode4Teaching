@@ -4,7 +4,7 @@ import { User, Exercise } from './model';
 export class RestClient {
     private _baseUrl: string | undefined;
     private _jwtToken: string | undefined;
-    private xsrfToken = "";
+    private _xsrfToken = "";
 
     constructor() {
     }
@@ -87,5 +87,13 @@ export class RestClient {
 
     set baseUrl(url: string | undefined) {
         this._baseUrl = url;
+    }
+
+    get xsrfToken(): string {
+        return this._xsrfToken;
+    }
+
+    set xsrfToken(xsrfToken: string) {
+        this._xsrfToken = xsrfToken;
     }
 }

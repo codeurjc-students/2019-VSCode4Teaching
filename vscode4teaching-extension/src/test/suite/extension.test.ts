@@ -26,6 +26,11 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
+		if (fs.existsSync(__dirname + '/v4tteaching')) {
+			rimraf(__dirname + '/v4tteaching', error => {
+				// console.log(error);
+			});
+		}
 	});
 
 	test('should be present', () => {
@@ -184,4 +189,33 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex4/ex4.html'), true, "ex4 exists");
 		assert.deepStrictEqual(newWorkspaceURI, path.resolve('v4tdownloads/johndoe/Spring Boot Course/Exercise 1'), "uri is correct");
 	});
+
+	test('if session file exists', () => {
+		extension.coursesProvider.client.jwtToken = undefined;
+		let existsMock = simple.mock(fs, "existsSync");
+		existsMock.returnWith(true);
+		let fileMock = simple.mock(fs, "readFileSync");
+		fileMock.returnWith(new MockFile("mockToken\nmockXsrf\nmockUrl"));
+		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
+		userInfoMock.resolveWith({
+			id: 1,
+			name: "johndoe"
+		});
+		extension.coursesProvider.getChildren();
+
+		assert.deepStrictEqual(extension.coursesProvider.client.jwtToken, "mockToken");
+		assert.deepStrictEqual(extension.coursesProvider.client.xsrfToken, "mockXsrf");
+		assert.deepStrictEqual(extension.coursesProvider.client.baseUrl, "mockUrl");
+	});
 });
+
+class MockFile {
+	private text: string;
+	constructor(text: string) {
+		this.text = text;
+	}
+
+	toString() {
+		return this.text;
+	}
+}
