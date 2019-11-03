@@ -14,8 +14,7 @@ suite('Extension Test Suite', () => {
 
 	afterEach(() => {
 		simple.restore();
-		extension.coursesProvider.client = new RestClient();
-		extension.coursesProvider.userinfo = undefined;
+		extension.createNewCoursesProvider();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
 				// console.log(error);
@@ -23,6 +22,11 @@ suite('Extension Test Suite', () => {
 		}
 		if (fs.existsSync('openworkspacetest')) {
 			rimraf('openworkspacetest', error => {
+				// console.log(error);
+			});
+		}
+		if (fs.existsSync(__dirname + '/v4tteaching')) {
+			rimraf(__dirname + '/v4tteaching', error => {
 				// console.log(error);
 			});
 		}
@@ -177,11 +181,40 @@ suite('Extension Test Suite', () => {
 		});
 		extension.coursesProvider.userinfo = user;
 		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", "Exercise 1", 4);
-		await new Promise(resolve => setTimeout(resolve, 100)); // Wait for exercises to "download"
+		await new Promise(resolve => setTimeout(resolve, 200)); // Wait for exercises to "download"
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex1.html'), true, "ex1 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex2.html'), true, "ex2 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex3.html'), true, "ex3 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex4/ex4.html'), true, "ex4 exists");
 		assert.deepStrictEqual(newWorkspaceURI, path.resolve('v4tdownloads/johndoe/Spring Boot Course/Exercise 1'), "uri is correct");
 	});
+
+	test('if session file exists', () => {
+		extension.coursesProvider.client.jwtToken = undefined;
+		let existsMock = simple.mock(fs, "existsSync");
+		existsMock.returnWith(true);
+		let fileMock = simple.mock(fs, "readFileSync");
+		fileMock.returnWith(new MockFile("mockToken\nmockXsrf\nmockUrl"));
+		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
+		userInfoMock.resolveWith({
+			id: 1,
+			name: "johndoe"
+		});
+		extension.coursesProvider.getChildren();
+
+		assert.deepStrictEqual(extension.coursesProvider.client.jwtToken, "mockToken");
+		assert.deepStrictEqual(extension.coursesProvider.client.xsrfToken, "mockXsrf");
+		assert.deepStrictEqual(extension.coursesProvider.client.baseUrl, "mockUrl");
+	});
 });
+
+class MockFile {
+	private text: string;
+	constructor(text: string) {
+		this.text = text;
+	}
+
+	toString() {
+		return this.text;
+	}
+}
