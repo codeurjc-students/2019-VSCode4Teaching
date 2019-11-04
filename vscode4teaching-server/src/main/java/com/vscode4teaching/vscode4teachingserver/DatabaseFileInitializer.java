@@ -1,7 +1,9 @@
 package com.vscode4teaching.vscode4teachingserver;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,19 +63,37 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                     coursePartsList.remove(courseParts[courseParts.length - 1]);
                     String courseName = String.join(" ", coursePartsList);
                     courseOpt = courseRepository.findByNameIgnoreCase(courseName);
+                    if (courseOpt.isPresent()) {
+                        File dir = Paths.get(rootPath + File.separator + parts[1]).toFile();
+                        File renamedDir = new File(dir.getParent() + File.separator + String.join("_", coursePartsList)
+                                + "_" + courseOpt.get().getId());
+                        dir.renameTo(renamedDir);
+                    }
                 }
                 if (courseOpt.isPresent()) {
                     Course course = courseOpt.get();
                     List<Exercise> exercises = course.getExercises();
                     String[] exerciseParts = parts[2].split("_");
                     long exercise_id = Long.valueOf(exerciseParts[exerciseParts.length - 1]);
+                    List<String> exercisePartsList = new ArrayList<>(Arrays.asList(exerciseParts));
+                    exercisePartsList.remove(exerciseParts[exerciseParts.length - 1]);
+                    String exerciseName = String.join(" ", exercisePartsList);
                     Optional<Exercise> exerciseOpt = exercises.stream()
-                            .filter(exercise -> exercise.getId().equals(exercise_id)).findFirst();
+                            .filter(exercise -> exercise.getId().equals(exercise_id)
+                                    && exercise.getName().equalsIgnoreCase(exerciseName))
+                            .findFirst();
                     if (!exerciseOpt.isPresent()) {
-                        List<String> exercisePartsList = new ArrayList<>(Arrays.asList(exerciseParts));
-                        exercisePartsList.remove(exerciseParts[exerciseParts.length - 1]);
-                        String exerciseName = String.join(" ", exercisePartsList);
                         exerciseOpt = exerciseRepository.findByCourseAndNameIgnoreCase(course, exerciseName);
+                        if (exerciseOpt.isPresent()) {
+                            Path dir = Paths.get(rootPath + File.separator + parts[1] + File.separator + parts[2]);
+                            Path renamedDir = Paths.get(dir.getParent().toString() + File.separator
+                                    + String.join("_", exercisePartsList) + "_" + exerciseOpt.get().getId());
+                            try {
+                                Files.move(dir, renamedDir);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                     if (exerciseOpt.isPresent()) {
                         Exercise exercise = exerciseOpt.get();

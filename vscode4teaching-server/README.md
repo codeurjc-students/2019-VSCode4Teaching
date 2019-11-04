@@ -39,7 +39,7 @@ The data.sql file in resources will initialize some demo data to the database. T
 File data is not included (see below).  
 
 Also, if the directory specified in the `v4t.filedirectory` property exists, the server will try to initialize the files' data in the database, along with everything it needs.
-First, it will search for the ids of the courses (eg.: if there is a folder spring_boot_course_11 it will try to find course with id 11). Then, it will try to find the exercises ids inside that course. Last, for the template and each user in that folder it will try to find all files and save all information needed in the database.
+First, it will search for the ids of the courses (eg.: if there is a folder spring_boot_course_11 it will try to find course with id 11). If not found, it will try searching by name, and if found by name it will rename de directory to the same id. Then, it will try to find the exercises ids or name inside that course (name search and renaming same as with courses). Last, for the template and each user in that folder it will try to find all files and save all information needed in the database.
 If at any point an element does not exist, it will be ignored (eg.: a course has not been found).  
 In the `v4t-course` directory in the repository there are demo files, each exercise has a template with a single demo html file, and student `johndoejr` has a Spring + Angular project  in `Spring Boot Course, Exercise 1`.
 
