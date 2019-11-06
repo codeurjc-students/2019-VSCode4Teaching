@@ -5,7 +5,6 @@ import * as extension from '../../extension';
 import * as simple from 'simple-mock';
 import { V4TItem, V4TItemType } from '../../courses';
 import { Course, Exercise, User } from '../../model';
-import { RestClient } from '../../restclient';
 import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
@@ -25,8 +24,8 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
-		if (fs.existsSync(__dirname + '/v4tteaching')) {
-			rimraf(__dirname + '/v4tteaching', error => {
+		if (fs.existsSync(__dirname + '/..' + '/v4t')) {
+			rimraf(__dirname + '/..' + '/v4t', error => {
 				// console.log(error);
 			});
 		}
@@ -39,9 +38,37 @@ suite('Extension Test Suite', () => {
 	test('should activate properly', () => {
 		const extensionActivator = vscode.extensions.getExtension("codeurjc-students.vscode4teaching");
 		if (extensionActivator && !extensionActivator.isActive) {
-			extensionActivator.activate().then(() => {
+			return extensionActivator.activate().then(() => {
 				assert.ok(extension.coursesProvider);
 			});
+		} else {
+			assert.fail("Couldn't activate extension");
+		}
+	});
+
+	test('should register all commands', () => {
+		const extensionActivator = vscode.extensions.getExtension("codeurjc-students.vscode4teaching");
+		if (extensionActivator) {
+			return extensionActivator.activate().then(() => {
+				return vscode.commands.getCommands(true).then((commands) => {
+					const V4T_COMMANDS = [
+						"vscode4teaching.addcourse",
+						"vscode4teaching.login",
+						"vscode4teaching.getexercisefiles",
+						"vscode4teaching.editcourse",
+						"vscode4teaching.deletecourse",
+						"vscode4teaching.refreshcourses"
+					];
+
+					const foundCommands = commands.filter((value) => {
+						return V4T_COMMANDS.indexOf(value) >= 0;
+					});
+
+					assert.equal(foundCommands.length, V4T_COMMANDS.length, "should register all commands");
+				});
+			});
+		} else {
+			assert.fail("Couldn't activate extension.");
 		}
 	});
 
@@ -101,9 +128,14 @@ suite('Extension Test Suite', () => {
 	test('get courses (get children, logged in)', () => {
 		let getJwtTokenMock = simple.mock(extension.coursesProvider.client, "getJwtToken");
 		getJwtTokenMock.returnWith("mockToken");
-		let user = {
+		let user: User = {
 			id: 20,
 			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			],
 			courses: [
 				{
 					id: 23,
@@ -115,23 +147,74 @@ suite('Extension Test Suite', () => {
 				}
 			]
 		};
-		let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
-		extension.coursesProvider.userinfo = user;
-		extension.coursesProvider.client.jwtToken = "mockToken";
+		if (user.courses) {
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
+			extension.coursesProvider.userinfo = user;
+			extension.coursesProvider.client.jwtToken = "mockToken";
 
-		let courseButtons = extension.coursesProvider.getChildren();
+			let courseButtons = extension.coursesProvider.getChildren();
 
-		if (courseButtons instanceof Array) {
-			assert.deepStrictEqual(courseButtons, expectedButtons);
+			if (courseButtons instanceof Array) {
+				assert.deepStrictEqual(courseButtons, expectedButtons);
+			} else {
+				assert.fail("courseButtons is not an array");
+			}
 		} else {
-			assert.fail("loginButton is not an array");
+			assert.fail("user courses don't exist");
+		}
+	});
+
+	test('get courses with add button (get children, logged in, is teacher)', () => {
+		let getJwtTokenMock = simple.mock(extension.coursesProvider.client, "getJwtToken");
+		getJwtTokenMock.returnWith("mockToken");
+		let user: User = {
+			id: 20,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			],
+			courses: [
+				{
+					id: 23,
+					name: "Spring Boot Course 1"
+				},
+				{
+					id: 52,
+					name: "Angular Course 1"
+				}
+			]
+		};
+		if (user.courses) {
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
+			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, {
+				command: "vscode4teaching.addcourse",
+				title: "Add Course"
+			}));
+			extension.coursesProvider.userinfo = user;
+			extension.coursesProvider.client.jwtToken = "mockToken";
+
+			let courseButtons = extension.coursesProvider.getChildren();
+
+			if (courseButtons instanceof Array) {
+				assert.deepStrictEqual(courseButtons, expectedButtons);
+			} else {
+				assert.fail("courseButtons is not an array");
+			}
+		} else {
+			assert.fail("user courses don't exist");
 		}
 	});
 
 	test('get exercises (get children, element)', async () => {
 		let user: User = {
 			id: 343,
-			username: "johndoe"
+			username: "johndoe",
+			roles: []
 		};
 		let course: Course = {
 			id: 123,
@@ -172,7 +255,8 @@ suite('Extension Test Suite', () => {
 	test('get exercise files', async () => {
 		let user: User = {
 			id: 343,
-			username: "johndoe"
+			username: "johndoe",
+			roles: []
 		};
 		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExerciseFiles");
 		getExercisesMock.resolveWith({

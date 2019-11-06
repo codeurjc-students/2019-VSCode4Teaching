@@ -3,7 +3,7 @@ import { CoursesProvider } from './courses';
 
 export let coursesProvider = new CoursesProvider();
 export function activate(context: vscode.ExtensionContext) {
-	vscode.window.registerTreeDataProvider('vscode4teaching', coursesProvider);
+	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
 		coursesProvider.login();
 	});
@@ -15,7 +15,22 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	});
-	context.subscriptions.push(loginDisposable, getFilesDisposable);
+	let addCourseDisposable = vscode.commands.registerCommand('vscode4teaching.addcourse', () => {
+		vscode.window.showInformationMessage("Add course not implemented");
+	});
+
+	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', () => {
+		vscode.window.showInformationMessage("Edit course not implemented");
+	});
+
+	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', () => {
+		vscode.window.showInformationMessage("Delete course not implemented");
+	});
+
+	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {
+		vscode.window.showInformationMessage("Refresh Courses not implemented");
+	});
+	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable, deleteCourseDisposable, refreshView);
 }
 
 export function deactivate() { }

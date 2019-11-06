@@ -42,35 +42,23 @@ export class RestClient {
     }
 
     private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
+        let options: AxiosRequestConfig = {
+            url: url,
+            baseURL: this.baseUrl,
+            method: method,
+            data: data,
+            headers: {
+            },
+            responseType: isArrayBuffer ? "arraybuffer" : "json"
+        };
         if (this.jwtToken) {
-            return {
-                url: url,
-                baseURL: this.baseUrl,
-                method: method,
-                data: data,
-                headers: {
-                    "Authorization": "Bearer " + this.jwtToken,
-                    "X-XSRF-TOKEN": this.xsrfToken,
-                    "Cookie": "XSRF-TOKEN="+this.xsrfToken
-                },
-                withCredentials: true,
-                responseType: isArrayBuffer ? "arraybuffer" : "json"
-            };
+            Object.assign(options.headers, { "Authorization": "Bearer " + this.jwtToken });
         }
-        else {
-            return {
-                url: url,
-                baseURL: this.baseUrl,
-                method: method,
-                data: data,
-                headers: {
-                    "X-XSRF-TOKEN": this.xsrfToken,
-                    "Cookie": "XSRF-TOKEN="+this.xsrfToken
-                },
-                withCredentials: true,
-                responseType: isArrayBuffer ? "arraybuffer" : "json"
-            };
+        if (this.xsrfToken !== "") {
+            Object.assign(options.headers, { "X-XSRF-TOKEN": this.xsrfToken });
+            Object.assign(options.headers, { "Cookie": "XSRF-TOKEN=" + this.xsrfToken });
         }
+        return options;
     }
 
     set jwtToken(jwtToken: string | undefined) {

@@ -14,6 +14,7 @@
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.0.1-SNAPSHOT",
 	"license": "Apache-2.0",
+	"enableProposedApi": true,
 	"engines": {
 		"vscode": "^1.39.0"
 	},
@@ -21,40 +22,74 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onView:vscode4teaching"
+		"onView:vscode4teachingview"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [],
+		"commands": [
+			{
+				"command": "vscode4teaching.editcourse",
+				"title": "Edit Course",
+				"icon": {
+					"light": "resources/light/edit.svg",
+					"dark": "resources/dark/edit.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.deletecourse",
+				"title": "Delete Course",
+				"icon": {
+					"light": "resources/light/delete.svg",
+					"dark": "resources/dark/delete.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.refreshcourses",
+				"title": "Refresh Courses",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "vscode4teachingcontainer",
 					"title": "V4T",
-					"icon": "resources/v4t.png"
+					"icon": "resources/v4t.svg"
 				}
 			]
 		},
 		"views": {
 			"vscode4teachingcontainer": [
 				{
-					"id": "vscode4teaching",
+					"id": "vscode4teachingview",
 					"name": "VS Code 4 Teaching"
 				}
 			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "vscode4teaching.refreshcourses",
+					"when": "view == vscode4teachingview",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "view == vscode4teachingview && viewItem == course",
+					"group": "inline"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "view == vscode4teachingview && viewItem == course",
+					"group": "inline"
+				}
+			]
 		}
-	},
-	"menus": {
-		"view/title": [
-			{
-				"command": "vscode4teaching.login",
-				"when": "view == vscode4teaching"
-			},
-			{
-				"command": "vscode4teaching.getexercisefiles",
-				"when": "view == vscode4teaching"
-			}
-		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
