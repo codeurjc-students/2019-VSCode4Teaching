@@ -88,6 +88,16 @@
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline"
 				}
+			],
+			"commandPalette": [
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "false"
+				}
 			]
 		}
 	},

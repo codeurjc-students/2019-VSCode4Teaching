@@ -269,8 +269,23 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    addCourse() {
-        console.log("Unimplemented");
+    async addCourse() {
+        try {
+            let courseName = await vscode.window.showInputBox({ prompt: "Course name" });
+            if (courseName) {
+                let addCourseThenable = this.client.addCourse(courseName);
+                vscode.window.setStatusBarMessage("Adding course...", addCourseThenable);
+                await addCourseThenable;
+                let userInfoThenable = this.getUserInfo();
+                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                await this.getUserInfo();
+                this._onDidChangeTreeData.fire();
+            }
+        } catch (error) {
+            // Only axios requests throw error
+            this.handleAxiosError(error);
+        }
+
     }
 
     refreshCourses() {

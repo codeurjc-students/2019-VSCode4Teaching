@@ -25,7 +25,7 @@ suite('Extension Test Suite', () => {
 			});
 		}
 		if (fs.existsSync(__dirname + '/../..' + '/v4t')) {
-			rimraf(__dirname + '/..' + '/v4t', error => {
+			rimraf(__dirname + '/../..' + '/v4t', error => {
 				// console.log(error);
 			});
 		}
@@ -347,6 +347,33 @@ suite('Extension Test Suite', () => {
 		let userInfoMock = simple.mock(extension.coursesProvider, "getUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
+	});
+
+	test('add course', async () => {
+		let course: Course = {
+			id: 123,
+			name: "Test course"
+		};
+		let addCourseClientMock = simple.mock(extension.coursesProvider.client, "addCourse");
+		addCourseClientMock.resolveWith(course);
+		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
+		vscodeInputMock.resolveWith("Test course");
+		let user: User = {
+			id: 456,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			],
+			courses: [course]
+		};
+		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
+		userInfoMock.resolveWith(user);
+		await extension.coursesProvider.addCourse();
+		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
+			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [course]);
+		}
 	});
 });
 

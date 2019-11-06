@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	});
 	let addCourseDisposable = vscode.commands.registerCommand('vscode4teaching.addcourse', () => {
-		vscode.window.showInformationMessage("Add course not implemented");
+		coursesProvider.addCourse();
 	});
 
 	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', () => {
