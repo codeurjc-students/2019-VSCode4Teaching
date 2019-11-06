@@ -80,12 +80,12 @@
 			"view/item/context": [
 				{
 					"command": "vscode4teaching.editcourse",
-					"when": "view == vscode4teachingview && viewItem == course",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline"
 				},
 				{
 					"command": "vscode4teaching.deletecourse",
-					"when": "view == vscode4teachingview && viewItem == course",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline"
 				}
 			]

@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {
-		vscode.window.showInformationMessage("Refresh Courses not implemented");
+		coursesProvider.refreshCourses();
 	});
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable, deleteCourseDisposable, refreshView);
 }

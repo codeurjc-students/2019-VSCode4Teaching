@@ -24,7 +24,7 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
-		if (fs.existsSync(__dirname + '/..' + '/v4t')) {
+		if (fs.existsSync(__dirname + '/../..' + '/v4t')) {
 			rimraf(__dirname + '/..' + '/v4t', error => {
 				// console.log(error);
 			});
@@ -148,7 +148,7 @@ suite('Extension Test Suite', () => {
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed));
 			extension.coursesProvider.userinfo = user;
 			extension.coursesProvider.client.jwtToken = "mockToken";
 
@@ -190,7 +190,7 @@ suite('Extension Test Suite', () => {
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed));
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed));
 			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
@@ -214,14 +214,18 @@ suite('Extension Test Suite', () => {
 		let user: User = {
 			id: 343,
 			username: "johndoe",
-			roles: []
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
 		};
 		let course: Course = {
 			id: 123,
 			name: "Spring Boot Course"
 		};
 		user.courses = [course];
-		let courseItem = new V4TItem(course.name, V4TItemType.Course, vscode.TreeItemCollapsibleState.Collapsed);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed);
 		extension.coursesProvider.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
@@ -235,7 +239,7 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.Exercise, vscode.TreeItemCollapsibleState.None, {
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseStudent, vscode.TreeItemCollapsibleState.None, {
 			"command": "vscode4teaching.getexercisefiles",
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise.name, exercise.id]
@@ -250,6 +254,54 @@ suite('Extension Test Suite', () => {
 		let newExerciseItems = extension.coursesProvider.getChildren(courseItem);
 		assert.deepStrictEqual(exerciseItems, newExerciseItems);
 
+	});
+
+	test('get exercises (get children, element, is teacher)', async () => {
+		let user: User = {
+			id: 343,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		};
+		let course: Course = {
+			id: 123,
+			name: "Spring Boot Course"
+		};
+		user.courses = [course];
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed);
+		extension.coursesProvider.userinfo = user;
+		let exercises: Exercise[] = [{
+			id: 4,
+			name: "Exercise 1"
+		},
+		{
+			id: 5,
+			name: "Exercise 2"
+		},
+		{
+			id: 6,
+			name: "Exercise 3"
+		}];
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, {
+			"command": "vscode4teaching.getexercisefiles",
+			"title": "Get exercise files",
+			"arguments": [course.name, exercise.name, exercise.id]
+		}));
+		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExercises");
+		getExercisesMock.resolveWith({ data: exercises });
+
+		extension.coursesProvider.getChildren(courseItem);
+
+		await new Promise(resolve => setTimeout(resolve, 10)); // Wait for exercises to "download"
+
+		let newExerciseItems = extension.coursesProvider.getChildren(courseItem);
+		assert.deepStrictEqual(exerciseItems, newExerciseItems);
 	});
 
 	test('get exercise files', async () => {
@@ -289,6 +341,12 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(extension.coursesProvider.client.jwtToken, "mockToken");
 		assert.deepStrictEqual(extension.coursesProvider.client.xsrfToken, "mockXsrf");
 		assert.deepStrictEqual(extension.coursesProvider.client.baseUrl, "mockUrl");
+	});
+
+	test('refresh should call getUserInfo', () => {
+		let userInfoMock = simple.mock(extension.coursesProvider, "getUserInfo");
+		extension.coursesProvider.refreshCourses();
+		assert.deepStrictEqual(userInfoMock.callCount, 1);
 	});
 });
 
