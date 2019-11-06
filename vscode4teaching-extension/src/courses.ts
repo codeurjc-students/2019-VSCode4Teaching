@@ -274,7 +274,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let courseName = await vscode.window.showInputBox({ prompt: "Course name" });
             if (courseName) {
                 let addCourseThenable = this.client.addCourse(courseName);
-                vscode.window.setStatusBarMessage("Adding course...", addCourseThenable);
+                vscode.window.setStatusBarMessage("Sending course info...", addCourseThenable);
                 await addCourseThenable;
                 let userInfoThenable = this.getUserInfo();
                 vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
@@ -285,6 +285,31 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             // Only axios requests throw error
             this.handleAxiosError(error);
         }
+
+    }
+
+    async editCourse(courseName: string) {
+        try {
+            let newCourseName = await vscode.window.showInputBox({ prompt: "Course name" });
+            if (newCourseName && this.userinfo && this.userinfo.courses) {
+                let course = this.userinfo.courses.find(course => course.name === courseName);
+                if (course) {
+                    let editCourseThenable = this.client.editCourse(course.id, newCourseName);
+                    vscode.window.setStatusBarMessage("Sending course info...", editCourseThenable);
+                    await editCourseThenable;
+                    let userInfoThenable = this.getUserInfo();
+                    vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                    await this.getUserInfo();
+                    this._onDidChangeTreeData.fire();
+                }
+            }
+        } catch (error) {
+            // Only axios requests throw error
+            this.handleAxiosError(error);
+        }
+    }
+
+    async deleteCourse() {
 
     }
 

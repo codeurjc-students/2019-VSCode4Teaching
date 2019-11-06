@@ -48,6 +48,13 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses", "POST", false, data));
     }
 
+    editCourse(id: number, name: string) {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
+    }
+
     private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

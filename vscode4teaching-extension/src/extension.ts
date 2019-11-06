@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CoursesProvider } from './courses';
+import { CoursesProvider, V4TItem } from './courses';
 
 export let coursesProvider = new CoursesProvider();
 export function activate(context: vscode.ExtensionContext) {
@@ -19,12 +19,12 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.addCourse();
 	});
 
-	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', () => {
-		vscode.window.showInformationMessage("Edit course not implemented");
+	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', (item: V4TItem) => {
+		coursesProvider.editCourse(item.label);
 	});
 
 	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', () => {
-		vscode.window.showInformationMessage("Delete course not implemented");
+		coursesProvider.deleteCourse();
 	});
 
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {
