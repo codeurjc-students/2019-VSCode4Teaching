@@ -23,8 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.editCourse(item.label);
 	});
 
-	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', () => {
-		coursesProvider.deleteCourse();
+	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', (item: V4TItem) => {
+		coursesProvider.deleteCourse(item.label);
 	});
 
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {

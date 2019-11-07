@@ -55,6 +55,10 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
     }
 
+    deleteCourse(id: number) {
+        return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
+    }
+
     private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

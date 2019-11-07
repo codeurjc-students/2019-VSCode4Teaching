@@ -380,7 +380,47 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('delete course', async () => {
-		console.log("Unimplemented");
+		let course: Course = {
+			id: 123,
+			name: "Test course"
+		};
+		let deleteCourseClientMock = simple.mock(extension.coursesProvider.client, "deleteCourse");
+		deleteCourseClientMock.resolveWith(course);
+		let vscodeInputMock = simple.mock(vscode.window, "showWarningMessage");
+		vscodeInputMock.resolveWith("Accept");
+		let user: User = {
+			id: 456,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			],
+			courses: [course]
+		};
+		extension.coursesProvider.userinfo = user;
+		let newUser: User = {
+			id: 456,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			],
+			courses: []
+		};
+		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
+		userInfoMock.resolveWith(newUser);
+		await extension.coursesProvider.deleteCourse("Test course");
+		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
+			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, []);
+		}
 	});
 
 	test('edit course', async () => {
@@ -422,17 +462,17 @@ suite('Extension Test Suite', () => {
 			courses: [course]
 		};
 		let newUser: User = {
-				id: 456,
-				username: "johndoe",
-				roles: [
-					{
-						roleName: "ROLE_STUDENT"
-					},
-					{
-						roleName: "ROLE_TEACHER"
-					}
-				],
-				courses: [newCourse]
+			id: 456,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			],
+			courses: [newCourse]
 		};
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith(newUser);

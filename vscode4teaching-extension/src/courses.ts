@@ -309,16 +309,36 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    async deleteCourse() {
-
+    async deleteCourse(courseName: string) {
+        try {
+            let selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + courseName + "?", { modal: true }, "Accept");
+            if ((selectedOption === "Accept") && this.userinfo && this.userinfo.courses) {
+                let course = this.userinfo.courses.find(course => course.name === courseName);
+                if (course) {
+                    let deleteCourseThenable = this.client.deleteCourse(course.id);
+                    vscode.window.setStatusBarMessage("Sending course info...", deleteCourseThenable);
+                    await deleteCourseThenable;
+                    let userInfoThenable = this.getUserInfo();
+                    vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                    await this.getUserInfo();
+                    this._onDidChangeTreeData.fire();
+                }
+            }
+        } catch (error) {
+            // Only axios requests throw error
+            this.handleAxiosError(error);
+        }
     }
 
     refreshCourses() {
-        this.getUserInfo().then(() => {
-            this._onDidChangeTreeData.fire();
-        }).catch(error => {
-            this.handleAxiosError(error);
-        });
+        if (this.client.jwtToken) {
+            // If not logged refresh shouldn't do anything
+            this.getUserInfo().then(() => {
+                this._onDidChangeTreeData.fire();
+            }).catch(error => {
+                this.handleAxiosError(error);
+            });
+        }
     }
 }
 
