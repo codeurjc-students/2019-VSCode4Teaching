@@ -35,7 +35,11 @@ export function activate(context: vscode.ExtensionContext) {
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {
 		coursesProvider.refreshCourses();
 	});
-	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable, deleteCourseDisposable, refreshView);
+
+	let refreshCourse = vscode.commands.registerCommand('vscode4teaching.refreshexercises', (item: V4TItem) => {
+		coursesProvider.refreshExercises(item);
+	});
+	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable, deleteCourseDisposable, refreshView, refreshCourse);
 }
 
 export function deactivate() { }

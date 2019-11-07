@@ -50,6 +50,14 @@
 					"light": "resources/light/refresh.svg",
 					"dark": "resources/dark/refresh.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.refreshexercises",
+				"title": "Refresh Exercises",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -79,14 +87,24 @@
 			],
 			"view/item/context": [
 				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"group": "inline@1"
+				},
+				{
 					"command": "vscode4teaching.editcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline"
+					"group": "inline@2"
 				},
 				{
 					"command": "vscode4teaching.deletecourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline"
+					"group": "inline@3"
 				}
 			],
 			"commandPalette": [
@@ -96,6 +114,10 @@
 				},
 				{
 					"command": "vscode4teaching.deletecourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.refreshcourses",
 					"when": "false"
 				}
 			]

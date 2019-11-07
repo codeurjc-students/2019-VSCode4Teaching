@@ -149,6 +149,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
         // Errors have to be controlled in the caller function
         let userResponse = await coursesThenable;
+        if (userResponse.data.courses && userResponse.data.courses.length > 0) {
+            userResponse.data.courses.forEach(course => {
+                if (!course.exercises) {
+                    course.exercises = [];
+                }
+            });
+        }
         this.userinfo = userResponse.data;
     }
 
@@ -286,16 +293,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         try {
             let newCourseName = await vscode.window.showInputBox({ prompt: "Course name" });
             if (newCourseName && this.userinfo && this.userinfo.courses) {
-                let course = this.userinfo.courses.find(course => course.name === course.name);
-                if (course) {
-                    let editCourseThenable = this.client.editCourse(course.id, newCourseName);
-                    vscode.window.setStatusBarMessage("Sending course info...", editCourseThenable);
-                    await editCourseThenable;
-                    let userInfoThenable = this.getUserInfo();
-                    vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
-                    await this.getUserInfo();
-                    this._onDidChangeTreeData.fire();
-                }
+                let editCourseThenable = this.client.editCourse(course.id, newCourseName);
+                vscode.window.setStatusBarMessage("Sending course info...", editCourseThenable);
+                await editCourseThenable;
+                let userInfoThenable = this.getUserInfo();
+                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                await this.getUserInfo();
+                this._onDidChangeTreeData.fire();
             }
         } catch (error) {
             // Only axios requests throw error
@@ -307,16 +311,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         try {
             let selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + course.name + "?", { modal: true }, "Accept");
             if ((selectedOption === "Accept") && this.userinfo && this.userinfo.courses) {
-                let course = this.userinfo.courses.find(course => course.name === course.name);
-                if (course) {
-                    let deleteCourseThenable = this.client.deleteCourse(course.id);
-                    vscode.window.setStatusBarMessage("Sending course info...", deleteCourseThenable);
-                    await deleteCourseThenable;
-                    let userInfoThenable = this.getUserInfo();
-                    vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
-                    await this.getUserInfo();
-                    this._onDidChangeTreeData.fire();
-                }
+                let deleteCourseThenable = this.client.deleteCourse(course.id);
+                vscode.window.setStatusBarMessage("Sending course info...", deleteCourseThenable);
+                await deleteCourseThenable;
+                let userInfoThenable = this.getUserInfo();
+                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                await this.getUserInfo();
+                this._onDidChangeTreeData.fire();
             }
         } catch (error) {
             // Only axios requests throw error
@@ -332,6 +333,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }).catch(error => {
                 this.handleAxiosError(error);
             });
+        }
+    }
+
+    refreshExercises(item: V4TItem) {
+        if (item.item && "exercises" in item.item) {
+            this.getExercises(item, item.item);
         }
     }
 }

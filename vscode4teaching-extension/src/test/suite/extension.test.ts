@@ -425,7 +425,7 @@ suite('Extension Test Suite', () => {
 			courses: []
 		};
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
-		userInfoMock.resolveWith(newUser);
+		userInfoMock.resolveWith({ data: newUser });
 		await extension.coursesProvider.deleteCourse(course);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, []);
@@ -484,12 +484,30 @@ suite('Extension Test Suite', () => {
 			courses: [newCourse]
 		};
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
-		userInfoMock.resolveWith(newUser);
+		userInfoMock.resolveWith({ data: newUser });
 		extension.coursesProvider.userinfo = user;
 		await extension.coursesProvider.editCourse(course);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [newCourse]);
 		}
+	});
+
+	test('refresh exercises', async () => {
+		let course: Course = {
+			id: 1234,
+			name: "Test course",
+			exercises: [
+				{
+					id: 5678,
+					name: "Test exercise"
+				}
+			]
+		};
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course);
+		// This method has already been tested, can be mocked
+		let getExercisesMock = simple.mock(extension.coursesProvider, "getExercises");
+		extension.coursesProvider.refreshExercises(courseItem);
+		assert.deepStrictEqual(getExercisesMock.callCount, 1);
 	});
 });
 
