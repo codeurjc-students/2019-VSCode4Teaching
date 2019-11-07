@@ -11,7 +11,7 @@ export interface User {
 export interface Course {
     id: number;
     name: string;
-    exercises?: Exercise[];
+    exercises: Exercise[];
 }
 
 export interface Exercise {

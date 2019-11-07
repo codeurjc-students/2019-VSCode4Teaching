@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { CoursesProvider, V4TItem } from './courses';
+import { Exercise } from './model';
 
 export let coursesProvider = new CoursesProvider();
 export function activate(context: vscode.ExtensionContext) {
@@ -7,8 +8,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
 		coursesProvider.login();
 	});
-	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exerciseName: string, exerciseId: number) => {
-		coursesProvider.getExerciseFiles(courseName, exerciseName, exerciseId).then(async (newWorkspaceURI) => {
+	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
+		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
 				let uri = vscode.Uri.file(newWorkspaceURI);
 				await vscode.commands.executeCommand('vscode.openFolder', uri);
@@ -20,11 +21,15 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', (item: V4TItem) => {
-		coursesProvider.editCourse(item.label);
+		if (item.item && "exercises" in item.item) {
+			coursesProvider.editCourse(item.item);
+		}
 	});
 
 	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', (item: V4TItem) => {
-		coursesProvider.deleteCourse(item.label);
+		if (item.item && "exercises" in item.item) {
+			coursesProvider.deleteCourse(item.item);
+		}
 	});
 
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {

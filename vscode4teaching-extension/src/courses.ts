@@ -22,10 +22,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (!this.loading) {
             if (element) {
                 // Only collapsable items are courses
-                let course = this.findCourseByName(element.label);
-                if (course) {
+                let course = element.item;
+                if (course && "exercises" in course) {
                     // If exercises were downloaded previously show them, else get them from server
-                    if (course.exercises) {
+                    if (course.exercises.length > 0) {
                         // Map exercises to TreeItems
                         let type: V4TItemType;
                         if (this.userinfo && this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
@@ -33,10 +33,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         } else {
                             type = V4TItemType.ExerciseStudent;
                         }
-                        return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, {
+                        return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, exercise, {
                             "command": "vscode4teaching.getexercisefiles",
                             "title": "Get exercise files",
-                            "arguments": [course ? course.name : null, exercise.name, exercise.id] // course condition is needed to avoid compilation error, shouldn't be false
+                            "arguments": [course ? course.name : null, exercise] // course condition is needed to avoid compilation error, shouldn't be false
                         }));
                     } else {
                         this.getExercises(element, course);
@@ -55,12 +55,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             this.getChildren();
                         }
                     } catch (error) {
-                        return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
+                        return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
                             "command": "vscode4teaching.login",
                             "title": "Log in to VS Code 4 Teaching"
                         })];
                     }
-                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
+                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
                         "command": "vscode4teaching.login",
                         "title": "Log in to VS Code 4 Teaching"
                     })];
@@ -83,16 +83,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         } else {
                             type = V4TItemType.CourseStudent;
                         }
-                        let items = this.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed));
+                        let items = this.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, course));
                         if (isTeacher) {
-                            items.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, {
+                            items.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
                                 command: "vscode4teaching.addcourse",
                                 title: "Add Course"
                             }));
                         }
                         return items;
                     }
-                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
+                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
                         "command": "vscode4teaching.login",
                         "title": "Log in to VS Code 4 Teaching"
                     })];
@@ -182,12 +182,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         this._userinfo = userinfo;
     }
 
-    private findCourseByName(name: string): Course | undefined {
-        if (this.userinfo && this.userinfo.courses) {
-            return this.userinfo.courses.filter(course => course.name === name)[0];
-        }
-    }
-
     private getExercises(item: V4TItem, course: Course) {
         let exercisesThenable = this.client.getExercises(course.id);
         vscode.window.setStatusBarMessage("Getting exercises...", exercisesThenable);
@@ -202,8 +196,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    async getExerciseFiles(courseName: string, exerciseName: string, exerciseId: number): Promise<string | null> {
-        if (this.userinfo && !fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName)) {
+    async getExerciseFiles(courseName: string, exercise: Exercise): Promise<string | null> {
+        if (this.userinfo && !fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name)) {
             if (!fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName)) {
                 if (!fs.existsSync('v4tdownloads/' + this.userinfo.username)) {
                     if (!fs.existsSync('v4tdownloads/')) {
@@ -213,15 +207,15 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }
                 fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName);
             }
-            fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName);
+            fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name);
         }
-        let requestThenable = this.client.getExerciseFiles(exerciseId);
+        let requestThenable = this.client.getExerciseFiles(exercise.id);
         vscode.window.setStatusBarMessage("Downloading exercise files...", requestThenable);
         let response = await requestThenable;
         let zip = await JSZip.loadAsync(response.data);
         zip.forEach((relativePath, file) => {
             if (this.userinfo) {
-                let v4tpath = 'v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exerciseName + '/' + relativePath;
+                let v4tpath = 'v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name + '/' + relativePath;
                 if (this.userinfo && file.dir && !fs.existsSync(v4tpath)) {
                     fs.mkdirSync(v4tpath);
                 } else {
@@ -232,7 +226,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         });
         if (this.userinfo) {
-            return path.resolve('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exerciseName);
+            return path.resolve('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exercise.name);
         } else {
             return Promise.resolve(null);
         }
@@ -288,11 +282,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    async editCourse(courseName: string) {
+    async editCourse(course: Course) {
         try {
             let newCourseName = await vscode.window.showInputBox({ prompt: "Course name" });
             if (newCourseName && this.userinfo && this.userinfo.courses) {
-                let course = this.userinfo.courses.find(course => course.name === courseName);
+                let course = this.userinfo.courses.find(course => course.name === course.name);
                 if (course) {
                     let editCourseThenable = this.client.editCourse(course.id, newCourseName);
                     vscode.window.setStatusBarMessage("Sending course info...", editCourseThenable);
@@ -309,11 +303,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    async deleteCourse(courseName: string) {
+    async deleteCourse(course: Course) {
         try {
-            let selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + courseName + "?", { modal: true }, "Accept");
+            let selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + course.name + "?", { modal: true }, "Accept");
             if ((selectedOption === "Accept") && this.userinfo && this.userinfo.courses) {
-                let course = this.userinfo.courses.find(course => course.name === courseName);
+                let course = this.userinfo.courses.find(course => course.name === course.name);
                 if (course) {
                     let deleteCourseThenable = this.client.deleteCourse(course.id);
                     vscode.window.setStatusBarMessage("Sending course info...", deleteCourseThenable);
@@ -348,6 +342,7 @@ export class V4TItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly type: V4TItemType,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+        public readonly item?: Course | Exercise,
         public readonly command?: vscode.Command
     ) {
         super(label, collapsibleState);

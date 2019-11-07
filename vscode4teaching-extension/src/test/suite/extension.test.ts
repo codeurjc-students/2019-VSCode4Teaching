@@ -111,7 +111,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('get login button (get children, not logged in)', () => {
-		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, {
+		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
@@ -139,16 +139,18 @@ suite('Extension Test Suite', () => {
 			courses: [
 				{
 					id: 23,
-					name: "Spring Boot Course 1"
+					name: "Spring Boot Course 1",
+					exercises: []
 				},
 				{
 					id: 52,
-					name: "Angular Course 1"
+					name: "Angular Course 1",
+					exercises: []
 				}
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed));
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, course));
 			extension.coursesProvider.userinfo = user;
 			extension.coursesProvider.client.jwtToken = "mockToken";
 
@@ -181,17 +183,19 @@ suite('Extension Test Suite', () => {
 			courses: [
 				{
 					id: 23,
-					name: "Spring Boot Course 1"
+					name: "Spring Boot Course 1",
+					exercises: []
 				},
 				{
 					id: 52,
-					name: "Angular Course 1"
+					name: "Angular Course 1",
+					exercises: []
 				}
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed));
-			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, {
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course));
+			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
 			}));
@@ -222,10 +226,11 @@ suite('Extension Test Suite', () => {
 		};
 		let course: Course = {
 			id: 123,
-			name: "Spring Boot Course"
+			name: "Spring Boot Course",
+			exercises: []
 		};
 		user.courses = [course];
-		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, course);
 		extension.coursesProvider.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
@@ -239,10 +244,10 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseStudent, vscode.TreeItemCollapsibleState.None, {
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseStudent, vscode.TreeItemCollapsibleState.None, exercise, {
 			"command": "vscode4teaching.getexercisefiles",
 			"title": "Get exercise files",
-			"arguments": [course.name, exercise.name, exercise.id]
+			"arguments": [course.name, exercise]
 		}));
 		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
@@ -271,10 +276,11 @@ suite('Extension Test Suite', () => {
 		};
 		let course: Course = {
 			id: 123,
-			name: "Spring Boot Course"
+			name: "Spring Boot Course",
+			exercises: []
 		};
 		user.courses = [course];
-		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course);
 		extension.coursesProvider.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
@@ -288,10 +294,10 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, {
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, exercise, {
 			"command": "vscode4teaching.getexercisefiles",
 			"title": "Get exercise files",
-			"arguments": [course.name, exercise.name, exercise.id]
+			"arguments": [course.name, exercise]
 		}));
 		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
@@ -316,7 +322,7 @@ suite('Extension Test Suite', () => {
 				path.sep + 'test-resources' + path.sep + 'files' + path.sep + 'exs.zip')
 		});
 		extension.coursesProvider.userinfo = user;
-		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", "Exercise 1", 4);
+		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", { id: 4, name: "Exercise 1" });
 		await new Promise(resolve => setTimeout(resolve, 200)); // Wait for exercises to "download"
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex1.html'), true, "ex1 exists");
 		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex2.html'), true, "ex2 exists");
@@ -344,6 +350,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('refresh should call getUserInfo', () => {
+		extension.coursesProvider.client.jwtToken = "mockToken";
 		let userInfoMock = simple.mock(extension.coursesProvider, "getUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
@@ -352,7 +359,8 @@ suite('Extension Test Suite', () => {
 	test('add course', async () => {
 		let course: Course = {
 			id: 123,
-			name: "Test course"
+			name: "Test course",
+			exercises: []
 		};
 		let addCourseClientMock = simple.mock(extension.coursesProvider.client, "addCourse");
 		addCourseClientMock.resolveWith(course);
@@ -382,7 +390,8 @@ suite('Extension Test Suite', () => {
 	test('delete course', async () => {
 		let course: Course = {
 			id: 123,
-			name: "Test course"
+			name: "Test course",
+			exercises: []
 		};
 		let deleteCourseClientMock = simple.mock(extension.coursesProvider.client, "deleteCourse");
 		deleteCourseClientMock.resolveWith(course);
@@ -417,7 +426,7 @@ suite('Extension Test Suite', () => {
 		};
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith(newUser);
-		await extension.coursesProvider.deleteCourse("Test course");
+		await extension.coursesProvider.deleteCourse(course);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, []);
 		}
@@ -443,7 +452,7 @@ suite('Extension Test Suite', () => {
 					name: "Exercise 1"
 				}
 			]
-		}
+		};
 		let editCourseClientMock = simple.mock(extension.coursesProvider.client, "editCourse");
 		editCourseClientMock.resolveWith(newCourse);
 		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
@@ -477,7 +486,7 @@ suite('Extension Test Suite', () => {
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith(newUser);
 		extension.coursesProvider.userinfo = user;
-		await extension.coursesProvider.editCourse("Test course");
+		await extension.coursesProvider.editCourse(course);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [newCourse]);
 		}
