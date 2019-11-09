@@ -542,7 +542,7 @@ suite('Extension Test Suite', () => {
 		let refreshExercisesMock = simple.mock(extension.coursesProvider, "refreshExercises");
 		let mockItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, mockCourse);
 		await extension.coursesProvider.addExercise(mockItem);
-		
+
 		assert.deepStrictEqual(clientAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
 		assert.deepStrictEqual(clientAddMock.lastCall.args[1], "Test exercise", "addExercise should get name gotten on showInputBox");
 
@@ -557,11 +557,21 @@ suite('Extension Test Suite', () => {
 			zipEntries.push(relativePath);
 		});
 
-		assert.deepStrictEqual(zipEntries.length, 4, "there should be 4 files in the zip");
+		console.log(zipEntries);
+		// Depending on system directories can be saved as entries or whole path can be saved
+		assert.deepStrictEqual([4, 6].includes(zipEntries.length), true, "there should be 4 or 6 entries in the zip");
 		assert.deepStrictEqual(zipEntries.includes("ex1.html"), true, "ex1.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("ex2.html"), true, "ex2.html should be saved");
-		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
-		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
+		if (zipEntries.length === 4) {
+			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
+			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
+		} else if (zipEntries.length === 6) {
+			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
+			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
+			assert.deepStrictEqual(zipEntries.includes("exs"), true, "exs should be saved");
+			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4"), true, "exs/ex4 should be saved");
+		}
+		
 
 		assert.deepStrictEqual(refreshExercisesMock.callCount, 1, "exercises should be refreshed");
 	});
