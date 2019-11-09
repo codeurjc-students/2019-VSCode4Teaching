@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { CoursesProvider, V4TItem } from './courses';
+import { CoursesProvider } from './courses';
 import { Exercise } from './model';
+import { V4TItem } from './v4titem';
 
 export let coursesProvider = new CoursesProvider();
 export function activate(context: vscode.ExtensionContext) {
@@ -39,7 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
 	let refreshCourse = vscode.commands.registerCommand('vscode4teaching.refreshexercises', (item: V4TItem) => {
 		coursesProvider.refreshExercises(item);
 	});
-	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable, deleteCourseDisposable, refreshView, refreshCourse);
+
+	let addExercise = vscode.commands.registerCommand('vscode4teaching.addexercise', (item: V4TItem) => {
+		coursesProvider.addExercise(item);
+	});
+
+	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
+		deleteCourseDisposable, refreshView, refreshCourse, addExercise);
 }
 
 export function deactivate() { }

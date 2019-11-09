@@ -4,6 +4,8 @@ import * as path from 'path';
 import { User, Course, Exercise } from './model';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
+import { V4TItem, V4TItemType } from './v4titem';
+import mkdirp = require('mkdirp');
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -23,20 +25,20 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (element) {
                 // Only collapsable items are courses
                 let course = element.item;
-                if (course && "exercises" in course) {
+                if (course && 'exercises' in course) {
                     // If exercises were downloaded previously show them, else get them from server
                     if (course.exercises.length > 0) {
                         // Map exercises to TreeItems
                         let type: V4TItemType;
-                        if (this.userinfo && this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
+                        if (this.userinfo && this.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0) {
                             type = V4TItemType.ExerciseTeacher;
                         } else {
                             type = V4TItemType.ExerciseStudent;
                         }
                         return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, exercise, {
-                            "command": "vscode4teaching.getexercisefiles",
-                            "title": "Get exercise files",
-                            "arguments": [course ? course.name : null, exercise] // course condition is needed to avoid compilation error, shouldn't be false
+                            'command': 'vscode4teaching.getexercisefiles',
+                            'title': 'Get exercise files',
+                            'arguments': [course ? course.name : null, exercise] // course condition is needed to avoid compilation error, shouldn't be false
                         }));
                     } else {
                         this.getExercises(element, course);
@@ -46,29 +48,30 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // If not logged add login button, else show courses
                 if (!this.client.jwtToken) {
                     try {
-                        if (fs.existsSync(__dirname + "/v4t/v4tsession")) {
-                            let readSession = fs.readFileSync(__dirname + "/v4t/v4tsession").toString();
-                            let sessionParts = readSession.split("\n");
+                        let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+                        if (fs.existsSync(sessionPath)) {
+                            let readSession = fs.readFileSync(sessionPath).toString();
+                            let sessionParts = readSession.split('\n');
                             this.client.jwtToken = sessionParts[0];
                             this.client.xsrfToken = sessionParts[1];
                             this.client.baseUrl = sessionParts[2];
                             this.getChildren();
                         }
                     } catch (error) {
-                        return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
-                            "command": "vscode4teaching.login",
-                            "title": "Log in to VS Code 4 Teaching"
+                        return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                            'command': 'vscode4teaching.login',
+                            'title': 'Log in to VS Code 4 Teaching'
                         })];
                     }
-                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
-                        "command": "vscode4teaching.login",
-                        "title": "Log in to VS Code 4 Teaching"
+                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                        'command': 'vscode4teaching.login',
+                        'title': 'Log in to VS Code 4 Teaching'
                     })];
                 } else {
                     if ((!this.userinfo || !this.userinfo.courses) && !this.error401thrown && !this.error403thrown) {
                         this.loading = true;
                         let thenable = this.getUserInfo();
-                        vscode.window.setStatusBarMessage("Getting data...", thenable);
+                        vscode.window.setStatusBarMessage('Getting data...', thenable);
                         thenable.then(() => {
                             this._onDidChangeTreeData.fire();
                         }).finally(() => {
@@ -76,7 +79,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         });
                     }
                     if (this.userinfo && this.userinfo.courses) {
-                        let isTeacher = this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
+                        let isTeacher = this.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
                         let type: V4TItemType;
                         if (isTeacher) {
                             type = V4TItemType.CourseTeacher;
@@ -85,16 +88,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         }
                         let items = this.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, course));
                         if (isTeacher) {
-                            items.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
-                                command: "vscode4teaching.addcourse",
-                                title: "Add Course"
+                            items.unshift(new V4TItem('Add Course', V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
+                                command: 'vscode4teaching.addcourse',
+                                title: 'Add Course'
                             }));
                         }
                         return items;
                     }
-                    return [new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
-                        "command": "vscode4teaching.login",
-                        "title": "Log in to VS Code 4 Teaching"
+                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                        'command': 'vscode4teaching.login',
+                        'title': 'Log in to VS Code 4 Teaching'
                     })];
                 }
             }
@@ -103,14 +106,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async login() {
         // Ask for server url, then username, then password, and try to log in at the end
-        let serverInputOptions: vscode.InputBoxOptions = { "prompt": "Server", "value": "http://localhost:8080" };
+        let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': 'http://localhost:8080' };
         serverInputOptions.validateInput = this.validateInputCustomUrl;
         let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
         if (url) {
             this.client.baseUrl = url;
-            let username: string | undefined = await vscode.window.showInputBox({ "prompt": "Username" });
+            let username: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Username' });
             if (username) {
-                let password: string | undefined = await vscode.window.showInputBox({ "prompt": "Password", "password": true });
+                let password: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Password', 'password': true });
                 if (password) {
                     this.callLogin(username, password).catch(error => {
                         this.handleAxiosError(error);
@@ -122,21 +125,23 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private async callLogin(username: string, password: string) {
         try {
-            if (fs.existsSync(__dirname + '/v4t/v4tsession')) {
-                fs.unlinkSync(__dirname + '/v4t/v4tsession');
+            let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+            if (fs.existsSync(sessionPath)) {
+                fs.unlinkSync(sessionPath);
             }
             this.client.jwtToken = undefined;
-            this.client.xsrfToken = "";
+            this.client.xsrfToken = '';
             await this.client.getCsrfToken();
             let loginThenable = this.client.login(username, password);
-            vscode.window.setStatusBarMessage("Logging in to VS Code 4 Teaching...", loginThenable);
+            vscode.window.setStatusBarMessage('Logging in to VS Code 4 Teaching...', loginThenable);
             let response = await loginThenable;
-            vscode.window.showInformationMessage("Logged in");
+            vscode.window.showInformationMessage('Logged in');
             this.client.jwtToken = response.data['jwtToken'];
-            if (!fs.existsSync(__dirname + "/v4t")) {
-                fs.mkdirSync(__dirname + "/v4t");
+            let v4tPath = path.resolve(__dirname, 'v4t');
+            if (!fs.existsSync(v4tPath)) {
+                mkdirp.sync(v4tPath);
             }
-            fs.writeFileSync(__dirname + "/v4t/v4tsession", this.client.jwtToken + "\n" + this.client.xsrfToken + "\n" + this.client.baseUrl);
+            fs.writeFileSync(sessionPath, this.client.jwtToken + '\n' + this.client.xsrfToken + '\n' + this.client.baseUrl);
             await this.getUserInfo();
             this._onDidChangeTreeData.fire();
         } catch (error) {
@@ -146,7 +151,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private async getUserInfo() {
         let coursesThenable = this.client.getUserInfo();
-        vscode.window.setStatusBarMessage("Getting user courses...", coursesThenable);
+        vscode.window.setStatusBarMessage('Getting user courses...', coursesThenable);
         // Errors have to be controlled in the caller function
         let userResponse = await coursesThenable;
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
@@ -166,7 +171,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (pattern.test(value)) {
             return null;
         } else {
-            return "Invalid URL";
+            return 'Invalid URL';
         }
 
     }
@@ -191,7 +196,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private getExercises(item: V4TItem, course: Course) {
         let exercisesThenable = this.client.getExercises(course.id);
-        vscode.window.setStatusBarMessage("Getting exercises...", exercisesThenable);
+        vscode.window.setStatusBarMessage('Getting exercises...', exercisesThenable);
         exercisesThenable.then(response => {
             if (course) {
                 course.exercises = response.data;
@@ -203,39 +208,42 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    async getExerciseFiles(courseName: string, exercise: Exercise): Promise<string | null> {
-        if (this.userinfo && !fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name)) {
-            if (!fs.existsSync('v4tdownloads/' + this.userinfo.username + "/" + courseName)) {
-                if (!fs.existsSync('v4tdownloads/' + this.userinfo.username)) {
-                    if (!fs.existsSync('v4tdownloads/')) {
-                        fs.mkdirSync('v4tdownloads/');
-                    }
-                    fs.mkdirSync('v4tdownloads/' + this.userinfo.username);
-                }
-                fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName);
-            }
-            fs.mkdirSync('v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name);
+    async getExerciseFiles(courseName: string, exercise: Exercise) {
+        if (this.userinfo && !fs.existsSync(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name))) {
+            // fs.mkdirSync('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exercise.name, { recursive: true });
+            mkdirp.sync(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name));
         }
         let requestThenable = this.client.getExerciseFiles(exercise.id);
-        vscode.window.setStatusBarMessage("Downloading exercise files...", requestThenable);
-        let response = await requestThenable;
-        let zip = await JSZip.loadAsync(response.data);
-        zip.forEach((relativePath, file) => {
-            if (this.userinfo) {
-                let v4tpath = 'v4tdownloads/' + this.userinfo.username + "/" + courseName + '/' + exercise.name + '/' + relativePath;
-                if (this.userinfo && file.dir && !fs.existsSync(v4tpath)) {
-                    fs.mkdirSync(v4tpath);
-                } else {
-                    file.async('nodebuffer').then(fileData => {
-                        fs.writeFileSync(v4tpath, fileData);
-                    });
+        vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
+        try {
+            let response = await requestThenable;
+            let zip = await JSZip.loadAsync(response.data);
+            zip.forEach((relativePath, file) => {
+                if (this.userinfo) {
+                    let v4tpath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name, relativePath);
+                    if (this.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
+                        // fs.mkdirSync(path.dirname(v4tpath), { recursive: true });
+                        mkdirp.sync(path.dirname(v4tpath));
+                    }
+                    if (file.dir && !fs.existsSync(v4tpath)) {
+                        // fs.mkdirSync(v4tpath, { recursive: true });
+                        mkdirp.sync(v4tpath);
+                    } else {
+                        file.async('nodebuffer').then(fileData => {
+                            fs.writeFileSync(v4tpath, fileData);
+                        }).catch(error => {
+                            console.log(error);
+                        });
+                    }
                 }
+            });
+            if (this.userinfo) {
+                return path.resolve(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name));
+            } else {
+                return Promise.resolve(null);
             }
-        });
-        if (this.userinfo) {
-            return path.resolve('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exercise.name);
-        } else {
-            return Promise.resolve(null);
+        } catch (error) {
+            this.handleAxiosError(error);
         }
     }
 
@@ -245,13 +253,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 this.error401thrown = true;
                 this.client.jwtToken = undefined;
-                this.client.xsrfToken = "";
-                if (fs.existsSync(__dirname + "/v4t/v4tsession")) {
-                    fs.unlinkSync(__dirname + "/v4t/v4tsession");
+                this.client.xsrfToken = '';
+                let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+                if (fs.existsSync(sessionPath)) {
+                    fs.unlinkSync(sessionPath);
                 }
                 this._onDidChangeTreeData.fire();
             } else if (error.response.status === 403 && !this.error403thrown) {
-                vscode.window.showWarningMessage("Something went wrong, please try again.");
+                vscode.window.showWarningMessage('Something went wrong, please try again.');
                 this.error403thrown = true;
                 this.client.getCsrfToken();
             } else {
@@ -259,12 +268,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 if (error.response.data instanceof Object) {
                     msg = JSON.stringify(error.response.data);
                 }
-                vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
+                vscode.window.showErrorMessage('Error ' + error.response.status + '. ' + msg);
                 this.error401thrown = false;
                 this.error403thrown = false;
             }
         } else if (error.request) {
-            vscode.window.showErrorMessage("Can't connect to the server");
+            vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
         } else {
             vscode.window.showErrorMessage(error.message);
         }
@@ -272,13 +281,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async addCourse() {
         try {
-            let courseName = await vscode.window.showInputBox({ prompt: "Course name" });
+            let courseName = await vscode.window.showInputBox({ prompt: 'Course name' });
             if (courseName) {
                 let addCourseThenable = this.client.addCourse(courseName);
-                vscode.window.setStatusBarMessage("Sending course info...", addCourseThenable);
+                vscode.window.setStatusBarMessage('Sending course info...', addCourseThenable);
                 await addCourseThenable;
                 let userInfoThenable = this.getUserInfo();
-                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
                 await this.getUserInfo();
                 this._onDidChangeTreeData.fire();
             }
@@ -291,13 +300,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async editCourse(course: Course) {
         try {
-            let newCourseName = await vscode.window.showInputBox({ prompt: "Course name" });
+            let newCourseName = await vscode.window.showInputBox({ prompt: 'Course name' });
             if (newCourseName && this.userinfo && this.userinfo.courses) {
                 let editCourseThenable = this.client.editCourse(course.id, newCourseName);
-                vscode.window.setStatusBarMessage("Sending course info...", editCourseThenable);
+                vscode.window.setStatusBarMessage('Sending course info...', editCourseThenable);
                 await editCourseThenable;
                 let userInfoThenable = this.getUserInfo();
-                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
                 await this.getUserInfo();
                 this._onDidChangeTreeData.fire();
             }
@@ -309,13 +318,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async deleteCourse(course: Course) {
         try {
-            let selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + course.name + "?", { modal: true }, "Accept");
-            if ((selectedOption === "Accept") && this.userinfo && this.userinfo.courses) {
+            let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + course.name + '?', { modal: true }, 'Accept');
+            if ((selectedOption === 'Accept') && this.userinfo && this.userinfo.courses) {
                 let deleteCourseThenable = this.client.deleteCourse(course.id);
-                vscode.window.setStatusBarMessage("Sending course info...", deleteCourseThenable);
+                vscode.window.setStatusBarMessage('Sending course info...', deleteCourseThenable);
                 await deleteCourseThenable;
                 let userInfoThenable = this.getUserInfo();
-                vscode.window.setStatusBarMessage("Getting course info...", userInfoThenable);
+                vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
                 await this.getUserInfo();
                 this._onDidChangeTreeData.fire();
             }
@@ -337,51 +346,65 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     refreshExercises(item: V4TItem) {
-        if (item.item && "exercises" in item.item) {
+        if (item.item && 'exercises' in item.item) {
             this.getExercises(item, item.item);
         }
     }
-}
 
-export class V4TItem extends vscode.TreeItem {
-
-    constructor(
-        public readonly label: string,
-        public readonly type: V4TItemType,
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly item?: Course | Exercise,
-        public readonly command?: vscode.Command
-    ) {
-        super(label, collapsibleState);
-    }
-
-    get iconPath() {
-        switch (this.type) {
-            case V4TItemType.Login: {
-                return {
-                    light: path.join(__filename, '..', '..', 'resources', 'light', 'login.svg'),
-                    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'login.svg')
-                };
-            }
-            case V4TItemType.AddCourse: {
-                return {
-                    light: path.join(__filename, '..', '..', 'resources', 'light', 'add.svg'),
-                    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'add.svg')
-                };
+    async addExercise(item: V4TItem) {
+        if (item.item && 'exercises' in item.item) {
+            let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
+            if (name) {
+                let fileUris = await vscode.window.showOpenDialog({
+                    canSelectFiles: true,
+                    canSelectFolders: true,
+                    canSelectMany: true
+                });
+                if (fileUris) {
+                    let zip = new JSZip();
+                    fileUris.forEach(uri => {
+                        let uriPath = path.resolve(uri.fsPath);
+                        let stat = fs.statSync(uriPath);
+                        if (stat && stat.isDirectory()) {
+                            this.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
+                        } else {
+                            const filedata = fs.readFileSync(uriPath);
+                            zip.file(path.relative(path.dirname(uriPath), uriPath), filedata);
+                        }
+                    });
+                    const zipContent = await zip.generateAsync({
+                        type: 'nodebuffer'
+                    });
+                    let course: Course = item.item;
+                    try {
+                        let addExerciseThenable = this.client.addExercise(course.id, name);
+                        vscode.window.setStatusBarMessage('Adding exercise...', addExerciseThenable);
+                        let addExerciseData = await addExerciseThenable;
+                        let uploadThenable = this.client.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
+                        vscode.window.setStatusBarMessage('Uploading template...', uploadThenable);
+                        await this.client.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
+                        // TODO when deleteExercise is done if upload template fails delete exercise
+                        this.refreshExercises(item);
+                    } catch (error) {
+                        this.handleAxiosError(error);
+                    }
+                }
             }
         }
     }
 
-    get contextValue() {
-        return this.type.toString();
-    }
-}
+    private buildZipFromDirectory(dir: string, zip: JSZip, root: string) {
+        const list = fs.readdirSync(dir);
 
-export enum V4TItemType {
-    Login = "login",
-    CourseTeacher = "courseteacher",
-    CourseStudent = "coursestudent",
-    ExerciseTeacher = "exerciseteacher",
-    ExerciseStudent = "exercisestudent",
-    AddCourse = "addcourse"
+        for (let file of list) {
+            file = path.resolve(dir, file);
+            let stat = fs.statSync(file);
+            if (stat && stat.isDirectory()) {
+                this.buildZipFromDirectory(file, zip, root);
+            } else {
+                const filedata = fs.readFileSync(file);
+                zip.file(path.relative(root, file), filedata);
+            }
+        }
+    }
 }

@@ -103,6 +103,9 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             if (zipEntry.isDirectory()) {
                 Files.createDirectories(destFile.toPath());
             } else {
+                if (!destFile.getParentFile().exists()) {
+                    Files.createDirectories(destFile.getParentFile().toPath());
+                }
                 files.add(destFile);
                 try (FileOutputStream fos = new FileOutputStream(destFile)) {
                     int len;

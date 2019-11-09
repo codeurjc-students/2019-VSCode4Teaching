@@ -3,11 +3,12 @@ import { afterEach, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import * as extension from '../../extension';
 import * as simple from 'simple-mock';
-import { V4TItem, V4TItemType } from '../../courses';
+import { V4TItem, V4TItemType } from '../../v4titem';
 import { Course, Exercise, User } from '../../model';
 import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
+import JSZip = require('jszip');
 
 suite('Extension Test Suite', () => {
 
@@ -24,8 +25,9 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
-		if (fs.existsSync(__dirname + '/../..' + '/v4t')) {
-			rimraf(__dirname + '/../..' + '/v4t', error => {
+		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
+		if (fs.existsSync(v4tPath)) {
+			rimraf(v4tPath, error => {
 				// console.log(error);
 			});
 		}
@@ -317,18 +319,19 @@ suite('Extension Test Suite', () => {
 			roles: []
 		};
 		let getExercisesMock = simple.mock(extension.coursesProvider.client, "getExerciseFiles");
+		let filePath = path.resolve(__dirname, "..", "..", "..", 'test-resources', 'files', 'exs.zip');
 		getExercisesMock.resolveWith({
-			data: fs.readFileSync(__dirname + path.sep + ".." + path.sep + ".." + path.sep + ".." +
-				path.sep + 'test-resources' + path.sep + 'files' + path.sep + 'exs.zip')
+			data: fs.readFileSync(filePath)
 		});
 		extension.coursesProvider.userinfo = user;
 		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", { id: 4, name: "Exercise 1" });
 		await new Promise(resolve => setTimeout(resolve, 200)); // Wait for exercises to "download"
-		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex1.html'), true, "ex1 exists");
-		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/ex2.html'), true, "ex2 exists");
-		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex3.html'), true, "ex3 exists");
-		assert.deepStrictEqual(fs.existsSync('v4tdownloads/johndoe/Spring Boot Course/Exercise 1/exs/ex4/ex4.html'), true, "ex4 exists");
-		assert.deepStrictEqual(newWorkspaceURI, path.resolve('v4tdownloads/johndoe/Spring Boot Course/Exercise 1'), "uri is correct");
+		let ex1Path = path.resolve('v4tdownloads', 'johndoe', 'Spring Boot Course', 'Exercise 1');
+		assert.deepStrictEqual(fs.existsSync(path.resolve(ex1Path, 'ex1.html')), true, "ex1 exists");
+		assert.deepStrictEqual(fs.existsSync(path.resolve(ex1Path, 'ex2.html')), true, "ex2 exists");
+		assert.deepStrictEqual(fs.existsSync(path.resolve(ex1Path, 'exs', 'ex3.html')), true, "ex3 exists");
+		assert.deepStrictEqual(fs.existsSync(path.resolve(ex1Path, 'exs', 'ex4', 'ex4.html')), true, "ex4 exists");
+		assert.deepStrictEqual(newWorkspaceURI, ex1Path, "uri is correct");
 	});
 
 	test('if session file exists', () => {
@@ -508,6 +511,59 @@ suite('Extension Test Suite', () => {
 		let getExercisesMock = simple.mock(extension.coursesProvider, "getExercises");
 		extension.coursesProvider.refreshExercises(courseItem);
 		assert.deepStrictEqual(getExercisesMock.callCount, 1);
+	});
+
+	test('add exercise', async () => {
+		let nameMock = simple.mock(vscode.window, "showInputBox");
+		nameMock.resolveWith("Test exercise");
+		let openDialogMock = simple.mock(vscode.window, 'showOpenDialog');
+		let filesPath = path.resolve(__dirname, "..", "..", "..", 'test-resources', 'files');
+		let ex1Path = path.resolve(filesPath, 'ex1.html');
+		let ex2Path = path.resolve(filesPath, 'ex2.html');
+		let exsPath = path.resolve(filesPath, 'exs');
+		openDialogMock.resolveWith([
+			vscode.Uri.file(ex1Path),
+			vscode.Uri.file(ex2Path),
+			vscode.Uri.file(exsPath)
+		]);
+		let mockCourse: Course = {
+			id: 345,
+			name: "Test course",
+			exercises: []
+		};
+		let clientAddMock = simple.mock(extension.coursesProvider.client, "addExercise");
+		let exerciseDataMock: Exercise = {
+			id: 123,
+			name: "Test exercise"
+		};
+		clientAddMock.resolveWith({ data: exerciseDataMock });
+		let clientTemplateMock = simple.mock(extension.coursesProvider.client, "uploadExerciseTemplate");
+		clientTemplateMock.resolveWith(null);
+		let refreshExercisesMock = simple.mock(extension.coursesProvider, "refreshExercises");
+		let mockItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, mockCourse);
+		await extension.coursesProvider.addExercise(mockItem);
+		
+		assert.deepStrictEqual(clientAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
+		assert.deepStrictEqual(clientAddMock.lastCall.args[1], "Test exercise", "addExercise should get name gotten on showInputBox");
+
+		assert.deepStrictEqual(clientTemplateMock.lastCall.args[0], 123, "uploadExerciseTemplate should get correct exercise id");
+
+		//Assertions on template data sent
+		let zipContent: Buffer = clientTemplateMock.lastCall.args[1];
+		let zip = new JSZip();
+		let zipEntries: string[] = [];
+		zip = await zip.loadAsync(zipContent);
+		zip.forEach((relativePath, file) => {
+			zipEntries.push(relativePath);
+		});
+
+		assert.deepStrictEqual(zipEntries.length, 4, "there should be 4 files in the zip");
+		assert.deepStrictEqual(zipEntries.includes("ex1.html"), true, "ex1.html should be saved");
+		assert.deepStrictEqual(zipEntries.includes("ex2.html"), true, "ex2.html should be saved");
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
+
+		assert.deepStrictEqual(refreshExercisesMock.callCount, 1, "exercises should be refreshed");
 	});
 });
 

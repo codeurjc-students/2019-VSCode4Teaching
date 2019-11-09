@@ -58,6 +58,14 @@
 					"light": "resources/light/refresh.svg",
 					"dark": "resources/dark/refresh.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.addexercise",
+				"title": "Add Exercise",
+				"icon": {
+					"light": "resources/light/add.svg",
+					"dark": "resources/dark/add.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -99,12 +107,17 @@
 				{
 					"command": "vscode4teaching.editcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline@2"
+					"group": "inline@3"
 				},
 				{
 					"command": "vscode4teaching.deletecourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline@3"
+					"group": "inline@4"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@2"
 				}
 			],
 			"commandPalette": [
@@ -119,6 +132,10 @@
 				{
 					"command": "vscode4teaching.refreshcourses",
 					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "false"
 				}
 			]
 		}
@@ -131,23 +148,27 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
+		"@types/form-data": "^2.5.0",
 		"@types/glob": "^7.1.1",
+		"@types/jszip": "^3.1.6",
+		"@types/mkdirp": "^0.5.2",
 		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.14.22",
+		"@types/node": "^10.17.5",
+		"@types/rimraf": "^2.0.3",
 		"@types/simple-mock": "^0.8.1",
 		"@types/vscode": "^1.39.0",
-		"@types/rimraf": "^2.0.3",
-		"glob": "^7.1.4",
+		"glob": "^7.1.6",
 		"mocha": "^6.2.2",
 		"rimraf": "^3.0.0",
 		"simple-mock": "^0.8.0",
-		"tslint": "^5.12.1",
-		"typescript": "^3.6.4",
-		"vscode-test": "^1.2.0"
+		"tslint": "^5.20.1",
+		"typescript": "^3.7.2",
+		"vscode-test": "^1.2.3"
 	},
 	"dependencies": {
-		"@types/jszip": "^3.1.6",
 		"axios": "^0.19.0",
-		"jszip": "^3.2.2"
+		"form-data": "^3.0.0",
+		"jszip": "^3.2.2",
+		"mkdirp": "^0.5.1"
 	}
 }

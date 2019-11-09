@@ -1,5 +1,6 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import { User, Exercise } from './model';
+import FormData = require('form-data');
 
 export class RestClient {
     private _baseUrl: string | undefined;
@@ -59,7 +60,20 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
     }
 
-    private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
+    addExercise(id: number, name: string): AxiosPromise<Exercise> {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
+    }
+
+    uploadExerciseTemplate(id: number, data: Buffer) {
+        let dataForm = new FormData();
+        dataForm.append("file", data, {filename: "template.zip"});
+        return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
+    }
+
+    private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,
             baseURL: this.baseUrl,
@@ -67,7 +81,8 @@ export class RestClient {
             data: data,
             headers: {
             },
-            responseType: isArrayBuffer ? "arraybuffer" : "json"
+            responseType: responseIsArrayBuffer ? "arraybuffer" : "json",
+            maxContentLength: Infinity
         };
         if (this.jwtToken) {
             Object.assign(options.headers, { "Authorization": "Bearer " + this.jwtToken });
@@ -75,6 +90,9 @@ export class RestClient {
         if (this.xsrfToken !== "") {
             Object.assign(options.headers, { "X-XSRF-TOKEN": this.xsrfToken });
             Object.assign(options.headers, { "Cookie": "XSRF-TOKEN=" + this.xsrfToken });
+        }
+        if (data instanceof FormData) {
+            Object.assign(options.headers, data.getHeaders());
         }
         return options;
     }
