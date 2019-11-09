@@ -562,16 +562,9 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual([4, 6].includes(zipEntries.length), true, "there should be 4 or 6 entries in the zip");
 		assert.deepStrictEqual(zipEntries.includes("ex1.html"), true, "ex1.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("ex2.html"), true, "ex2.html should be saved");
-		if (zipEntries.length === 4) {
-			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
-			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
-		} else if (zipEntries.length === 6) {
-			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
-			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
-			assert.deepStrictEqual(zipEntries.includes("exs"), true, "exs should be saved");
-			assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4"), true, "exs/ex4 should be saved");
-		}
-		
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
+
 
 		assert.deepStrictEqual(refreshExercisesMock.callCount, 1, "exercises should be refreshed");
 	});
