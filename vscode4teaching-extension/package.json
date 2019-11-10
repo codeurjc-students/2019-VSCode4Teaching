@@ -66,6 +66,14 @@
 					"light": "resources/light/add.svg",
 					"dark": "resources/dark/add.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.editexercise",
+				"title": "Edit Exercise",
+				"icon": {
+					"light": "resources/light/edit.svg",
+					"dark": "resources/dark/edit.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -118,6 +126,11 @@
 					"command": "vscode4teaching.addexercise",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@2"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@1"
 				}
 			],
 			"commandPalette": [
@@ -135,6 +148,10 @@
 				},
 				{
 					"command": "vscode4teaching.addexercise",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
 					"when": "false"
 				}
 			]

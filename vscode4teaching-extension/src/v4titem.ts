@@ -8,6 +8,7 @@ export class V4TItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly type: V4TItemType,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+        public readonly parent: V4TItem | undefined,
         public readonly item?: Course | Exercise,
         public readonly command?: vscode.Command
     ) {

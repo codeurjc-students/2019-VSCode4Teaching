@@ -113,7 +113,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('get login button (get children, not logged in)', () => {
-		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
@@ -152,7 +152,7 @@ suite('Extension Test Suite', () => {
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, course));
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
 			extension.coursesProvider.userinfo = user;
 			extension.coursesProvider.client.jwtToken = "mockToken";
 
@@ -196,8 +196,8 @@ suite('Extension Test Suite', () => {
 			]
 		};
 		if (user.courses) {
-			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course));
-			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
+			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
+			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
 			}));
@@ -232,7 +232,7 @@ suite('Extension Test Suite', () => {
 			exercises: []
 		};
 		user.courses = [course];
-		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, course);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		extension.coursesProvider.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
@@ -246,7 +246,7 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseStudent, vscode.TreeItemCollapsibleState.None, exercise, {
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseStudent, vscode.TreeItemCollapsibleState.None, courseItem, exercise, {
 			"command": "vscode4teaching.getexercisefiles",
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
@@ -282,7 +282,7 @@ suite('Extension Test Suite', () => {
 			exercises: []
 		};
 		user.courses = [course];
-		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		extension.coursesProvider.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
@@ -296,7 +296,7 @@ suite('Extension Test Suite', () => {
 			id: 6,
 			name: "Exercise 3"
 		}];
-		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, exercise, {
+		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, courseItem, exercise, {
 			"command": "vscode4teaching.getexercisefiles",
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
@@ -506,7 +506,7 @@ suite('Extension Test Suite', () => {
 				}
 			]
 		};
-		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, course);
+		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		// This method has already been tested, can be mocked
 		let getExercisesMock = simple.mock(extension.coursesProvider, "getExercises");
 		extension.coursesProvider.refreshExercises(courseItem);
@@ -540,7 +540,7 @@ suite('Extension Test Suite', () => {
 		let clientTemplateMock = simple.mock(extension.coursesProvider.client, "uploadExerciseTemplate");
 		clientTemplateMock.resolveWith(null);
 		let refreshExercisesMock = simple.mock(extension.coursesProvider, "refreshExercises");
-		let mockItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, mockCourse);
+		let mockItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, mockCourse);
 		await extension.coursesProvider.addExercise(mockItem);
 
 		assert.deepStrictEqual(clientAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
@@ -567,6 +567,29 @@ suite('Extension Test Suite', () => {
 
 
 		assert.deepStrictEqual(refreshExercisesMock.callCount, 1, "exercises should be refreshed");
+	});
+
+	test('edit exercise', async () => {
+		let exercise: Exercise = {
+			id: 1,
+			name: "Test exercise"
+		};
+		let course: Course = {
+			id: 2,
+			name: "Test course",
+			exercises: [exercise]
+		};
+		let courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, course, undefined);
+		let exerciseItem = new V4TItem("Test exercise", V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, courseItem, exercise, undefined);
+		let inputMock = simple.mock(vscode.window, "showInputBox");
+		inputMock.resolveWith("Edited exercise");
+		let clientMock = simple.mock(extension.coursesProvider.client, "editExercise");
+		clientMock.resolveWith(null); // Not needed
+		await extension.coursesProvider.editExercise(exerciseItem);
+
+		assert.deepStrictEqual(clientMock.callCount, 1, "editExercise is called");
+		assert.deepStrictEqual(clientMock.lastCall.args[0], 1, "exercise id is passed");
+		assert.deepStrictEqual(clientMock.lastCall.args[1], "Edited exercise", "new exercise name is passed");
 	});
 });
 

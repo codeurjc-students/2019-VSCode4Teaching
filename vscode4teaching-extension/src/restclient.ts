@@ -67,9 +67,16 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
     }
 
+    editExercise(id: number, name: string) {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/exercises/" + id, "PUT", false, data));
+    }
+
     uploadExerciseTemplate(id: number, data: Buffer) {
         let dataForm = new FormData();
-        dataForm.append("file", data, {filename: "template.zip"});
+        dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
     }
 

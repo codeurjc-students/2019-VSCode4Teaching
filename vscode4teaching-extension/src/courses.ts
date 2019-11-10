@@ -16,6 +16,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private error403thrown = false;
     private loading = false;
 
+    getParent(element: V4TItem) {
+        return element.parent;
+    }
+
     getTreeItem(element: V4TItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
@@ -26,6 +30,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // Only collapsable items are courses
                 let course = element.item;
                 if (course && 'exercises' in course) {
+                    this.getExercises(element, course);
                     // If exercises were downloaded previously show them, else get them from server
                     if (course.exercises.length > 0) {
                         // Map exercises to TreeItems
@@ -35,13 +40,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         } else {
                             type = V4TItemType.ExerciseStudent;
                         }
-                        return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, exercise, {
+                        return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
                             'command': 'vscode4teaching.getexercisefiles',
                             'title': 'Get exercise files',
                             'arguments': [course ? course.name : null, exercise] // course condition is needed to avoid compilation error, shouldn't be false
                         }));
-                    } else {
-                        this.getExercises(element, course);
                     }
                 }
             } else {
@@ -58,12 +61,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             this.getChildren();
                         }
                     } catch (error) {
-                        return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                        return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
                             'command': 'vscode4teaching.login',
                             'title': 'Log in to VS Code 4 Teaching'
                         })];
                     }
-                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
                         'command': 'vscode4teaching.login',
                         'title': 'Log in to VS Code 4 Teaching'
                     })];
@@ -86,16 +89,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         } else {
                             type = V4TItemType.CourseStudent;
                         }
-                        let items = this.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, course));
+                        let items = this.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
                         if (isTeacher) {
-                            items.unshift(new V4TItem('Add Course', V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, {
+                            items.unshift(new V4TItem('Add Course', V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
                                 command: 'vscode4teaching.addcourse',
                                 title: 'Add Course'
                             }));
                         }
                         return items;
                     }
-                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, {
+                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
                         'command': 'vscode4teaching.login',
                         'title': 'Log in to VS Code 4 Teaching'
                     })];
@@ -404,6 +407,20 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             } else {
                 const filedata = fs.readFileSync(file);
                 zip.file(path.relative(root, file), filedata);
+            }
+        }
+    }
+
+    async editExercise(item: V4TItem) {
+        if (item.item && "id" in item.item) {
+            let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
+            if (name) {
+                await this.client.editExercise(item.item.id, name);
+                try {
+                    this._onDidChangeTreeData.fire(item.parent);
+                } catch (error) {
+                    this.handleAxiosError(error);
+                }
             }
         }
     }

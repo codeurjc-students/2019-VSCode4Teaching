@@ -45,8 +45,12 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.addExercise(item);
 	});
 
+	let editExercise = vscode.commands.registerCommand('vscode4teaching.editexercise', (item: V4TItem) => {
+		coursesProvider.editExercise(item);
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
-		deleteCourseDisposable, refreshView, refreshCourse, addExercise);
+		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise);
 }
 
 export function deactivate() { }
