@@ -1,7 +1,9 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import { User, Exercise } from './model';
+import FormData = require('form-data');
 
 export class RestClient {
+
     private _baseUrl: string | undefined;
     private _jwtToken: string | undefined;
     private _xsrfToken = "";
@@ -41,36 +43,70 @@ export class RestClient {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "GET", true));
     }
 
-    private buildOptions(url: string, method: Method, isArrayBuffer: boolean, data?: any): AxiosRequestConfig {
+    addCourse(name: string) {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/courses", "POST", false, data));
+    }
+
+    editCourse(id: number, name: string) {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
+    }
+
+    deleteCourse(id: number) {
+        return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
+    }
+
+    addExercise(id: number, name: string): AxiosPromise<Exercise> {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
+    }
+
+    editExercise(id: number, name: string) {
+        let data = {
+            name: name
+        };
+        return axios(this.buildOptions("/api/exercises/" + id, "PUT", false, data));
+    }
+
+    uploadExerciseTemplate(id: number, data: Buffer) {
+        let dataForm = new FormData();
+        dataForm.append("file", data, { filename: "template.zip" });
+        return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
+    }
+
+    deleteExercise(id: number) {
+        return axios(this.buildOptions("/api/exercises/" + id, "DELETE", false));
+    }
+
+    private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
+        let options: AxiosRequestConfig = {
+            url: url,
+            baseURL: this.baseUrl,
+            method: method,
+            data: data,
+            headers: {
+            },
+            responseType: responseIsArrayBuffer ? "arraybuffer" : "json",
+            maxContentLength: Infinity
+        };
         if (this.jwtToken) {
-            return {
-                url: url,
-                baseURL: this.baseUrl,
-                method: method,
-                data: data,
-                headers: {
-                    "Authorization": "Bearer " + this.jwtToken,
-                    "X-XSRF-TOKEN": this.xsrfToken,
-                    "Cookie": "XSRF-TOKEN="+this.xsrfToken
-                },
-                withCredentials: true,
-                responseType: isArrayBuffer ? "arraybuffer" : "json"
-            };
+            Object.assign(options.headers, { "Authorization": "Bearer " + this.jwtToken });
         }
-        else {
-            return {
-                url: url,
-                baseURL: this.baseUrl,
-                method: method,
-                data: data,
-                headers: {
-                    "X-XSRF-TOKEN": this.xsrfToken,
-                    "Cookie": "XSRF-TOKEN="+this.xsrfToken
-                },
-                withCredentials: true,
-                responseType: isArrayBuffer ? "arraybuffer" : "json"
-            };
+        if (this.xsrfToken !== "") {
+            Object.assign(options.headers, { "X-XSRF-TOKEN": this.xsrfToken });
+            Object.assign(options.headers, { "Cookie": "XSRF-TOKEN=" + this.xsrfToken });
         }
+        if (data instanceof FormData) {
+            Object.assign(options.headers, data.getHeaders());
+        }
+        return options;
     }
 
     set jwtToken(jwtToken: string | undefined) {

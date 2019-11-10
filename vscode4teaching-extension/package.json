@@ -14,6 +14,7 @@
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.0.1-SNAPSHOT",
 	"license": "Apache-2.0",
+	"enableProposedApi": true,
 	"engines": {
 		"vscode": "^1.39.0"
 	},
@@ -21,40 +22,157 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onView:vscode4teaching"
+		"onView:vscode4teachingview"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [],
+		"commands": [
+			{
+				"command": "vscode4teaching.editcourse",
+				"title": "Edit Course",
+				"icon": {
+					"light": "resources/light/edit.svg",
+					"dark": "resources/dark/edit.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.deletecourse",
+				"title": "Delete Course",
+				"icon": {
+					"light": "resources/light/delete.svg",
+					"dark": "resources/dark/delete.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.refreshcourses",
+				"title": "Refresh Courses",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.refreshexercises",
+				"title": "Refresh Exercises",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.addexercise",
+				"title": "Add Exercise",
+				"icon": {
+					"light": "resources/light/add.svg",
+					"dark": "resources/dark/add.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.editexercise",
+				"title": "Edit Exercise",
+				"icon": {
+					"light": "resources/light/edit.svg",
+					"dark": "resources/dark/edit.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.deleteexercise",
+				"title": "Delete Exercise",
+				"icon": {
+					"light": "resources/light/delete.svg",
+					"dark": "resources/dark/delete.svg"
+				}
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "vscode4teachingcontainer",
 					"title": "V4T",
-					"icon": "resources/v4t.png"
+					"icon": "resources/v4t.svg"
 				}
 			]
 		},
 		"views": {
 			"vscode4teachingcontainer": [
 				{
-					"id": "vscode4teaching",
+					"id": "vscode4teachingview",
 					"name": "VS Code 4 Teaching"
 				}
 			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "vscode4teaching.refreshcourses",
+					"when": "view == vscode4teachingview",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@3"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@4"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@2"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@2"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.refreshcourses",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "false"
+				}
+			]
 		}
-	},
-	"menus": {
-		"view/title": [
-			{
-				"command": "vscode4teaching.login",
-				"when": "view == vscode4teaching"
-			},
-			{
-				"command": "vscode4teaching.getexercisefiles",
-				"when": "view == vscode4teaching"
-			}
-		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -64,23 +182,27 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
+		"@types/form-data": "^2.5.0",
 		"@types/glob": "^7.1.1",
+		"@types/jszip": "^3.1.6",
+		"@types/mkdirp": "^0.5.2",
 		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.14.22",
+		"@types/node": "^10.17.5",
+		"@types/rimraf": "^2.0.3",
 		"@types/simple-mock": "^0.8.1",
 		"@types/vscode": "^1.39.0",
-		"@types/rimraf": "^2.0.3",
-		"glob": "^7.1.4",
+		"glob": "^7.1.6",
 		"mocha": "^6.2.2",
 		"rimraf": "^3.0.0",
 		"simple-mock": "^0.8.0",
-		"tslint": "^5.12.1",
-		"typescript": "^3.6.4",
-		"vscode-test": "^1.2.0"
+		"tslint": "^5.20.1",
+		"typescript": "^3.7.2",
+		"vscode-test": "^1.2.3"
 	},
 	"dependencies": {
-		"@types/jszip": "^3.1.6",
 		"axios": "^0.19.0",
-		"jszip": "^3.2.2"
+		"form-data": "^3.0.0",
+		"jszip": "^3.2.2",
+		"mkdirp": "^0.5.1"
 	}
 }
