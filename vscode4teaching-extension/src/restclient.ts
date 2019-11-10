@@ -3,6 +3,7 @@ import { User, Exercise } from './model';
 import FormData = require('form-data');
 
 export class RestClient {
+
     private _baseUrl: string | undefined;
     private _jwtToken: string | undefined;
     private _xsrfToken = "";
@@ -78,6 +79,10 @@ export class RestClient {
         let dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
+    }
+
+    deleteExercise(id: number) {
+        return axios(this.buildOptions("/api/exercises/" + id, "DELETE", false));
     }
 
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {

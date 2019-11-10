@@ -429,7 +429,8 @@ suite('Extension Test Suite', () => {
 		};
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
-		await extension.coursesProvider.deleteCourse(course);
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		await extension.coursesProvider.deleteCourse(item);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, []);
 		}
@@ -489,7 +490,8 @@ suite('Extension Test Suite', () => {
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		extension.coursesProvider.userinfo = user;
-		await extension.coursesProvider.editCourse(course);
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		await extension.coursesProvider.editCourse(item);
 		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
 			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [newCourse]);
 		}
@@ -590,6 +592,30 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(clientMock.callCount, 1, "editExercise is called");
 		assert.deepStrictEqual(clientMock.lastCall.args[0], 1, "exercise id is passed");
 		assert.deepStrictEqual(clientMock.lastCall.args[1], "Edited exercise", "new exercise name is passed");
+	});
+
+	test('delete exercise', async () => {
+		let exercise: Exercise = {
+			id: 1,
+			name: "Test exercise"
+		};
+		let course: Course = {
+			id: 2,
+			name: "Test course",
+			exercises: [exercise]
+		};
+		let courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, course);
+		let exerciseItem = new V4TItem("Test exercise", V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, courseItem, exercise);
+
+		let clientMock = simple.mock(extension.coursesProvider.client, "deleteExercise");
+		clientMock.resolveWith(null);
+		let modalMock = simple.mock(vscode.window, "showWarningMessage");
+		modalMock.resolveWith('Accept');
+
+		await extension.coursesProvider.deleteExercise(exerciseItem);
+
+		assert.deepStrictEqual(clientMock.callCount, 1);
+		assert.deepStrictEqual(clientMock.lastCall.args[0], 1);
 	});
 });
 

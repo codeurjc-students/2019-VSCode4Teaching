@@ -22,15 +22,11 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let editCourseDisposable = vscode.commands.registerCommand('vscode4teaching.editcourse', (item: V4TItem) => {
-		if (item.item && "exercises" in item.item) {
-			coursesProvider.editCourse(item.item);
-		}
+		coursesProvider.editCourse(item);
 	});
 
 	let deleteCourseDisposable = vscode.commands.registerCommand('vscode4teaching.deletecourse', (item: V4TItem) => {
-		if (item.item && "exercises" in item.item) {
-			coursesProvider.deleteCourse(item.item);
-		}
+		coursesProvider.deleteCourse(item);
 	});
 
 	let refreshView = vscode.commands.registerCommand('vscode4teaching.refreshcourses', () => {
@@ -49,8 +45,12 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.editExercise(item);
 	});
 
+	let deleteExercise = vscode.commands.registerCommand('vscode4teaching.deleteexercise', (item: V4TItem) => {
+		coursesProvider.deleteExercise(item);
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
-		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise);
+		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise);
 }
 
 export function deactivate() { }

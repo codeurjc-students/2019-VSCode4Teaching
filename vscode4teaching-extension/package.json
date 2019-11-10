@@ -74,6 +74,14 @@
 					"light": "resources/light/edit.svg",
 					"dark": "resources/dark/edit.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.deleteexercise",
+				"title": "Delete Exercise",
+				"icon": {
+					"light": "resources/light/delete.svg",
+					"dark": "resources/dark/delete.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -131,6 +139,11 @@
 					"command": "vscode4teaching.editexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@2"
 				}
 			],
 			"commandPalette": [
@@ -152,6 +165,10 @@
 				},
 				{
 					"command": "vscode4teaching.editexercise",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
 					"when": "false"
 				}
 			]

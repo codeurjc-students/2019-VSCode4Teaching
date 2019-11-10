@@ -202,8 +202,22 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         vscode.window.setStatusBarMessage('Getting exercises...', exercisesThenable);
         exercisesThenable.then(response => {
             if (course) {
-                course.exercises = response.data;
-                this._onDidChangeTreeData.fire(item);
+                // Check if there are differences
+                let equalMembers = 0;
+                if (response.data.length === course.exercises.length) {
+                    for (let exercise of response.data) {
+                        for (let savedExercise of course.exercises) {
+                            if (savedExercise.id === exercise.id && savedExercise.name === exercise.name) {
+                                equalMembers++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (equalMembers < response.data.length) {
+                    course.exercises = response.data;
+                    this._onDidChangeTreeData.fire(item);
+                }
             }
         }).catch(error => {
             this.handleAxiosError(error);
@@ -301,39 +315,43 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    async editCourse(course: Course) {
-        try {
-            let newCourseName = await vscode.window.showInputBox({ prompt: 'Course name' });
-            if (newCourseName && this.userinfo && this.userinfo.courses) {
-                let editCourseThenable = this.client.editCourse(course.id, newCourseName);
-                vscode.window.setStatusBarMessage('Sending course info...', editCourseThenable);
-                await editCourseThenable;
-                let userInfoThenable = this.getUserInfo();
-                vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
-                await this.getUserInfo();
-                this._onDidChangeTreeData.fire();
+    async editCourse(item: V4TItem) {
+        if (item.item && "exercises" in item.item) {
+            try {
+                let newCourseName = await vscode.window.showInputBox({ prompt: 'Course name' });
+                if (newCourseName && this.userinfo && this.userinfo.courses) {
+                    let editCourseThenable = this.client.editCourse(item.item.id, newCourseName);
+                    vscode.window.setStatusBarMessage('Sending course info...', editCourseThenable);
+                    await editCourseThenable;
+                    let userInfoThenable = this.getUserInfo();
+                    vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
+                    await this.getUserInfo();
+                    this._onDidChangeTreeData.fire();
+                }
+            } catch (error) {
+                // Only axios requests throw error
+                this.handleAxiosError(error);
             }
-        } catch (error) {
-            // Only axios requests throw error
-            this.handleAxiosError(error);
         }
     }
 
-    async deleteCourse(course: Course) {
-        try {
-            let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + course.name + '?', { modal: true }, 'Accept');
-            if ((selectedOption === 'Accept') && this.userinfo && this.userinfo.courses) {
-                let deleteCourseThenable = this.client.deleteCourse(course.id);
-                vscode.window.setStatusBarMessage('Sending course info...', deleteCourseThenable);
-                await deleteCourseThenable;
-                let userInfoThenable = this.getUserInfo();
-                vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
-                await this.getUserInfo();
-                this._onDidChangeTreeData.fire();
+    async deleteCourse(item: V4TItem) {
+        if (item.item && "exercises" in item.item) {
+            try {
+                let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
+                if ((selectedOption === 'Accept') && this.userinfo && this.userinfo.courses) {
+                    let deleteCourseThenable = this.client.deleteCourse(item.item.id);
+                    vscode.window.setStatusBarMessage('Sending course info...', deleteCourseThenable);
+                    await deleteCourseThenable;
+                    let userInfoThenable = this.getUserInfo();
+                    vscode.window.setStatusBarMessage('Getting course info...', userInfoThenable);
+                    await this.getUserInfo();
+                    this._onDidChangeTreeData.fire();
+                }
+            } catch (error) {
+                // Only axios requests throw error
+                this.handleAxiosError(error);
             }
-        } catch (error) {
-            // Only axios requests throw error
-            this.handleAxiosError(error);
         }
     }
 
@@ -415,12 +433,31 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "id" in item.item) {
             let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
             if (name) {
-                await this.client.editExercise(item.item.id, name);
+                let thenable = this.client.editExercise(item.item.id, name);
+                vscode.window.setStatusBarMessage("Sending exercise info...", thenable);
+                await thenable;
                 try {
                     this._onDidChangeTreeData.fire(item.parent);
                 } catch (error) {
                     this.handleAxiosError(error);
                 }
+            }
+        }
+    }
+
+    async deleteExercise(item: V4TItem) {
+        if (item.item && "id" in item.item) {
+            try {
+                let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
+                if ((selectedOption === 'Accept')) {
+                    let deleteExerciseThenable = this.client.deleteExercise(item.item.id);
+                    vscode.window.setStatusBarMessage('Sending exercise info...', deleteExerciseThenable);
+                    await deleteExerciseThenable;
+                    this._onDidChangeTreeData.fire(item.parent);
+                }
+            } catch (error) {
+                // Only axios requests throw error
+                this.handleAxiosError(error);
             }
         }
     }
