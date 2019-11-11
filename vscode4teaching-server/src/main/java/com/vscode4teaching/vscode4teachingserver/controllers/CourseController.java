@@ -94,7 +94,7 @@ public class CourseController {
     public ResponseEntity<Course> addUserToCourse(@PathVariable @Min(1) Long courseId,
             @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
-        return ResponseEntity.ok(courseService.addUserToCourse(courseId, userRequest.getId(),
+        return ResponseEntity.ok(courseService.addUsersToCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
     }
 

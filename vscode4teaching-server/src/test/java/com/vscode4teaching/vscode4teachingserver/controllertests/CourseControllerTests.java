@@ -229,10 +229,11 @@ public class CourseControllerTests {
                 logger.info("Test addUserToCourse_valid() begins.");
 
                 UserRequest request = new UserRequest();
-                request.setId(8l);
+                long[] ids = {8l};
+                request.setIds(ids);
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(1l);
-                when(courseService.addUserToCourse(anyLong(), anyLong(), anyString())).thenReturn(expectedCourse);
+                when(courseService.addUsersToCourse(anyLong(), any(long[].class), anyString())).thenReturn(expectedCourse);
                 String requestString = objectMapper.writeValueAsString(request);
 
                 MvcResult mvcResult = mockMvc
@@ -245,7 +246,7 @@ public class CourseControllerTests {
                 String expectedResponseBody = objectMapper.writerWithView(CourseViews.UsersView.class)
                                 .writeValueAsString(expectedCourse);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-                verify(courseService, times(1)).addUserToCourse(anyLong(), anyLong(), anyString());
+                verify(courseService, times(1)).addUsersToCourse(anyLong(), any(long[].class), anyString());
 
                 logger.info("Test addUserToCourse_valid() ends.");
         }

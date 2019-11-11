@@ -43,5 +43,5 @@ public interface CourseService {
 
         public List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
 
-        public Course addUserToCourse(@Min(1) Long courseId, @Min(1) Long userId, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
+        public Course addUsersToCourse(@Min(1) Long courseId, long[] userIds, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
 }

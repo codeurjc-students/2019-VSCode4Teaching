@@ -1,21 +1,18 @@
 package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
-import javax.validation.constraints.Min;
-
 public class UserRequest {
     
-    @Min(1)
-    private long id;
+    private long[] ids;
 
     public UserRequest() {
     }
 
-    public long getId() {
-        return id;
+    public long[] getIds() {
+        return ids;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setIds(long[] ids) {
+        this.ids = ids;
     }
 
 }
