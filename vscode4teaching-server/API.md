@@ -14,11 +14,13 @@ Needed header key: `X-XSRF-TOKEN`
 - [Get current user info](API.md#get-current-user-info)
 - [Register a new student](API.md#register-a-new-student)
 - [Register a new teacher](API.md#register-a-new-teacher)
+- [Get all users](API.md#get-all-users)
 - [Get all courses](API.md#get-all-courses)
 - [Add a course](API.md#add-a-course)
 - [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
 - [Edit a course](API.md#edit-a-course)
 - [Delete a course](API.md#delete-a-course)
+- [Add user to course](API.md#add-user-to-course)
 - [Get exercises of a course](API.md#get-exercises-of-a-course)
 - [Delete an exercise](API.md#delete-an-exercise)
 - [Download exercise files](API.md#download-exercise-files)
@@ -242,6 +244,82 @@ Register a new user as a teacher.
 
   ```text
   Duplicate entry 'johndoe'.
+  ```
+
+## Get all users
+
+---
+
+Get all available users.
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/users`
+- **Method**  
+   `GET`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  [
+      {
+          "id": 3,
+          "username": "johndoe",
+          "name": "John",
+          "lastName": "Doe",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              },
+              {
+                  "roleName": "ROLE_TEACHER"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 4,
+          "username": "johndoejr",
+          "name": "John",
+          "lastName": "Doe Jr 1",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 6,
+          "username": "johndoejr3",
+          "name": "John",
+          "lastName": "Doe Jr 3",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      }
+  ]
   ```
 
 ## Get all courses
@@ -545,6 +623,103 @@ Remove a course. Logged user has to be a teacher of this course.
 
   ```text
   Not found: Course not found: 15
+  ```
+
+## Add user to course
+
+---
+
+Add a user to a course.
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/courses/:courseId/users`
+- **Method**  
+   `POST`
+- **URL Params**
+  - **Required**:  
+     `courseId=[long]`
+  - **Example**:  
+    `/api/courses/1/users`
+- **Data Params**
+  - **Required**:  
+    `"id": [long]` - User id to add to course
+  - **Example**:
+
+  ```json
+  {
+    "id": 4
+  }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 341,
+      "name": "new course",
+      "usersInCourse": [
+          {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-11T14:37:57",
+              "updateDateTime": "2019-11-11T14:37:57"
+          },
+          {
+              "id": 4,
+              "username": "johndoejr",
+              "name": "John",
+              "lastName": "Doe Jr 1",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  }
+              ],
+              "createDateTime": "2019-11-11T14:37:57",
+              "updateDateTime": "2019-11-11T14:37:57"
+          }
+      ],
+      "createDateTime": "2019-11-11T14:40:06",
+      "updateDateTime": "2019-11-11T14:40:06"
+  }
+  ```
+
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: Course not found: 15.
+  ```
+
+  OR
+
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: User not found: 3
+  ```
+
+  OR
+
+  - **Code**: 401
+  - **Content**:
+
+  ```text
+      User is not in course or teacher is not in this course.
   ```
 
 ## Get exercises of a course

@@ -1,5 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -61,7 +63,7 @@ public class JWTLoginController {
     }
 
     @PostMapping("/register")
-    @JsonView(UserViews.GeneralView.class)
+    @JsonView(UserViews.EmailView.class)
     public ResponseEntity<User> saveUser(@Valid @RequestBody UserDTO userDto) {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
@@ -71,7 +73,7 @@ public class JWTLoginController {
     }
 
     @PostMapping("/teachers/register")
-    @JsonView(UserViews.GeneralView.class)
+    @JsonView(UserViews.EmailView.class)
     public ResponseEntity<User> saveTeacher(@Valid @RequestBody UserDTO userDto) {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
@@ -90,5 +92,11 @@ public class JWTLoginController {
     @GetMapping("/csrf")
     public ResponseEntity<Void> getCsrfToken() {
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/users")
+    @JsonView(UserViews.GeneralView.class)
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userDetailsService.findAll());
     }
 }

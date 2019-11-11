@@ -59,4 +59,8 @@ public class JWTUserDetailsService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User '" + username + "' not found"));
     }
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
 }

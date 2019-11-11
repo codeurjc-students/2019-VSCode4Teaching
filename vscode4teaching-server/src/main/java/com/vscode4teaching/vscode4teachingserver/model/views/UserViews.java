@@ -10,4 +10,8 @@ public class UserViews {
     public static interface CourseView extends GeneralView, CourseViews.GeneralView {
         
     }
+
+    public static interface EmailView extends GeneralView {
+        
+    }
 }

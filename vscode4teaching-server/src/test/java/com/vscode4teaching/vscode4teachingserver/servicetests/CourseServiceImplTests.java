@@ -339,4 +339,36 @@ public class CourseServiceImplTests {
         assertThat(courses).contains(course);
         verify(userRepository, times(1)).findById(anyLong());
     }
+
+    @Test
+    public void addUserToCourse() throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        User newUser = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
+        newUser.setId(1l);
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
+        teacher.setId(4l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        newUser.addRole(studentRole);
+        Course course = new Course("Spring Boot Course");
+        course.setId(4l);
+        course.addUserInCourse(teacher);
+        Optional<User> userOpt = Optional.of(newUser);
+        Optional<Course> courseOpt = Optional.of(course);
+        Course expectedSavedCourse = new Course("Spring Boot Course");
+        expectedSavedCourse.addUserInCourse(newUser);
+        when(userRepository.findById(anyLong())).thenReturn(userOpt);
+        when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
+        when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
+
+        Course savedCourse = courseServiceImpl.addUserToCourse(4l, 1l, "johndoe");
+
+        assertThat(savedCourse.getUsersInCourse()).contains(newUser);
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(courseRepository, times(1)).findById(anyLong());
+        verify(courseRepository, times(1)).save(any(Course.class));
+    }
 }

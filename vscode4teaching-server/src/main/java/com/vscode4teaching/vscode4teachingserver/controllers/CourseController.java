@@ -8,6 +8,7 @@ import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserRequest;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
@@ -87,4 +88,14 @@ public class CourseController {
     public ResponseEntity<List<Course>> getUserCourses(@PathVariable @Min(1) Long id) throws UserNotFoundException {
         return ResponseEntity.ok(courseService.getUserCourses(id));
     }
+
+    @PostMapping("/courses/{courseId}/users")
+    @JsonView(CourseViews.UsersView.class)
+    public ResponseEntity<Course> addUserToCourse(@PathVariable @Min(1) Long courseId,
+            @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        return ResponseEntity.ok(courseService.addUserToCourse(courseId, userRequest.getId(),
+                jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
 }

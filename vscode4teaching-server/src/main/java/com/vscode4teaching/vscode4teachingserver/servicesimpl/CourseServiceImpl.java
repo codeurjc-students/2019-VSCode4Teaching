@@ -3,6 +3,8 @@ package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.constraints.Min;
+
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.User;
@@ -110,6 +112,18 @@ public class CourseServiceImpl implements CourseService {
         User user = this.userRepo.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
         return user.getCourses();
+    }
+
+    @Override
+    public Course addUserToCourse(@Min(1) Long courseId, @Min(1) Long userId, String requestUsername)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        User user = this.userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
+        course.addUserInCourse(user);
+        Course savedCourse = this.courseRepo.save(course);
+        return savedCourse;
     }
 
 }

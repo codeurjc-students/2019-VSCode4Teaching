@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserRequest;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
@@ -221,5 +222,31 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).getUserCourses(anyLong());
 
                 logger.info("Test getUserCourses_valid() ends.");
+        }
+
+        @Test
+        public void addUserToCourse_valid() throws Exception {
+                logger.info("Test addUserToCourse_valid() begins.");
+
+                UserRequest request = new UserRequest();
+                request.setId(8l);
+                Course expectedCourse = new Course("Spring Boot Course");
+                expectedCourse.setId(1l);
+                when(courseService.addUserToCourse(anyLong(), anyLong(), anyString())).thenReturn(expectedCourse);
+                String requestString = objectMapper.writeValueAsString(request);
+
+                MvcResult mvcResult = mockMvc
+                                .perform(post("/api/courses/1/users").contentType("application/json").with(csrf())
+                                                .content(requestString)
+                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+                String actualResponseBody = mvcResult.getResponse().getContentAsString();
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.UsersView.class)
+                                .writeValueAsString(expectedCourse);
+                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+                verify(courseService, times(1)).addUserToCourse(anyLong(), anyLong(), anyString());
+
+                logger.info("Test addUserToCourse_valid() ends.");
         }
 }

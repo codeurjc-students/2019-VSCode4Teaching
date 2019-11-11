@@ -42,4 +42,6 @@ public interface CourseService {
                         throws NotInCourseException, ExerciseNotFoundException;
 
         public List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
+
+        public Course addUserToCourse(@Min(1) Long courseId, @Min(1) Long userId, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
 }

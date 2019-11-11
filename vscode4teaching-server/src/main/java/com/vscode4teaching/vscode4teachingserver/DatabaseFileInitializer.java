@@ -59,7 +59,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                 Optional<Course> courseOpt = courseRepository.findById(course_id);
                 // If not found build course name and try to find it
                 if (!courseOpt.isPresent()) {
-                    List<String> coursePartsList = Arrays.asList(courseParts);
+                    List<String> coursePartsList = new ArrayList<>(Arrays.asList(courseParts));
                     coursePartsList.remove(courseParts[courseParts.length - 1]);
                     String courseName = String.join(" ", coursePartsList);
                     courseOpt = courseRepository.findByNameIgnoreCase(courseName);
