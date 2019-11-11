@@ -459,7 +459,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "id" in item.item) {
             try {
                 let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
-                if ((selectedOption === 'Accept')) {
+                if (selectedOption === 'Accept') {
                     let deleteExerciseThenable = this.client.deleteExercise(item.item.id);
                     vscode.window.setStatusBarMessage('Sending exercise info...', deleteExerciseThenable);
                     await deleteExerciseThenable;
@@ -471,4 +471,43 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
+
+    async addUsersToCourse(item: V4TItem) {
+        if (item.item && "exercises" in item.item) {
+            try {
+                let getUsersThenable = this.client.getAllUsers();
+                vscode.window.setStatusBarMessage("Getting user info...", getUsersThenable);
+                let usersResponse = await getUsersThenable;
+                let users: User[] = usersResponse.data;
+                let courseUsersThenable = this.client.getUsersInCourse(item.item.id);
+                vscode.window.setStatusBarMessage("Getting user info...", courseUsersThenable);
+                let courseUsersResponse = await courseUsersThenable;
+                let courseUsers = courseUsersResponse.data;
+                //Show users that don't belong to the course already
+                let showArray = users.filter(user => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
+                    .map(user => new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user));
+                if (showArray.length > 0) {
+                    let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
+                    if (picks) {
+                        let ids: number[] = [];
+                        picks.forEach(pick => ids.push(pick.user.id));
+                        let addUsersThenable = this.client.addUsersToCourse(item.item.id, ids);
+                        vscode.window.setStatusBarMessage("Adding users to course...", addUsersThenable);
+                        await addUsersThenable;
+                    }
+                } else {
+                    vscode.window.showInformationMessage("There are no users available.");
+                }
+            } catch (error) {
+                this.handleAxiosError(error);
+            }
+        }
+    }
+}
+
+export class UserPick implements vscode.QuickPickItem {
+    constructor(
+        public readonly label: string,
+        public readonly user: User
+    ) { }
 }

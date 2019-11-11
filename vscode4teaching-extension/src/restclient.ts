@@ -85,6 +85,21 @@ export class RestClient {
         return axios(this.buildOptions("/api/exercises/" + id, "DELETE", false));
     }
 
+    getAllUsers() {
+        return axios(this.buildOptions("/api/users", "GET", false));
+    }
+
+    getUsersInCourse(courseId: number) {
+        return axios(this.buildOptions("/api/courses/" + courseId + "/users", "GET", false));
+    }
+
+    addUsersToCourse(courseId: number, ids: number[]) {
+        let data = {
+            ids: ids
+        };
+        return axios(this.buildOptions("/api/courses/" + courseId + "/users", "POST", false, data));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

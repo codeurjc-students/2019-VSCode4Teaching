@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
 import JSZip = require('jszip');
+import { UserPick } from '../../courses';
 
 suite('Extension Test Suite', () => {
 
@@ -616,6 +617,80 @@ suite('Extension Test Suite', () => {
 
 		assert.deepStrictEqual(clientMock.callCount, 1);
 		assert.deepStrictEqual(clientMock.lastCall.args[0], 1);
+	});
+
+	test('add users to course', async () => {
+		let selectableUsers: User[] = [{
+			id: 1,
+			username: "johndoe",
+			name: "John",
+			lastName: "Doe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 2,
+			username: "johndoe2",
+			name: "John",
+			lastName: "Doe 2",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 3,
+			username: "johndoe3",
+			name: "John",
+			lastName: "Doe 3",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		}];
+		let userInCourse: User = {
+			id: 4,
+			username: "johndoe4",
+			name: "John",
+			lastName: "Doe 4",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		};
+		let allUsers = selectableUsers.slice();
+		allUsers.push(userInCourse);
+		let course = {
+			id: 10,
+			name: "Test course",
+			exercises: []
+		};
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		let getUsersMock = simple.mock(extension.coursesProvider.client, "getAllUsers");
+		getUsersMock.resolveWith({ data: allUsers });
+		let getCourseUsersMock = simple.mock(extension.coursesProvider.client, "getUsersInCourse");
+		getCourseUsersMock.resolveWith({ data: [userInCourse] });
+		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
+		let selectableUsersPicks: UserPick[] = [];
+		selectableUsers.forEach(user => selectableUsersPicks.push(new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user)));
+		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
+		quickpickMock.resolveWith(selectedUsers);
+		let addUsersMock = simple.mock(extension.coursesProvider.client, "addUsersToCourse");
+
+		await extension.coursesProvider.addUsersToCourse(item);
+
+		assert.deepStrictEqual(getUsersMock.callCount, 1, "getAllUsers should be called");
+		assert.deepStrictEqual(quickpickMock.callCount, 1, "showQuickPick should be called");
+		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
+		assert.deepStrictEqual(addUsersMock.callCount, 1, "addUsersToCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
 	});
 });
 
