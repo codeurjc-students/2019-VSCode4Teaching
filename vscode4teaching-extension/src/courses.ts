@@ -401,11 +401,21 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         let addExerciseThenable = this.client.addExercise(course.id, name);
                         vscode.window.setStatusBarMessage('Adding exercise...', addExerciseThenable);
                         let addExerciseData = await addExerciseThenable;
-                        let uploadThenable = this.client.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
-                        vscode.window.setStatusBarMessage('Uploading template...', uploadThenable);
-                        await this.client.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
-                        // TODO when deleteExercise is done if upload template fails delete exercise
-                        this.refreshExercises(item);
+                        try {
+                            let uploadThenable = this.client.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
+                            vscode.window.setStatusBarMessage('Uploading template...', uploadThenable);
+                            await uploadThenable;
+                            this.refreshExercises(item);
+                        } catch (uploadError) {
+                            try {
+                                let deleteExerciseThenable = this.client.deleteExercise(addExerciseData.data.id);
+                                vscode.window.setStatusBarMessage('Sending exercise info...', deleteExerciseThenable);
+                                await deleteExerciseThenable;
+                                this.handleAxiosError(uploadError);
+                            } catch (deleteError) {
+                                this.handleAxiosError(deleteError);
+                            }
+                        }
                     } catch (error) {
                         this.handleAxiosError(error);
                     }
