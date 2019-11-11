@@ -114,7 +114,7 @@ public class JWTLoginControllerTests {
                                 .andExpect(status().isCreated()).andReturn();
 
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
                                 .writeValueAsString(expectedUser);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
         }
@@ -145,7 +145,7 @@ public class JWTLoginControllerTests {
                                 .andExpect(status().isCreated()).andReturn();
 
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
                                 .writeValueAsString(expectedUser);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
         }
