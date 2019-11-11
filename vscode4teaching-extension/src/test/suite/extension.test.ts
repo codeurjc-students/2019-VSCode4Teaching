@@ -692,6 +692,64 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
 	});
+
+	test('remove users from course', async () => {
+		let selectableUsers: User[] = [{
+			id: 1,
+			username: "johndoe",
+			name: "John",
+			lastName: "Doe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 2,
+			username: "johndoe2",
+			name: "John",
+			lastName: "Doe 2",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 3,
+			username: "johndoe3",
+			name: "John",
+			lastName: "Doe 3",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		}];
+		let course = {
+			id: 10,
+			name: "Test course",
+			exercises: []
+		};
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		let getCourseUsersMock = simple.mock(extension.coursesProvider.client, "getUsersInCourse");
+		getCourseUsersMock.resolveWith({ data: selectableUsers });
+		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
+		let selectableUsersPicks: UserPick[] = [];
+		selectableUsers.forEach(user => selectableUsersPicks.push(new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user)));
+		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
+		quickpickMock.resolveWith(selectedUsers);
+		let addUsersMock = simple.mock(extension.coursesProvider.client, "removeUsersFromCourse");
+
+		await extension.coursesProvider.removeUsersFromCourse(item);
+
+		assert.deepStrictEqual(quickpickMock.callCount, 1, "showQuickPick should be called");
+		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
+		assert.deepStrictEqual(addUsersMock.callCount, 1, "removeUsersFromCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "removeUsersFromCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
+	});
 });
 
 class MockFile {

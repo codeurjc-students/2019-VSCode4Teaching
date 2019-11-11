@@ -53,8 +53,13 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.addUsersToCourse(item);
 	});
 
+	let removeUsersFromCourse = vscode.commands.registerCommand('vscode4teaching.removeusersfromcourse', (item: V4TItem) => {
+		coursesProvider.removeUsersFromCourse(item);
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
-		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse);
+		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
+		removeUsersFromCourse);
 }
 
 export function deactivate() { }

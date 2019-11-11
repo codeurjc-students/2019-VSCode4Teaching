@@ -503,6 +503,33 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
+
+    async removeUsersFromCourse(item: V4TItem) {
+        if (item.item && "exercises" in item.item) {
+            try {
+                let courseUsersThenable = this.client.getUsersInCourse(item.item.id);
+                vscode.window.setStatusBarMessage("Getting user info...", courseUsersThenable);
+                let courseUsersResponse = await courseUsersThenable;
+                let courseUsers = courseUsersResponse.data;
+                let showArray = courseUsers
+                    .map((user: User) => new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user));
+                if (showArray.length > 0) {
+                    let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
+                    if (picks) {
+                        let ids: number[] = [];
+                        picks.forEach(pick => ids.push(pick.user.id));
+                        let addUsersThenable = this.client.removeUsersFromCourse(item.item.id, ids);
+                        vscode.window.setStatusBarMessage("Removing users from course...", addUsersThenable);
+                        await addUsersThenable;
+                    }
+                } else {
+                    vscode.window.showInformationMessage("There are no users available.");
+                }
+            } catch (error) {
+                this.handleAxiosError(error);
+            }
+        }
+    }
 }
 
 export class UserPick implements vscode.QuickPickItem {

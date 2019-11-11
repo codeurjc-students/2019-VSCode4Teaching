@@ -90,6 +90,14 @@
 					"light": "resources/light/add_user.svg",
 					"dark": "resources/dark/add_user.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.removeusersfromcourse",
+				"title": "Remove users from course",
+				"icon": {
+					"light": "resources/light/remove_user.svg",
+					"dark": "resources/dark/remove_user.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -149,6 +157,11 @@
 					"group": "inline@5"
 				},
 				{
+					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@6"
+				},
+				{
 					"command": "vscode4teaching.editexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@1"
@@ -186,6 +199,10 @@
 				},
 				{
 					"command": "vscode4teaching.adduserstocourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.removeusersfromcourse",
 					"when": "false"
 				}
 			]

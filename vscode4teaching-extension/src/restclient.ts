@@ -100,6 +100,13 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "POST", false, data));
     }
 
+    removeUsersFromCourse(courseId: number, ids: number[]) {
+        let data = {
+            ids: ids
+        };
+        return axios(this.buildOptions("/api/courses/" + courseId + "/users", "DELETE", false, data));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

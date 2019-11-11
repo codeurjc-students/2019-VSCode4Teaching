@@ -22,6 +22,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Edit a course](API.md#edit-a-course)
 - [Delete a course](API.md#delete-a-course)
 - [Add user to course](API.md#add-user-to-course)
+- [Remove user from course](API.md#remove-user-from-course)
 - [Get exercises of a course](API.md#get-exercises-of-a-course)
 - [Delete an exercise](API.md#delete-an-exercise)
 - [Download exercise files](API.md#download-exercise-files)
