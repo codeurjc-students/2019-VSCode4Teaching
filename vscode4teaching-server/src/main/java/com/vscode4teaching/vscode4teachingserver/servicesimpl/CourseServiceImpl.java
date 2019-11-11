@@ -138,4 +138,18 @@ public class CourseServiceImpl implements CourseService {
 
     }
 
+    @Override
+    public Course removeUsersFromCourse(@Min(1) Long courseId, long[] userIds, String requestUsername)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
+        for (Long userId : userIds) {
+            User user = this.userRepo.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+            course.removeUserFromCourse(user);
+        }
+        Course savedCourse = this.courseRepo.save(course);
+        return savedCourse;
+    }
+
 }

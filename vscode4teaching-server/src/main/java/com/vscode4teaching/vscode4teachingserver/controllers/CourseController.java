@@ -108,4 +108,12 @@ public class CourseController {
                 jwtTokenUtil.getUsernameFromToken(request)));
     }
 
+    @DeleteMapping("/courses/{courseId}/users")
+    @JsonView(CourseViews.UsersView.class)
+    public ResponseEntity<Course> removeUsersFromCourse(@PathVariable @Min(1) Long courseId,
+            @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        return ResponseEntity.ok(courseService.removeUsersFromCourse(courseId, userRequest.getIds(),
+                jwtTokenUtil.getUsernameFromToken(request)));
+    }
 }

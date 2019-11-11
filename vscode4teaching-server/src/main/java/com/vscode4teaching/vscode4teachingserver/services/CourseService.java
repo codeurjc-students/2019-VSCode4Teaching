@@ -48,4 +48,6 @@ public interface CourseService {
         public Set<User> getUsersInCourse(@Min(1) Long courseId, String requestUsername) throws CourseNotFoundException, NotInCourseException;
         
         public Course addUsersToCourse(@Min(1) Long courseId, long[] userIds, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
+
+        public Course removeUsersFromCourse(@Min(1) Long courseId, long[] userIds, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
 }

@@ -112,4 +112,8 @@ public class Course {
         return updateDateTime;
     }
 
+	public void removeUserFromCourse(User user) {
+        this.usersInCourse.remove(user);
+	}
+
 }

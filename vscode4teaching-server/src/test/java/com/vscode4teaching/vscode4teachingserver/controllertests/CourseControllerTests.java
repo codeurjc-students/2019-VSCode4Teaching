@@ -232,11 +232,33 @@ public class CourseControllerTests {
         public void addUserToCourse_valid() throws Exception {
                 logger.info("Test addUserToCourse_valid() begins.");
 
+                User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
+                newUser1.setId(1l);
+                User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
+                newUser2.setId(5l);
+                Role studentRole = new Role("ROLE_STUDENT");
+                studentRole.setId(2l);
+                Role teacherRole = new Role("ROLE_TEACHER");
+                teacherRole.setId(3l);
+                User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
+                teacher.setId(4l);
+                teacher.addRole(studentRole);
+                teacher.addRole(teacherRole);
+                newUser1.addRole(studentRole);
+                newUser2.addRole(studentRole);
+                Set<User> expectedUsers = new HashSet<>();
+                expectedUsers.add(newUser1);
+                expectedUsers.add(newUser2);
+                expectedUsers.add(teacher);
+
                 UserRequest request = new UserRequest();
-                long[] ids = { 8l };
+                long[] ids = { 1l, 5l };
                 request.setIds(ids);
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(1l);
+                expectedCourse.addUserInCourse(teacher);
+                expectedCourse.addUserInCourse(newUser1);
+                expectedCourse.addUserInCourse(newUser2);
                 when(courseService.addUsersToCourse(anyLong(), any(long[].class), anyString()))
                                 .thenReturn(expectedCourse);
                 String requestString = objectMapper.writeValueAsString(request);
@@ -292,5 +314,53 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).getUsersInCourse(anyLong(), anyString());
 
                 logger.info("Test getUsersInCourse_valid() ends.");
+        }
+
+        @Test
+        public void removeUsersFromCourse_valid() throws Exception {
+                logger.info("Test removeUsersFromCourse_valid() begins.");
+
+                User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
+                newUser1.setId(1l);
+                User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
+                newUser2.setId(5l);
+                Role studentRole = new Role("ROLE_STUDENT");
+                studentRole.setId(2l);
+                Role teacherRole = new Role("ROLE_TEACHER");
+                teacherRole.setId(3l);
+                User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
+                teacher.setId(4l);
+                teacher.addRole(studentRole);
+                teacher.addRole(teacherRole);
+                newUser1.addRole(studentRole);
+                newUser2.addRole(studentRole);
+                Set<User> expectedUsers = new HashSet<>();
+                expectedUsers.add(newUser1);
+                expectedUsers.add(newUser2);
+                expectedUsers.add(teacher);
+
+                UserRequest request = new UserRequest();
+                long[] ids = { 1l, 5l };
+                request.setIds(ids);
+                Course expectedCourse = new Course("Spring Boot Course");
+                expectedCourse.setId(1l);
+                expectedCourse.addUserInCourse(teacher);
+                when(courseService.removeUsersFromCourse(anyLong(), any(long[].class), anyString()))
+                                .thenReturn(expectedCourse);
+                String requestString = objectMapper.writeValueAsString(request);
+
+                MvcResult mvcResult = mockMvc
+                                .perform(delete("/api/courses/1/users").contentType("application/json").with(csrf())
+                                                .content(requestString)
+                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+                String actualResponseBody = mvcResult.getResponse().getContentAsString();
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.UsersView.class)
+                                .writeValueAsString(expectedCourse);
+                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+                verify(courseService, times(1)).removeUsersFromCourse(anyLong(), any(long[].class), anyString());
+
+                logger.info("Test removeUsersFromCourse_valid() ends.");
         }
 }

@@ -731,7 +731,7 @@ Add a user to a course.
 
   ```json
   {
-    "ids": [4, 5]
+    "ids": [4]
   }
   ```
 
@@ -768,6 +768,90 @@ Add a user to a course.
               "roles": [
                   {
                       "roleName": "ROLE_STUDENT"
+                  }
+              ],
+              "createDateTime": "2019-11-11T14:37:57",
+              "updateDateTime": "2019-11-11T14:37:57"
+          }
+      ],
+      "createDateTime": "2019-11-11T14:40:06",
+      "updateDateTime": "2019-11-11T14:40:06"
+  }
+  ```
+
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: Course not found: 15.
+  ```
+
+  OR
+
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: User not found: 3
+  ```
+
+  OR
+
+  - **Code**: 401
+  - **Content**:
+
+  ```text
+      User is not in course or teacher is not in this course.
+  ```
+
+## Remove user from course
+
+---
+
+Add a user to a course.
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/courses/:courseId/users`
+- **Method**  
+   `DELETE`
+- **URL Params**
+  - **Required**:  
+     `courseId=[long]`
+  - **Example**:  
+    `/api/courses/1/users`
+- **Data Params**
+  - **Required**:  
+    `"id": [[long]]` - User ids to remove from course
+  - **Example**:
+
+  ```json
+  {
+    "ids": [4, 5]
+  }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 341,
+      "name": "new course",
+      "usersInCourse": [
+          {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
                   }
               ],
               "createDateTime": "2019-11-11T14:37:57",

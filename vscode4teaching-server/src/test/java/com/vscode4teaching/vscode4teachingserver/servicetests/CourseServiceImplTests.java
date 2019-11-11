@@ -413,4 +413,44 @@ public class CourseServiceImplTests {
         assertThat(course.getUsersInCourse()).isEqualTo(users);
         verify(courseRepository, times(1)).findById(anyLong());
     }
+
+    @Test
+    public void removeUsersFromCourse() throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
+        newUser1.setId(1l);
+        User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
+        newUser2.setId(5l);
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
+        teacher.setId(4l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        newUser1.addRole(studentRole);
+        newUser2.addRole(studentRole);
+        Course course = new Course("Spring Boot Course");
+        course.setId(5l);
+        course.addUserInCourse(teacher);
+        course.addUserInCourse(newUser1);
+        course.addUserInCourse(newUser2);
+        Optional<User> userOpt1 = Optional.of(newUser1);
+        Optional<User> userOpt2 = Optional.of(newUser2);
+        Optional<Course> courseOpt = Optional.of(course);
+        Course expectedSavedCourse = new Course("Spring Boot Course");
+        when(userRepository.findById(anyLong())).thenReturn(userOpt1).thenReturn(userOpt2);
+        when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
+        when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
+
+        long[] ids = {1l, 5l};
+        Course savedCourse = courseServiceImpl.removeUsersFromCourse(5l, ids, "johndoe");
+
+        assertThat(course.getUsersInCourse()).doesNotContain(newUser1);
+        assertThat(course.getUsersInCourse()).doesNotContain(newUser2);
+        assertThat(savedCourse).isEqualTo(expectedSavedCourse);
+        verify(userRepository, times(2)).findById(anyLong());
+        verify(courseRepository, times(1)).findById(anyLong());
+        verify(courseRepository, times(1)).save(any(Course.class));
+    }
 }
