@@ -1,12 +1,14 @@
 package com.vscode4teaching.vscode4teachingserver.services;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
@@ -43,5 +45,7 @@ public interface CourseService {
 
         public List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
 
+        public Set<User> getUsersInCourse(@Min(1) Long courseId, String requestUsername) throws CourseNotFoundException, NotInCourseException;
+        
         public Course addUsersToCourse(@Min(1) Long courseId, long[] userIds, String requestUsername) throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
 }

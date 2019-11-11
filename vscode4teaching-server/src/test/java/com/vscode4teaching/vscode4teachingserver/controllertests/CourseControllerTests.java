@@ -15,7 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
@@ -23,8 +25,10 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserRequest;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
+import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
+import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -229,11 +233,12 @@ public class CourseControllerTests {
                 logger.info("Test addUserToCourse_valid() begins.");
 
                 UserRequest request = new UserRequest();
-                long[] ids = {8l};
+                long[] ids = { 8l };
                 request.setIds(ids);
                 Course expectedCourse = new Course("Spring Boot Course");
                 expectedCourse.setId(1l);
-                when(courseService.addUsersToCourse(anyLong(), any(long[].class), anyString())).thenReturn(expectedCourse);
+                when(courseService.addUsersToCourse(anyLong(), any(long[].class), anyString()))
+                                .thenReturn(expectedCourse);
                 String requestString = objectMapper.writeValueAsString(request);
 
                 MvcResult mvcResult = mockMvc
@@ -249,5 +254,43 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).addUsersToCourse(anyLong(), any(long[].class), anyString());
 
                 logger.info("Test addUserToCourse_valid() ends.");
+        }
+
+        @Test
+        public void getUsersInCourse_valid() throws Exception {
+                logger.info("Test getUsersInCourse_valid() begins.");
+
+                User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
+                newUser1.setId(1l);
+                User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
+                newUser2.setId(5l);
+                Role studentRole = new Role("ROLE_STUDENT");
+                studentRole.setId(2l);
+                Role teacherRole = new Role("ROLE_TEACHER");
+                teacherRole.setId(3l);
+                User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
+                teacher.setId(4l);
+                teacher.addRole(studentRole);
+                teacher.addRole(teacherRole);
+                newUser1.addRole(studentRole);
+                newUser2.addRole(studentRole);
+                Set<User> expectedUsers = new HashSet<>();
+                expectedUsers.add(newUser1);
+                expectedUsers.add(newUser2);
+                expectedUsers.add(teacher);
+                when(courseService.getUsersInCourse(anyLong(), anyString())).thenReturn(expectedUsers);
+
+                MvcResult mvcResult = mockMvc
+                                .perform(get("/api/courses/1/users").contentType("application/json").with(csrf())
+                                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+                String actualResponseBody = mvcResult.getResponse().getContentAsString();
+                String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class)
+                                .writeValueAsString(expectedUsers);
+                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+                verify(courseService, times(1)).getUsersInCourse(anyLong(), anyString());
+
+                logger.info("Test getUsersInCourse_valid() ends.");
         }
 }

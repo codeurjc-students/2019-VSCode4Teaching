@@ -16,6 +16,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Register a new teacher](API.md#register-a-new-teacher)
 - [Get all users](API.md#get-all-users)
 - [Get all courses](API.md#get-all-courses)
+- [Get users in course](API.md#get-users-in-course)
 - [Add a course](API.md#add-a-course)
 - [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
 - [Edit a course](API.md#edit-a-course)
@@ -359,6 +360,87 @@ Get all available courses.
   - **Code**: 204
   - **Content**: Empty
 
+## Get users in course
+
+---
+
+Get all users in a course.
+
+- **Required role**:  
+   Student or Teacher
+- **URL**  
+   `/api/courses/:courseId/users`
+- **URL Params**
+  - **Required**
+    - `courseId=[long]`
+  - **Example**
+    `/api/users/1/courses`
+- **Method**  
+   `GET`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  [
+      {
+          "id": 3,
+          "username": "johndoe",
+          "name": "John",
+          "lastName": "Doe",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              },
+              {
+                  "roleName": "ROLE_TEACHER"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 4,
+          "username": "johndoejr",
+          "name": "John",
+          "lastName": "Doe Jr 1",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      },
+      {
+          "id": 6,
+          "username": "johndoejr3",
+          "name": "John",
+          "lastName": "Doe Jr 3",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2019-11-11T13:17:43",
+          "updateDateTime": "2019-11-11T13:17:43"
+      }
+  ]
+  ```
+
 ## Get user courses
 
 ---
@@ -644,12 +726,12 @@ Add a user to a course.
     `/api/courses/1/users`
 - **Data Params**
   - **Required**:  
-    `"id": [long]` - User id to add to course
+    `"id": [[long]]` - User ids to add to course
   - **Example**:
 
   ```json
   {
-    "id": 4
+    "ids": [4, 5]
   }
   ```
 

@@ -2,6 +2,7 @@ package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.validation.constraints.Min;
 
@@ -126,6 +127,15 @@ public class CourseServiceImpl implements CourseService {
         }
         Course savedCourse = this.courseRepo.save(course);
         return savedCourse;
+    }
+
+    @Override
+    public Set<User> getUsersInCourse(@Min(1) Long courseId, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, false);
+        return course.getUsersInCourse();
+
     }
 
 }

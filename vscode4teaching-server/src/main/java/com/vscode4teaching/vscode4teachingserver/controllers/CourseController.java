@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -10,7 +11,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserRequest;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
+import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
+import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
@@ -87,6 +90,13 @@ public class CourseController {
     @JsonView(CourseViews.GeneralView.class)
     public ResponseEntity<List<Course>> getUserCourses(@PathVariable @Min(1) Long id) throws UserNotFoundException {
         return ResponseEntity.ok(courseService.getUserCourses(id));
+    }
+
+    @GetMapping("/courses/{courseId}/users")
+    @JsonView(UserViews.GeneralView.class)
+    public ResponseEntity<Set<User>> getUsersInCourse(@PathVariable @Min(1) Long courseId,
+            HttpServletRequest request) throws CourseNotFoundException, NotInCourseException {
+        return ResponseEntity.ok(courseService.getUsersInCourse(courseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
     @PostMapping("/courses/{courseId}/users")
