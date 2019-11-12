@@ -32,21 +32,11 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
+		
 	});
 
 	test('should be present', () => {
 		assert.ok(vscode.extensions.getExtension("codeurjc-students.vscode4teaching"));
-	});
-
-	test('should activate properly', () => {
-		const extensionActivator = vscode.extensions.getExtension("codeurjc-students.vscode4teaching");
-		if (extensionActivator && !extensionActivator.isActive) {
-			return extensionActivator.activate().then(() => {
-				assert.ok(extension.coursesProvider);
-			});
-		} else {
-			assert.fail("Couldn't activate extension");
-		}
 	});
 
 	test('should register all commands', () => {
