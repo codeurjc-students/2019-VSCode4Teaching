@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotEmpty;
 
@@ -40,6 +41,10 @@ public class Course {
     @ManyToMany
     @JsonView(CourseViews.UsersView.class)
     private Set<User> usersInCourse = new HashSet<>(); // Includes teachers and students
+
+    @ManyToOne
+    @JsonView(CourseViews.CreatorView.class)
+    private User creator;
 
     @CreationTimestamp
     @JsonView(CourseViews.GeneralView.class)
@@ -116,4 +121,11 @@ public class Course {
         this.usersInCourse.remove(user);
 	}
 
+    public User getCreator() {
+        return this.creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
 }

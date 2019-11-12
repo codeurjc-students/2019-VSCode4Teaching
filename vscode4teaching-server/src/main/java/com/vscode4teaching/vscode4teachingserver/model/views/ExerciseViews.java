@@ -7,7 +7,7 @@ public class ExerciseViews {
     public static interface GeneralView {
     }
 
-    public static interface CourseView extends GeneralView, CourseViews.GeneralView {
+    public static interface CourseView extends GeneralView, CourseViews.CreatorView {
     }
 
     public static interface FileView extends GeneralView, FileViews.GeneralView {

@@ -94,7 +94,7 @@ public class CourseControllerTests {
 
                 verify(courseService, times(1)).getAllCourses();
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
                                 .writeValueAsString(courses);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
@@ -120,6 +120,26 @@ public class CourseControllerTests {
         }
 
         @Test
+        public void getCreator_valid() throws Exception {
+                logger.info("Test getCreator_valid() begins.");
+
+                User user = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+                when(courseService.getCreator(anyLong())).thenReturn(user);
+
+                MvcResult mvcResult = mockMvc.perform(get("/api/courses/1/creator").contentType("application/json")
+                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
+                                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+                verify(courseService, times(1)).getCreator(anyLong());
+                String actualResponseBody = mvcResult.getResponse().getContentAsString();
+                String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class)
+                                .writeValueAsString(user);
+                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
+                logger.info("Test getCreator_valid() ends.");
+        }
+
+        @Test
         public void postCourse_valid() throws Exception {
                 logger.info("Test postCourse_valid() begins.");
 
@@ -139,7 +159,7 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).registerNewCourse(courseCaptor.capture(), anyString());
                 assertThat(courseCaptor.getValue().getName()).isEqualTo("Spring Boot Course");
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
                                 .writeValueAsString(expectedCourse);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
@@ -179,7 +199,7 @@ public class CourseControllerTests {
                 verify(courseService, times(1)).editCourse(anyLong(), courseCaptor.capture(), anyString());
                 assertThat(courseCaptor.getValue().getName()).isEqualTo("Spring Boot Course v2");
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
                                 .writeValueAsString(expectedCourse);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
@@ -220,7 +240,7 @@ public class CourseControllerTests {
                                 .andExpect(status().isOk()).andReturn();
 
                 String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(CourseViews.GeneralView.class)
+                String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
                                 .writeValueAsString(courses);
                 assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
                 verify(courseService, times(1)).getUserCourses(anyLong());

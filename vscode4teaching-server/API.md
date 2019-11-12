@@ -361,6 +361,41 @@ Get all available courses.
   - **Code**: 204
   - **Content**: Empty
 
+## Get course creator
+
+---
+
+Get the creator of a course.
+
+- **Required role**:  
+   None
+- **URL**  
+   `/api/courses/:courseId/creator`
+- **Method**  
+   `GET`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+       "id": 3,
+       "username": "johndoe",
+       "name": "John",
+      "lastName": "Doe",
+       "roles": [
+           {
+                "roleName": "ROLE_STUDENT"
+           },
+           {
+              "roleName": "ROLE_TEACHER"
+           }
+       ],
+      "createDateTime": "2019-11-12T00:22:13",
+      "updateDateTime": "2019-11-12T00:22:13"
+  }
+  ```
+
 ## Get users in course
 
 ---
@@ -684,7 +719,7 @@ Edit course fields. Currently you can edit with this method: name.
 
 ---
 
-Remove a course. Logged user has to be a teacher of this course.
+Remove a course. Logged user has to be the creator of this course.
 
 - **Required role**:
   Teacher
@@ -809,7 +844,7 @@ Add a user to a course.
 
 ---
 
-Add a user to a course.
+Add a user to a course. Can't remove creator of this course.
 
 - **Required role**:  
    Teacher

@@ -485,7 +485,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let courseUsers = courseUsersResponse.data;
                 //Show users that don't belong to the course already
                 let showArray = users.filter(user => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
-                    .map(user => new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user));
+                    .map(user => {
+                        let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
+                        if (user.roles.includes({ roleName: "ROLE_TEACHER" })) {
+                            displayName += " (Teacher)";
+                        }
+                        return new UserPick(displayName, user);
+                    });
                 if (showArray.length > 0) {
                     let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
                     if (picks) {
@@ -510,9 +516,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let courseUsersThenable = this.client.getUsersInCourse(item.item.id);
                 vscode.window.setStatusBarMessage("Getting user info...", courseUsersThenable);
                 let courseUsersResponse = await courseUsersThenable;
+                let creatorResponse = await this.client.getCreator(item.item.id);
+                let creator: User = creatorResponse.data;
                 let courseUsers = courseUsersResponse.data;
-                let showArray = courseUsers
-                    .map((user: User) => new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user));
+                let showArray = courseUsers.filter((user: User) => user.id !== creator.id).map((user: User) => {
+                    let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
+                    if (user.roles.includes({ roleName: "ROLE_TEACHER" })) {
+                        displayName += " (Teacher)";
+                    }
+                    return new UserPick(displayName, user);
+                });
                 if (showArray.length > 0) {
                     let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
                     if (picks) {

@@ -13,8 +13,10 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseReposi
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
@@ -45,7 +47,14 @@ public class CourseServiceImpl implements CourseService {
         User teacher = teacherOpt
                 .orElseThrow(() -> new TeacherNotFoundException("Teacher not found: " + requestUsername));
         course.addUserInCourse(teacher);
+        course.setCreator(teacher);
         return this.courseRepo.save(course);
+    }
+
+    @Override
+    public User getCreator(@Min(1) Long courseId) throws CourseNotFoundException {
+        Course course = courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        return course.getCreator();
     }
 
     @Override
@@ -74,9 +83,10 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void deleteCourse(Long courseId, String requestUsername)
-            throws CourseNotFoundException, NotInCourseException {
+            throws CourseNotFoundException, NotInCourseException, NotCreatorException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
+        ExceptionUtil.throwIfNotCreator(course, requestUsername);
         this.courseRepo.delete(course);
     }
 
@@ -140,12 +150,15 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course removeUsersFromCourse(@Min(1) Long courseId, long[] userIds, String requestUsername)
-            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         for (Long userId : userIds) {
             User user = this.userRepo.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+            if (course.getCreator().equals(user)) {
+                throw new CantRemoveCreatorException();
+            }
             course.removeUserFromCourse(user);
         }
         Course savedCourse = this.courseRepo.save(course);
