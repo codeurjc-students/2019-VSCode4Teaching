@@ -233,38 +233,48 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         let requestThenable = this.client.getExerciseFiles(exercise.id);
         vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
         try {
-            let response = await requestThenable;
-            let zip = await JSZip.loadAsync(response.data);
-            zip.forEach((relativePath, file) => {
-                if (this.userinfo) {
-                    let v4tpath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name, relativePath);
-                    if (this.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
-                        // fs.mkdirSync(path.dirname(v4tpath), { recursive: true });
-                        mkdirp.sync(path.dirname(v4tpath));
-                    }
-                    if (file.dir && !fs.existsSync(v4tpath)) {
-                        // fs.mkdirSync(v4tpath, { recursive: true });
-                        mkdirp.sync(v4tpath);
-                    } else {
-                        file.async('nodebuffer').then(fileData => {
-                            fs.writeFileSync(v4tpath, fileData);
-                        }).catch(error => {
-                            console.log(error);
-                        });
-                    }
-                }
-            });
             if (this.userinfo) {
-                return path.resolve(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name));
+                let response = await requestThenable;
+                let zip = await JSZip.loadAsync(response.data);
+                // Save ZIP for FSW operations
+                let zipUri = path.resolve(__dirname, "v4t", this.userinfo.username, exercise.id + ".zip");
+                zip.generateAsync({ type: "nodebuffer" }).then(ab => {
+                    fs.writeFileSync(zipUri, ab);
+                });
+                zip.forEach((relativePath, file) => {
+                    if (this.userinfo) {
+                        let v4tpath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name, relativePath);
+                        if (this.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
+                            // fs.mkdirSync(path.dirname(v4tpath), { recursive: true });
+                            mkdirp.sync(path.dirname(v4tpath));
+                        }
+                        if (file.dir && !fs.existsSync(v4tpath)) {
+                            // fs.mkdirSync(v4tpath, { recursive: true });
+                            mkdirp.sync(v4tpath);
+                        } else {
+                            file.async('nodebuffer').then(fileData => {
+                                if (!fs.existsSync(v4tpath)) {
+                                    fs.writeFileSync(v4tpath, fileData);
+                                }
+                            }).catch(error => {
+                                console.error(error);
+                            });
+                        }
+                    }
+                });
+                let exPath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name);
+                // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads
+                fs.writeFileSync(path.resolve(exPath, "v4texercise.v4t"), zipUri, { encoding: "utf8" });
+                return exPath;
             } else {
-                return Promise.resolve(null);
+                return Promise.resolve(null); // should never happen
             }
         } catch (error) {
             this.handleAxiosError(error);
         }
     }
 
-    private handleAxiosError(error: any) {
+    handleAxiosError(error: any) {
         if (error.response) {
             if (error.response.status === 401 && !this.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
