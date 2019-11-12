@@ -22,7 +22,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onView:vscode4teachingview"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

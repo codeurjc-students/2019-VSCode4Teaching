@@ -111,6 +111,12 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + courseId + "/creator", "GET", false));
     }
 
+    uploadFiles(exerciseId: number, data: Buffer) {
+        let dataForm = new FormData();
+        dataForm.append("file", data, { filename: "template.zip" });
+        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "POST", false, dataForm));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,
