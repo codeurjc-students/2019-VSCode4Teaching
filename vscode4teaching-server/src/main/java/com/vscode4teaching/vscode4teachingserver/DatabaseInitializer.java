@@ -85,6 +85,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         courses.add(courseRepository.save(new Course("VSCode Extension API Course")));
 
         for (Course course : courses) {
+            course.setCreator(teacher);
             for (User user : users) {
                 course.addUserInCourse(user);
             }

@@ -82,6 +82,22 @@
 					"light": "resources/light/delete.svg",
 					"dark": "resources/dark/delete.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.adduserstocourse",
+				"title": "Add users to course",
+				"icon": {
+					"light": "resources/light/add_user.svg",
+					"dark": "resources/dark/add_user.svg"
+				}
+			},
+			{
+				"command": "vscode4teaching.removeusersfromcourse",
+				"title": "Remove users from course",
+				"icon": {
+					"light": "resources/light/remove_user.svg",
+					"dark": "resources/dark/remove_user.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -112,13 +128,18 @@
 			"view/item/context": [
 				{
 					"command": "vscode4teaching.refreshexercises",
-					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"when": "view == vscode4teachingview && viewItem == coursestudent",
 					"group": "inline@1"
 				},
 				{
 					"command": "vscode4teaching.refreshexercises",
-					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@2"
 				},
 				{
 					"command": "vscode4teaching.editcourse",
@@ -131,9 +152,14 @@
 					"group": "inline@4"
 				},
 				{
-					"command": "vscode4teaching.addexercise",
+					"command": "vscode4teaching.adduserstocourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline@2"
+					"group": "inline@5"
+				},
+				{
+					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@6"
 				},
 				{
 					"command": "vscode4teaching.editexercise",
@@ -169,6 +195,14 @@
 				},
 				{
 					"command": "vscode4teaching.deleteexercise",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.adduserstocourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.removeusersfromcourse",
 					"when": "false"
 				}
 			]

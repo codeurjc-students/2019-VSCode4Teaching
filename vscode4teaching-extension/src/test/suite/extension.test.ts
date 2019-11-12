@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
 import JSZip = require('jszip');
+import { UserPick } from '../../courses';
 
 suite('Extension Test Suite', () => {
 
@@ -139,18 +140,24 @@ suite('Extension Test Suite', () => {
 				}
 			],
 			courses: [
-				{
-					id: 23,
-					name: "Spring Boot Course 1",
-					exercises: []
-				},
-				{
-					id: 52,
-					name: "Angular Course 1",
-					exercises: []
-				}
+
 			]
 		};
+		let courses = [
+			{
+				id: 23,
+				name: "Spring Boot Course 1",
+				creator: user,
+				exercises: []
+			},
+			{
+				id: 52,
+				name: "Angular Course 1",
+				creator: user,
+				exercises: []
+			}
+		];
+		user.courses = courses;
 		if (user.courses) {
 			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
 			extension.coursesProvider.userinfo = user;
@@ -183,18 +190,24 @@ suite('Extension Test Suite', () => {
 				}
 			],
 			courses: [
-				{
-					id: 23,
-					name: "Spring Boot Course 1",
-					exercises: []
-				},
-				{
-					id: 52,
-					name: "Angular Course 1",
-					exercises: []
-				}
+
 			]
 		};
+		let courses = [
+			{
+				id: 23,
+				name: "Spring Boot Course 1",
+				creator: user,
+				exercises: []
+			},
+			{
+				id: 52,
+				name: "Angular Course 1",
+				creator: user,
+				exercises: []
+			}
+		];
+		user.courses = courses;
 		if (user.courses) {
 			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
 			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
@@ -229,6 +242,7 @@ suite('Extension Test Suite', () => {
 		let course: Course = {
 			id: 123,
 			name: "Spring Boot Course",
+			creator: user,
 			exercises: []
 		};
 		user.courses = [course];
@@ -279,6 +293,7 @@ suite('Extension Test Suite', () => {
 		let course: Course = {
 			id: 123,
 			name: "Spring Boot Course",
+			creator: user,
 			exercises: []
 		};
 		user.courses = [course];
@@ -360,13 +375,6 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('add course', async () => {
-		let course: Course = {
-			id: 123,
-			name: "Test course",
-			exercises: []
-		};
-		let addCourseClientMock = simple.mock(extension.coursesProvider.client, "addCourse");
-		addCourseClientMock.resolveWith(course);
 		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
 		vscodeInputMock.resolveWith("Test course");
 		let user: User = {
@@ -380,8 +388,17 @@ suite('Extension Test Suite', () => {
 					roleName: "ROLE_TEACHER"
 				}
 			],
-			courses: [course]
+			courses: []
 		};
+		let course: Course = {
+			id: 123,
+			name: "Test course",
+			creator: user,
+			exercises: []
+		};
+		user.courses = [course];
+		let addCourseClientMock = simple.mock(extension.coursesProvider.client, "addCourse");
+		addCourseClientMock.resolveWith(course);
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith(user);
 		await extension.coursesProvider.addCourse();
@@ -391,13 +408,7 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('delete course', async () => {
-		let course: Course = {
-			id: 123,
-			name: "Test course",
-			exercises: []
-		};
-		let deleteCourseClientMock = simple.mock(extension.coursesProvider.client, "deleteCourse");
-		deleteCourseClientMock.resolveWith(course);
+
 		let vscodeInputMock = simple.mock(vscode.window, "showWarningMessage");
 		vscodeInputMock.resolveWith("Accept");
 		let user: User = {
@@ -411,8 +422,17 @@ suite('Extension Test Suite', () => {
 					roleName: "ROLE_TEACHER"
 				}
 			],
-			courses: [course]
+			courses: []
 		};
+		let course: Course = {
+			id: 123,
+			name: "Test course",
+			creator: user,
+			exercises: []
+		};
+		let deleteCourseClientMock = simple.mock(extension.coursesProvider.client, "deleteCourse");
+		deleteCourseClientMock.resolveWith(course);
+		user.courses = [course];
 		extension.coursesProvider.userinfo = user;
 		let newUser: User = {
 			id: 456,
@@ -437,30 +457,6 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('edit course', async () => {
-		let course: Course = {
-			id: 123,
-			name: "Test course",
-			exercises: [
-				{
-					id: 111,
-					name: "Exercise 1"
-				}
-			]
-		};
-		let newCourse: Course = {
-			id: 123,
-			name: "Test course edited",
-			exercises: [
-				{
-					id: 111,
-					name: "Exercise 1"
-				}
-			]
-		};
-		let editCourseClientMock = simple.mock(extension.coursesProvider.client, "editCourse");
-		editCourseClientMock.resolveWith(newCourse);
-		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
-		vscodeInputMock.resolveWith("Test course");
 		let user: User = {
 			id: 456,
 			username: "johndoe",
@@ -472,7 +468,7 @@ suite('Extension Test Suite', () => {
 					roleName: "ROLE_TEACHER"
 				}
 			],
-			courses: [course]
+			courses: []
 		};
 		let newUser: User = {
 			id: 456,
@@ -485,8 +481,36 @@ suite('Extension Test Suite', () => {
 					roleName: "ROLE_TEACHER"
 				}
 			],
-			courses: [newCourse]
+			courses: []
 		};
+		let course: Course = {
+			id: 123,
+			name: "Test course",
+			creator: user,
+			exercises: [
+				{
+					id: 111,
+					name: "Exercise 1"
+				}
+			]
+		};
+		let newCourse: Course = {
+			id: 123,
+			name: "Test course edited",
+			creator: newUser,
+			exercises: [
+				{
+					id: 111,
+					name: "Exercise 1"
+				}
+			]
+		};
+		user.courses = [course];
+		newUser.courses = [newCourse];
+		let editCourseClientMock = simple.mock(extension.coursesProvider.client, "editCourse");
+		editCourseClientMock.resolveWith(newCourse);
+		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
+		vscodeInputMock.resolveWith("Test course");
 		let userInfoMock = simple.mock(extension.coursesProvider.client, "getUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		extension.coursesProvider.userinfo = user;
@@ -498,9 +522,22 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('refresh exercises', async () => {
+		let creator: User = {
+			id: 3,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		};
 		let course: Course = {
 			id: 1234,
 			name: "Test course",
+			creator: creator,
 			exercises: [
 				{
 					id: 5678,
@@ -528,9 +565,22 @@ suite('Extension Test Suite', () => {
 			vscode.Uri.file(ex2Path),
 			vscode.Uri.file(exsPath)
 		]);
+		let creator: User = {
+			id: 3,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		};
 		let mockCourse: Course = {
 			id: 345,
 			name: "Test course",
+			creator: creator,
 			exercises: []
 		};
 		let clientAddMock = simple.mock(extension.coursesProvider.client, "addExercise");
@@ -572,6 +622,18 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('edit exercise', async () => {
+		let creator: User = {
+			id: 3,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		};
 		let exercise: Exercise = {
 			id: 1,
 			name: "Test exercise"
@@ -579,6 +641,7 @@ suite('Extension Test Suite', () => {
 		let course: Course = {
 			id: 2,
 			name: "Test course",
+			creator: creator,
 			exercises: [exercise]
 		};
 		let courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, course, undefined);
@@ -595,6 +658,18 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('delete exercise', async () => {
+		let creator: User = {
+			id: 3,
+			username: "johndoe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		};
 		let exercise: Exercise = {
 			id: 1,
 			name: "Test exercise"
@@ -602,6 +677,7 @@ suite('Extension Test Suite', () => {
 		let course: Course = {
 			id: 2,
 			name: "Test course",
+			creator: creator,
 			exercises: [exercise]
 		};
 		let courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, course);
@@ -616,6 +692,174 @@ suite('Extension Test Suite', () => {
 
 		assert.deepStrictEqual(clientMock.callCount, 1);
 		assert.deepStrictEqual(clientMock.lastCall.args[0], 1);
+	});
+
+	test('add users to course', async () => {
+		let selectableUsers: User[] = [{
+			id: 1,
+			username: "johndoe",
+			name: "John",
+			lastName: "Doe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 2,
+			username: "johndoe2",
+			name: "John",
+			lastName: "Doe 2",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 3,
+			username: "johndoe3",
+			name: "John",
+			lastName: "Doe 3",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		}];
+		let userInCourse: User = {
+			id: 4,
+			username: "johndoe4",
+			name: "John",
+			lastName: "Doe 4",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		};
+		let allUsers = selectableUsers.slice();
+		allUsers.push(userInCourse);
+		let course = {
+			id: 10,
+			name: "Test course",
+			exercises: []
+		};
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		let getUsersMock = simple.mock(extension.coursesProvider.client, "getAllUsers");
+		getUsersMock.resolveWith({ data: allUsers });
+		let getCourseUsersMock = simple.mock(extension.coursesProvider.client, "getUsersInCourse");
+		getCourseUsersMock.resolveWith({ data: [userInCourse] });
+		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
+		let selectableUsersPicks: UserPick[] = [];
+		selectableUsers.forEach(user => selectableUsersPicks.push(new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user)));
+		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
+		quickpickMock.resolveWith(selectedUsers);
+		let addUsersMock = simple.mock(extension.coursesProvider.client, "addUsersToCourse");
+
+		await extension.coursesProvider.addUsersToCourse(item);
+
+		assert.deepStrictEqual(getUsersMock.callCount, 1, "getAllUsers should be called");
+		assert.deepStrictEqual(quickpickMock.callCount, 1, "showQuickPick should be called");
+		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
+		assert.deepStrictEqual(addUsersMock.callCount, 1, "addUsersToCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
+	});
+
+	test('remove users from course', async () => {
+		let selectableUsers: User[] = [{
+			id: 1,
+			username: "johndoe",
+			name: "John",
+			lastName: "Doe",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 2,
+			username: "johndoe2",
+			name: "John",
+			lastName: "Doe 2",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 3,
+			username: "johndoe3",
+			name: "John",
+			lastName: "Doe 3",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				}
+			]
+		},
+		{
+			id: 4,
+			username: "johndoeteacher",
+			name: "John",
+			lastName: "Doe Teacher",
+			roles: [
+				{
+					roleName: "ROLE_STUDENT"
+				},
+				{
+					roleName: "ROLE_TEACHER"
+				}
+			]
+		}];
+		let course: Course = {
+			id: 10,
+			name: "Test course",
+			creator: selectableUsers[3],
+			exercises: []
+		};
+		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
+		let getCourseUsersMock = simple.mock(extension.coursesProvider.client, "getUsersInCourse");
+		getCourseUsersMock.resolveWith({ data: selectableUsers });
+		let getCreatorMock = simple.mock(extension.coursesProvider.client, "getCreator");
+		getCreatorMock.resolveWith({
+			data: {
+				id: 4,
+				username: "johndoeteacher",
+				name: "John",
+				lastName: "Doe Teacher",
+				roles: [
+					{
+						roleName: "ROLE_STUDENT"
+					},
+					{
+						roleName: "ROLE_TEACHER"
+					}
+				]
+			}
+		});
+		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
+		let selectableUsersPicks: UserPick[] = [];
+		selectableUsers.forEach(user => {
+			if (user !== course.creator) {
+				selectableUsersPicks.push(new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user));
+			}
+		});
+		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
+		quickpickMock.resolveWith(selectedUsers);
+		let addUsersMock = simple.mock(extension.coursesProvider.client, "removeUsersFromCourse");
+
+		await extension.coursesProvider.removeUsersFromCourse(item);
+
+		assert.deepStrictEqual(quickpickMock.callCount, 1, "showQuickPick should be called");
+		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
+		assert.deepStrictEqual(addUsersMock.callCount, 1, "removeUsersFromCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "removeUsersFromCourse should be called");
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
 	});
 });
 

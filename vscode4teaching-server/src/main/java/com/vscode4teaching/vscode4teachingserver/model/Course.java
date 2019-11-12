@@ -2,13 +2,16 @@ package com.vscode4teaching.vscode4teachingserver.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotEmpty;
 
@@ -37,7 +40,11 @@ public class Course {
 
     @ManyToMany
     @JsonView(CourseViews.UsersView.class)
-    private List<User> usersInCourse = new ArrayList<>(); // Includes teachers and students
+    private Set<User> usersInCourse = new HashSet<>(); // Includes teachers and students
+
+    @ManyToOne
+    @JsonView(CourseViews.CreatorView.class)
+    private User creator;
 
     @CreationTimestamp
     @JsonView(CourseViews.GeneralView.class)
@@ -90,11 +97,11 @@ public class Course {
         this.exercises.add(exercise);
     }
 
-    public List<User> getUsersInCourse() {
+    public Set<User> getUsersInCourse() {
         return usersInCourse;
     }
 
-    public void setUsersInCourse(List<User> usersInCourse) {
+    public void setUsersInCourse(Set<User> usersInCourse) {
         this.usersInCourse = usersInCourse;
     }
 
@@ -110,4 +117,15 @@ public class Course {
         return updateDateTime;
     }
 
+	public void removeUserFromCourse(User user) {
+        this.usersInCourse.remove(user);
+	}
+
+    public User getCreator() {
+        return this.creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
 }

@@ -33,7 +33,7 @@ public class User {
 
     @Email(message = "Please provide a valid email")
     @NotEmpty(message = "Please provide an email")
-    @JsonView(UserViews.GeneralView.class)
+    @JsonView(UserViews.EmailView.class)
     @Column(unique = true)
     private String email;
 
