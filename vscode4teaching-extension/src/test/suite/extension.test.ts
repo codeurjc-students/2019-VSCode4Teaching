@@ -825,6 +825,23 @@ suite('Extension Test Suite', () => {
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		let getCourseUsersMock = simple.mock(extension.coursesProvider.client, "getUsersInCourse");
 		getCourseUsersMock.resolveWith({ data: selectableUsers });
+		let getCreatorMock = simple.mock(extension.coursesProvider.client, "getCreator");
+		getCreatorMock.resolveWith({
+			data: {
+				id: 4,
+				username: "johndoeteacher",
+				name: "John",
+				lastName: "Doe Teacher",
+				roles: [
+					{
+						roleName: "ROLE_STUDENT"
+					},
+					{
+						roleName: "ROLE_TEACHER"
+					}
+				]
+			}
+		});
 		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
 		let selectableUsersPicks: UserPick[] = [];
 		selectableUsers.forEach(user => {
