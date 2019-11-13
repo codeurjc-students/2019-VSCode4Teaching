@@ -15,6 +15,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private error401thrown = false;
     private error403thrown = false;
     private loading = false;
+    private downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
 
     getParent(element: V4TItem) {
         return element.parent;
@@ -109,7 +110,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async login() {
         // Ask for server url, then username, then password, and try to log in at the end
-        let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': 'http://localhost:8080' };
+        let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
+        let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
         serverInputOptions.validateInput = this.validateInputCustomUrl;
         let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
         if (url) {
@@ -226,9 +228,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     async getExerciseFiles(courseName: string, exercise: Exercise) {
-        if (this.userinfo && !fs.existsSync(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name))) {
-            // fs.mkdirSync('v4tdownloads' + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exercise.name, { recursive: true });
-            mkdirp.sync(path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name));
+        if (this.userinfo && !fs.existsSync(path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name))) {
+            // fs.mkdirSync(this.downloadDir + path.sep + this.userinfo.username + path.sep + courseName + path.sep + exercise.name, { recursive: true });
+            mkdirp.sync(path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name));
         }
         let requestThenable = this.client.getExerciseFiles(exercise.id);
         vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
@@ -243,7 +245,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 });
                 zip.forEach((relativePath, file) => {
                     if (this.userinfo) {
-                        let v4tpath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name, relativePath);
+                        let v4tpath = path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name, relativePath);
                         if (this.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
                             // fs.mkdirSync(path.dirname(v4tpath), { recursive: true });
                             mkdirp.sync(path.dirname(v4tpath));
@@ -262,7 +264,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         }
                     }
                 });
-                let exPath = path.resolve('v4tdownloads', this.userinfo.username, courseName, exercise.name);
+                let exPath = path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name);
                 // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads
                 fs.writeFileSync(path.resolve(exPath, "v4texercise.v4t"), zipUri, { encoding: "utf8" });
                 return exPath;
