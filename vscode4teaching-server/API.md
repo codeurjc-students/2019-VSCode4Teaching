@@ -11,23 +11,27 @@ Needed header key: `X-XSRF-TOKEN`
 
 - [Login](API.md#login)
 - [Get CSRF Token](API.md#get-csrf-token)
-- [Get current user info](API.md#get-current-user-info)
 - [Register a new student](API.md#register-a-new-student)
 - [Register a new teacher](API.md#register-a-new-teacher)
 - [Get all users](API.md#get-all-users)
+- [Get current user info](API.md#get-current-user-info)
 - [Get all courses](API.md#get-all-courses)
+- [Get course creator](API.md#get-course-creator)
 - [Get users in course](API.md#get-users-in-course)
+- [Get user courses](API.md#get-user-courses)
 - [Add a course](API.md#add-a-course)
-- [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
 - [Edit a course](API.md#edit-a-course)
 - [Delete a course](API.md#delete-a-course)
 - [Add user to course](API.md#add-user-to-course)
 - [Remove user from course](API.md#remove-user-from-course)
 - [Get exercises of a course](API.md#get-exercises-of-a-course)
+- [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
+- [Edit an exercise](API.md#edit-an-exercise)
 - [Delete an exercise](API.md#delete-an-exercise)
 - [Download exercise files](API.md#download-exercise-files)
 - [Download exercise template](API.md#download-exercise-template)
 - [Upload user files](API.md#upload-user-files)
+- [Upload exercise template](API.md#upload-exercise-template)
 
 ## Login
 
@@ -324,6 +328,61 @@ Get all available users.
   ]
   ```
 
+## Get current user info
+
+---
+
+Get currently logged in user information and his courses.
+
+- **Required role**:  
+   Student/Teacher
+- **URL**  
+   `/api/currentuser`
+- **Method**  
+   `GET`
+- **Success Response (Courses Found)**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+    {
+      "id": 3,
+      "username": "johndoe",
+      "name": "John",
+      "lastName": "Doe",
+      "roles": [
+          {
+              "roleName": "ROLE_STUDENT"
+          },
+          {
+              "roleName": "ROLE_TEACHER"
+          }
+      ],
+      "courses": [
+          {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          {
+              "id": 8,
+              "name": "Angular Course",
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          {
+              "id": 9,
+              "name": "VSCode Extension API Course",
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          }
+      ],
+      "createDateTime": "2019-11-14T11:46:11",
+      "updateDateTime": "2019-11-14T11:46:11"
+  }
+  ```
+
 ## Get all courses
 
 ---
@@ -342,18 +401,72 @@ Get all available courses.
 
   ```json
   [
-    {
-      "id": 1,
-      "name": "Spring Boot Course"
-    },
-    {
-      "id": 2,
-      "name": "Angular Course"
-    },
-    {
-      "id": 3,
-      "name": "VSCode Extension API Course"
-    }
+      {
+          "id": 7,
+          "name": "Spring Boot Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:37:05",
+              "updateDateTime": "2019-11-14T11:37:05"
+          },
+          "createDateTime": "2019-11-14T11:37:05",
+          "updateDateTime": "2019-11-14T11:37:05"
+      },
+      {
+          "id": 8,
+          "name": "Angular Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:37:05",
+              "updateDateTime": "2019-11-14T11:37:05"
+          },
+          "createDateTime": "2019-11-14T11:37:05",
+          "updateDateTime": "2019-11-14T11:37:05"
+      },
+      {
+          "id": 9,
+          "name": "VSCode Extension API Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:37:05",
+              "updateDateTime": "2019-11-14T11:37:05"
+          },
+          "createDateTime": "2019-11-14T11:37:05",
+          "updateDateTime": "2019-11-14T11:37:05"
+      }
   ]
   ```
 
@@ -371,6 +484,8 @@ Get the creator of a course.
    None
 - **URL**  
    `/api/courses/:courseId/creator`
+   **Example**:
+   `/api/courses/7/creator`
 - **Method**  
    `GET`
 - **Success Response**
@@ -379,20 +494,20 @@ Get the creator of a course.
 
   ```json
   {
-       "id": 3,
-       "username": "johndoe",
-       "name": "John",
+      "id": 3,
+      "username": "johndoe",
+      "name": "John",
       "lastName": "Doe",
-       "roles": [
-           {
-                "roleName": "ROLE_STUDENT"
-           },
-           {
+      "roles": [
+          {
+              "roleName": "ROLE_STUDENT"
+          },
+          {
               "roleName": "ROLE_TEACHER"
-           }
-       ],
-      "createDateTime": "2019-11-12T00:22:13",
-      "updateDateTime": "2019-11-12T00:22:13"
+          }
+      ],
+      "createDateTime": "2019-11-14T11:46:11",
+      "updateDateTime": "2019-11-14T11:46:11"
   }
   ```
 
@@ -500,18 +615,72 @@ Get courses available to the user. User indicated has to be the same as the user
 
   ```json
   [
-    {
-      "id": 1,
-      "name": "Spring Boot Course"
-    },
-    {
-      "id": 2,
-      "name": "Angular Course"
-    },
-    {
-      "id": 3,
-      "name": "VSCode Extension API Course"
-    }
+      {
+          "id": 7,
+          "name": "Spring Boot Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 8,
+          "name": "Angular Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 9,
+          "name": "VSCode Extension API Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      }
   ]
   ```
 
@@ -548,8 +717,26 @@ Add a course to the system. Saves the course in the name of the current logged i
 
   ```json
   {
-    "id": 1,
-    "name": "Spring Boot Course"
+      "id": 343,
+      "name": "New course",
+      "creator": {
+          "id": 3,
+          "username": "johndoe",
+          "name": "John",
+          "lastName": "Doe",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              },
+              {
+                  "roleName": "ROLE_TEACHER"
+              }
+          ],
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      "createDateTime": "2019-11-14T11:47:58.929",
+      "updateDateTime": "2019-11-14T11:47:58.929"
   }
   ```
 
@@ -576,78 +763,6 @@ Add a course to the system. Saves the course in the name of the current logged i
   }
   ```
 
-## Add an exercise to a course
-
----
-
-Adds a new exercise to an existing course.
-
-- **Required role**:  
-   Teacher
-- **URL**  
-   `/api/courses/:id/exercises`
-- **Method**  
-   `POST`
-- **URL Params**
-  - **Required**:
-    - `id=[long]`
-  - **Example**:  
-    `/api/courses/1/exercises`
-- **Data Params**
-  - **Required**:  
-    `"name": [string]` - Between 10 and 100 characters
-  - **Example**:
-
-  ```json
-  {
-    "name": "Spring Boot Exercise 1"
-  }
-  ```
-
-- **Success Response**
-  - **Code**: 201
-  - **Content**:
-
-  ```json
-  {
-    "id": 1,
-    "name": "Spring Boot Course",
-    "exercises": [
-      {
-        "id": 2,
-        "name": "Spring Boot Exercise 1"
-      }
-    ]
-  }
-  ```
-
-- **Error Response**
-  - **Code**: 400
-  - **Content**:
-
-  ```json
-  {
-    "errors": [
-      {
-        "fieldName": "name",
-        "message": "Name cannot be empty"
-      },
-      {
-        "fieldName": "name",
-        "message": "Exercise name should be between 10 and 100 characters"
-      }
-    ]
-  }
-  ```
-
-  OR
-  - **Code**: 404
-  - **Content**:
-
-  ```text
-      Not found: Course not found.
-  ```
-
 ## Edit a course
 
 ---
@@ -657,15 +772,14 @@ Edit course fields. Currently you can edit with this method: name.
 - **Required role**:  
    Teacher
 - **URL**  
-   `/api/courses/:courseId/exercises/:exerciseId`
+   `/api/courses/:courseId`
 - **Method**  
-   `POST`
+   `PUT`
 - **URL Params**
   - **Required**:  
-     `courseId=[long]`  
-     `exerciseId=[long]`
+     `courseId=[long]`
   - **Example**:  
-    `/api/courses/1/exercises`
+    `/api/courses/1`
 - **Data Params**
   - **Required**:  
     `"name": [string]` - Between 10 and 100 characters
@@ -683,8 +797,26 @@ Edit course fields. Currently you can edit with this method: name.
 
   ```json
   {
-    "id": 1,
-    "name": "Spring Boot Course v2"
+      "id": 343,
+      "name": "Edited course",
+      "creator": {
+          "id": 3,
+          "username": "johndoe",
+          "name": "John",
+          "lastName": "Doe",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              },
+              {
+                  "roleName": "ROLE_TEACHER"
+              }
+          ],
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      "createDateTime": "2019-11-14T11:47:58",
+      "updateDateTime": "2019-11-14T11:49:12.301"
   }
   ```
 
@@ -701,7 +833,7 @@ Edit course fields. Currently you can edit with this method: name.
       },
       {
         "fieldName": "name",
-        "message": "Exercise name should be between 10 and 100 characters"
+        "message": "Course name should be between 10 and 100 characters"
       }
     ]
   }
@@ -946,31 +1078,147 @@ Get all exercise of a course. Logged user has to be a member of this course.
   - **Content**:
 
   ```json
-  [
-    {
-      "id": 10,
-      "name": "Exercise 1",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
+    [
+      {
+          "id": 10,
+          "name": "Exercise 1",
+          "course": {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "creator": {
+                  "id": 3,
+                  "username": "johndoe",
+                  "name": "John",
+                  "lastName": "Doe",
+                  "roles": [
+                      {
+                          "roleName": "ROLE_STUDENT"
+                      },
+                      {
+                          "roleName": "ROLE_TEACHER"
+                      }
+                  ],
+                  "createDateTime": "2019-11-14T11:46:11",
+                  "updateDateTime": "2019-11-14T11:46:11"
+              },
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 11,
+          "name": "Exercise 2",
+          "course": {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "creator": {
+                  "id": 3,
+                  "username": "johndoe",
+                  "name": "John",
+                  "lastName": "Doe",
+                  "roles": [
+                      {
+                          "roleName": "ROLE_STUDENT"
+                      },
+                      {
+                          "roleName": "ROLE_TEACHER"
+                      }
+                  ],
+                  "createDateTime": "2019-11-14T11:46:11",
+                  "updateDateTime": "2019-11-14T11:46:11"
+              },
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 12,
+          "name": "Exercise 3",
+          "course": {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "creator": {
+                  "id": 3,
+                  "username": "johndoe",
+                  "name": "John",
+                  "lastName": "Doe",
+                  "roles": [
+                      {
+                          "roleName": "ROLE_STUDENT"
+                      },
+                      {
+                          "roleName": "ROLE_TEACHER"
+                      }
+                  ],
+                  "createDateTime": "2019-11-14T11:46:11",
+                  "updateDateTime": "2019-11-14T11:46:11"
+              },
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 13,
+          "name": "Exercise 4",
+          "course": {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "creator": {
+                  "id": 3,
+                  "username": "johndoe",
+                  "name": "John",
+                  "lastName": "Doe",
+                  "roles": [
+                      {
+                          "roleName": "ROLE_STUDENT"
+                      },
+                      {
+                          "roleName": "ROLE_TEACHER"
+                      }
+                  ],
+                  "createDateTime": "2019-11-14T11:46:11",
+                  "updateDateTime": "2019-11-14T11:46:11"
+              },
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      {
+          "id": 14,
+          "name": "Exercise 5",
+          "course": {
+              "id": 7,
+              "name": "Spring Boot Course",
+              "creator": {
+                  "id": 3,
+                  "username": "johndoe",
+                  "name": "John",
+                  "lastName": "Doe",
+                  "roles": [
+                      {
+                          "roleName": "ROLE_STUDENT"
+                      },
+                      {
+                          "roleName": "ROLE_TEACHER"
+                      }
+                  ],
+                  "createDateTime": "2019-11-14T11:46:11",
+                  "updateDateTime": "2019-11-14T11:46:11"
+              },
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
       }
-    },
-    {
-      "id": 11,
-      "name": "Exercise 2",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
-      }
-    },
-    {
-      "id": 12,
-      "name": "Exercise 3",
-      "course": {
-        "id": 7,
-        "name": "Spring Boot Course"
-      }
-    }
   ]
   ```
 
@@ -983,6 +1231,187 @@ Get all exercise of a course. Logged user has to be a member of this course.
 
   ```text
   Not found: Course not found: 15
+  ```
+
+## Add an exercise to a course
+
+---
+
+Adds a new exercise to an existing course.
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/courses/:id/exercises`
+- **Method**  
+   `POST`
+- **URL Params**
+  - **Required**:
+    - `id=[long]`
+  - **Example**:  
+    `/api/courses/1/exercises`
+- **Data Params**
+  - **Required**:  
+    `"name": [string]` - Between 10 and 100 characters
+  - **Example**:
+
+  ```json
+  {
+    "name": "Spring Boot Exercise 1"
+  }
+  ```
+
+- **Success Response**
+  - **Code**: 201
+  - **Content**:
+
+  ```json
+  {
+      "id": 344,
+      "name": "New exercise",
+      "course": {
+          "id": 7,
+          "name": "Spring Boot Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      "createDateTime": "2019-11-14T11:55:15.553",
+      "updateDateTime": "2019-11-14T11:55:15.553"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 400
+  - **Content**:
+
+  ```json
+  {
+    "errors": [
+      {
+        "fieldName": "name",
+        "message": "Name cannot be empty"
+      },
+      {
+        "fieldName": "name",
+        "message": "Exercise name should be between 10 and 100 characters"
+      }
+    ]
+  }
+  ```
+
+  OR
+
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: Course not found.
+  ```
+
+## Edit an exercise
+
+---
+
+Edits an exercise fields.
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/exercises/:exerciseId`
+- **Method**  
+   `PUT`
+- **URL Params**
+  - **Required**:  
+     `exerciseId=[long]`
+  - **Example**:  
+    `/api/exercises/344`
+- **Data Params**
+  - **Required**:  
+    `"name": [string]` - Between 10 and 100 characters
+  - **Example**:
+
+  ```json
+  {
+    "name": "Edited exercise"
+  }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 344,
+      "name": "Edited exercise",
+      "course": {
+          "id": 7,
+          "name": "Spring Boot Course",
+          "creator": {
+              "id": 3,
+              "username": "johndoe",
+              "name": "John",
+              "lastName": "Doe",
+              "roles": [
+                  {
+                      "roleName": "ROLE_STUDENT"
+                  },
+                  {
+                      "roleName": "ROLE_TEACHER"
+                  }
+              ],
+              "createDateTime": "2019-11-14T11:46:11",
+              "updateDateTime": "2019-11-14T11:46:11"
+          },
+          "createDateTime": "2019-11-14T11:46:11",
+          "updateDateTime": "2019-11-14T11:46:11"
+      },
+      "createDateTime": "2019-11-14T11:55:15",
+      "updateDateTime": "2019-11-14T11:56:41.523"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 400
+  - **Content**:
+
+  ```json
+  {
+    "errors": [
+      {
+        "fieldName": "name",
+        "message": "Name cannot be empty"
+      },
+      {
+        "fieldName": "name",
+        "message": "Exercise name should be between 10 and 100 characters"
+      }
+    ]
+  }
+  ```
+
+  OR
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: Course not found: 15.
   ```
 
 ## Delete an exercise

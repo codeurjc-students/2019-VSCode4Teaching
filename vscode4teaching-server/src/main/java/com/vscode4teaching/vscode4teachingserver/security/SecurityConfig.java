@@ -43,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
         .authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf")
+            .antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator")
                 .permitAll()
             .antMatchers(HttpMethod.POST, "/api/login", "/api/register")
                 .permitAll()
