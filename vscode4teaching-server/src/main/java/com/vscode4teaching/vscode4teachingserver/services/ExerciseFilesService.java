@@ -28,4 +28,6 @@ public interface ExerciseFilesService {
 
         public List<File> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
                         throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
+
+        public List<File> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException;
 }

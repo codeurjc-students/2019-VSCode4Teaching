@@ -241,4 +241,29 @@ public class ExerciseFilesControllerTests {
                                 .isEqualTo("attachment; filename=\"template-1.zip\"");
                 verify(filesService, times(1)).getExerciseTemplate(anyLong(), anyString());
         }
+
+        @Test
+        public void getAllStudentFiles() throws Exception {
+                List<File> files = new ArrayList<>();
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej2.txt"));
+                for (File file : files) {
+                        file.getParentFile().mkdirs();
+                        file.createNewFile();
+                }
+                when(filesService.getAllStudentsFiles(1l, "johndoe")).thenReturn(files);
+
+                MvcResult result = mockMvc.perform(get("/api/exercises/1/teachers/files").contentType("application/zip")
+                                .with(csrf()).header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andExpect(status().isOk()).andReturn();
+                logger.info(result.toString());
+
+                assertThat(result.getResponse().getHeader("Content-Disposition"))
+                                .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
+                verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
+        }
 }

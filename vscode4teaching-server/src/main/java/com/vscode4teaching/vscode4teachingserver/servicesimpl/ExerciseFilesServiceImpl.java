@@ -151,4 +151,14 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             return template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList());
         }
     }
+
+    @Override
+    public List<File> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
+        List<ExerciseFile> files = exercise.getStudentOnlyFiles();
+        return files.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList());
+    }
 }
