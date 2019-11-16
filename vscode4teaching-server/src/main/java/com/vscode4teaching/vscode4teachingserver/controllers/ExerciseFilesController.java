@@ -100,6 +100,16 @@ public class ExerciseFilesController {
         exportToZip(response, files, username);
     }
 
+    @GetMapping("/exercises/{id}/teachers/files")
+    public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
+        String username = jwtTokenUtil.getUsernameFromToken(request);
+        List<File> files = filesService.getAllStudentsFiles(id, username);
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Disposition", "attachment; filename=\"exercise-" + id + "-files.zip\"");
+        exportToZip(response, files, username);
+    }
+
     private void exportToZip(HttpServletResponse response, List<File> files, String username) throws IOException {
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {
