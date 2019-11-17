@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
@@ -97,7 +98,8 @@ public class ExerciseFilesServiceImplTests {
                 Optional<Exercise> exOpt = Optional.of(exercise);
                 when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-                List<File> files = filesService.getExerciseFiles(1l, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1l, "johndoe");
+                List<File> files = filesMap.values().stream().findFirst().get();
 
                 assertThat(files.size()).isEqualTo(2);
                 assertThat(files.get(0).getPath().replace("\\", "/"))
@@ -140,7 +142,8 @@ public class ExerciseFilesServiceImplTests {
                 Optional<Exercise> exOpt = Optional.of(exercise);
                 when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-                List<File> files = filesService.getExerciseFiles(1l, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1l, "johndoe");
+                List<File> files = filesMap.values().stream().findFirst().get();
 
                 logger.info(files.get(0).getAbsolutePath());
                 logger.info(files.get(1).getAbsolutePath());
@@ -199,7 +202,8 @@ public class ExerciseFilesServiceImplTests {
                 MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
                                 new FileInputStream(file));
 
-                List<File> savedFiles = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
+                List<File> savedFiles = filesMap.values().stream().findFirst().get();
 
                 assertThat(Files.exists(Paths.get("null/"))).isTrue();
                 assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
@@ -268,7 +272,8 @@ public class ExerciseFilesServiceImplTests {
                 MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
                                 new FileInputStream(file));
 
-                List<File> savedFiles = filesService.saveExerciseTemplate(1l, mockFile, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(1l, mockFile, "johndoe");
+                List<File> savedFiles = filesMap.values().stream().findFirst().get();
 
                 assertThat(Files.exists(Paths.get("null/"))).isTrue();
                 assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
@@ -336,7 +341,8 @@ public class ExerciseFilesServiceImplTests {
                 Optional<Exercise> exOpt = Optional.of(exercise);
                 when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-                List<File> files = filesService.getExerciseTemplate(1l, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(1l, "johndoe");
+                List<File> files = filesMap.values().stream().findFirst().get();
 
                 assertThat(files.size()).isEqualTo(2);
                 assertThat(files.get(0).getPath().replace("\\", "/"))
@@ -417,7 +423,8 @@ public class ExerciseFilesServiceImplTests {
                 Optional<Exercise> exOpt = Optional.of(exercise);
                 when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-                List<File> files = filesService.getAllStudentsFiles(1l, "johndoe");
+                Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(1l, "johndoe");
+                List<File> files = filesMap.values().stream().findFirst().get();
 
                 assertThat(files.size()).isEqualTo(6);
                 assertThat(files.get(0).getPath().replace("\\", "/"))

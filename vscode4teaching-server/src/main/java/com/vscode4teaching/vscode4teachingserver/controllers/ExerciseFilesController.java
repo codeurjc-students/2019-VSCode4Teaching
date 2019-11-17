@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UploadFileResponse;
+import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
@@ -48,12 +50,14 @@ public class ExerciseFilesController {
     public void downloadExerciseFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        List<File> files = filesService.getExerciseFiles(id, username);
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
+        List<File> files = filesMap.values().stream().findFirst().get();
         String zipName = files.get(0).getParentFile().getName().equals("template") ? "template-" + id
                 : "exercise-" + id + "-" + username;
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
-        exportToZip(response, files, username);
+        String separator = files.get(0).getParentFile().getName().equals("template") ? "template" : username;
+        exportToZip(response, files, separator);
     }
 
     @PostMapping("/exercises/{id}/files")
@@ -61,7 +65,8 @@ public class ExerciseFilesController {
             @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        List<File> files = filesService.saveExerciseFiles(id, zip, username);
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
+        List<File> files = filesMap.values().stream().findFirst().get();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String pattern = fileSeparatorPattern + username + fileSeparatorPattern;
@@ -78,7 +83,8 @@ public class ExerciseFilesController {
             @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        List<File> files = filesService.saveExerciseTemplate(id, zip, username);
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
+        List<File> files = filesMap.values().stream().findFirst().get();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
@@ -94,32 +100,35 @@ public class ExerciseFilesController {
     public void getTemplate(@PathVariable Long id, HttpServletResponse response, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        List<File> files = filesService.getExerciseTemplate(id, username);
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(id, username);
+        List<File> files = filesMap.values().stream().findFirst().get();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"template-" + id + ".zip\"");
-        exportToZip(response, files, username);
+        exportToZip(response, files, "template");
     }
 
     @GetMapping("/exercises/{id}/teachers/files")
     public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        List<File> files = filesService.getAllStudentsFiles(id, username);
+        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
+        List<File> files = filesMap.values().stream().findFirst().get();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"exercise-" + id + "-files.zip\"");
-        exportToZip(response, files, username);
+        String exerciseDirectory = filesMap.keySet().stream().findFirst().get().getName().toLowerCase().replace(" ",
+                "_") + "_" + id;
+        exportToZip(response, files, exerciseDirectory);
     }
 
-    private void exportToZip(HttpServletResponse response, List<File> files, String username) throws IOException {
+    private void exportToZip(HttpServletResponse response, List<File> files, String parentDirectory)
+            throws IOException {
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {
             String fileSeparatorPattern = Pattern.quote(File.separator);
-            String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
-            String[] filePath = file.getCanonicalPath().split(pattern);
-            if (filePath.length < 2) {
-                pattern = fileSeparatorPattern + username + fileSeparatorPattern;
-                filePath = file.getCanonicalPath().split(pattern);
-            }
+            String pattern = null;
+            String[] filePath = null;
+            pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
+            filePath = file.getCanonicalPath().split(pattern);
             zipOutputStream.putNextEntry(new ZipEntry(filePath[filePath.length - 1]));
             FileInputStream fileInputStream = new FileInputStream(file);
 
