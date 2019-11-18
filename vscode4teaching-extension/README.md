@@ -22,7 +22,10 @@
 
 ## Installing
 
-The extension will be uploaded to the marketplace when te first roadmap milestone is completed. Until then to run the extension check the sections below.
+Download the latest release from [Releases](https://github.com/codeurjc-students/2019-VSCode4Teaching/releases/latest) (vscode4teaching-0.1.0.vsix file).
+Then run the following command in the download directory:
+`code --install-extension vscode4teaching-0.1.0.vsix`
+Note that the file name could be different depending on version, etc.
 
 ## Development
 

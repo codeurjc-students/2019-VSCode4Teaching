@@ -11,3 +11,4 @@ vsc-extension-quickstart.md
 .git/**
 .scannerwork/**
 doc_images/**
+test-resources/**
