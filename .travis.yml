@@ -38,9 +38,9 @@ matrix:
     - docker
     script:
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t ivchicano/vscode4teaching-server:0.0.1 .
+    - docker build -t ivchicano/vscode4teaching-server:0.1.0 .
     - docker build -t ivchicano/vscode4teaching-server:latest .
-    - docker push ivchicano/vscode4teaching-server:0.0.1
+    - docker push ivchicano/vscode4teaching-server:0.1.0
     - docker push ivchicano/vscode4teaching-server:latest
     before_script:
     - cd ./vscode4teaching-server/
