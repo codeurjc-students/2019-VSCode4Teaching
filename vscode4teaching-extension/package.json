@@ -12,7 +12,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "0.0.1-SNAPSHOT",
+	"version": "0.1",
 	"license": "Apache-2.0",
 	"enableProposedApi": true,
 	"engines": {
@@ -244,9 +244,12 @@
 		"mocha": "^6.2.2",
 		"rimraf": "^3.0.0",
 		"simple-mock": "^0.8.0",
+		"ts-loader": "^6.2.1",
 		"tslint": "^5.20.1",
 		"typescript": "^3.7.2",
-		"vscode-test": "^1.2.3"
+		"vscode-test": "^1.2.3",
+		"webpack": "^4.41.2",
+		"webpack-cli": "^3.3.10"
 	},
 	"dependencies": {
 		"axios": "^0.19.0",
