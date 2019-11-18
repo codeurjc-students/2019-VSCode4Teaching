@@ -56,7 +56,9 @@ public class ExerciseFilesController {
                 : "exercise-" + id + "-" + username;
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
-        String separator = files.get(0).getParentFile().getName().equals("template") ? "template" : username;
+        String fileSeparatorPattern = Pattern.quote(File.separator);
+        String separator = files.get(0).getAbsolutePath()
+                .split(fileSeparatorPattern + "template" + fileSeparatorPattern).length > 1 ? "template" : username;
         exportToZip(response, files, separator);
     }
 

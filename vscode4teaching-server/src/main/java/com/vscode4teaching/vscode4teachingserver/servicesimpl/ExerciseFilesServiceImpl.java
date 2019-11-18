@@ -122,7 +122,11 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 exFile.setOwner(user);
                 ExerciseFile savedFile = fileRepository.save(exFile);
-                exercise.addUserFile(savedFile);
+                if (isTemplate) {
+                    exercise.addFileToTemplate(savedFile);
+                } else {
+                    exercise.addUserFile(savedFile);
+                }
             }
             zipEntry = zis.getNextEntry();
         }
