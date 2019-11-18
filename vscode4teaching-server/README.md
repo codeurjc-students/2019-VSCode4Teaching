@@ -51,9 +51,9 @@ The server needs a directory with read and write permissions to save exercises' 
 It is recommended to use docker-compose to run the server. [Link to the section about Docker](README.md#Docker).  
 If you want to run the application standalone, check below for information:  
 Important: the server needs a MySQL database running. Check below for possible arguments for configuring database host, user, password, etc.  
-No installation required, just run the JAR file as follows.  
-`java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar`  
-Where `vscode4teaching-server-0.0.1-SNAPSHOT.jar` is the route of the JAR file in you file system.  
+No installation required, just download and run the JAR file as follows (download from [Releases](https://github.com/codeurjc-students/2019-VSCode4Teaching/releases/latest)).  
+`java -jar vscode4teaching-server-0.1.0-SNAPSHOT.jar`  
+Where `vscode4teaching-server-0.1.0-SNAPSHOT.jar` is the route of the JAR file in you file system.  
 Note that the name of the .jar file can change depending on the version of the server you're running.  
 
 ### Arguments/Environment variables
