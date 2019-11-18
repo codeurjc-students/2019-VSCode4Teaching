@@ -74,19 +74,19 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     }
 
     @Override
-    public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
+    public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file,
+            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
         return saveFiles(exerciseId, file, requestUsername, false);
     }
 
     @Override
-    public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
+    public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file,
+            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
         return saveFiles(exerciseId, file, requestUsername, true);
     }
 
-    private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername, boolean isTemplate)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
+    private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
+            boolean isTemplate) throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
@@ -120,11 +120,12 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                     }
                 }
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
-                exFile.setOwner(user);
-                ExerciseFile savedFile = fileRepository.save(exFile);
                 if (isTemplate) {
+                    ExerciseFile savedFile = fileRepository.save(exFile);
                     exercise.addFileToTemplate(savedFile);
                 } else {
+                    exFile.setOwner(user);
+                    ExerciseFile savedFile = fileRepository.save(exFile);
                     exercise.addUserFile(savedFile);
                 }
             }
@@ -161,7 +162,8 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             throw new NoTemplateException(exerciseId);
         } else {
             Map<Exercise, List<File>> filesMap = new HashMap<>();
-            filesMap.put(exercise, template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+            filesMap.put(exercise,
+                    template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
             return filesMap;
         }
     }
@@ -174,7 +176,8 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
         List<ExerciseFile> files = exercise.getStudentOnlyFiles();
         Map<Exercise, List<File>> filesMap = new HashMap<>();
-        filesMap.put(exercise, files.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+        filesMap.put(exercise,
+                files.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
         return filesMap;
     }
 }

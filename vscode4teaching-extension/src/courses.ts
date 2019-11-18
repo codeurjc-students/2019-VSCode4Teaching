@@ -237,6 +237,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let response = await requestThenable;
                 let zip = await JSZip.loadAsync(response.data);
                 // Save ZIP for FSW operations
+                if (!fs.existsSync(path.resolve(__dirname, "v4t", this.userinfo.username))) {
+                    mkdirp.sync(path.resolve(__dirname, "v4t", this.userinfo.username));
+                }
                 let zipUri = path.resolve(__dirname, "v4t", this.userinfo.username, exercise.id + ".zip");
                 zip.generateAsync({ type: "nodebuffer" }).then(ab => {
                     fs.writeFileSync(zipUri, ab);

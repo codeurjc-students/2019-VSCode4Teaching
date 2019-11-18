@@ -291,26 +291,23 @@ public class ExerciseFilesServiceImplTests {
                 assertThat(Files.readAllLines(
                                 Paths.get("null/spring_boot_course_4/exercise_1_1/template/ex3/ex3.html")))
                                                 .contains("<html>Exercise 3</html>");
-                assertThat(exercise.getUserFiles()).hasSize(3);
-                assertThat(exercise.getUserFiles().get(0).getOwner()).isEqualTo(teacher);
-                assertThat(exercise.getUserFiles().get(1).getOwner()).isEqualTo(teacher);
-                assertThat(exercise.getUserFiles().get(2).getOwner()).isEqualTo(teacher);
-                assertThat(exercise.getUserFiles().get(0).getPath()).isEqualToIgnoringCase(
+                assertThat(exercise.getTemplate()).hasSize(3);
+                assertThat(exercise.getTemplate().get(0).getPath()).isEqualToIgnoringCase(
                                 Paths.get("null/spring_boot_course_4/exercise_1_1/template/ex1.html").toAbsolutePath()
                                                 .toString());
-                assertThat(exercise.getUserFiles().get(1).getPath()).isEqualToIgnoringCase(
+                assertThat(exercise.getTemplate().get(1).getPath()).isEqualToIgnoringCase(
                                 Paths.get("null/spring_boot_course_4/exercise_1_1/template/ex2.html").toAbsolutePath()
                                                 .toString());
-                assertThat(exercise.getUserFiles().get(2).getPath()).isEqualToIgnoringCase(
+                assertThat(exercise.getTemplate().get(2).getPath()).isEqualToIgnoringCase(
                                 Paths.get("null/spring_boot_course_4/exercise_1_1/template/ex3/ex3.html")
                                                 .toAbsolutePath().toString());
                 assertThat(savedFiles.size()).isEqualTo(3);
                 assertThat(savedFiles.get(0).getAbsolutePath())
-                                .isEqualToIgnoringCase(exercise.getUserFiles().get(0).getPath());
+                                .isEqualToIgnoringCase(exercise.getTemplate().get(0).getPath());
                 assertThat(savedFiles.get(1).getAbsolutePath())
-                                .isEqualToIgnoringCase(exercise.getUserFiles().get(1).getPath());
+                                .isEqualToIgnoringCase(exercise.getTemplate().get(1).getPath());
                 assertThat(savedFiles.get(2).getAbsolutePath())
-                                .isEqualToIgnoringCase(exercise.getUserFiles().get(2).getPath());
+                                .isEqualToIgnoringCase(exercise.getTemplate().get(2).getPath());
                 verify(exerciseRepository, times(1)).findById(anyLong());
                 verify(userRepository, times(1)).findByUsername(anyString());
                 verify(fileRepository, times(3)).save(any(ExerciseFile.class));
