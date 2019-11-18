@@ -66,9 +66,18 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.removeUsersFromCourse(item);
 	});
 
+	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
+		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
+			if (newWorkspaceURI) {
+				let uri = vscode.Uri.file(newWorkspaceURI);
+				await vscode.commands.executeCommand('vscode.openFolder', uri);
+			}
+		});
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse);
+		removeUsersFromCourse, getStudentFiles);
 }
 
 export function deactivate() { }

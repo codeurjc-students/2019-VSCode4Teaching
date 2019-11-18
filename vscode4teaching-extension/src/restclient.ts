@@ -117,6 +117,10 @@ export class RestClient {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "POST", false, dataForm));
     }
 
+    getAllStudentFiles(exerciseId: number) {
+        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/teachers/files", "GET", true));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

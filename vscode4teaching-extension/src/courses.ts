@@ -16,6 +16,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private error403thrown = false;
     private loading = false;
     private downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
+    private LOGIN_ITEM = [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+        'command': 'vscode4teaching.login',
+        'title': 'Log in to VS Code 4 Teaching'
+    })];
 
     getParent(element: V4TItem) {
         return element.parent;
@@ -36,13 +40,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     if (course.exercises.length > 0) {
                         // Map exercises to TreeItems
                         let type: V4TItemType;
+                        let commandName: string;
                         if (this.userinfo && this.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0) {
                             type = V4TItemType.ExerciseTeacher;
+                            commandName = 'vscode4teaching.getstudentfiles';
                         } else {
                             type = V4TItemType.ExerciseStudent;
+                            commandName = 'vscode4teaching.getexercisefiles';
                         }
                         return course.exercises.map(exercise => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
-                            'command': 'vscode4teaching.getexercisefiles',
+                            'command': commandName,
                             'title': 'Get exercise files',
                             'arguments': [course ? course.name : null, exercise] // course condition is needed to avoid compilation error, shouldn't be false
                         }));
@@ -62,15 +69,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             this.getChildren();
                         }
                     } catch (error) {
-                        return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-                            'command': 'vscode4teaching.login',
-                            'title': 'Log in to VS Code 4 Teaching'
-                        })];
+                        return this.LOGIN_ITEM;
                     }
-                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-                        'command': 'vscode4teaching.login',
-                        'title': 'Log in to VS Code 4 Teaching'
-                    })];
+                    return this.LOGIN_ITEM;
                 } else {
                     if ((!this.userinfo || !this.userinfo.courses) && !this.error401thrown && !this.error403thrown) {
                         this.loading = true;
@@ -99,10 +100,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         }
                         return items;
                     }
-                    return [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-                        'command': 'vscode4teaching.login',
-                        'title': 'Log in to VS Code 4 Teaching'
-                    })];
+                    return this.LOGIN_ITEM;
                 }
             }
         }
@@ -267,6 +265,45 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let exPath = path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name);
                 // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads
                 fs.writeFileSync(path.resolve(exPath, "v4texercise.v4t"), zipUri, { encoding: "utf8" });
+                return exPath;
+            } else {
+                return Promise.resolve(null); // should never happen
+            }
+        } catch (error) {
+            this.handleAxiosError(error);
+        }
+    }
+
+    async getStudentFiles(courseName: string, exercise: Exercise) {
+        if (this.userinfo && !fs.existsSync(path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name))) {
+            mkdirp.sync(path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name));
+        }
+        try {
+            if (this.userinfo) {
+                let requestThenable = this.client.getAllStudentFiles(exercise.id);
+                vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
+                let response = await requestThenable;
+                let zip = await JSZip.loadAsync(response.data);
+                zip.forEach((relativePath, file) => {
+                    if (this.userinfo) {
+                        let v4tpath = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name, relativePath);
+                        if (this.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
+                            mkdirp.sync(path.dirname(v4tpath));
+                        }
+                        if (file.dir && !fs.existsSync(v4tpath)) {
+                            mkdirp.sync(v4tpath);
+                        } else {
+                            file.async('nodebuffer').then(fileData => {
+                                if (!fs.existsSync(v4tpath)) {
+                                    fs.writeFileSync(v4tpath, fileData);
+                                }
+                            }).catch(error => {
+                                console.error(error);
+                            });
+                        }
+                    }
+                });
+                let exPath = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name);
                 return exPath;
             } else {
                 return Promise.resolve(null); // should never happen
@@ -555,6 +592,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
+
+
 }
 
 export class UserPick implements vscode.QuickPickItem {
