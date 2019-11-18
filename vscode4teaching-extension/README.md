@@ -57,6 +57,11 @@ You can get the exercise template or your own files by clicking on an exercise.
 
 ### Teacher features
 
+#### Get student files
+
+If you are a teacher, clicking on an exercise will instead download de files of all students so that you can see their progress.
+![Get student files](doc_images/GetStudentFiles.gif)
+
 #### Add Course
 
 A teacher can create new courses.

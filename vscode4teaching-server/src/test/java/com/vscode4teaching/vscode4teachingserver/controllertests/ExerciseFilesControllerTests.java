@@ -21,12 +21,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UploadFileResponse;
+import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -88,6 +91,8 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void downloadFilesFromExercise_exercise() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
                 List<File> files = new ArrayList<>();
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej1.txt"));
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej2.txt"));
@@ -95,7 +100,9 @@ public class ExerciseFilesControllerTests {
                         file.getParentFile().mkdirs();
                         file.createNewFile();
                 }
-                when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(files);
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, files);
+                when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(returnMap);
 
                 MvcResult result = mockMvc
                                 .perform(get("/api/exercises/1/files").contentType("application/zip").with(csrf())
@@ -110,6 +117,8 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void downloadFilesFromExercise_template() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
                 List<File> files = new ArrayList<>();
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt"));
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej2.txt"));
@@ -117,7 +126,9 @@ public class ExerciseFilesControllerTests {
                         file.getParentFile().mkdirs();
                         file.createNewFile();
                 }
-                when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(files);
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, files);
+                when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(returnMap);
 
                 MvcResult result = mockMvc
                                 .perform(get("/api/exercises/1/files").contentType("application/zip").with(csrf())
@@ -132,6 +143,8 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void uploadFile() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
                 byte[] mock = null;
                 MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
                 Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3"));
@@ -148,8 +161,10 @@ public class ExerciseFilesControllerTests {
                 File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex1.html");
                 File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex2.html");
                 File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex3/ex3.html");
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
                 when(filesService.saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString()))
-                                .thenReturn(Arrays.asList(mockFile1, mockFile2, mockFile3));
+                                .thenReturn(returnMap);
 
                 MvcResult result = mockMvc
                                 .perform(multipart("/api/exercises/1/files").file(mockMultiFile1).with(csrf())
@@ -184,6 +199,8 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void uploadTemplate() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
                 byte[] mock = null;
                 MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
                 Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/template/ex3"));
@@ -201,8 +218,10 @@ public class ExerciseFilesControllerTests {
                 File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/", "ex2.html");
                 File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/template/",
                                 "ex3/ex3.html");
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
                 when(filesService.saveExerciseTemplate(anyLong(), any(MultipartFile.class), anyString()))
-                                .thenReturn(Arrays.asList(mockFile1, mockFile2, mockFile3));
+                                .thenReturn(returnMap);
 
                 MvcResult result = mockMvc
                                 .perform(multipart("/api/exercises/1/files/template").file(mockMultiFile1).with(csrf())
@@ -223,6 +242,8 @@ public class ExerciseFilesControllerTests {
 
         @Test
         public void getTemplate() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
                 List<File> files = new ArrayList<>();
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt"));
                 files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/template/ej2.txt"));
@@ -230,7 +251,9 @@ public class ExerciseFilesControllerTests {
                         file.getParentFile().mkdirs();
                         file.createNewFile();
                 }
-                when(filesService.getExerciseTemplate(1l, "johndoe")).thenReturn(files);
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, files);
+                when(filesService.getExerciseTemplate(1l, "johndoe")).thenReturn(returnMap);
 
                 MvcResult result = mockMvc.perform(get("/api/exercises/1/files/template").contentType("application/zip")
                                 .with(csrf()).header("Authorization", "Bearer " + jwtToken.getJwtToken()))
@@ -240,5 +263,34 @@ public class ExerciseFilesControllerTests {
                 assertThat(result.getResponse().getHeader("Content-Disposition"))
                                 .isEqualTo("attachment; filename=\"template-1.zip\"");
                 verify(filesService, times(1)).getExerciseTemplate(anyLong(), anyString());
+        }
+
+        @Test
+        public void getAllStudentFiles() throws Exception {
+                Exercise exercise = new Exercise("Exercise 1");
+                exercise.setId(1l);
+                List<File> files = new ArrayList<>();
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej2.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej1.txt"));
+                files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej2.txt"));
+                for (File file : files) {
+                        file.getParentFile().mkdirs();
+                        file.createNewFile();
+                }
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise, files);
+                when(filesService.getAllStudentsFiles(1l, "johndoe")).thenReturn(returnMap);
+
+                MvcResult result = mockMvc.perform(get("/api/exercises/1/teachers/files").contentType("application/zip")
+                                .with(csrf()).header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                                .andExpect(status().isOk()).andReturn();
+                logger.info(result.toString());
+
+                assertThat(result.getResponse().getHeader("Content-Disposition"))
+                                .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
+                verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
         }
 }
