@@ -140,4 +140,11 @@ public class Exercise {
                 .filter(file -> file.getOwner() != null && file.getOwner().getUsername().equals(username))
                 .collect(Collectors.toList());
     }
+
+    public List<ExerciseFile> getStudentOnlyFiles() {
+        return userFiles.stream()
+                .filter(file -> file.getOwner() != null && file.getOwner().getRoles().size() == 1 && file.getOwner()
+                        .getRoles().stream().filter(role -> role.getRoleName().equals("ROLE_STUDENT")).count() == 1)
+                .collect(Collectors.toList());
+    }
 }

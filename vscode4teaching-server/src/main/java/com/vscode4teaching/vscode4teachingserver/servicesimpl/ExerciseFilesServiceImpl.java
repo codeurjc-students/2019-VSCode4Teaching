@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -48,7 +50,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     }
 
     @Override
-    public List<File> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
+    public Map<Exercise, List<File>> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
@@ -59,27 +61,31 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             if (exercise.getTemplate().isEmpty()) {
                 throw new NoTemplateException(exerciseId);
             } else {
-                return template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList());
+                Map<Exercise, List<File>> returnMap = new HashMap<>();
+                returnMap.put(exercise,
+                        template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+                return returnMap;
             }
         }
-        List<File> files = exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile())
-                .collect(Collectors.toList());
-        return files;
+        Map<Exercise, List<File>> returnMap = new HashMap<>();
+        returnMap.put(exercise,
+                exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+        return returnMap;
     }
 
     @Override
-    public List<File> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
+    public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         return saveFiles(exerciseId, file, requestUsername, false);
     }
 
     @Override
-    public List<File> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
+    public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         return saveFiles(exerciseId, file, requestUsername, true);
     }
 
-    private List<File> saveFiles(Long exerciseId, MultipartFile file, String requestUsername, boolean isTemplate)
+    private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername, boolean isTemplate)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
@@ -122,8 +128,10 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         }
         zis.closeEntry();
         zis.close();
-        exerciseRepository.save(exercise);
-        return files;
+        Exercise savedExercise = exerciseRepository.save(exercise);
+        Map<Exercise, List<File>> filesMap = new HashMap<>();
+        filesMap.put(savedExercise, files);
+        return filesMap;
     }
 
     private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
@@ -139,7 +147,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     }
 
     @Override
-    public List<File> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
+    public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
@@ -148,7 +156,21 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         if (exercise.getTemplate().isEmpty()) {
             throw new NoTemplateException(exerciseId);
         } else {
-            return template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList());
+            Map<Exercise, List<File>> filesMap = new HashMap<>();
+            filesMap.put(exercise, template.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+            return filesMap;
         }
+    }
+
+    @Override
+    public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
+        List<ExerciseFile> files = exercise.getStudentOnlyFiles();
+        Map<Exercise, List<File>> filesMap = new HashMap<>();
+        filesMap.put(exercise, files.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+        return filesMap;
     }
 }

@@ -50,7 +50,14 @@ suite('Extension Test Suite', () => {
 						"vscode4teaching.getexercisefiles",
 						"vscode4teaching.editcourse",
 						"vscode4teaching.deletecourse",
-						"vscode4teaching.refreshcourses"
+						"vscode4teaching.refreshcourses",
+						"vscode4teaching.refreshexercises",
+						"vscode4teaching.addexercise",
+						"vscode4teaching.editexercise",
+						"vscode4teaching.deleteexercise",
+						"vscode4teaching.adduserstocourse",
+						"vscode4teaching.removeusersfromcourse",
+						"vscode4teaching.getstudentfiles"
 					];
 
 					const foundCommands = commands.filter((value) => {
@@ -302,7 +309,7 @@ suite('Extension Test Suite', () => {
 			name: "Exercise 3"
 		}];
 		let exerciseItems = exercises.map(exercise => new V4TItem(exercise.name, V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, courseItem, exercise, {
-			"command": "vscode4teaching.getexercisefiles",
+			"command": "vscode4teaching.getstudentfiles",
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
 		}));

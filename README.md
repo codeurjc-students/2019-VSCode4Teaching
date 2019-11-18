@@ -8,7 +8,7 @@ Visit this [Medium blog](https://medium.com/@ivchicano) for updates on the devel
 ## General Roadmap
 
 - [x] Students can download course exercises and upload his files to the server.
-- [ ] Teachers can see a student's exercise.
+- [X] Teachers can see a student's exercise.
 - [ ] Teachers can place requisites on each exercise for the student to accomplish.
 - [ ] Teachers can comment on a student's exercise.  
 Note: This roadmap is subject to changes as requirements change.  

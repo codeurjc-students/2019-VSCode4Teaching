@@ -1608,3 +1608,32 @@ Files with the same name will be overriden.
   ```text
   Not found: Exercise not found: 11
   ```
+
+## Get all students' files
+
+---
+
+Note: Content-Type is application/zip
+Download the files assigned to an exercise for all students in a zip file.
+Name of the file if template was downloaded: `exercise-{id}-files.zip` where {id} is the id of the exercise.
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/exercises/:id/teachers/files`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/files/template`
+- **Success Response**
+  - **Code**: 200
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: Exercise not found: 11
+  ```
