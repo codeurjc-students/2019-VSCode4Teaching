@@ -1,5 +1,5 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise } from './model';
+import { User, Exercise } from './model/serverModel';
 import FormData = require('form-data');
 
 export class RestClient {

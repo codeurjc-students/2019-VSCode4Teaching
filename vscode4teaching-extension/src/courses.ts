@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
-import { User, Course, Exercise } from './model';
+import { User, Course, Exercise } from './model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
+import { V4TExerciseFile } from './model/v4texerciseFile';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -259,8 +260,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     });
                 }
             });
-            // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads
-            fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), zipUri, { encoding: "utf8" });
+            // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
+            let fileContent: V4TExerciseFile = {
+                zipLocation: zipUri
+            };
+            fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
             return dir;
         } catch (error) {
             this.handleAxiosError(error);

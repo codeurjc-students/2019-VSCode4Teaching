@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { CoursesProvider } from './courses';
-import { Exercise } from './model';
+import { Exercise } from './model/serverModel';
 import { V4TItem } from './v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
+import { V4TExerciseFile } from './model/v4texerciseFile';
 
 export let coursesProvider = new CoursesProvider();
 export function activate(context: vscode.ExtensionContext) {
@@ -92,7 +93,8 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 		vscode.workspace.findFiles(new vscode.RelativePattern(cwd, 'v4texercise.v4t'), null, 1).then(uris => {
 			if (uris.length > 0) {
 				// Zip Uri should be in the text file
-				let zipUri = path.resolve(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
+				let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
+				let zipUri = path.resolve(v4tjson.zipLocation);
 				let jszipFile = new JSZip();
 				if (fs.existsSync(zipUri)) {
 					jszipFile.loadAsync(fs.readFileSync(zipUri));
