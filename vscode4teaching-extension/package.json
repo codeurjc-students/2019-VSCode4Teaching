@@ -113,6 +113,11 @@
 					"light": "resources/light/remove_user.svg",
 					"dark": "resources/dark/remove_user.svg"
 				}
+			},
+			{
+				"command": "vscode4teaching.diff",
+				"title": "Compare exercise file with template",
+				"category": "VSCode4Teaching"
 			}
 		],
 		"viewsContainers": {
@@ -133,6 +138,12 @@
 			]
 		},
 		"menus": {
+			"explorer/context": [
+				{
+					"command": "vscode4teaching.diff",
+					"group": "navigation"
+				}
+			],
 			"view/title": [
 				{
 					"command": "vscode4teaching.refreshcourses",
@@ -218,6 +229,10 @@
 				},
 				{
 					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.diff",
 					"when": "false"
 				}
 			]

@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as extension from '../../extension';
 import * as simple from 'simple-mock';
 import { V4TItem, V4TItemType } from '../../v4titem';
-import { Course, Exercise, User } from '../../model';
+import { Course, Exercise, User } from '../../model/serverModel';
 import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');

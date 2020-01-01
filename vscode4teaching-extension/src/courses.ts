@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
-import { User, Course, Exercise } from './model';
+import { User, Course, Exercise } from './model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
+import { V4TExerciseFile } from './model/v4texerciseFile';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -225,11 +226,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    private async getFiles(dir: string, zipDir: string, zipName: string, courseName: string, exercise: Exercise, request: (id: number) => Thenable<any>) {
+    private async getFiles(dir: string, zipDir: string, zipName: string, requestThenable: Thenable<any>, templateDir?: string) {
         if (!fs.existsSync(dir)) {
             mkdirp.sync(dir);
         }
-        let requestThenable = request(exercise.id);
         vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
         try {
             let response = await requestThenable;
@@ -259,8 +259,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     });
                 }
             });
-            // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads
-            fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), zipUri, { encoding: "utf8" });
+            // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
+            let fileContent: V4TExerciseFile = {
+                zipLocation: zipUri,
+                teacher: this.userinfo ? this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0 : false,
+                template: templateDir ? templateDir : undefined
+            };
+            fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
             return dir;
         } catch (error) {
             this.handleAxiosError(error);
@@ -272,7 +277,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let dir = path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name);
             let zipDir = path.resolve(__dirname, "v4t", this.userinfo.username);
             let zipName = exercise.id + ".zip";
-            return this.getFiles(dir, zipDir, zipName, courseName, exercise, this.client.getExerciseFiles);
+            return this.getFiles(dir, zipDir, zipName, this.client.getExerciseFiles(exercise.id));
         }
     }
 
@@ -280,8 +285,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (this.userinfo) {
             let dir = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name);
             let zipDir = path.resolve(__dirname, "v4t", "teacher", this.userinfo.username);
-            let zipName = exercise.id + ".zip";
-            return this.getFiles(dir, zipDir, zipName, courseName, exercise, this.client.getAllStudentFiles);
+            let studentZipName = exercise.id + ".zip";
+            let templateDir = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name, "template");
+            let templateZipName = exercise.id + "-template.zip";
+            return Promise.all([
+                this.getFiles(templateDir, zipDir, templateZipName, this.client.getTemplate(exercise.id)), 
+                this.getFiles(dir, zipDir, studentZipName, this.client.getAllStudentFiles(exercise.id), templateDir)
+            ]);
         }
     }
 
@@ -508,7 +518,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let showArray = users.filter(user => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
                     .map(user => {
                         let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
-                        if (user.roles.includes({ roleName: "ROLE_TEACHER" })) {
+                        if (user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
                             displayName += " (Teacher)";
                         }
                         return new UserPick(displayName, user);
@@ -542,7 +552,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let courseUsers = courseUsersResponse.data;
                 let showArray = courseUsers.filter((user: User) => user.id !== creator.id).map((user: User) => {
                     let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
-                    if (user.roles.includes({ roleName: "ROLE_TEACHER" })) {
+                    if (user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
                         displayName += " (Teacher)";
                     }
                     return new UserPick(displayName, user);

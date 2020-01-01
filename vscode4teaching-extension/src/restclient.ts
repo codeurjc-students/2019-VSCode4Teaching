@@ -1,5 +1,5 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise } from './model';
+import { User, Exercise } from './model/serverModel';
 import FormData = require('form-data');
 
 export class RestClient {
@@ -119,6 +119,10 @@ export class RestClient {
 
     getAllStudentFiles(exerciseId: number) {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/teachers/files", "GET", true));
+    }
+
+    getTemplate(exerciseId: number) {
+        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files/template", "GET", true));
     }
 
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
