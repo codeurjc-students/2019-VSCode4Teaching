@@ -44,6 +44,7 @@ On the next animation, we can see how the teacher selects the exercise previousl
 
 - [x] Students can download course exercises and upload his files to the server.
 - [X] Teachers can see a student's exercise.
+- [X] Teachers can see the differences between student files and the original templates.
 - [ ] Teachers can place requisites on each exercise for the student to accomplish.
 - [ ] Teachers can comment on a student's exercise.  
 Note: This roadmap is subject to changes as requirements change.  
