@@ -69,9 +69,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
 		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
-			if (newWorkspaceURI && newWorkspaceURI[1]) {
-				let uri = vscode.Uri.file(newWorkspaceURI[1]);
-				await vscode.commands.executeCommand('vscode.openFolder', uri);
+			if (newWorkspaceURI && newWorkspaceURI[0] && newWorkspaceURI[1]) {
+				let wsURI: string = newWorkspaceURI[1];
+				let subdirectoriesURIs = fs.readdirSync(newWorkspaceURI[1], {withFileTypes: true})
+					.filter(dirent => dirent.isDirectory())
+					.map(dirent => {
+						return {
+							uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
+						};
+					});
+					//open all student files and template
+					vscode.workspace.updateWorkspaceFolders(0, 
+						vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length: 0, 
+						...subdirectoriesURIs);
 			}
 		});
 	});
