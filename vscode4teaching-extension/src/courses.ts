@@ -286,8 +286,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let studentZipName = exercise.id + ".zip";
             let templateDir = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name, "template");
             let templateZipName = exercise.id + "-template.zip";
-            return Promise.all([this.getFiles(templateDir, zipDir, templateZipName, courseName, exercise, this.client.getTemplate(exercise.id)), 
-                this.getFiles(dir, zipDir, studentZipName, courseName, exercise, this.client.getAllStudentFiles(exercise.id))]);
+            return Promise.all([
+                this.getFiles(templateDir, zipDir, templateZipName, courseName, exercise, this.client.getTemplate(exercise.id)), 
+                this.getFiles(dir, zipDir, studentZipName, courseName, exercise, this.client.getAllStudentFiles(exercise.id))
+            ]);
         }
     }
 

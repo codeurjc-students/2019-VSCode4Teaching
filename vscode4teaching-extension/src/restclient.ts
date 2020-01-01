@@ -122,7 +122,7 @@ export class RestClient {
     }
 
     getTemplate(exerciseId: number) {
-        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/template", "GET", true));
+        return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files/template", "GET", true));
     }
 
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
