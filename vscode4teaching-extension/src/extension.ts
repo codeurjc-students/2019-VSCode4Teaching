@@ -69,8 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
 		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
-			if (newWorkspaceURI) {
-				let uri = vscode.Uri.file(newWorkspaceURI);
+			if (newWorkspaceURI && newWorkspaceURI[1]) {
+				let uri = vscode.Uri.file(newWorkspaceURI[1]);
 				await vscode.commands.executeCommand('vscode.openFolder', uri);
 			}
 		});

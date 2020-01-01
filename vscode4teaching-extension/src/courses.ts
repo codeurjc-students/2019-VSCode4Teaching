@@ -226,11 +226,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    private async getFiles(dir: string, zipDir: string, zipName: string, courseName: string, exercise: Exercise, request: (id: number) => Thenable<any>) {
+    private async getFiles(dir: string, zipDir: string, zipName: string, courseName: string, exercise: Exercise, requestThenable: Thenable<any>) {
         if (!fs.existsSync(dir)) {
             mkdirp.sync(dir);
         }
-        let requestThenable = request(exercise.id);
         vscode.window.setStatusBarMessage('Downloading exercise files...', requestThenable);
         try {
             let response = await requestThenable;
@@ -276,7 +275,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let dir = path.resolve(this.downloadDir, this.userinfo.username, courseName, exercise.name);
             let zipDir = path.resolve(__dirname, "v4t", this.userinfo.username);
             let zipName = exercise.id + ".zip";
-            return this.getFiles(dir, zipDir, zipName, courseName, exercise, this.client.getExerciseFiles);
+            return this.getFiles(dir, zipDir, zipName, courseName, exercise, this.client.getExerciseFiles(exercise.id));
         }
     }
 
@@ -287,8 +286,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let studentZipName = exercise.id + ".zip";
             let templateDir = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name, "template");
             let templateZipName = exercise.id + "-template.zip";
-            this.getFiles(templateDir, zipDir, templateZipName, courseName, exercise, this.client.getTemplate).then();
-            return this.getFiles(dir, zipDir, studentZipName, courseName, exercise, this.client.getAllStudentFiles);
+            return Promise.all([this.getFiles(templateDir, zipDir, templateZipName, courseName, exercise, this.client.getTemplate(exercise.id)), 
+                this.getFiles(dir, zipDir, studentZipName, courseName, exercise, this.client.getAllStudentFiles(exercise.id))]);
         }
     }
 
