@@ -57,7 +57,8 @@ suite('Extension Test Suite', () => {
 						"vscode4teaching.deleteexercise",
 						"vscode4teaching.adduserstocourse",
 						"vscode4teaching.removeusersfromcourse",
-						"vscode4teaching.getstudentfiles"
+						"vscode4teaching.getstudentfiles",
+						"vscode4teaching.diff"
 					];
 
 					const foundCommands = commands.filter((value) => {
@@ -609,12 +610,14 @@ suite('Extension Test Suite', () => {
 
 		console.log(zipEntries);
 		// Depending on system directories can be saved as entries or whole path can be saved
-		assert.deepStrictEqual([4, 6].includes(zipEntries.length), true, "there should be 4 or 6 entries in the zip");
 		assert.deepStrictEqual(zipEntries.includes("ex1.html"), true, "ex1.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("ex2.html"), true, "ex2.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex3.html"), true, "exs/ex3.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ex4" + path.sep + "ex4.html"), true, "exs/ex4/ex4.html should be saved");
-
+		assert.deepStrictEqual(!zipEntries.includes("exs" + path.sep + "ignoredex.html"), true, "ignoredex.html should be ignored");
+		assert.deepStrictEqual(!zipEntries.includes("exs" + path.sep + "ignoredexs" + path.sep + "exignored.html"), true, "exs/ignoredexs/exignored.html should be ignored");
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ignoredexs" + path.sep + "notignoredex.html"), true, "exs/ignoredexs/notignoredex.html should be saved");
+		assert.deepStrictEqual(zipEntries.includes("exs" + path.sep + "ignoredexs" + path.sep + "notignoredexs" + path.sep + "exnotignored.html"), true, "exs/ignoredexs/notignoredexs/exnotignored.html should be saved");
 
 		assert.deepStrictEqual(refreshExercisesMock.callCount, 1, "exercises should be refreshed");
 	});
