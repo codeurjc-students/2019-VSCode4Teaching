@@ -6,11 +6,20 @@ import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
 import { V4TExerciseFile } from './model/v4texerciseFile';
+import { FileIgnoreUtil } from './fileIgnoreUtil';
 
 export let coursesProvider = new CoursesProvider();
 let template: string | undefined;
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
+	let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+	if (fs.existsSync(sessionPath)) {
+		let readSession = fs.readFileSync(sessionPath).toString();
+		let sessionParts = readSession.split('\n');
+		coursesProvider.client.jwtToken = sessionParts[0];
+		coursesProvider.client.xsrfToken = sessionParts[1];
+		coursesProvider.client.baseUrl = sessionParts[2];
+	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
 	if (cwds) {
@@ -125,7 +134,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
 		let parentDir = path.resolve(cwd.uri.fsPath, '..');
 		if (!checkedUris.includes(parentDir)) {
-			vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, 'v4texercise.v4t'), null, 1).then(uris => {
+			vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, '**/v4texercise.v4t'), null, 1).then(uris => {
 				checkedUris.push(parentDir);
 				if (uris.length > 0) {
 					let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
@@ -137,25 +146,32 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					let zipUri = path.resolve(v4tjson.zipLocation);
 					let jszipFile = new JSZip();
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
+						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
 						jszipFile.loadAsync(fs.readFileSync(zipUri));
 						let fsw = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(cwd, "**/*.*"));
 						fsw.onDidChange((e: vscode.Uri) => {
-							updateFile(e, zipUri, jszipFile, cwd);
+							if (!ignoredFiles.includes(e.fsPath)) {
+								updateFile(e, zipUri, jszipFile, cwd);
+							}
 						});
 						fsw.onDidCreate((e: vscode.Uri) => {
-							updateFile(e, zipUri, jszipFile, cwd);
+							if (!ignoredFiles.includes(e.fsPath)) {
+								updateFile(e, zipUri, jszipFile, cwd);
+							}
 						});
 						fsw.onDidDelete((e: vscode.Uri) => {
-							let filePath = path.resolve(e.fsPath);
-							filePath = path.relative(cwd.uri.fsPath, filePath);
-							jszipFile.remove(filePath);
-							// Exercise id is in the name of the zip file
-							let zipSplit = zipUri.split(path.sep);
-							let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-							let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-							vscode.window.setStatusBarMessage("Uploading files...", thenable);
-							thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
-								.catch(err => coursesProvider.handleAxiosError(err));
+							if (!ignoredFiles.includes(e.fsPath)) {
+								let filePath = path.resolve(e.fsPath);
+								filePath = path.relative(cwd.uri.fsPath, filePath);
+								jszipFile.remove(filePath);
+								// Exercise id is in the name of the zip file
+								let zipSplit = zipUri.split(path.sep);
+								let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
+								let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+								vscode.window.setStatusBarMessage("Uploading files...", thenable);
+								thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
+									.catch(err => coursesProvider.handleAxiosError(err));
+							}
 						});
 					}
 				}

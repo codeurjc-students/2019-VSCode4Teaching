@@ -7,7 +7,7 @@ import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
 import { V4TExerciseFile } from './model/v4texerciseFile';
-import ignore, { Ignore } from 'ignore';
+import { FileIgnoreUtil } from './fileIgnoreUtil';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -458,7 +458,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private buildZipFromDirectory(dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
         const list = fs.readdirSync(dir);
-        let newIgnoredFiles = this.readGitIgnores(dir);
+        let newIgnoredFiles = FileIgnoreUtil.readGitIgnores(dir);
         newIgnoredFiles.forEach((file: string) => {
             if (!ignoredFiles.includes(file)) {
                 ignoredFiles.push(file);
@@ -477,35 +477,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
             
         }
-    }
-
-    private readGitIgnores(currentDir: string) {
-        const list = fs.readdirSync(currentDir);
-        const f = list.find((f: string) => f.includes(".gitignore"));
-        let files: string[] = [];
-        let ig = ignore();
-        if (f) {
-            let gitignoreData = fs.readFileSync(path.resolve(currentDir, f));
-            let gitignoreText = gitignoreData.toString();
-            ig = ig.add(gitignoreText);
-            files = this.getIgnoredFiles(currentDir, currentDir, ig);
-        }
-        return files;
-    }
-
-    private getIgnoredFiles(dir: string, startingDir: string, ig: Ignore, files: string[] = []) {
-        const list = fs.readdirSync(dir);
-        for (let file of list) {
-            file = path.resolve(dir, file);
-            let stat = fs.statSync(file);
-            if (stat && stat.isDirectory()) {
-                this.getIgnoredFiles(file, startingDir, ig, files);
-            }
-            if (ig.ignores(path.relative(startingDir, file))) {
-                files.push(file);
-            }
-        }
-        return files;
     }
 
     async editExercise(item: V4TItem) {
