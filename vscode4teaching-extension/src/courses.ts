@@ -7,6 +7,7 @@ import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
 import { V4TExerciseFile } from './model/v4texerciseFile';
+import { FileIgnoreUtil } from './fileIgnoreUtil';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -455,18 +456,26 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    private buildZipFromDirectory(dir: string, zip: JSZip, root: string) {
+    private buildZipFromDirectory(dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
         const list = fs.readdirSync(dir);
-
+        let newIgnoredFiles = FileIgnoreUtil.readGitIgnores(dir);
+        newIgnoredFiles.forEach((file: string) => {
+            if (!ignoredFiles.includes(file)) {
+                ignoredFiles.push(file);
+            }
+        });
         for (let file of list) {
             file = path.resolve(dir, file);
-            let stat = fs.statSync(file);
-            if (stat && stat.isDirectory()) {
-                this.buildZipFromDirectory(file, zip, root);
-            } else {
-                const filedata = fs.readFileSync(file);
-                zip.file(path.relative(root, file), filedata);
+            if (!ignoredFiles.includes(file)) {
+                let stat = fs.statSync(file);
+                if (stat && stat.isDirectory()) {
+                    this.buildZipFromDirectory(file, zip, root, ignoredFiles);
+                } else {
+                    const filedata = fs.readFileSync(file);
+                    zip.file(path.relative(root, file), filedata);
+                }
             }
+            
         }
     }
 
@@ -574,7 +583,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
-
 
 }
 
