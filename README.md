@@ -45,7 +45,9 @@ On the next animation, we can see how the teacher selects the exercise previousl
 - [x] Students can download course exercises and upload his files to the server.
 - [X] Teachers can see a student's exercise.
 - [X] Teachers can see the differences between student files and the original templates.
-- [ ] Teachers can place requisites on each exercise for the student to accomplish.
+- [ ] File uploads and downloads should account for .gitignore rules.  
+- [ ] Make easier for students to access exercises (No need to log in or have a user).
+- [ ] Students can mark exercises as finished.  
 - [ ] Teachers can comment on a student's exercise.  
 Note: This roadmap is subject to changes as requirements change.  
 Check [Issues](https://github.com/codeurjc-students/2019-VSCode4Teaching/issues) and [Project](https://github.com/codeurjc-students/2019-VSCode4Teaching/projects) for more specific information about development of these milestones.
