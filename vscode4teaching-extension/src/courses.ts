@@ -12,7 +12,7 @@ import { FileIgnoreUtil } from './fileIgnoreUtil';
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
     readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = this._onDidChangeTreeData.event;
-    private _client = new RestClient();
+    private _client = RestClient.getClient();
     private _userinfo: User | undefined;
     private error401thrown = false;
     private error403thrown = false;

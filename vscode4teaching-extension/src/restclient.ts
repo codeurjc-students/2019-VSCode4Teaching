@@ -4,11 +4,21 @@ import FormData = require('form-data');
 
 export class RestClient {
 
+    private static instance: RestClient;
     private _baseUrl: string | undefined;
     private _jwtToken: string | undefined;
     private _xsrfToken = "";
 
-    constructor() {
+    private constructor() {
+    }
+
+    // Client is a singleton
+    public static getClient(): RestClient {
+        if (!RestClient.instance) {
+            RestClient.instance = new RestClient();
+        }
+
+        return RestClient.instance;
     }
 
     login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {

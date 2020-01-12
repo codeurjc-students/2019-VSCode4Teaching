@@ -9,6 +9,7 @@ import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
 import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
+import { RestClient } from './restclient';
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
@@ -19,9 +20,10 @@ export function activate(context: vscode.ExtensionContext) {
 	if (fs.existsSync(sessionPath)) {
 		let readSession = fs.readFileSync(sessionPath).toString();
 		let sessionParts = readSession.split('\n');
-		coursesProvider.client.jwtToken = sessionParts[0];
-		coursesProvider.client.xsrfToken = sessionParts[1];
-		coursesProvider.client.baseUrl = sessionParts[2];
+		let client = RestClient.getClient();
+		client.jwtToken = sessionParts[0];
+		client.xsrfToken = sessionParts[1];
+		client.baseUrl = sessionParts[2];
 		coursesProvider.getUserInfo();
 	}
 	// If cwd is a v4t exercise run file system watcher
@@ -248,7 +250,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 								let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
 								let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 								vscode.window.setStatusBarMessage("Uploading files...", thenable);
-								thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
+								thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
 									.catch(err => coursesProvider.handleAxiosError(err));
 							}
 						});
@@ -272,7 +274,7 @@ function updateFile(e: vscode.Uri, zipUri: string, jszipFile: JSZip, cwd: vscode
 			let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
 			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 			vscode.window.setStatusBarMessage("Uploading files...", thenable);
-			thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
+			thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
 				.catch(err => coursesProvider.handleAxiosError(err));
 		}
 	});

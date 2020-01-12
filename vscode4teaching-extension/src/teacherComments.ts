@@ -40,6 +40,7 @@ export class TeacherCommentProvider {
         let thread = reply.thread;
         let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author }, thread, thread.comments.length ? 'canDelete' : undefined);
         thread.comments = [...thread.comments, newComment];
+        // TODO send comment to server
     }
 }
 
