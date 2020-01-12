@@ -154,7 +154,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    private async getUserInfo() {
+    async getUserInfo() {
         let coursesThenable = this.client.getUserInfo();
         vscode.window.setStatusBarMessage('Getting user courses...', coursesThenable);
         // Errors have to be controlled in the caller function

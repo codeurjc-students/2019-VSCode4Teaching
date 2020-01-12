@@ -7,9 +7,12 @@ import * as fs from 'fs';
 import JSZip = require('jszip');
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
+import { TeacherCommentProvider, NoteComment } from './teacherComments';
+import { Dictionary } from './model/dictionary';
 
 export let coursesProvider = new CoursesProvider();
-let template: string | undefined;
+let templates: Dictionary<string> = {};
+let commentProvider: TeacherCommentProvider | undefined;
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
@@ -19,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.client.jwtToken = sessionParts[0];
 		coursesProvider.client.xsrfToken = sessionParts[1];
 		coursesProvider.client.baseUrl = sessionParts[2];
+		coursesProvider.getUserInfo();
 	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
@@ -101,11 +105,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let diff = vscode.commands.registerCommand('vscode4teaching.diff', (file: vscode.Uri) => {
-		if (template) {
 			let wf = vscode.workspace.getWorkspaceFolder(file);
 			if (wf) {
 				let relativePath = path.relative(wf.uri.fsPath, file.fsPath);
-				let templateFile = path.resolve(template, relativePath);
+				let templateFile = path.resolve(templates[wf.name], relativePath);
 				if (fs.existsSync(templateFile)) {
 					let templateFileUri = vscode.Uri.file(templateFile);
 					vscode.commands.executeCommand('vscode.diff', file, templateFileUri);
@@ -113,15 +116,84 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.window.showErrorMessage("File doesn't exist in the template.");
 				}
 			}
+	});
+
+	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
+		if (commentProvider) {
+			commentProvider.replyNote(reply);
 		}
+	});
+
+	let deleteComment = vscode.commands.registerCommand('vscode4teaching.deleteComment', (comment: NoteComment) => {
+		let thread = comment.parent;
+		if (!thread) {
+			return;
+		}
+
+		thread.comments = thread.comments.filter(cmt => (cmt as NoteComment).id !== comment.id);
+
+		if (thread.comments.length === 0 ) {
+			thread.dispose();
+		}
+	});
+
+	let deleteCommentThread = vscode.commands.registerCommand('vscode4teaching.deleteCommentThread', (thread: vscode.CommentThread) => {
+		thread.dispose();
+	});
+
+	let saveComment = vscode.commands.registerCommand('vscode4teaching.saveComment', (comment: NoteComment) => {
+		if (!comment.parent) {
+			return;
+		}
+
+		comment.parent.comments = comment.parent.comments.map(cmt => {
+			if ((cmt as NoteComment).id === comment.id) {
+				cmt.mode = vscode.CommentMode.Preview;
+			}
+
+			return cmt;
+		});
+	});
+
+	let cancelSaveComment = vscode.commands.registerCommand('vscode4teaching.cancelSaveComment', (comment: NoteComment) => {
+		if (!comment.parent) {
+			return;
+		}
+
+		comment.parent.comments = comment.parent.comments.map(cmt => {
+			if ((cmt as NoteComment).id === comment.id) {
+				cmt.mode = vscode.CommentMode.Preview;
+			}
+
+			return cmt;
+		});
+	});
+
+	let editComment = vscode.commands.registerCommand('vscode4teaching.editComment', (comment: NoteComment) => {
+		if (!comment.parent) {
+			return;
+		}
+
+		comment.parent.comments = comment.parent.comments.map(cmt => {
+			if ((cmt as NoteComment).id === comment.id) {
+				cmt.mode = vscode.CommentMode.Editing;
+			}
+
+			return cmt;
+		});
 	});
 
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, saveComment, cancelSaveComment, deleteComment,
+		deleteCommentThread);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	if (commentProvider) {
+		commentProvider.dispose();
+	}
+}
 
 // Meant to be used for tests
 export function createNewCoursesProvider() {
@@ -140,7 +212,14 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
 					// Set template location if exists
 					if (v4tjson.teacher && v4tjson.template) {
-						template = v4tjson.template;
+						// Template should be the same in the workspace
+						templates[cwd.name] = v4tjson.template;
+						if (!commentProvider && coursesProvider.userinfo) {
+							commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
+						}
+						if (commentProvider) {
+							commentProvider.addCwd(cwd);
+						}
 					}
 					// Zip Uri should be in the text file
 					let zipUri = path.resolve(v4tjson.zipLocation);
