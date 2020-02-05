@@ -188,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
 		removeUsersFromCourse, getStudentFiles, diff, createComment, saveComment, cancelSaveComment, deleteComment,
-		deleteCommentThread);
+		deleteCommentThread, editComment);
 }
 
 export function deactivate() {

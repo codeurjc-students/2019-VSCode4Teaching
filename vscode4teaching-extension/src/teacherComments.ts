@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { ServerComment } from './model/commentServerModel';
 
 let commentId = 1;
 
@@ -20,7 +21,7 @@ export class TeacherCommentProvider {
                         break;
                     }
                 }
-                // If document isn't in workspace don't allow comments let rangeElements = 
+                // If document isn't in workspace don't allow comments
                 return relPath.length > 0 ? [new vscode.Range(0, 0, document.lineCount - 1, 0)] : [];
             }
         };
@@ -41,6 +42,15 @@ export class TeacherCommentProvider {
         let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author }, thread, thread.comments.length ? 'canDelete' : undefined);
         thread.comments = [...thread.comments, newComment];
         // TODO send comment to server
+        let serverComment: ServerComment = {
+            author: newComment.author.name,
+            body: newComment.body.toString(),
+            parent: {
+                file: thread.uri.fsPath,
+                line: thread.range.start.line
+            }
+        };
+        console.log(newComment);
     }
 }
 
