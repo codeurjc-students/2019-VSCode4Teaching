@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -29,7 +30,7 @@ public class CommentThread {
 
     @OneToMany
     @JsonView(CommentThreadViews.GeneralView.class)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
     @JsonView(CommentThreadViews.GeneralView.class)
     private Integer line;
@@ -77,6 +78,10 @@ public class CommentThread {
 
     public void setComments(List<Comment> comments) {
         this.comments = comments;
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
     }
 
     public LocalDateTime getCreateDateTime() {
