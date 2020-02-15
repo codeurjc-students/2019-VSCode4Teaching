@@ -7,7 +7,7 @@ public class CommentViews {
     public static interface GeneralView {
     }
 
-    public static interface ThreadView {
+    public static interface ThreadView extends GeneralView {
         
     }
 }

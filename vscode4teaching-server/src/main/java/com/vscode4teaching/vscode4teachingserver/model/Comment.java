@@ -51,6 +51,10 @@ public class Comment {
         this.author = author;
     }
 
+    public Comment() {
+        
+    }
+
     public Long getId() {
         return id;
     }

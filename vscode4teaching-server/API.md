@@ -32,6 +32,8 @@ Needed header key: `X-XSRF-TOKEN`
 - [Download exercise template](API.md#download-exercise-template)
 - [Upload user files](API.md#upload-user-files)
 - [Upload exercise template](API.md#upload-exercise-template)
+- [Add comment thread](API.md#add-comment-thread)
+- [Get comment threads](API.md#get-comment-threads)
 
 ## Login
 
@@ -991,7 +993,7 @@ Add a user to a course. Can't remove creator of this course.
     `/api/courses/1/users`
 - **Data Params**
   - **Required**:  
-    `"id": [[long]]` - User ids to remove from course
+    `"ids": [[long]]` - User ids to remove from course
   - **Example**:
 
   ```json
@@ -1636,4 +1638,138 @@ Name of the file if template was downloaded: `exercise-{id}-files.zip` where {id
 
   ```text
   Not found: Exercise not found: 11
+  ```
+
+## Add comment thread
+
+Adds or overwrites a comment thread to a file.
+
+---
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/files/:fileid/comments`
+- **Method**
+  `POST`
+- **URL Params**
+  - **Required**
+    - `fileid=[long]`
+  - **Example**
+    - `/api/files/322/comments`
+- **Data Params**
+  - **Required**:  
+    `"line": [long]` - Line of the file that contains a comment thread  
+    `"comments": [Comment]` - Comments of the thread, which need to have the following required params:
+        `"author": [string]` - Author of the comment
+        `"body": [string]` - Content of the comment
+  - **Example**:
+
+  ```json
+    {
+        "line": 0,
+        "comments": [
+            {
+                "author": "johndoe",
+                "body": "Test 1"
+            },
+            {
+                "author": "johndoe",
+                "body": "Test 2"
+            }
+        ]
+    }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+    {
+        "id": 345,
+        "comments": [
+            {
+                "id": 346,
+                "body": "Test 1",
+                "author": "johndoe",
+                "createDateTime": "2020-02-15T16:15:30",
+                "updateDateTime": "2020-02-15T16:15:30"
+            },
+            {
+                "id": 347,
+                "body": "Test 2",
+                "author": "johndoe",
+                "createDateTime": "2020-02-15T16:15:30",
+                "updateDateTime": "2020-02-15T16:15:30"
+            }
+        ],
+        "line": 0,
+        "createDateTime": "2020-02-15T16:15:30",
+        "updateDateTime": "2020-02-15T16:15:30"
+    }
+  ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
+  ```
+
+## Get comment threads
+
+---
+
+Get the posted comment threads of a file.
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/files/:fileid/comments`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `fileid=[long]`
+  - **Example**
+    - `/api/files/322/comments`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    [
+        {
+            "id": 345,
+            "comments": [
+                {
+                    "id": 346,
+                    "body": "Test 1",
+                    "author": "johndoe",
+                    "createDateTime": "2020-02-15T16:15:30",
+                    "updateDateTime": "2020-02-15T16:15:30"
+                },
+                {
+                    "id": 347,
+                    "body": "Test 2",
+                    "author": "johndoe",
+                    "createDateTime": "2020-02-15T16:15:30",
+                    "updateDateTime": "2020-02-15T16:15:30"
+                }
+            ],
+            "line": 0,
+            "createDateTime": "2020-02-15T16:15:30",
+            "updateDateTime": "2020-02-15T16:15:30"
+        }
+    ]
+    ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
   ```

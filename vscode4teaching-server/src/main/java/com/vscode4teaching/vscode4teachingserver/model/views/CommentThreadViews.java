@@ -7,6 +7,9 @@ public class CommentThreadViews {
     public static interface GeneralView {
     }
 
-	public interface FileView {
-	}
+    public interface FileView extends FileViews.GeneralView, GeneralView {
+    }
+
+    public interface CommentView extends CommentViews.GeneralView, GeneralView {
+    }
 }

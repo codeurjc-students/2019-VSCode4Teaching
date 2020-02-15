@@ -29,13 +29,13 @@ public class CommentThread {
     @JsonView(CommentThreadViews.FileView.class)
     private ExerciseFile file;
 
-    @OneToMany(mappedBy = "parent")
-    @JsonView(CommentThreadViews.GeneralView.class)
+    @OneToMany(mappedBy = "thread")
+    @JsonView(CommentThreadViews.CommentView.class)
     private List<Comment> comments = new ArrayList<>();
 
     @JsonView(CommentThreadViews.GeneralView.class)
     @Min(0)
-    private Integer line;
+    private Long line;
 
     @CreationTimestamp
     @JsonView(CommentViews.GeneralView.class)
@@ -45,11 +45,19 @@ public class CommentThread {
     @JsonView(CommentViews.GeneralView.class)
     private LocalDateTime updateDateTime;
 
-    public CommentThread(ExerciseFile file, Integer line) {
+    public CommentThread(ExerciseFile file, Long line) {
         this.file = file;
         this.line = line;
     }
 
+    public CommentThread(Long line) {
+        this.line = line;
+    }
+
+    public CommentThread() {
+
+    }
+    
     public Long getId() {
         return id;
     }
@@ -66,11 +74,11 @@ public class CommentThread {
         this.file = file;
     }
 
-    public Integer getLine() {
+    public Long getLine() {
         return line;
     }
 
-    public void setLine(Integer line) {
+    public void setLine(Long line) {
         this.line = line;
     }
 

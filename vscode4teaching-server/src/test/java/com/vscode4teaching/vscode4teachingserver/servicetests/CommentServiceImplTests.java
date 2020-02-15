@@ -11,6 +11,8 @@ import java.util.Optional;
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentThreadRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CommentServiceImpl;
@@ -33,6 +35,12 @@ public class CommentServiceImplTests {
     @Mock
     private ExerciseFileRepository exerciseFileRepository;
 
+    @Mock
+    private CommentThreadRepository commentThreadRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
+    
     @InjectMocks
     private CommentServiceImpl commentServiceImpl;
 
@@ -43,8 +51,8 @@ public class CommentServiceImplTests {
         logger.info("Start saveCommentThread");
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0);
+        CommentThread commentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
@@ -61,6 +69,8 @@ public class CommentServiceImplTests {
         expectedFile.addCommentThread(expectedCommentThread);
         when(exerciseFileRepository.findById(1l)).thenReturn(Optional.of(demoFile));
         when(exerciseFileRepository.save(any(ExerciseFile.class))).thenReturn(expectedFile);
+        when(commentThreadRepository.save(commentThread)).thenReturn(expectedCommentThread);
+        when(commentRepository.save(any(Comment.class))).thenReturn(null);
 
         CommentThread savedCommentThread = commentServiceImpl.saveCommentThread(1l, commentThread);
         
@@ -83,8 +93,8 @@ public class CommentServiceImplTests {
     public void getCommentThreadByFile() throws FileNotFoundException {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0);
+        CommentThread commentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
