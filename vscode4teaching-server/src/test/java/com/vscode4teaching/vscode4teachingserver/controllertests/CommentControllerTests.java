@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,5 +111,42 @@ public class CommentControllerTests {
                 .writeValueAsString(expectedCommentThread);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
+    }
+
+    @Test
+    public void getCommentThreads() throws Exception {
+        ExerciseFile demoFile = new ExerciseFile("testPath");
+        demoFile.setId(1l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        expectedCommentThread.setId(2l);
+        Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
+        Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
+        commentThread.addComment(c1);
+        commentThread.addComment(c2);
+        Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
+        expectedC1.setId(3l);
+        Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
+        expectedC2.setId(4l);
+        expectedCommentThread.addComment(expectedC1);
+        expectedCommentThread.addComment(expectedC2);
+        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        expectedFile.setId(1l);
+        expectedFile.addCommentThread(expectedCommentThread);
+        expectedCommentThread.setFile(expectedFile);
+        List<CommentThread> expectedCommentThreadList = new ArrayList<>();
+        expectedCommentThreadList.add(expectedCommentThread);
+        when(commentService.getCommentThreadsByFile(anyLong())).thenReturn(expectedCommentThreadList);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/files/1/comments").contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
+                .andExpect(status().isOk()).andReturn();
+
+        verify(commentService, times(1)).getCommentThreadsByFile(anyLong());
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(CommentThreadViews.CommentView.class)
+                .writeValueAsString(expectedCommentThreadList);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }
