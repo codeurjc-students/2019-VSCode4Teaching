@@ -10,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
@@ -28,11 +29,12 @@ public class CommentThread {
     @JsonView(CommentThreadViews.FileView.class)
     private ExerciseFile file;
 
-    @OneToMany
+    @OneToMany(mappedBy = "parent")
     @JsonView(CommentThreadViews.GeneralView.class)
     private List<Comment> comments = new ArrayList<>();
 
     @JsonView(CommentThreadViews.GeneralView.class)
+    @Min(0)
     private Integer line;
 
     @CreationTimestamp

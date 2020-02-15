@@ -7,12 +7,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentViews;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.Length;
 
 @Entity
 public class Comment {
@@ -26,9 +28,13 @@ public class Comment {
     private CommentThread thread;
 
     @JsonView(CommentViews.GeneralView.class)
+    @NotEmpty(message = "Comment body should not be empty")
+    @Length(min = 1, message = "Comment body should not be empty")
     private String body;
 
     @JsonView(CommentViews.GeneralView.class)
+    @NotEmpty(message = "Comment author should not be empty")
+    @Length(min = 1, message = "Comment author should not be empty")
     private String author;
 
     @CreationTimestamp

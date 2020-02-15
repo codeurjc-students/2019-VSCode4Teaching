@@ -1,5 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,8 +11,8 @@ import java.util.Optional;
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentThreadRepository;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CommentNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CommentServiceImpl;
 
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CommentServiceImplTests {
 
     @Mock
-    private CommentThreadRepository commentThreadRepository;
+    private ExerciseFileRepository exerciseFileRepository;
 
     @InjectMocks
     private CommentServiceImpl commentServiceImpl;
@@ -38,7 +39,7 @@ public class CommentServiceImplTests {
     private static final Logger logger = LoggerFactory.getLogger(CommentServiceImplTests.class);
 
     @Test
-    public void saveCommentThread() {
+    public void saveCommentThread() throws FileNotFoundException {
         logger.info("Start saveCommentThread");
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
@@ -55,9 +56,13 @@ public class CommentServiceImplTests {
         expectedC2.setId(4l);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
-        when(commentThreadRepository.save(commentThread)).thenReturn(expectedCommentThread);
+        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        expectedFile.setId(1l);
+        expectedFile.addCommentThread(expectedCommentThread);
+        when(exerciseFileRepository.findById(1l)).thenReturn(Optional.of(demoFile));
+        when(exerciseFileRepository.save(any(ExerciseFile.class))).thenReturn(expectedFile);
 
-        CommentThread savedCommentThread = commentServiceImpl.saveCommentThread(commentThread);
+        CommentThread savedCommentThread = commentServiceImpl.saveCommentThread(1l, commentThread);
         
         assertThat(savedCommentThread.getId()).isEqualTo(2l);
         assertThat(savedCommentThread.getLine()).isEqualTo(0);
@@ -68,13 +73,14 @@ public class CommentServiceImplTests {
             assertThat(commentList.get(i).getBody()).isEqualTo("Test " + (i + 1));
             assertThat(commentList.get(i).getThread()).isEqualTo(expectedCommentThread);
         }
-        verify(commentThreadRepository, times(1)).save(commentThread);
+        verify(exerciseFileRepository, times(1)).findById(1l);
+        verify(exerciseFileRepository, times(1)).save(any(ExerciseFile.class));
 
         logger.info("End saveCommentThread");
     }
 
     @Test
-    public void getCommentThreadByFile() throws CommentNotFoundException {
+    public void getCommentThreadByFile() throws FileNotFoundException {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
         CommentThread commentThread = new CommentThread(demoFile, 0);
@@ -90,19 +96,22 @@ public class CommentServiceImplTests {
         expectedC2.setId(4l);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
-        when(commentThreadRepository.findByFile_Id(1l)).thenReturn(Optional.of(expectedCommentThread));
+        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        expectedFile.setId(1l);
+        expectedFile.addCommentThread(expectedCommentThread);
+        when(exerciseFileRepository.findById(1l)).thenReturn(Optional.of(expectedFile));
 
-        CommentThread savedCommentThread = commentServiceImpl.getCommentThreadByFile(1l);
+        List<CommentThread> savedCommentThread = commentServiceImpl.getCommentThreadsByFile(1l);
 
-        assertThat(savedCommentThread.getId()).isEqualTo(2l);
-        assertThat(savedCommentThread.getLine()).isEqualTo(0);
-        List<Comment> commentList = savedCommentThread.getComments();
+        assertThat(savedCommentThread.get(0).getId()).isEqualTo(2l);
+        assertThat(savedCommentThread.get(0).getLine()).isEqualTo(0);
+        List<Comment> commentList = savedCommentThread.get(0).getComments();
         assertThat(commentList.size()).isEqualTo(2);
         for (int i = 0; i < commentList.size(); i++) {
             assertThat(commentList.get(i).getAuthor()).isEqualTo("johndoe");
             assertThat(commentList.get(i).getBody()).isEqualTo("Test " + (i + 1));
             assertThat(commentList.get(i).getThread()).isEqualTo(expectedCommentThread);
         }
-        verify(commentThreadRepository, times(1)).findByFile_Id(1l);
+        verify(exerciseFileRepository, times(1)).findById(1l);
     }
 }
