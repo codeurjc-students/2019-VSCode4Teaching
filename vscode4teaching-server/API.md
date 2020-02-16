@@ -34,6 +34,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Upload exercise template](API.md#upload-exercise-template)
 - [Add comment thread](API.md#add-comment-thread)
 - [Get comment threads](API.md#get-comment-threads)
+- [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
 
 ## Login
 
@@ -1765,6 +1766,61 @@ Get the posted comment threads of a file.
         }
     ]
     ```
+
+    OR
+
+  - **Code**: 204
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
+  ```
+
+## Get file info by exercise and owner
+
+---
+
+Get information of all of the files owned by a user in an exercise.
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/users/:userid/exercises/:exid/files`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `userid=[long]`
+    - `exid=[long]`
+  - **Example**
+    - `/api/users/4/exercises/3/files`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    [
+        {
+            "id": 32,
+            "path": "images\\imagePlaceholder.png",
+            "createDateTime": "2020-02-16T12:39:48",
+            "updateDateTime": "2020-02-16T12:39:48"
+        },
+        {
+            "id": 35,
+            "path": "pom.xml",
+            "createDateTime": "2020-02-16T12:39:48",
+            "updateDateTime": "2020-02-16T12:39:48"
+        }
+    ]
+    ```
+
+    OR
+
+  - **Code**: 204
 
 - **Error Response**
   - **Code**: 404

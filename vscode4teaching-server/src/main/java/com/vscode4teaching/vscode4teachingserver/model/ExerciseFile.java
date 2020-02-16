@@ -30,7 +30,7 @@ public class ExerciseFile {
 
     // If null the file is a template
     @ManyToOne
-    @JsonView(FileViews.GeneralView.class)
+    @JsonView(FileViews.OwnerView.class)
     private User owner;
 
     @OneToMany(mappedBy = "file")

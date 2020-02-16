@@ -52,127 +52,124 @@ import org.springframework.test.web.servlet.MvcResult;
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
 public class JWTLoginControllerTests {
-        @Autowired
-        private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-        @Autowired
-        private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-        @MockBean
-        private JWTTokenUtil jwtTokenUtil;
-        @MockBean
-        private JWTUserDetailsService userService;
-        @MockBean
-        private AuthenticationManager authenticationManager;
-        @Autowired
-        private PasswordEncoder bEncoder;
+    @MockBean
+    private JWTTokenUtil jwtTokenUtil;
+    @MockBean
+    private JWTUserDetailsService userService;
+    @MockBean
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder bEncoder;
 
-        // Uses DatabaseInitializer for initializing users in database
-        @Test
-        public void login() throws Exception {
-                List<GrantedAuthority> roles = new ArrayList<>();
-                roles.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
-                roles.add(new SimpleGrantedAuthority("ROLE_TEACHER"));
-                User expectedUser = new User("johndoe", "teacherpassword", roles);
-                when(userService.loadUserByUsername(anyString())).thenReturn(expectedUser);
-                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                                .thenReturn(new MockAuthentication());
-                when(jwtTokenUtil.generateToken(any(UserDetails.class))).thenReturn("mockToken");
-                JWTRequest jwtRequest = new JWTRequest();
-                jwtRequest.setUsername("johndoe");
-                jwtRequest.setPassword("teacherpassword");
+    // Uses DatabaseInitializer for initializing users in database
+    @Test
+    public void login() throws Exception {
+        List<GrantedAuthority> roles = new ArrayList<>();
+        roles.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        roles.add(new SimpleGrantedAuthority("ROLE_TEACHER"));
+        User expectedUser = new User("johndoe", "teacherpassword", roles);
+        when(userService.loadUserByUsername(anyString())).thenReturn(expectedUser);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(new MockAuthentication());
+        when(jwtTokenUtil.generateToken(any(UserDetails.class))).thenReturn("mockToken");
+        JWTRequest jwtRequest = new JWTRequest();
+        jwtRequest.setUsername("johndoe");
+        jwtRequest.setPassword("teacherpassword");
 
-                mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
-                                .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())
-                                .andExpect(jsonPath("$.jwtToken", equalTo("mockToken")));
+        mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
+                .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.jwtToken", equalTo("mockToken")));
 
-                ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
-                verify(userService, times(1)).loadUserByUsername(usernameCaptor.capture());
-                assertThat(usernameCaptor.getValue()).isEqualTo("johndoe");
-        }
+        ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
+        verify(userService, times(1)).loadUserByUsername(usernameCaptor.capture());
+        assertThat(usernameCaptor.getValue()).isEqualTo("johndoe");
+    }
 
-        @Test
-        public void register() throws Exception {
-                Role studentRole = new Role("ROLE_STUDENT");
-                studentRole.setId(2l);
-                com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
-                                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-                expectedUser.setId(1l);
-                expectedUser.setRoles(Arrays.asList(studentRole));
-                UserDTO userDTO = new UserDTO();
-                userDTO.setEmail("johndoe@gmail.com");
-                userDTO.setUsername("johndoe");
-                userDTO.setPassword("password");
-                userDTO.setName("John");
-                userDTO.setLastName("Doe");
-                when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(false)))
-                                .thenReturn(expectedUser);
+    @Test
+    public void register() throws Exception {
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
+                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
+        expectedUser.setId(1l);
+        expectedUser.setRoles(Arrays.asList(studentRole));
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("johndoe@gmail.com");
+        userDTO.setUsername("johndoe");
+        userDTO.setPassword("password");
+        userDTO.setName("John");
+        userDTO.setLastName("Doe");
+        when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(false)))
+                .thenReturn(expectedUser);
 
-                MvcResult mvcResult = mockMvc
-                                .perform(post("/api/register").contentType("application/json").with(csrf())
-                                                .content(objectMapper.writeValueAsString(userDTO)))
-                                .andExpect(status().isCreated()).andReturn();
+        MvcResult mvcResult = mockMvc.perform(post("/api/register").contentType("application/json").with(csrf())
+                .content(objectMapper.writeValueAsString(userDTO))).andExpect(status().isCreated()).andReturn();
 
-                String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
-                                .writeValueAsString(expectedUser);
-                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-        }
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
+                .writeValueAsString(expectedUser);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
 
-        @Test
-        @WithMockUser(roles = { "STUDENT", "TEACHER" })
-        public void registerTeacher() throws Exception {
-                Role studentRole = new Role("ROLE_STUDENT");
-                studentRole.setId(2l);
-                Role teacherRole = new Role("ROLE_TEACHER");
-                teacherRole.setId(3l);
-                com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
-                                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-                expectedUser.setId(1l);
-                expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
-                UserDTO userDTO = new UserDTO();
-                userDTO.setEmail("johndoe@gmail.com");
-                userDTO.setUsername("johndoe");
-                userDTO.setPassword("password");
-                userDTO.setName("John");
-                userDTO.setLastName("Doe");
-                when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(true)))
-                                .thenReturn(expectedUser);
+    @Test
+    @WithMockUser(roles = { "STUDENT", "TEACHER" })
+    public void registerTeacher() throws Exception {
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
+                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
+        expectedUser.setId(1l);
+        expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("johndoe@gmail.com");
+        userDTO.setUsername("johndoe");
+        userDTO.setPassword("password");
+        userDTO.setName("John");
+        userDTO.setLastName("Doe");
+        when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(true)))
+                .thenReturn(expectedUser);
 
-                MvcResult mvcResult = mockMvc
-                                .perform(post("/api/teachers/register").contentType("application/json").with(csrf())
-                                                .content(objectMapper.writeValueAsString(userDTO)))
-                                .andExpect(status().isCreated()).andReturn();
+        MvcResult mvcResult = mockMvc.perform(post("/api/teachers/register").contentType("application/json")
+                .with(csrf()).content(objectMapper.writeValueAsString(userDTO))).andExpect(status().isCreated())
+                .andReturn();
 
-                String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
-                                .writeValueAsString(expectedUser);
-                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-        }
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
+                .writeValueAsString(expectedUser);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
 
-        @Test
-        @WithMockUser(roles = { "STUDENT", "TEACHER" })
-        public void getCurrentUser() throws Exception {
+    @Test
+    @WithMockUser(roles = { "STUDENT", "TEACHER" })
+    public void getCurrentUser() throws Exception {
 
-                Role studentRole = new Role("ROLE_STUDENT");
-                studentRole.setId(2l);
-                Role teacherRole = new Role("ROLE_TEACHER");
-                teacherRole.setId(3l);
-                com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
-                                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-                expectedUser.setId(1l);
-                expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
-                Course course = new Course("Spring Boot Course");
-                course.addUserInCourse(expectedUser);
-                course.setId(4l);
-                expectedUser.addCourse(course);
-                when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
-                when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");
-                MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json").with(csrf()))
-                                .andExpect(status().isOk()).andReturn();
-                String actualResponseBody = mvcResult.getResponse().getContentAsString();
-                String expectedResponseBody = objectMapper.writerWithView(UserViews.CourseView.class)
-                                .writeValueAsString(expectedUser);
-                assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-        }
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
+                "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
+        expectedUser.setId(1l);
+        expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
+        Course course = new Course("Spring Boot Course");
+        course.addUserInCourse(expectedUser);
+        course.setId(4l);
+        expectedUser.addCourse(course);
+        when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
+        when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");
+        MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json").with(csrf()))
+                .andExpect(status().isOk()).andReturn();
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(UserViews.CourseView.class)
+                .writeValueAsString(expectedUser);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
 }

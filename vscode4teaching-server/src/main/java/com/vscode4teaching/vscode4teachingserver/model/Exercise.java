@@ -141,6 +141,12 @@ public class Exercise {
                 .collect(Collectors.toList());
     }
 
+    public List<ExerciseFile> getFilesByOwner(Long userId) {
+        return userFiles.stream()
+                .filter(file -> file.getOwner() != null && file.getOwner().getId().equals(userId))
+                .collect(Collectors.toList());
+    }
+
     public List<ExerciseFile> getStudentOnlyFiles() {
         return userFiles.stream()
                 .filter(file -> file.getOwner() != null && file.getOwner().getRoles().size() == 1 && file.getOwner()

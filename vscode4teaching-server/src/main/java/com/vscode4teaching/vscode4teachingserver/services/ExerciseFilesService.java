@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.validation.constraints.Min;
 
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
@@ -32,4 +33,6 @@ public interface ExerciseFilesService {
                         throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 
         public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException;
+
+        public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, @Min(1) Long ownerId) throws ExerciseNotFoundException;
 }

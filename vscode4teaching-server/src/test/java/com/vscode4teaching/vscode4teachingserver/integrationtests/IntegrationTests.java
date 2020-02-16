@@ -36,9 +36,8 @@ public class IntegrationTests {
         jwtRequest.setUsername("johndoe");
         jwtRequest.setPassword("teacherpassword");
 
-        MvcResult loginResult = mockMvc.perform(
-                post("/api/login").contentType("application/json").with(csrf()).content(objectMapper.writeValueAsString(jwtRequest)))
-                .andExpect(status().isOk()).andReturn();
+        MvcResult loginResult = mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
+                .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk()).andReturn();
         JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
                 JWTResponse.class);
         CourseDTO course = new CourseDTO();

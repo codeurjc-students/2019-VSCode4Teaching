@@ -13,8 +13,11 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UploadFileResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
+import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
@@ -140,5 +143,13 @@ public class ExerciseFilesController {
             zipOutputStream.closeEntry();
         }
         zipOutputStream.close();
+    }
+
+    @JsonView(FileViews.GeneralView.class)
+    @GetMapping("/users/{userId}/exercises/{exerciseId}/files")
+    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable Long userId,
+            @PathVariable Long exerciseId) throws ExerciseNotFoundException {
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, userId);
+        return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
 }
