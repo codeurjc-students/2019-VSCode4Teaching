@@ -15,7 +15,6 @@ import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
 import com.vscode4teaching.vscode4teachingserver.services.CommentService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
