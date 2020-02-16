@@ -17,7 +17,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private error401thrown = false;
     private error403thrown = false;
     private loading = false;
-    private downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
+    readonly downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
+    readonly internalFilesDir = path.resolve(__dirname, 'v4t');
     private LOGIN_ITEM = [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.login',
         'title': 'Log in to VS Code 4 Teaching'
@@ -61,7 +62,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // If not logged add login button, else show courses
                 if (!this.client.jwtToken) {
                     try {
-                        let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+                        let sessionPath = path.resolve(this.internalFilesDir, 'v4tsession');
                         if (fs.existsSync(sessionPath)) {
                             let readSession = fs.readFileSync(sessionPath).toString();
                             let sessionParts = readSession.split('\n');
@@ -261,9 +262,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }
             });
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
+            let isTeacher = this.userinfo ? this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0 : false;
             let fileContent: V4TExerciseFile = {
                 zipLocation: zipUri,
-                teacher: this.userinfo ? this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0 : false,
+                teacher: isTeacher,
                 template: templateDir ? templateDir : undefined
             };
             fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
@@ -290,7 +292,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let templateDir = path.resolve(this.downloadDir, "teacher", this.userinfo.username, courseName, exercise.name, "template");
             let templateZipName = exercise.id + "-template.zip";
             return Promise.all([
-                this.getFiles(templateDir, zipDir, templateZipName, this.client.getTemplate(exercise.id)), 
+                this.getFiles(templateDir, zipDir, templateZipName, this.client.getTemplate(exercise.id)),
                 this.getFiles(dir, zipDir, studentZipName, this.client.getAllStudentFiles(exercise.id), templateDir)
             ]);
         }
@@ -475,7 +477,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     zip.file(path.relative(root, file), filedata);
                 }
             }
-            
+
         }
     }
 

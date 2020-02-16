@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ServerComment } from './model/commentServerModel';
+import { ServerComment, ServerCommentThread } from './model/commentServerModel';
+import { RestClient } from './restclient';
 
 let commentId = 1;
 
 export class TeacherCommentProvider {
     readonly commentController: vscode.CommentController;
     private cwds: vscode.WorkspaceFolder[] = [];
-    constructor (private author: string) {
+    constructor(private author: string) {
         this.commentController = vscode.comments.createCommentController("teacherComments", "Teacher comments");
         this.commentController.commentingRangeProvider = {
             provideCommentingRanges: (document: vscode.TextDocument, token: vscode.CancellationToken) => {
@@ -37,19 +38,25 @@ export class TeacherCommentProvider {
         this.commentController.dispose();
     }
 
-    replyNote(reply: vscode.CommentReply) {
+    replyNote(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
+
         let thread = reply.thread;
         let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author }, thread, thread.comments.length ? 'canDelete' : undefined);
         thread.comments = [...thread.comments, newComment];
-        // TODO send comment to server
-        let serverComment: ServerComment = {
-            author: newComment.author.name,
-            body: newComment.body.toString(),
-            parent: {
-                file: thread.uri.fsPath,
-                line: thread.range.start.line
-            }
+        let serverCommentThread: ServerCommentThread = {
+            line: thread.range.start.line,
+            comments: thread.comments.map(comment => {
+                let serverComment: ServerComment = {
+                    author: comment.author.name,
+                    body: comment.body.toString()
+                };
+                return serverComment;
+            })
         };
+        let client = RestClient.getClient();
+        client.saveComment(fileId, serverCommentThread).catch((error: any) => {
+            errorCallback(error);
+        });
         console.log(newComment);
     }
 }

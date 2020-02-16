@@ -1,6 +1,7 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise } from './model/serverModel';
+import { User, Exercise, FileInfo } from './model/serverModel';
 import FormData = require('form-data');
+import { ServerCommentThread } from './model/commentServerModel';
 
 export class RestClient {
 
@@ -135,8 +136,12 @@ export class RestClient {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files/template", "GET", true));
     }
 
-    public saveComment() {
-        // return axios(this.buildOptions("/api"))
+    public getFilesInfo(username: string, exerciseId: number) {
+        return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/files", "GET", false));
+    }
+
+    public saveComment(fileId: number, commentThread: ServerCommentThread) {
+        return axios(this.buildOptions("/api/files/" + fileId + "/comments", "POST", false, commentThread));
     }
 
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {

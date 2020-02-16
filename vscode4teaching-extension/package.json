@@ -125,30 +125,6 @@
 				"enablement": "!commentisEmpty"
 			},
 			{
-				"command": "vscode4teaching.editComment",
-				"title": "Edit",
-				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
-				}
-			},
-			{
-				"command": "vscode4teaching.deleteComment",
-				"title": "Delete",
-				"icon": {
-					"light": "resources/light/delete.svg",
-					"dark": "resources/dark/delete.svg"
-				}
-			},
-			{
-				"command": "vscode4teaching.deleteCommentThread",
-				"title": "Delete",
-				"icon": {
-					"light": "resources/light/delete.svg",
-					"dark": "resources/dark/delete.svg"
-				}
-			},
-			{
 				"command": "vscode4teaching.saveComment",
 				"title": "Save"
 			},
@@ -235,24 +211,6 @@
 					"group": "inline@2"
 				}
 			],
-			"comments/commentThread/title": [
-				{
-					"command": "vscode4teaching.deleteCommentThread",
-					"group": "navigation",
-					"when": "!commentThreadIsEmpty"
-				}
-			],
-			"comments/comment/title": [
-				{
-					"command": "vscode4teaching.editComment",
-					"group": "group@1"
-				},
-				{
-					"command": "vscode4teaching.deleteComment",
-					"group": "group@2",
-					"when": "comment == canDelete"
-				}
-			],
 			"comments/commentThread/context": [
 				{
 					"command": "vscode4teaching.createComment",
@@ -308,26 +266,6 @@
 				},
 				{
 					"command": "vscode4teaching.createComment",
-					"when": "false"
-				},
-				{
-					"command": "vscode4teaching.editComment",
-					"when": "false"
-				},
-				{
-					"command": "vscode4teaching.deleteComment",
-					"when": "false"
-				},
-				{
-					"command": "vscode4teaching.deleteCommentThread",
-					"when": "false"
-				},
-				{
-					"command": "vscode4teaching.saveComment",
-					"when": "false"
-				},
-				{
-					"command": "vscode4teaching.cancelSaveComment",
 					"when": "false"
 				}
 			]

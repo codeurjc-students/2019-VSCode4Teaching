@@ -1,15 +1,16 @@
 import * as vscode from 'vscode';
 import { CoursesProvider } from './courses';
-import { Exercise } from './model/serverModel';
+import { Exercise, FileInfo } from './model/serverModel';
 import { V4TItem } from './v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
-import { TeacherCommentProvider, NoteComment } from './teacherComments';
+import { TeacherCommentProvider } from './teacherComments';
 import { Dictionary } from './model/dictionary';
 import { RestClient } from './restclient';
+import mkdirp = require('mkdirp');
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
@@ -39,6 +40,19 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
 				let uri = vscode.Uri.file(newWorkspaceURI);
+				// Get file info for id references
+				let client = RestClient.getClient();
+				if (coursesProvider && coursesProvider.userinfo) {
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exercise.name);
+					if (!fs.existsSync(fileInfoPath)) {
+						mkdirp.sync(fileInfoPath);
+					}
+					client.getFilesInfo(coursesProvider.userinfo.username, exercise.id).then(
+						filesInfo => {
+							fs.writeFileSync(path.resolve(fileInfoPath, coursesProvider.userinfo + ".json"), JSON.stringify(filesInfo), { encoding: "utf8" });
+						}
+					).catch(error => coursesProvider.handleAxiosError(error));
+				}
 				await vscode.commands.executeCommand('vscode.openFolder', uri);
 			}
 		});
@@ -87,108 +101,64 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI && newWorkspaceURI[1]) {
 				let wsURI: string = newWorkspaceURI[1];
-				let subdirectoriesURIs = fs.readdirSync(newWorkspaceURI[1], {withFileTypes: true})
-					.filter(dirent => dirent.isDirectory())
-					.map(dirent => {
-						return {
-							uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
-						};
-					});
-					//open all student files and template
-					vscode.workspace.updateWorkspaceFolders(0, 
-						vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length: 0, 
-						...subdirectoriesURIs);
-					cwds = vscode.workspace.workspaceFolders;
-					if (cwds) {
-						enableFSWIfExercise(cwds);
+				let directories = fs.readdirSync(newWorkspaceURI[1], { withFileTypes: true })
+					.filter(dirent => dirent.isDirectory());
+				// Get file info for id references
+				if (coursesProvider && coursesProvider.userinfo) {
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exercise.name);
+					if (!fs.existsSync(fileInfoPath)) {
+						mkdirp.sync(fileInfoPath);
 					}
+					let directoriesWithoutTemplate = directories.filter(dirent => !dirent.name.includes("template"));
+					let client = RestClient.getClient();
+					directoriesWithoutTemplate.forEach(dirent => {
+						client.getFilesInfo(dirent.name, exercise.id).then(
+							filesInfo => {
+								fs.writeFileSync(path.resolve(fileInfoPath, dirent.name + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
+							}
+						).catch(error => coursesProvider.handleAxiosError(error));
+					});
+				}
+				let subdirectoriesURIs = directories.map(dirent => {
+					return {
+						uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
+					};
+				});
+				//open all student files and template
+				vscode.workspace.updateWorkspaceFolders(0,
+					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+					...subdirectoriesURIs);
+				cwds = vscode.workspace.workspaceFolders;
+				if (cwds) {
+					enableFSWIfExercise(cwds);
+				}
 			}
 		});
 	});
 
 	let diff = vscode.commands.registerCommand('vscode4teaching.diff', (file: vscode.Uri) => {
-			let wf = vscode.workspace.getWorkspaceFolder(file);
-			if (wf) {
-				let relativePath = path.relative(wf.uri.fsPath, file.fsPath);
-				let templateFile = path.resolve(templates[wf.name], relativePath);
-				if (fs.existsSync(templateFile)) {
-					let templateFileUri = vscode.Uri.file(templateFile);
-					vscode.commands.executeCommand('vscode.diff', file, templateFileUri);
-				} else {
-					vscode.window.showErrorMessage("File doesn't exist in the template.");
-				}
+		let wf = vscode.workspace.getWorkspaceFolder(file);
+		if (wf) {
+			let relativePath = path.relative(wf.uri.fsPath, file.fsPath);
+			let templateFile = path.resolve(templates[wf.name], relativePath);
+			if (fs.existsSync(templateFile)) {
+				let templateFileUri = vscode.Uri.file(templateFile);
+				vscode.commands.executeCommand('vscode.diff', file, templateFileUri);
+			} else {
+				vscode.window.showErrorMessage("File doesn't exist in the template.");
 			}
+		}
 	});
 
 	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
 		if (commentProvider) {
-			commentProvider.replyNote(reply);
+			//commentProvider.replyNote(reply, coursesProvider.handleAxiosError);
 		}
-	});
-
-	let deleteComment = vscode.commands.registerCommand('vscode4teaching.deleteComment', (comment: NoteComment) => {
-		let thread = comment.parent;
-		if (!thread) {
-			return;
-		}
-
-		thread.comments = thread.comments.filter(cmt => (cmt as NoteComment).id !== comment.id);
-
-		if (thread.comments.length === 0 ) {
-			thread.dispose();
-		}
-	});
-
-	let deleteCommentThread = vscode.commands.registerCommand('vscode4teaching.deleteCommentThread', (thread: vscode.CommentThread) => {
-		thread.dispose();
-	});
-
-	let saveComment = vscode.commands.registerCommand('vscode4teaching.saveComment', (comment: NoteComment) => {
-		if (!comment.parent) {
-			return;
-		}
-
-		comment.parent.comments = comment.parent.comments.map(cmt => {
-			if ((cmt as NoteComment).id === comment.id) {
-				cmt.mode = vscode.CommentMode.Preview;
-			}
-
-			return cmt;
-		});
-	});
-
-	let cancelSaveComment = vscode.commands.registerCommand('vscode4teaching.cancelSaveComment', (comment: NoteComment) => {
-		if (!comment.parent) {
-			return;
-		}
-
-		comment.parent.comments = comment.parent.comments.map(cmt => {
-			if ((cmt as NoteComment).id === comment.id) {
-				cmt.mode = vscode.CommentMode.Preview;
-			}
-
-			return cmt;
-		});
-	});
-
-	let editComment = vscode.commands.registerCommand('vscode4teaching.editComment', (comment: NoteComment) => {
-		if (!comment.parent) {
-			return;
-		}
-
-		comment.parent.comments = comment.parent.comments.map(cmt => {
-			if ((cmt as NoteComment).id === comment.id) {
-				cmt.mode = vscode.CommentMode.Editing;
-			}
-
-			return cmt;
-		});
 	});
 
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment, saveComment, cancelSaveComment, deleteComment,
-		deleteCommentThread, editComment);
+		removeUsersFromCourse, getStudentFiles, diff, createComment);
 }
 
 export function deactivate() {

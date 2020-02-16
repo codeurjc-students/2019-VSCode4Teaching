@@ -16,7 +16,7 @@ export class FileIgnoreUtil {
         }
         return files;
     }
-    
+
     static getIgnoredFiles(dir: string, startingDir: string, ig: Ignore, files: string[] = []): string[] {
         const list = fs.readdirSync(dir);
         for (let file of list) {
