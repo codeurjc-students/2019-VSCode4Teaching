@@ -34,5 +34,5 @@ public interface ExerciseFilesService {
 
         public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException;
 
-        public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, @Min(1) Long ownerId) throws ExerciseNotFoundException;
+        public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername) throws ExerciseNotFoundException;
 }

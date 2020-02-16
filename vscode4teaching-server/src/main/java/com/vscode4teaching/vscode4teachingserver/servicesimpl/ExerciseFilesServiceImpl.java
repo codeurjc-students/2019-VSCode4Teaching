@@ -182,10 +182,10 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     }
 
     @Override
-    public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, @Min(1) Long ownerId)
+    public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
             throws ExerciseNotFoundException {
         Exercise ex = exerciseRepository.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
-        List<ExerciseFile> files = ex.getFilesByOwner(ownerId);
+        List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
         if (!files.isEmpty()) {
             String username = files.get(0).getOwner().getUsername();
             List<ExerciseFile> copyFiles = new ArrayList<>(files);

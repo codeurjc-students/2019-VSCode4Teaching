@@ -483,7 +483,7 @@ public class ExerciseFilesServiceImplTests {
         exercise.addUserFile(ex3);
         when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
 
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(1l, 11l);
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(1l, "johndoejr1");
 
         verify(exerciseRepository, times(1)).findById(anyLong());
         assertThat(files.size()).isEqualTo(1);

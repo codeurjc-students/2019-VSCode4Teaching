@@ -146,10 +146,10 @@ public class ExerciseFilesController {
     }
 
     @JsonView(FileViews.GeneralView.class)
-    @GetMapping("/users/{userId}/exercises/{exerciseId}/files")
-    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable Long userId,
+    @GetMapping("/users/{username}/exercises/{exerciseId}/files")
+    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
             @PathVariable Long exerciseId) throws ExerciseNotFoundException {
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, userId);
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, username);
         return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
 }
