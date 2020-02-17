@@ -36,6 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
 		coursesProvider.login();
 	});
+
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
 		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
@@ -43,13 +44,14 @@ export function activate(context: vscode.ExtensionContext) {
 				// Get file info for id references
 				let client = RestClient.getClient();
 				if (coursesProvider && coursesProvider.userinfo) {
-					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exercise.name);
+					let username = coursesProvider.userinfo.username;
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, username, ".fileInfo", exercise.name);
 					if (!fs.existsSync(fileInfoPath)) {
 						mkdirp.sync(fileInfoPath);
 					}
-					client.getFilesInfo(coursesProvider.userinfo.username, exercise.id).then(
+					client.getFilesInfo(username, exercise.id).then(
 						filesInfo => {
-							fs.writeFileSync(path.resolve(fileInfoPath, coursesProvider.userinfo + ".json"), JSON.stringify(filesInfo), { encoding: "utf8" });
+							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 						}
 					).catch(error => coursesProvider.handleAxiosError(error));
 				}
@@ -57,6 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	});
+
 	let addCourseDisposable = vscode.commands.registerCommand('vscode4teaching.addcourse', () => {
 		coursesProvider.addCourse();
 	});
@@ -151,8 +154,26 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
-		if (commentProvider) {
-			//commentProvider.replyNote(reply, coursesProvider.handleAxiosError);
+		if (commentProvider && coursesProvider && coursesProvider.userinfo) {
+			let filePath = reply.thread.uri.fsPath;
+			let separator = path.sep;
+			let currentUsername = coursesProvider.userinfo.username;
+			let teacherRelativePath = filePath.split(separator + currentUsername + separator)[1];
+			let teacherRelativePathSplit = teacherRelativePath.split(separator);
+			let exerciseName = teacherRelativePathSplit[1];
+			// If teacher use username from student, else use own
+			let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
+			let username =  currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
+
+			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exerciseName, username + ".json");
+			let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
+			let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
+			let fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
+			if (fileInfo) {
+				commentProvider.replyNote(reply, fileInfo.id, coursesProvider.handleAxiosError);
+			} else {
+				vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
+			}
 		}
 	});
 
@@ -182,16 +203,16 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 				checkedUris.push(parentDir);
 				if (uris.length > 0) {
 					let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
+					if (!commentProvider && coursesProvider.userinfo) {
+						commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
+					}
+					if (commentProvider) {
+						commentProvider.addCwd(cwd);
+					}
 					// Set template location if exists
 					if (v4tjson.teacher && v4tjson.template) {
 						// Template should be the same in the workspace
 						templates[cwd.name] = v4tjson.template;
-						if (!commentProvider && coursesProvider.userinfo) {
-							commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
-						}
-						if (commentProvider) {
-							commentProvider.addCwd(cwd);
-						}
 					}
 					// Zip Uri should be in the text file
 					let zipUri = path.resolve(v4tjson.zipLocation);

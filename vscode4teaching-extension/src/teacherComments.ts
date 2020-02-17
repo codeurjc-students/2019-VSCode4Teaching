@@ -12,20 +12,21 @@ export class TeacherCommentProvider {
         this.commentController = vscode.comments.createCommentController("teacherComments", "Teacher comments");
         this.commentController.commentingRangeProvider = {
             provideCommentingRanges: (document: vscode.TextDocument, token: vscode.CancellationToken) => {
-                let relPath: string = "";
-                for (let cwd of this.cwds) {
-                    relPath = path.relative(cwd.uri.fsPath, document.uri.fsPath);
-                    console.log(cwd.uri.fsPath);
-                    console.log(document.uri.fsPath);
-                    console.log(relPath);
-                    if (relPath.length !== 0) {
-                        break;
-                    }
-                }
                 // If document isn't in workspace don't allow comments
-                return relPath.length > 0 ? [new vscode.Range(0, 0, document.lineCount - 1, 0)] : [];
+                return this.isValidDocument(document) ? [new vscode.Range(0, 0, document.lineCount - 1, 0)] : [];
             }
         };
+    }
+
+    private isValidDocument(document: vscode.TextDocument) {
+        let relPath: string = "";
+        for (let cwd of this.cwds) {
+            relPath = path.relative(cwd.uri.fsPath, document.uri.fsPath);
+            if (relPath.length !== 0 && cwd.name !== "template") {
+                return true;
+            }
+        }
+        return false;
     }
 
     addCwd(cwd: vscode.WorkspaceFolder) {
@@ -57,7 +58,6 @@ export class TeacherCommentProvider {
         client.saveComment(fileId, serverCommentThread).catch((error: any) => {
             errorCallback(error);
         });
-        console.log(newComment);
     }
 }
 
