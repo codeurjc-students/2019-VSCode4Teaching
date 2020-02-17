@@ -1,6 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.util.Iterator;
 import java.util.List;
 
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
