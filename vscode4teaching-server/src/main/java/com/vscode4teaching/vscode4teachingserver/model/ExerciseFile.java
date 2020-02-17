@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,7 +34,7 @@ public class ExerciseFile {
     @JsonView(FileViews.OwnerView.class)
     private User owner;
 
-    @OneToMany(mappedBy = "file")
+    @OneToMany(mappedBy = "file", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonView(FileViews.CommentView.class)
     private List<CommentThread> comments = new ArrayList<>();
 
@@ -97,6 +98,12 @@ public class ExerciseFile {
     }
 
     public void addCommentThread(CommentThread commentThread) {
+        for (CommentThread fileCommentThread : this.getComments()) {
+			if (fileCommentThread.getLine().equals(commentThread.getLine())) {
+                this.getComments().remove(fileCommentThread);
+                break;
+			}
+		}
         this.comments.add(commentThread);
     }
 }
