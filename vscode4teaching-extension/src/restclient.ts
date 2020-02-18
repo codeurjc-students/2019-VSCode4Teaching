@@ -148,6 +148,10 @@ export class RestClient {
         return axios(this.buildOptions("/api/files/" + fileId + "/comments", "GET", false));
     }
 
+    public getAllComments(username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
+        return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,

@@ -42,8 +42,9 @@ export class TeacherCommentProvider {
     replyNote(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
 
         let thread = reply.thread;
-        let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author }, thread, thread.comments.length ? 'canDelete' : undefined);
+        let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author });
         thread.comments = [...thread.comments, newComment];
+        console.log(thread)
         let serverCommentThread: ServerCommentThread = {
             line: thread.range.start.line,
             comments: thread.comments.map(comment => {
@@ -60,21 +61,27 @@ export class TeacherCommentProvider {
         });
     }
 
-    getThreads(fileId: number, filePath: string, errorCallback: ((error: any) => void)) {
+    getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
         let client = RestClient.getClient();
-        client.getComments(fileId).then((response => {
+        client.getAllComments(username, exerciseId).then((response => {
             if (response.data) {
-                let commentThreads = response.data;
-                let comments: vscode.Comment[] = [];
-                for (let commentThread of commentThreads) {
-                    if (commentThread.comments) {
-                        comments = commentThread.comments.
-                            map((serverComment: ServerComment) => new NoteComment(serverComment.body, vscode.CommentMode.Preview, { name: serverComment.author }));
+                let fileInfoArray = response.data;
+                for (let fileInfo of fileInfoArray) {
+                    if (fileInfo.comments) {
+                        for (let commentThread of fileInfo.comments) {
+                            if (commentThread.comments) {
+                                let comments = commentThread.comments.map(comment => new NoteComment(
+                                    comment.body, vscode.CommentMode.Preview, { name: comment.author }
+                                ));
+                                let uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
+                                this.commentController.createCommentThread(
+                                    uri,
+                                    new vscode.Range(0, 0, commentThread.line, 0),
+                                    comments
+                                );
+                            }
+                        }
                     }
-                    this.commentController.createCommentThread(vscode.Uri.parse(filePath),
-                        new vscode.Range(commentThread.line, 0, commentThread.line, Infinity),
-                        comments
-                    );
                 }
             }
         })).catch((error: any) => {
@@ -89,9 +96,7 @@ export class NoteComment implements vscode.Comment {
     constructor(
         public body: string | vscode.MarkdownString,
         public mode: vscode.CommentMode,
-        public author: vscode.CommentAuthorInformation,
-        public parent?: vscode.CommentThread,
-        public contextValue?: string
+        public author: vscode.CommentAuthorInformation
     ) {
         this.id = ++commentId;
     }
