@@ -129,7 +129,7 @@ public class CommentServiceImplTests {
 
     @Test
     public void getFilesWithCommentsByUser() throws ExerciseNotFoundException {
-        ExerciseFile demoFile = new ExerciseFile("testPath");
+        ExerciseFile demoFile = new ExerciseFile("johndoe\\testPath");
         demoFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         demoFile.setId(1l);
         CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
@@ -140,14 +140,14 @@ public class CommentServiceImplTests {
         expectedC2.setId(4l);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
-        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        ExerciseFile expectedFile = new ExerciseFile("johndoe\\testPath");
         expectedFile.setId(1l);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         Exercise ex = new Exercise("Test ex");
         ex.setId(1000l);
         ex.addUserFile(expectedFile);
-        ExerciseFile expectedFile2 = new ExerciseFile("testPath2");
+        ExerciseFile expectedFile2 = new ExerciseFile("johndoe2\\testPath2");
         expectedFile2.setId(555l);
         expectedFile2.setOwner(new User("johndoe2@johndoe.com", "johndoe2", "johndoe2", "johndoe2", "johndoe2"));
         ex.addUserFile(expectedFile2);
