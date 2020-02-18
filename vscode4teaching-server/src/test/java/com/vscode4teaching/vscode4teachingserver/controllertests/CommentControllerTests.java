@@ -12,8 +12,11 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
+import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
+import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
+import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.services.CommentService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -146,6 +149,54 @@ public class CommentControllerTests {
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(CommentThreadViews.CommentView.class)
                 .writeValueAsString(expectedCommentThreadList);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void getCommentsByUser() throws Exception {
+        User user = new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe");
+        user.setId(10000l);
+        ExerciseFile demoFile = new ExerciseFile("testPath");
+        demoFile.setId(1l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        expectedCommentThread.setId(2l);
+        Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
+        Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
+        commentThread.addComment(c1);
+        commentThread.addComment(c2);
+        Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
+        expectedC1.setId(3l);
+        Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
+        expectedC2.setId(4l);
+        expectedCommentThread.addComment(expectedC1);
+        expectedCommentThread.addComment(expectedC2);
+        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        expectedFile.setId(1l);
+        expectedFile.addCommentThread(expectedCommentThread);
+        expectedCommentThread.setFile(expectedFile);
+        List<CommentThread> expectedCommentThreadList = new ArrayList<>();
+        expectedCommentThreadList.add(expectedCommentThread);
+        Exercise ex = new Exercise("Test ex");
+        ex.setId(1000l);
+        ex.addUserFile(expectedFile);
+        ExerciseFile expectedFile2 = new ExerciseFile("testPath2");
+        expectedFile2.setId(555l);
+        expectedFile2.setOwner(new User("johndoe2@johndoe.com", "johndoe2", "johndoe2", "johndoe2", "johndoe2"));
+        ex.addUserFile(expectedFile2);
+        List<ExerciseFile> expectedFiles = new ArrayList<>();
+        expectedFiles.add(expectedFile);
+        when(commentService.getFilesWithCommentsByUser(anyLong(), any(String.class))).thenReturn(expectedFiles);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/users/johndoe/exercises/1000/comments").contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
+                .andExpect(status().isOk()).andReturn();
+
+        verify(commentService, times(1)).getFilesWithCommentsByUser(anyLong(), any(String.class));
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(FileViews.CommentView.class)
+                .writeValueAsString(expectedFiles);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

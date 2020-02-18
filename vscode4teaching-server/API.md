@@ -1779,6 +1779,82 @@ Get the posted comment threads of a file.
   Not found: 322
   ```
 
+## Get comments by exercise and username
+
+---
+
+Get the posted comment threads of the files owned by the given username in the given exercise.
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/users/:username/exercises/:exerciseId/comments`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `username=[string]`
+    - `exerciseId=[long]`
+  - **Example**
+    - `/api/users/johndoejr3/exercises/10/comments`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    [
+        {
+            "id": 333,
+            "path": "e:\\GitHub\\2019-VSCode4Teaching\\vscode4teaching-server\\v4t-course\\spring_boot_course_7\\exercise_1_10\\johndoejr3\\ej.html",
+            "comments": [
+                {
+                    "id": 346,
+                    "comments": [
+                        {
+                            "id": 347,
+                            "body": "test",
+                            "author": "johndoe",
+                            "createDateTime": "2020-02-18T13:25:46",
+                            "updateDateTime": "2020-02-18T13:25:46"
+                        },
+                        {
+                            "id": 348,
+                            "body": "test 2",
+                            "author": "johndoe",
+                            "createDateTime": "2020-02-18T13:25:46",
+                            "updateDateTime": "2020-02-18T13:25:46"
+                        },
+                        {
+                            "id": 349,
+                            "body": "test 3",
+                            "author": "johndoe",
+                            "createDateTime": "2020-02-18T13:25:46",
+                            "updateDateTime": "2020-02-18T13:25:46"
+                        }
+                    ],
+                    "line": 0,
+                    "createDateTime": "2020-02-18T13:25:46",
+                    "updateDateTime": "2020-02-18T13:25:46"
+                }
+            ],
+            "createDateTime": "2020-02-18T13:25:43",
+            "updateDateTime": "2020-02-18T13:25:43"
+        }
+    ]
+    ```
+
+    OR
+
+  - **Code**: 204
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
+  ```
+
 ## Get file info by exercise and owner
 
 ---

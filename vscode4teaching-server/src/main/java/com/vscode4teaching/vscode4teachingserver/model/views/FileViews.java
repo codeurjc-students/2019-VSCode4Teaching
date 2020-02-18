@@ -11,6 +11,6 @@ public class FileViews {
 
     }
     
-    public static interface CommentView extends GeneralView {
+    public static interface CommentView extends GeneralView, CommentThreadViews.CommentView {
     }
 }

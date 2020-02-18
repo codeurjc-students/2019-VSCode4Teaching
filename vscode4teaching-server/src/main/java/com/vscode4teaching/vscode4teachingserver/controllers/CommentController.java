@@ -11,8 +11,11 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CommentDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CommentThreadDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
+import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.services.CommentService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 
 import org.springframework.http.HttpStatus;
@@ -57,5 +60,13 @@ public class CommentController {
 			throws FileNotFoundException {
 		List<CommentThread> comments = commentService.getCommentThreadsByFile(fileId);
 		return comments.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(comments);
+	}
+
+	@GetMapping("users/{username}/exercises/{exerciseId}/comments")
+	@JsonView(FileViews.CommentView.class)
+	public ResponseEntity<List<ExerciseFile>> getCommentsByUser(@PathVariable String username,
+			@PathVariable Long exerciseId) throws ExerciseNotFoundException {
+		List<ExerciseFile> files = commentService.getFilesWithCommentsByUser(exerciseId, username);
+		return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
 	}
 }
