@@ -1,5 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +64,14 @@ public class CommentServiceImpl implements CommentService {
 				.orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
 		List<ExerciseFile> files = new ArrayList<>(ex.getFilesByOwner(username));
 		files.removeIf(file -> file.getComments().isEmpty());
+		// Change paths to be relative to username
+		files.forEach((ExerciseFile file) -> {
+			String separator = File.separator;
+			if (File.separator.contains("\\")) {
+				separator = "\\" + File.separator;
+			}
+			file.setPath(file.getPath().split(username + separator)[1]);
+		});
 		return files;
 	}
 
