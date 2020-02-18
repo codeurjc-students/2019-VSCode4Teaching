@@ -1806,7 +1806,7 @@ Get the posted comment threads of the files owned by the given username in the g
     [
         {
             "id": 333,
-            "path": "e:\\GitHub\\2019-VSCode4Teaching\\vscode4teaching-server\\v4t-course\\spring_boot_course_7\\exercise_1_10\\johndoejr3\\ej.html",
+            "path": "ej.html",
             "comments": [
                 {
                     "id": 346,
