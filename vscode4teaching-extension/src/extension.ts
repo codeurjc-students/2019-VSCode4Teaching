@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 		client.jwtToken = sessionParts[0];
 		client.xsrfToken = sessionParts[1];
 		client.baseUrl = sessionParts[2];
-		coursesProvider.getUserInfo();
+		coursesProvider.getUserInfo().catch((error) => coursesProvider.handleAxiosError(error));
 	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
@@ -55,7 +55,13 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					).catch(error => coursesProvider.handleAxiosError(error));
 				}
-				await vscode.commands.executeCommand('vscode.openFolder', uri);
+				vscode.workspace.updateWorkspaceFolders(0,
+					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+					{ uri: uri, name: exercise.name });
+				cwds = vscode.workspace.workspaceFolders;
+				if (cwds) {
+					enableFSWIfExercise(cwds);
+				}
 			}
 		});
 	});
@@ -163,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let exerciseName = teacherRelativePathSplit[1];
 			// If teacher use username from student, else use own
 			let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
-			let username =  currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
+			let username = currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
 
 			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exerciseName, username + ".json");
 			let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
@@ -206,8 +212,32 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					if (!commentProvider && coursesProvider.userinfo) {
 						commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
 					}
-					if (commentProvider) {
+					if (commentProvider && coursesProvider.userinfo) {
 						commentProvider.addCwd(cwd);
+						// Download comments
+						if (cwd.name !== "template") {
+							let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
+							let fileInfoPath: string | undefined;
+							if (currentUserIsTeacher) {
+								let filePath = cwd.uri.fsPath;
+								let separator = path.sep;
+								let currentUsername = coursesProvider.userinfo.username;
+								let teacherRelativePath = filePath.split(separator + currentUsername + separator)[1];
+								let teacherRelativePathSplit = teacherRelativePath.split(separator);
+								let exerciseName = teacherRelativePathSplit[1];
+								fileInfoPath = path.resolve(coursesProvider.internalFilesDir, currentUsername, ".fileInfo", exerciseName, cwd.name + ".json");
+							} else {
+								let internalFilesDir = coursesProvider.internalFilesDir;
+								let username = coursesProvider.userinfo.username;
+								fileInfoPath = path.resolve(internalFilesDir, username, ".fileInfo", cwd.name, username + ".json");
+							}
+							if (fileInfoPath) {
+								let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
+								for (let fileInfo of fileInfoArray) {
+									commentProvider.getThreads(fileInfo.id, path.resolve(cwd.uri.fsPath, fileInfo.path), coursesProvider.handleAxiosError);
+								}
+							}
+						}
 					}
 					// Set template location if exists
 					if (v4tjson.teacher && v4tjson.template) {

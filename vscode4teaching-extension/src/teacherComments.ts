@@ -59,6 +59,28 @@ export class TeacherCommentProvider {
             errorCallback(error);
         });
     }
+
+    getThreads(fileId: number, filePath: string, errorCallback: ((error: any) => void)) {
+        let client = RestClient.getClient();
+        client.getComments(fileId).then((response => {
+            if (response.data) {
+                let commentThreads = response.data;
+                let comments: vscode.Comment[] = [];
+                for (let commentThread of commentThreads) {
+                    if (commentThread.comments) {
+                        comments = commentThread.comments.
+                            map((serverComment: ServerComment) => new NoteComment(serverComment.body, vscode.CommentMode.Preview, { name: serverComment.author }));
+                    }
+                    this.commentController.createCommentThread(vscode.Uri.parse(filePath),
+                        new vscode.Range(commentThread.line, 0, commentThread.line, Infinity),
+                        comments
+                    );
+                }
+            }
+        })).catch((error: any) => {
+            errorCallback(error);
+        });
+    }
 }
 
 export class NoteComment implements vscode.Comment {
