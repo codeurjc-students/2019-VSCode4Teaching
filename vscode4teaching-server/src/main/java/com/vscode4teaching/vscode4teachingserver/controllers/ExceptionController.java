@@ -65,7 +65,7 @@ public class ExceptionController {
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<String> handleCourseNotFoundException(NotFoundException e) {
+    public ResponseEntity<String> handleNotFoundException(NotFoundException e) {
         return new ResponseEntity<>("Not found: " + e.getMessage(), HttpStatus.NOT_FOUND);
     }
 

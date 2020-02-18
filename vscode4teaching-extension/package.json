@@ -118,6 +118,11 @@
 				"command": "vscode4teaching.diff",
 				"title": "Compare exercise file with template",
 				"category": "VSCode4Teaching"
+			},
+			{
+				"command": "vscode4teaching.createComment",
+				"title": "Create comment",
+				"enablement": "!commentIsEmpty"
 			}
 		],
 		"viewsContainers": {
@@ -198,6 +203,12 @@
 					"group": "inline@2"
 				}
 			],
+			"comments/commentThread/context": [
+				{
+					"command": "vscode4teaching.createComment",
+					"group": "inline"
+				}
+			],
 			"commandPalette": [
 				{
 					"command": "vscode4teaching.editcourse",
@@ -233,6 +244,10 @@
 				},
 				{
 					"command": "vscode4teaching.diff",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.createComment",
 					"when": "false"
 				}
 			]

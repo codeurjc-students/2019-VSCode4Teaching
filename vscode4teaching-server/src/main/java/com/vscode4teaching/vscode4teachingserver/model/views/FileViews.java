@@ -6,4 +6,11 @@ public class FileViews {
 
     public static interface GeneralView {
     }
+
+    public static interface OwnerView extends GeneralView {
+
+    }
+    
+    public static interface CommentView extends GeneralView, CommentThreadViews.CommentView {
+    }
 }

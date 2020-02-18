@@ -1,14 +1,25 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise } from './model/serverModel';
+import { User, Exercise, FileInfo, Course } from './model/serverModel';
 import FormData = require('form-data');
+import { ServerCommentThread } from './model/commentServerModel';
 
 export class RestClient {
 
+    private static instance: RestClient;
     private _baseUrl: string | undefined;
     private _jwtToken: string | undefined;
     private _xsrfToken = "";
 
-    constructor() {
+    private constructor() {
+    }
+
+    // Client is a singleton
+    public static getClient(): RestClient {
+        if (!RestClient.instance) {
+            RestClient.instance = new RestClient();
+        }
+
+        return RestClient.instance;
     }
 
     login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {
@@ -31,98 +42,114 @@ export class RestClient {
         }
     }
 
-    getUserInfo(): AxiosPromise<User> {
+    public getUserInfo(): AxiosPromise<User> {
         return axios(this.buildOptions("/api/currentuser", "GET", false));
     }
 
-    getExercises(courseId: number): AxiosPromise<Exercise[]> {
+    public getExercises(courseId: number): AxiosPromise<Exercise[]> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET", false));
     }
 
-    getExerciseFiles(exerciseId: number) {
+    public getExerciseFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "GET", true));
     }
 
-    addCourse(name: string) {
+    public addCourse(name: string): AxiosPromise<Course> {
         let data = {
             name: name
         };
         return axios(this.buildOptions("/api/courses", "POST", false, data));
     }
 
-    editCourse(id: number, name: string) {
+    public editCourse(id: number, name: string): AxiosPromise<Course> {
         let data = {
             name: name
         };
         return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
     }
 
-    deleteCourse(id: number) {
+    public deleteCourse(id: number): AxiosPromise<void> {
         return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
     }
 
-    addExercise(id: number, name: string): AxiosPromise<Exercise> {
+    public addExercise(id: number, name: string): AxiosPromise<Exercise> {
         let data = {
             name: name
         };
         return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
     }
 
-    editExercise(id: number, name: string) {
+    public editExercise(id: number, name: string): AxiosPromise<Exercise> {
         let data = {
             name: name
         };
         return axios(this.buildOptions("/api/exercises/" + id, "PUT", false, data));
     }
 
-    uploadExerciseTemplate(id: number, data: Buffer) {
+    public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
         let dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
     }
 
-    deleteExercise(id: number) {
+    public deleteExercise(id: number): AxiosPromise<void> {
         return axios(this.buildOptions("/api/exercises/" + id, "DELETE", false));
     }
 
-    getAllUsers() {
+    public getAllUsers(): AxiosPromise<User[]> {
         return axios(this.buildOptions("/api/users", "GET", false));
     }
 
-    getUsersInCourse(courseId: number) {
+    public getUsersInCourse(courseId: number): AxiosPromise<User[]> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "GET", false));
     }
 
-    addUsersToCourse(courseId: number, ids: number[]) {
+    public addUsersToCourse(courseId: number, ids: number[]): AxiosPromise<Course> {
         let data = {
             ids: ids
         };
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "POST", false, data));
     }
 
-    removeUsersFromCourse(courseId: number, ids: number[]) {
+    public removeUsersFromCourse(courseId: number, ids: number[]): AxiosPromise<Course> {
         let data = {
             ids: ids
         };
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "DELETE", false, data));
     }
 
-    getCreator(courseId: number) {
+    public getCreator(courseId: number): AxiosPromise<User> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/creator", "GET", false));
     }
 
-    uploadFiles(exerciseId: number, data: Buffer) {
+    public uploadFiles(exerciseId: number, data: Buffer): AxiosPromise<any> {
         let dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "POST", false, dataForm));
     }
 
-    getAllStudentFiles(exerciseId: number) {
+    public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/teachers/files", "GET", true));
     }
 
-    getTemplate(exerciseId: number) {
+    public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files/template", "GET", true));
+    }
+
+    public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
+        return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/files", "GET", false));
+    }
+
+    public saveComment(fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
+        return axios(this.buildOptions("/api/files/" + fileId + "/comments", "POST", false, commentThread));
+    }
+
+    public getComments(fileId: number): AxiosPromise<ServerCommentThread[] | void> {
+        return axios(this.buildOptions("/api/files/" + fileId + "/comments", "GET", false));
+    }
+
+    public getAllComments(username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
+        return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
     }
 
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {

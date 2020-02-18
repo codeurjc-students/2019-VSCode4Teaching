@@ -1,3 +1,5 @@
+import { ServerCommentThread } from "./commentServerModel";
+
 export interface User {
     id: number;
     username: string;
@@ -22,4 +24,10 @@ export interface Exercise {
 
 export interface Role {
     roleName: "ROLE_STUDENT" | "ROLE_TEACHER";
+}
+
+export interface FileInfo {
+    id: number;
+    path: string;
+    comments?: ServerCommentThread[];
 }

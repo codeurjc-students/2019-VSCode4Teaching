@@ -180,4 +180,28 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 files.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
         return filesMap;
     }
+
+    @Override
+    public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
+            throws ExerciseNotFoundException {
+        Exercise ex = exerciseRepository.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
+        if (!files.isEmpty()) {
+            String username = files.get(0).getOwner().getUsername();
+            List<ExerciseFile> copyFiles = new ArrayList<>(files);
+    
+            // Change paths to be relative to username
+            copyFiles.forEach((ExerciseFile file) -> {
+                String separator = File.separator;
+                if (File.separator.contains("\\")) {
+                    separator = "\\" + File.separator;
+                }
+                file.setPath(file.getPath().split(username + separator)[1]);
+            });
+            return copyFiles;
+        } else {
+            return files;
+        }
+        
+    }
 }

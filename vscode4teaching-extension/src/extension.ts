@@ -1,24 +1,31 @@
 import * as vscode from 'vscode';
 import { CoursesProvider } from './courses';
-import { Exercise } from './model/serverModel';
+import { Exercise, FileInfo } from './model/serverModel';
 import { V4TItem } from './v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
+import { TeacherCommentProvider } from './teacherComments';
+import { Dictionary } from './model/dictionary';
+import { RestClient } from './restclient';
+import mkdirp = require('mkdirp');
 
 export let coursesProvider = new CoursesProvider();
-let template: string | undefined;
+let templates: Dictionary<string> = {};
+let commentProvider: TeacherCommentProvider | undefined;
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
 	if (fs.existsSync(sessionPath)) {
 		let readSession = fs.readFileSync(sessionPath).toString();
 		let sessionParts = readSession.split('\n');
-		coursesProvider.client.jwtToken = sessionParts[0];
-		coursesProvider.client.xsrfToken = sessionParts[1];
-		coursesProvider.client.baseUrl = sessionParts[2];
+		let client = RestClient.getClient();
+		client.jwtToken = sessionParts[0];
+		client.xsrfToken = sessionParts[1];
+		client.baseUrl = sessionParts[2];
+		coursesProvider.getUserInfo().catch((error) => coursesProvider.handleAxiosError(error));
 	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
@@ -29,14 +36,36 @@ export function activate(context: vscode.ExtensionContext) {
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
 		coursesProvider.login();
 	});
+
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
 		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
 				let uri = vscode.Uri.file(newWorkspaceURI);
-				await vscode.commands.executeCommand('vscode.openFolder', uri);
+				// Get file info for id references
+				let client = RestClient.getClient();
+				if (coursesProvider && coursesProvider.userinfo) {
+					let username = coursesProvider.userinfo.username;
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, username, ".fileInfo", exercise.name);
+					if (!fs.existsSync(fileInfoPath)) {
+						mkdirp.sync(fileInfoPath);
+					}
+					client.getFilesInfo(username, exercise.id).then(
+						filesInfo => {
+							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
+						}
+					).catch(error => coursesProvider.handleAxiosError(error));
+				}
+				vscode.workspace.updateWorkspaceFolders(0,
+					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+					{ uri: uri, name: exercise.name });
+				cwds = vscode.workspace.workspaceFolders;
+				if (cwds) {
+					enableFSWIfExercise(cwds);
+				}
 			}
 		});
 	});
+
 	let addCourseDisposable = vscode.commands.registerCommand('vscode4teaching.addcourse', () => {
 		coursesProvider.addCourse();
 	});
@@ -81,47 +110,89 @@ export function activate(context: vscode.ExtensionContext) {
 		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI && newWorkspaceURI[1]) {
 				let wsURI: string = newWorkspaceURI[1];
-				let subdirectoriesURIs = fs.readdirSync(newWorkspaceURI[1], {withFileTypes: true})
-					.filter(dirent => dirent.isDirectory())
-					.map(dirent => {
-						return {
-							uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
-						};
-					});
-					//open all student files and template
-					vscode.workspace.updateWorkspaceFolders(0, 
-						vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length: 0, 
-						...subdirectoriesURIs);
-					cwds = vscode.workspace.workspaceFolders;
-					if (cwds) {
-						enableFSWIfExercise(cwds);
+				let directories = fs.readdirSync(newWorkspaceURI[1], { withFileTypes: true })
+					.filter(dirent => dirent.isDirectory());
+				// Get file info for id references
+				if (coursesProvider && coursesProvider.userinfo) {
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exercise.name);
+					if (!fs.existsSync(fileInfoPath)) {
+						mkdirp.sync(fileInfoPath);
 					}
+					let directoriesWithoutTemplate = directories.filter(dirent => !dirent.name.includes("template"));
+					let client = RestClient.getClient();
+					directoriesWithoutTemplate.forEach(dirent => {
+						client.getFilesInfo(dirent.name, exercise.id).then(
+							filesInfo => {
+								fs.writeFileSync(path.resolve(fileInfoPath, dirent.name + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
+							}
+						).catch(error => coursesProvider.handleAxiosError(error));
+					});
+				}
+				let subdirectoriesURIs = directories.map(dirent => {
+					return {
+						uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
+					};
+				});
+				//open all student files and template
+				vscode.workspace.updateWorkspaceFolders(0,
+					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+					...subdirectoriesURIs);
+				cwds = vscode.workspace.workspaceFolders;
+				if (cwds) {
+					enableFSWIfExercise(cwds);
+				}
 			}
 		});
 	});
 
 	let diff = vscode.commands.registerCommand('vscode4teaching.diff', (file: vscode.Uri) => {
-		if (template) {
-			let wf = vscode.workspace.getWorkspaceFolder(file);
-			if (wf) {
-				let relativePath = path.relative(wf.uri.fsPath, file.fsPath);
-				let templateFile = path.resolve(template, relativePath);
-				if (fs.existsSync(templateFile)) {
-					let templateFileUri = vscode.Uri.file(templateFile);
-					vscode.commands.executeCommand('vscode.diff', file, templateFileUri);
-				} else {
-					vscode.window.showErrorMessage("File doesn't exist in the template.");
-				}
+		let wf = vscode.workspace.getWorkspaceFolder(file);
+		if (wf) {
+			let relativePath = path.relative(wf.uri.fsPath, file.fsPath);
+			let templateFile = path.resolve(templates[wf.name], relativePath);
+			if (fs.existsSync(templateFile)) {
+				let templateFileUri = vscode.Uri.file(templateFile);
+				vscode.commands.executeCommand('vscode.diff', file, templateFileUri);
+			} else {
+				vscode.window.showErrorMessage("File doesn't exist in the template.");
+			}
+		}
+	});
+
+	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
+		if (commentProvider && coursesProvider && coursesProvider.userinfo) {
+			let filePath = reply.thread.uri.fsPath;
+			let separator = path.sep;
+			let currentUsername = coursesProvider.userinfo.username;
+			let teacherRelativePath = filePath.split(separator + currentUsername + separator)[1];
+			let teacherRelativePathSplit = teacherRelativePath.split(separator);
+			let exerciseName = teacherRelativePathSplit[1];
+			// If teacher use username from student, else use own
+			let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
+			let username = currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
+
+			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exerciseName, username + ".json");
+			let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
+			let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
+			let fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
+			if (fileInfo) {
+				commentProvider.replyNote(reply, fileInfo.id, coursesProvider.handleAxiosError);
+			} else {
+				vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
 			}
 		}
 	});
 
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff);
+		removeUsersFromCourse, getStudentFiles, diff, createComment);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	if (commentProvider) {
+		commentProvider.dispose();
+	}
+}
 
 // Meant to be used for tests
 export function createNewCoursesProvider() {
@@ -138,12 +209,28 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 				checkedUris.push(parentDir);
 				if (uris.length > 0) {
 					let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
-					// Set template location if exists
-					if (v4tjson.teacher && v4tjson.template) {
-						template = v4tjson.template;
-					}
 					// Zip Uri should be in the text file
 					let zipUri = path.resolve(v4tjson.zipLocation);
+					// Exercise id is in the name of the zip file
+					let zipSplit = zipUri.split(path.sep);
+					let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
+					if (!commentProvider && coursesProvider.userinfo) {
+						commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
+					}
+					if (commentProvider && coursesProvider.userinfo) {
+						commentProvider.addCwd(cwd);
+						// Download comments
+						if (cwd.name !== "template") {
+							let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;							
+							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
+							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
+						}
+					}
+					// Set template location if exists
+					if (v4tjson.teacher && v4tjson.template) {
+						// Template should be the same in the workspace
+						templates[cwd.name] = v4tjson.template;
+					}
 					let jszipFile = new JSZip();
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
 						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
@@ -151,12 +238,12 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 						let fsw = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(cwd, "**/*.*"));
 						fsw.onDidChange((e: vscode.Uri) => {
 							if (!ignoredFiles.includes(e.fsPath)) {
-								updateFile(e, zipUri, jszipFile, cwd);
+								updateFile(e, exerciseId, jszipFile, cwd);
 							}
 						});
 						fsw.onDidCreate((e: vscode.Uri) => {
 							if (!ignoredFiles.includes(e.fsPath)) {
-								updateFile(e, zipUri, jszipFile, cwd);
+								updateFile(e, exerciseId, jszipFile, cwd);
 							}
 						});
 						fsw.onDidDelete((e: vscode.Uri) => {
@@ -164,12 +251,9 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 								let filePath = path.resolve(e.fsPath);
 								filePath = path.relative(cwd.uri.fsPath, filePath);
 								jszipFile.remove(filePath);
-								// Exercise id is in the name of the zip file
-								let zipSplit = zipUri.split(path.sep);
-								let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
 								let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 								vscode.window.setStatusBarMessage("Uploading files...", thenable);
-								thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
+								thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
 									.catch(err => coursesProvider.handleAxiosError(err));
 							}
 						});
@@ -181,19 +265,16 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 
 }
 
-function updateFile(e: vscode.Uri, zipUri: string, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+function updateFile(e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
 	let filePath = path.resolve(e.fsPath);
 	fs.readFile(filePath, (err, data) => {
 		filePath = path.relative(cwd.uri.fsPath, filePath);
 		if (!filePath.includes("v4texercise.v4t")) {
 			if (err) { throw (err); }
 			jszipFile.file(filePath, data);
-			// Exercise id is in the name of the zip file
-			let zipSplit = zipUri.split(path.sep);
-			let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
 			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 			vscode.window.setStatusBarMessage("Uploading files...", thenable);
-			thenable.then(zipData => coursesProvider.client.uploadFiles(exerciseId, zipData))
+			thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
 				.catch(err => coursesProvider.handleAxiosError(err));
 		}
 	});
