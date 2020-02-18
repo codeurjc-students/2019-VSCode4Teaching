@@ -34,6 +34,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Upload exercise template](API.md#upload-exercise-template)
 - [Add comment thread](API.md#add-comment-thread)
 - [Get comment threads](API.md#get-comment-threads)
+- [Get comments by exercise and username](API.md#get-comments-by-exercise-and-username)
 - [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
 
 ## Login
