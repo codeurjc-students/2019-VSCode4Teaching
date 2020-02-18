@@ -5,6 +5,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,7 +130,7 @@ public class CommentServiceImplTests {
 
     @Test
     public void getFilesWithCommentsByUser() throws ExerciseNotFoundException {
-        ExerciseFile demoFile = new ExerciseFile("johndoe\\testPath");
+        ExerciseFile demoFile = new ExerciseFile("johndoe" + File.separator + "testPath");
         demoFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         demoFile.setId(1l);
         CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
@@ -140,14 +141,14 @@ public class CommentServiceImplTests {
         expectedC2.setId(4l);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
-        ExerciseFile expectedFile = new ExerciseFile("johndoe\\testPath");
+        ExerciseFile expectedFile = new ExerciseFile("johndoe" + File.separator + "testPath");
         expectedFile.setId(1l);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         Exercise ex = new Exercise("Test ex");
         ex.setId(1000l);
         ex.addUserFile(expectedFile);
-        ExerciseFile expectedFile2 = new ExerciseFile("johndoe2\\testPath2");
+        ExerciseFile expectedFile2 = new ExerciseFile("johndoe2" + File.separator + "testPath2");
         expectedFile2.setId(555l);
         expectedFile2.setOwner(new User("johndoe2@johndoe.com", "johndoe2", "johndoe2", "johndoe2", "johndoe2"));
         ex.addUserFile(expectedFile2);
