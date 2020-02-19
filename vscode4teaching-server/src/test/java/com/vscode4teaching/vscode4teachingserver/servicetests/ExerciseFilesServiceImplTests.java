@@ -196,6 +196,7 @@ public class ExerciseFilesServiceImplTests {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(student));
         when(fileRepository.save(any(ExerciseFile.class))).then(returnsFirstArg());
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
+        when(fileRepository.findByPath(any(String.class))).thenReturn(Optional.empty());
         // Get files
         File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip")
                         .toFile();
@@ -205,6 +206,11 @@ public class ExerciseFilesServiceImplTests {
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
         List<File> savedFiles = filesMap.values().stream().findFirst().get();
 
+        verify(exerciseRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(fileRepository, times(3)).save(any(ExerciseFile.class));
+        verify(exerciseRepository, times(1)).save(any(Exercise.class));
+        verify(fileRepository, times(3)).findByPath(any(String.class));
         assertThat(Files.exists(Paths.get("null/"))).isTrue();
         assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
         assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe"))).isTrue();
@@ -238,10 +244,6 @@ public class ExerciseFilesServiceImplTests {
                         .isEqualToIgnoringCase(exercise.getUserFiles().get(1).getPath());
         assertThat(savedFiles.get(2).getAbsolutePath())
                         .isEqualToIgnoringCase(exercise.getUserFiles().get(2).getPath());
-        verify(exerciseRepository, times(1)).findById(anyLong());
-        verify(userRepository, times(1)).findByUsername(anyString());
-        verify(fileRepository, times(3)).save(any(ExerciseFile.class));
-        verify(exerciseRepository, times(1)).save(any(Exercise.class));
     }
 
     @Test

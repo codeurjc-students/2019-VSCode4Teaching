@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -119,14 +120,17 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                         fos.write(buffer, 0, len);
                     }
                 }
-                ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
-                if (isTemplate) {
-                    ExerciseFile savedFile = fileRepository.save(exFile);
-                    exercise.addFileToTemplate(savedFile);
-                } else {
-                    exFile.setOwner(user);
-                    ExerciseFile savedFile = fileRepository.save(exFile);
-                    exercise.addUserFile(savedFile);
+                Optional<ExerciseFile> previousFileOpt = fileRepository.findByPath(destFile.getCanonicalPath());
+                if (!previousFileOpt.isPresent()) {
+                    ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
+                    if (isTemplate) {
+                        ExerciseFile savedFile = fileRepository.save(exFile);
+                        exercise.addFileToTemplate(savedFile);
+                    } else {
+                        exFile.setOwner(user);
+                        ExerciseFile savedFile = fileRepository.save(exFile);
+                        exercise.addUserFile(savedFile);
+                    }
                 }
             }
             zipEntry = zis.getNextEntry();
