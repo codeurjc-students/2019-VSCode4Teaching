@@ -221,7 +221,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 						commentProvider.addCwd(cwd);
 						// Download comments
 						if (cwd.name !== "template") {
-							let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;							
+							let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
 							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
 							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
 						}
@@ -235,7 +235,8 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
 						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
 						jszipFile.loadAsync(fs.readFileSync(zipUri));
-						let fsw = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(cwd, "**/*.*"));
+						let pattern = new vscode.RelativePattern(cwd, "**/*");
+						let fsw = vscode.workspace.createFileSystemWatcher(pattern);
 						fsw.onDidChange((e: vscode.Uri) => {
 							if (!ignoredFiles.includes(e.fsPath)) {
 								updateFile(e, exerciseId, jszipFile, cwd);

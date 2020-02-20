@@ -253,9 +253,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     mkdirp.sync(v4tpath);
                 } else {
                     file.async('nodebuffer').then(fileData => {
-                        if (!fs.existsSync(v4tpath)) {
-                            fs.writeFileSync(v4tpath, fileData);
-                        }
+                        fs.writeFileSync(v4tpath, fileData);
                     }).catch(error => {
                         console.error(error);
                     });
