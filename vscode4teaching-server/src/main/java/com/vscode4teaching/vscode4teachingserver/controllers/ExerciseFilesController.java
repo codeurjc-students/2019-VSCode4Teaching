@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -54,7 +55,8 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
-        List<File> files = filesMap.values().stream().findFirst().get();
+        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         String zipName = files.get(0).getParentFile().getName().equals("template") ? "template-" + id
                 : "exercise-" + id + "-" + username;
         response.setStatus(HttpServletResponse.SC_OK);
@@ -71,7 +73,8 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
-        List<File> files = filesMap.values().stream().findFirst().get();
+        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String pattern = fileSeparatorPattern + username + fileSeparatorPattern;
@@ -89,7 +92,8 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
-        List<File> files = filesMap.values().stream().findFirst().get();
+        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
@@ -106,7 +110,8 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(id, username);
-        List<File> files = filesMap.values().stream().findFirst().get();
+        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"template-" + id + ".zip\"");
         exportToZip(response, files, "template");
@@ -117,11 +122,13 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
-        List<File> files = filesMap.values().stream().findFirst().get();
+        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"exercise-" + id + "-files.zip\"");
-        String exerciseDirectory = filesMap.keySet().stream().findFirst().get().getName().toLowerCase().replace(" ",
-                "_") + "_" + id;
+        Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
+        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ",
+                "_") + "_" + id : "";
         exportToZip(response, files, exerciseDirectory);
     }
 
