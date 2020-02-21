@@ -33,7 +33,7 @@ suite('Extension Test Suite', () => {
 				// console.log(error);
 			});
 		}
-		
+
 	});
 
 	test('should be present', () => {
@@ -608,7 +608,7 @@ suite('Extension Test Suite', () => {
 		await extension.coursesProvider.addExercise(mockItem);
 
 		assert.deepStrictEqual(clientAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
-		assert.deepStrictEqual(clientAddMock.lastCall.args[1], "Test exercise", "addExercise should get name gotten on showInputBox");
+		assert.deepStrictEqual(clientAddMock.lastCall.args[1], { name: "Test exercise" }, "addExercise should get name gotten on showInputBox");
 
 		assert.deepStrictEqual(clientTemplateMock.lastCall.args[0], 123, "uploadExerciseTemplate should get correct exercise id");
 
@@ -669,7 +669,7 @@ suite('Extension Test Suite', () => {
 
 		assert.deepStrictEqual(clientMock.callCount, 1, "editExercise is called");
 		assert.deepStrictEqual(clientMock.lastCall.args[0], 1, "exercise id is passed");
-		assert.deepStrictEqual(clientMock.lastCall.args[1], "Edited exercise", "new exercise name is passed");
+		assert.deepStrictEqual(clientMock.lastCall.args[1], { name: "Edited exercise" }, "new exercise name is passed");
 	});
 
 	test('delete exercise', async () => {
@@ -781,7 +781,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "addUsersToCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
 	});
 
 	test('remove users from course', async () => {
@@ -868,7 +868,7 @@ suite('Extension Test Suite', () => {
 		});
 		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
 		quickpickMock.resolveWith(selectedUsers);
-		
+
 		let addUsersMock = simple.mock(client, "removeUsersFromCourse");
 
 		await extension.coursesProvider.removeUsersFromCourse(item);
@@ -877,7 +877,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "removeUsersFromCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "removeUsersFromCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], [1, 3]);
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
 	});
 });
 
