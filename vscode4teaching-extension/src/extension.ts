@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { CoursesProvider } from './courses';
-import { Exercise, FileInfo } from './model/serverModel';
+import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
 import { V4TItem } from './v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -168,7 +168,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let teacherRelativePathSplit = teacherRelativePath.split(separator);
 			let exerciseName = teacherRelativePathSplit[1];
 			// If teacher use username from student, else use own
-			let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
+			let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
 			let username = currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
 
 			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exerciseName, username + ".json");
@@ -221,7 +221,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 						commentProvider.addCwd(cwd);
 						// Download comments
 						if (cwd.name !== "template") {
-							let currentUserIsTeacher = coursesProvider.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;							
+							let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
 							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
 							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
 						}
@@ -235,16 +235,13 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
 						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
 						jszipFile.loadAsync(fs.readFileSync(zipUri));
-						let fsw = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(cwd, "**/*.*"));
+						let pattern = new vscode.RelativePattern(cwd, "**/*");
+						let fsw = vscode.workspace.createFileSystemWatcher(pattern);
 						fsw.onDidChange((e: vscode.Uri) => {
-							if (!ignoredFiles.includes(e.fsPath)) {
-								updateFile(e, exerciseId, jszipFile, cwd);
-							}
+							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
 						});
 						fsw.onDidCreate((e: vscode.Uri) => {
-							if (!ignoredFiles.includes(e.fsPath)) {
-								updateFile(e, exerciseId, jszipFile, cwd);
-							}
+							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
 						});
 						fsw.onDidDelete((e: vscode.Uri) => {
 							if (!ignoredFiles.includes(e.fsPath)) {
@@ -265,17 +262,19 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 
 }
 
-function updateFile(e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
-	let filePath = path.resolve(e.fsPath);
-	fs.readFile(filePath, (err, data) => {
-		filePath = path.relative(cwd.uri.fsPath, filePath);
-		if (!filePath.includes("v4texercise.v4t")) {
-			if (err) { throw (err); }
-			jszipFile.file(filePath, data);
-			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-			vscode.window.setStatusBarMessage("Uploading files...", thenable);
-			thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
-				.catch(err => coursesProvider.handleAxiosError(err));
-		}
-	});
+function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+	if (!ignoredFiles.includes(e.fsPath)) {
+		let filePath = path.resolve(e.fsPath);
+		fs.readFile(filePath, (err, data) => {
+			filePath = path.relative(cwd.uri.fsPath, filePath);
+			if (!filePath.includes("v4texercise.v4t")) {
+				if (err) { throw (err); }
+				jszipFile.file(filePath, data);
+				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+				vscode.window.setStatusBarMessage("Uploading files...", thenable);
+				thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
+					.catch(err => coursesProvider.handleAxiosError(err));
+			}
+		});
+	}
 }

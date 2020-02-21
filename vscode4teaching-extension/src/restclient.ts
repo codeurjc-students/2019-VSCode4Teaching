@@ -1,5 +1,5 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise, FileInfo, Course } from './model/serverModel';
+import { User, Exercise, FileInfo, Course, ExerciseEdit, CourseEdit, ManageCourseUsers } from './model/serverModel';
 import FormData = require('form-data');
 import { ServerCommentThread } from './model/commentServerModel';
 
@@ -54,17 +54,11 @@ export class RestClient {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "GET", true));
     }
 
-    public addCourse(name: string): AxiosPromise<Course> {
-        let data = {
-            name: name
-        };
+    public addCourse(data: CourseEdit): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses", "POST", false, data));
     }
 
-    public editCourse(id: number, name: string): AxiosPromise<Course> {
-        let data = {
-            name: name
-        };
+    public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
     }
 
@@ -72,17 +66,11 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
     }
 
-    public addExercise(id: number, name: string): AxiosPromise<Exercise> {
-        let data = {
-            name: name
-        };
+    public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
     }
 
-    public editExercise(id: number, name: string): AxiosPromise<Exercise> {
-        let data = {
-            name: name
-        };
+    public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         return axios(this.buildOptions("/api/exercises/" + id, "PUT", false, data));
     }
 
@@ -104,17 +92,11 @@ export class RestClient {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "GET", false));
     }
 
-    public addUsersToCourse(courseId: number, ids: number[]): AxiosPromise<Course> {
-        let data = {
-            ids: ids
-        };
+    public addUsersToCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "POST", false, data));
     }
 
-    public removeUsersFromCourse(courseId: number, ids: number[]): AxiosPromise<Course> {
-        let data = {
-            ids: ids
-        };
+    public removeUsersFromCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "DELETE", false, data));
     }
 

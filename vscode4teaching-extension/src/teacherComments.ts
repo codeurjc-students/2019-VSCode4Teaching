@@ -21,8 +21,8 @@ export class TeacherCommentProvider {
     private isValidDocument(document: vscode.TextDocument) {
         let relPath: string = "";
         for (let cwd of this.cwds) {
-            relPath = path.relative(cwd.uri.fsPath, document.uri.fsPath);
-            if (relPath.length !== 0 && cwd.name !== "template") {
+            relPath = path.relative(cwd.uri.fsPath, document.fileName);
+            if (relPath.length !== 0 && cwd.name !== "template" && !document.fileName.includes("v4texercise.v4t")) {
                 return true;
             }
         }
@@ -44,7 +44,6 @@ export class TeacherCommentProvider {
         let thread = reply.thread;
         let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author });
         thread.comments = [...thread.comments, newComment];
-        console.log(thread)
         let serverCommentThread: ServerCommentThread = {
             line: thread.range.start.line,
             comments: thread.comments.map(comment => {
@@ -76,7 +75,7 @@ export class TeacherCommentProvider {
                                 let uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
                                 this.commentController.createCommentThread(
                                     uri,
-                                    new vscode.Range(0, 0, commentThread.line, 0),
+                                    new vscode.Range(commentThread.line, 0, commentThread.line, 0),
                                     comments
                                 );
                             }
@@ -88,6 +87,7 @@ export class TeacherCommentProvider {
             errorCallback(error);
         });
     }
+
 }
 
 export class NoteComment implements vscode.Comment {

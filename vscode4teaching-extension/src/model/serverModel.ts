@@ -10,6 +10,10 @@ export interface User {
     courses?: Course[];
 }
 
+export interface Role {
+    roleName: "ROLE_STUDENT" | "ROLE_TEACHER";
+}
+
 export interface Course {
     id: number;
     name: string;
@@ -17,17 +21,31 @@ export interface Course {
     exercises: Exercise[];
 }
 
+export interface CourseEdit {
+    name: string;
+}
+
+export interface ManageCourseUsers {
+    ids: number[];
+}
+
 export interface Exercise {
     id: number;
     name: string;
 }
 
-export interface Role {
-    roleName: "ROLE_STUDENT" | "ROLE_TEACHER";
+export interface ExerciseEdit {
+    name: string;
 }
 
 export interface FileInfo {
     id: number;
     path: string;
     comments?: ServerCommentThread[];
+}
+
+export class ModelUtils {
+    static isTeacher(user: User) {
+        return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
+    }
 }

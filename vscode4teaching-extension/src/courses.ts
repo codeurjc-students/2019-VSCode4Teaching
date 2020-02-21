@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import { RestClient } from './restclient';
 import * as path from 'path';
-import { User, Course, Exercise } from './model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers } from './model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
+import { AxiosPromise } from 'axios';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -44,7 +45,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         // Map exercises to TreeItems
                         let type: V4TItemType;
                         let commandName: string;
-                        if (this.userinfo && this.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0) {
+                        if (this.userinfo && ModelUtils.isTeacher(this.userinfo)) {
                             type = V4TItemType.ExerciseTeacher;
                             commandName = 'vscode4teaching.getstudentfiles';
                         } else {
@@ -87,7 +88,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         });
                     }
                     if (this.userinfo && this.userinfo.courses) {
-                        let isTeacher = this.userinfo.roles.filter(role => role.roleName === 'ROLE_TEACHER').length > 0;
+                        let isTeacher = ModelUtils.isTeacher(this.userinfo);
                         let type: V4TItemType;
                         if (isTeacher) {
                             type = V4TItemType.CourseTeacher;
@@ -253,16 +254,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     mkdirp.sync(v4tpath);
                 } else {
                     file.async('nodebuffer').then(fileData => {
-                        if (!fs.existsSync(v4tpath)) {
-                            fs.writeFileSync(v4tpath, fileData);
-                        }
+                        fs.writeFileSync(v4tpath, fileData);
                     }).catch(error => {
                         console.error(error);
                     });
                 }
             });
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
-            let isTeacher = this.userinfo ? this.userinfo.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0 : false;
+            let isTeacher = this.userinfo ? ModelUtils.isTeacher(this.userinfo) : false;
             let fileContent: V4TExerciseFile = {
                 zipLocation: zipUri,
                 teacher: isTeacher,
@@ -334,7 +333,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         try {
             let courseName = await vscode.window.showInputBox({ prompt: 'Course name' });
             if (courseName) {
-                let addCourseThenable = this.client.addCourse(courseName);
+                let addCourseThenable = this.client.addCourse({ name: courseName });
                 vscode.window.setStatusBarMessage('Sending course info...', addCourseThenable);
                 await addCourseThenable;
                 let userInfoThenable = this.getUserInfo();
@@ -354,7 +353,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 let newCourseName = await vscode.window.showInputBox({ prompt: 'Course name' });
                 if (newCourseName && this.userinfo && this.userinfo.courses) {
-                    let editCourseThenable = this.client.editCourse(item.item.id, newCourseName);
+                    let editCourseThenable = this.client.editCourse(item.item.id, { name: newCourseName });
                     vscode.window.setStatusBarMessage('Sending course info...', editCourseThenable);
                     await editCourseThenable;
                     let userInfoThenable = this.getUserInfo();
@@ -432,7 +431,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     });
                     let course: Course = item.item;
                     try {
-                        let addExerciseThenable = this.client.addExercise(course.id, name);
+                        let addExerciseThenable = this.client.addExercise(course.id, { name: name });
                         vscode.window.setStatusBarMessage('Adding exercise...', addExerciseThenable);
                         let addExerciseData = await addExerciseThenable;
                         try {
@@ -485,7 +484,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "id" in item.item) {
             let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
             if (name) {
-                let thenable = this.client.editExercise(item.item.id, name);
+                let thenable = this.client.editExercise(item.item.id, { name: name });
                 vscode.window.setStatusBarMessage("Sending exercise info...", thenable);
                 await thenable;
                 try {
@@ -525,29 +524,39 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 vscode.window.setStatusBarMessage("Getting user info...", courseUsersThenable);
                 let courseUsersResponse = await courseUsersThenable;
                 let courseUsers = courseUsersResponse.data;
-                //Show users that don't belong to the course already
                 let showArray = users.filter(user => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
                     .map(user => {
-                        let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
-                        if (user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
-                            displayName += " (Teacher)";
-                        }
-                        return new UserPick(displayName, user);
+                        return this.dontBelongToCourse(user);
                     });
-                if (showArray.length > 0) {
-                    let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
-                    if (picks) {
-                        let ids: number[] = [];
-                        picks.forEach(pick => ids.push(pick.user.id));
-                        let addUsersThenable = this.client.addUsersToCourse(item.item.id, ids);
-                        vscode.window.setStatusBarMessage("Adding users to course...", addUsersThenable);
-                        await addUsersThenable;
-                    }
-                } else {
-                    vscode.window.showInformationMessage("There are no users available.");
-                }
+                await this.manageUsersFromCourse(showArray, item, this.client.addUsersToCourse, "Adding users to course...");
             } catch (error) {
                 this.handleAxiosError(error);
+            }
+        }
+    }
+
+    private dontBelongToCourse(user: User) {
+        let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
+        if (ModelUtils.isTeacher(user)) {
+            displayName += " (Teacher)";
+        }
+        return new UserPick(displayName, user);
+    }
+
+    private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem, thenableFunction: ((id: number, data: ManageCourseUsers) => AxiosPromise), thenableMessage: string) {
+        if (item.item && "exercises" in item.item) {
+            //Show users that don't belong to the course already
+            if (showArray.length > 0) {
+                let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
+                if (picks) {
+                    let ids: number[] = [];
+                    picks.forEach(pick => ids.push(pick.user.id));
+                    let thenable = thenableFunction(item.item.id, { ids: ids });
+                    vscode.window.setStatusBarMessage(thenableMessage, thenable);
+                    await thenable;
+                }
+            } else {
+                vscode.window.showInformationMessage("There are no users available.");
             }
         }
     }
@@ -562,24 +571,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 let creator: User = creatorResponse.data;
                 let courseUsers = courseUsersResponse.data;
                 let showArray = courseUsers.filter((user: User) => user.id !== creator.id).map((user: User) => {
-                    let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
-                    if (user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0) {
-                        displayName += " (Teacher)";
-                    }
-                    return new UserPick(displayName, user);
+                    return this.dontBelongToCourse(user);
                 });
-                if (showArray.length > 0) {
-                    let picks: UserPick[] | undefined = await vscode.window.showQuickPick<UserPick>(showArray, { canPickMany: true });
-                    if (picks) {
-                        let ids: number[] = [];
-                        picks.forEach(pick => ids.push(pick.user.id));
-                        let addUsersThenable = this.client.removeUsersFromCourse(item.item.id, ids);
-                        vscode.window.setStatusBarMessage("Removing users from course...", addUsersThenable);
-                        await addUsersThenable;
-                    }
-                } else {
-                    vscode.window.showInformationMessage("There are no users available.");
-                }
+                await this.manageUsersFromCourse(showArray, item, this.client.removeUsersFromCourse, "Removing users from course...");
             } catch (error) {
                 this.handleAxiosError(error);
             }
