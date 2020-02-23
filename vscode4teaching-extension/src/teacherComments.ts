@@ -40,16 +40,16 @@ export class TeacherCommentProvider {
     }
 
     replyNote(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
-
         let thread = reply.thread;
-        let newComment = new NoteComment(reply.text, vscode.CommentMode.Preview, { name: this.author });
+        let markdownText = new vscode.MarkdownString(reply.text);
+        let newComment = new NoteComment(markdownText, vscode.CommentMode.Preview, { name: this.author });
         thread.comments = [...thread.comments, newComment];
         let serverCommentThread: ServerCommentThread = {
             line: thread.range.start.line,
             comments: thread.comments.map(comment => {
                 let serverComment: ServerComment = {
-                    author: comment.author.name,
-                    body: comment.body.toString()
+                    author: this.author,
+                    body: comment.body instanceof vscode.MarkdownString ? comment.body.value : comment.body
                 };
                 return serverComment;
             })
@@ -70,7 +70,7 @@ export class TeacherCommentProvider {
                         for (let commentThread of fileInfo.comments) {
                             if (commentThread.comments) {
                                 let comments = commentThread.comments.map(comment => new NoteComment(
-                                    comment.body, vscode.CommentMode.Preview, { name: comment.author }
+                                    new vscode.MarkdownString(comment.body), vscode.CommentMode.Preview, { name: comment.author }
                                 ));
                                 let uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
                                 this.commentController.createCommentThread(
