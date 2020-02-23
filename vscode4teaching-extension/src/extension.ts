@@ -224,6 +224,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 							let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
 							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
 							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
+							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, coursesProvider.handleAxiosError);
 						}
 					}
 					// Set template location if exists
