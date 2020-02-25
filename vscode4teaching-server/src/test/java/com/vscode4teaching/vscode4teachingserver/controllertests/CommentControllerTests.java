@@ -72,8 +72,8 @@ public class CommentControllerTests {
     public void saveCommentThread() throws JsonProcessingException, Exception {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
@@ -119,8 +119,8 @@ public class CommentControllerTests {
     public void getCommentThreads() throws Exception {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
@@ -158,8 +158,8 @@ public class CommentControllerTests {
         user.setId(10000l);
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");

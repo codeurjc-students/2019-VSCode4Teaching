@@ -10,7 +10,7 @@ public class CourseViews {
     public static interface ExercisesView extends GeneralView, ExerciseViews.GeneralView {
     }
 
-    public static interface UsersView extends GeneralView, UserViews.GeneralView {
+    public static interface UsersView extends GeneralView {
     }
 
     public static interface CreatorView extends GeneralView {

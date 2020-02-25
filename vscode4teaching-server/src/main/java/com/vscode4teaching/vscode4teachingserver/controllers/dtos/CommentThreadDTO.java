@@ -10,7 +10,8 @@ public class CommentThreadDTO {
 
     @Min(0)
     private Long line;
-
+    private String lineText;
+    
     public List<CommentDTO> getComments() {
         return comments;
     }
@@ -26,6 +27,14 @@ public class CommentThreadDTO {
     public void setLine(Long line) {
         this.line = line;
     }
+
+	public String getLineText() {
+		return lineText;
+	}
+
+	public void setLineText(String lineText) {
+		this.lineText = lineText;
+	}
 
     
 }

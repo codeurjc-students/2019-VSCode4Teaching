@@ -38,6 +38,9 @@ public class CommentThread {
     @Min(0)
     private Long line;
 
+    @JsonView(CommentThreadViews.GeneralView.class)
+    private String lineText;
+
     @CreationTimestamp
     @JsonView(CommentViews.GeneralView.class)
     private LocalDateTime createDateTime;
@@ -46,13 +49,15 @@ public class CommentThread {
     @JsonView(CommentViews.GeneralView.class)
     private LocalDateTime updateDateTime;
 
-    public CommentThread(ExerciseFile file, Long line) {
+    public CommentThread(ExerciseFile file, Long line, String lineText) {
         this.file = file;
         this.line = line;
+        this.lineText = lineText;
     }
 
-    public CommentThread(Long line) {
+    public CommentThread(Long line, String lineText) {
         this.line = line;
+        this.lineText = lineText;
     }
 
     public CommentThread() {
@@ -110,6 +115,14 @@ public class CommentThread {
     public void setUpdateDateTime(LocalDateTime updateDateTime) {
         this.updateDateTime = updateDateTime;
     }
+
+	public String getLineText() {
+		return lineText;
+	}
+
+	public void setLineText(String lineText) {
+		this.lineText = lineText;
+	}
     
     
 }

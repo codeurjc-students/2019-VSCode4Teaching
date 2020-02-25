@@ -45,7 +45,7 @@ public class CommentController {
 	@JsonView(CommentThreadViews.CommentView.class)
 	public ResponseEntity<CommentThread> saveCommentThread(@PathVariable @Min(1) Long fileId,
 			@Valid @RequestBody CommentThreadDTO commentThread) throws FileNotFoundException {
-		CommentThread newCommentThread = new CommentThread(commentThread.getLine());
+		CommentThread newCommentThread = new CommentThread(commentThread.getLine(), commentThread.getLineText());
 		List<Comment> comments = commentThread.getComments().stream()
 				.map((CommentDTO comment) -> new Comment(newCommentThread, comment.getBody(), comment.getAuthor()))
 				.collect(Collectors.toList());

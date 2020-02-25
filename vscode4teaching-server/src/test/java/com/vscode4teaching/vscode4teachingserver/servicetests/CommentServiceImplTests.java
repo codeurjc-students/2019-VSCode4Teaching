@@ -59,8 +59,8 @@ public class CommentServiceImplTests {
         logger.info("Start saveCommentThread");
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
@@ -101,7 +101,7 @@ public class CommentServiceImplTests {
     public void getCommentThreadByFile() throws FileNotFoundException {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
         expectedC1.setId(3l);
@@ -133,7 +133,7 @@ public class CommentServiceImplTests {
         ExerciseFile demoFile = new ExerciseFile("johndoe" + File.separator + "testPath");
         demoFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         demoFile.setId(1l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
         expectedC1.setId(3l);
