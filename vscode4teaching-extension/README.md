@@ -10,6 +10,7 @@
 - [Features](README.md#features)
   - [Login](README.md#login)
   - [Download exercises](README.md#download-exercises)
+  - [Commenting](README.md#commenting)
   - [Teacher features](README.md#teacher-features)
     - [Add courses](README.md#add-course)
     - [Edit course](README.md#edit-course)
@@ -19,6 +20,7 @@
     - [Delete exercise](README.md#delete-exercise)
     - [Add users to course](README.md#add-users-to-course)
     - [Remove users from course](README.md#remove-users-from-course)
+    - [Difference between template and student file](README.md#difference-between-template-and-student-file)
 
 ## Installing
 
@@ -56,7 +58,14 @@ You will need to log in to the server first to do anything.
 ### Download exercises
 
 You can get the exercise template or your own files by clicking on an exercise.
+For students: editing files will trigger an automatic upload of new changes.
+Files in .gitignore will be ignored on automatic uploads.
 ![Download exercises](doc_images/DownloadExercise.gif)
+
+### Commenting
+
+Students and teachers can comment on files and respond to comments.
+![Commenting](../readme_resources/studentcomment.gif)
 
 ### Teacher features
 
@@ -83,11 +92,13 @@ The creator of a course can delete his/her courses.
 #### Add exercise
 
 The teachers of a course can add exercises to that course. It will ask for a name and files to upload as a template.
+Files in .gitignore will be ignored.
 ![Add exercise](doc_images/AddExercise.gif)
 
 #### Edit exercise
 
 The teacher of a course can edit the exercises.
+Files in .gitignore will be ignored.
 ![Edit exercise](doc_images/EditExercise.gif)
 
 #### Delete exercise
@@ -104,3 +115,9 @@ The teachers of a course can add students and teacher to the course.
 
 The teachers of a course can remove students and teacher from a course.
 ![Remove users from course](doc_images/RemoveUsersCourse.gif)
+
+#### Difference between template and student file
+
+Teachers can get the differences between a template file and its corresponding file in a students exercise.
+Beware that the files must be called the same for it to work.
+![Differences](../readme_resources/diff.gif)

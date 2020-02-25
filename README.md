@@ -36,9 +36,15 @@ In the first animation we see the teacher creating a course and then creating an
 In the next animation, we see the student downloading this new exercise:
 ![Student downloads exercise](readme_resources/student1.gif)
 On the next animation the student edits one of the files and saves it, triggering the automatic file upload so that the teacher can see it (notice the lower part of the screen how a message pops up indicating this upload).
-![Student edits files](readme_resources/teacher2.gif)
+![Student edits files](readme_resources/student2.gif)
 On the next animation, we can see how the teacher selects the exercise previously created and downloads the edited files of the student that previously modified them.
-![Teacher sees student files](readme_resources/student2.gif)
+![Teacher sees student files](readme_resources/teacher2.gif)
+A teacher can check differences between a students exercise and the original template
+![Teacher sees differences](readme_resources/diff.gif)
+A teacher puts a comment in a student file
+![Teacher puts comment](readme_resources/teachercomment.gif)
+The student sees the comment and responds.
+![Student sees comment and responds](readme_resources/studentcomment.gif)
 
 ## General Roadmap
 
@@ -46,9 +52,10 @@ On the next animation, we can see how the teacher selects the exercise previousl
 - [X] Teachers can see a student's exercise.
 - [X] Teachers can see the differences between student files and the original templates.
 - [X] File uploads and downloads should account for .gitignore rules.  
+- [X] Teachers can comment on a student's exercise.  
 - [ ] Make easier for students to access exercises (No need to log in or have a user).
 - [ ] Students can mark exercises as finished.  
-- [ ] Teachers can comment on a student's exercise.  
+
 Note: This roadmap is subject to changes as requirements change.  
 Check [Issues](https://github.com/codeurjc-students/2019-VSCode4Teaching/issues) and [Project](https://github.com/codeurjc-students/2019-VSCode4Teaching/projects) for more specific information about development of these milestones.
 
