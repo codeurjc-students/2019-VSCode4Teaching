@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -198,5 +199,45 @@ public class CommentControllerTests {
         String expectedResponseBody = objectMapper.writerWithView(FileViews.CommentView.class)
                 .writeValueAsString(expectedFiles);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void updateCommentThreadLines() throws JsonProcessingException, Exception {
+        ExerciseFile demoFile = new ExerciseFile("testPath");
+        demoFile.setId(1l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        commentThread.setId(2l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 5l, "Test line 5");
+        expectedCommentThread.setId(2l);
+        Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
+        Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
+        commentThread.addComment(c1);
+        commentThread.addComment(c2);
+        Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
+        expectedC1.setId(3l);
+        Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
+        expectedC2.setId(4l);
+        expectedCommentThread.addComment(expectedC1);
+        expectedCommentThread.addComment(expectedC2);
+        ExerciseFile expectedFile = new ExerciseFile("testPath");
+        expectedFile.setId(1l);
+        expectedFile.addCommentThread(expectedCommentThread);
+        expectedCommentThread.setFile(expectedFile);
+        when(commentService.updateCommentThreadLine(anyLong(), anyLong(), any(String.class))).thenReturn(expectedCommentThread);
+
+        MvcResult mvcResult = mockMvc
+                .perform(
+                        put("/api/comments/2/lines").contentType("application/json")
+                                .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf())
+                                .content(objectMapper.writerWithView(CommentThreadViews.GeneralView.class)
+                                .writeValueAsString(expectedCommentThread)))
+                .andExpect(status().isOk()).andReturn();
+
+        verify(commentService, times(1)).updateCommentThreadLine(anyLong(), anyLong(), any(String.class));
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(CommentThreadViews.GeneralView.class)
+                .writeValueAsString(expectedCommentThread);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
     }
 }

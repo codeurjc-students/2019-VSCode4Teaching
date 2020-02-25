@@ -15,6 +15,7 @@ import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.services.CommentService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.CommentNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,5 +70,13 @@ public class CommentController {
 			@PathVariable Long exerciseId) throws ExerciseNotFoundException {
 		List<ExerciseFile> files = commentService.getFilesWithCommentsByUser(exerciseId, username);
 		return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
+	}
+
+	@PutMapping("comments/{commentThreadId}/lines")
+	@JsonView(CommentThreadViews.GeneralView.class)
+	public ResponseEntity<CommentThread> updateCommentThreadLine(@PathVariable Long commentThreadId,
+			@Valid @RequestBody CommentThreadDTO commentThread) throws CommentNotFoundException {
+		CommentThread savedCommentThread = commentService.updateCommentThreadLine(commentThreadId, commentThread.getLine(), commentThread.getLineText());
+		return new ResponseEntity<>(savedCommentThread, HttpStatus.OK);
 	}
 }
