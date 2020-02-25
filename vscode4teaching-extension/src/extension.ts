@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import JSZip = require('jszip');
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
-import { TeacherCommentProvider } from './teacherComments';
+import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
 import { RestClient } from './restclient';
 import mkdirp = require('mkdirp');
@@ -224,6 +224,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 							let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
 							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
 							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
+							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, coursesProvider.handleAxiosError);
 						}
 					}
 					// Set template location if exists
@@ -254,6 +255,18 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 									.catch(err => coursesProvider.handleAxiosError(err));
 							}
 						});
+
+						vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
+							if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
+								vscode.window.showWarningMessage(
+									"If you write over a line with comments, the comments could be deleted next time you open VS Code."
+								);
+							}
+						});
+
+						vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
+							checkCommentLineChanges(e);
+						});
 					}
 				}
 			});
@@ -276,5 +289,27 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 					.catch(err => coursesProvider.handleAxiosError(err));
 			}
 		});
+	}
+}
+
+function checkCommentLineChanges(document: vscode.TextDocument) {
+	if (commentProvider) {
+		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
+		for (let thread of fileThreads) {
+			let docText = document.getText();
+			let docTextSeparatedByLines = docText.split(/\r?\n/);
+			let threadLine = thread[1].range.start.line;
+			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText; 
+			if (docTextSeparatedByLines[threadLine].trim() !== threadLineText.trim()) {
+				for (let i = 0; i < docTextSeparatedByLines.length; i++) {
+					let line = docTextSeparatedByLines[i];
+					if (threadLineText.trim() === line.trim()) {
+						let threadId = thread[0];
+						commentProvider.updateThreadLine(threadId, i, line, coursesProvider.handleAxiosError);
+						break;
+					}
+				}
+			}
+		}
 	}
 }

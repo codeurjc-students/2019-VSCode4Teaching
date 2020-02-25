@@ -1662,6 +1662,7 @@ Adds or overwrites a comment thread to a file.
 - **Data Params**
   - **Required**:  
     `"line": [long]` - Line of the file that contains a comment thread  
+    `"lineText": [string]` - Text of the line in the file  
     `"comments": [Comment]` - Comments of the thread, which need to have the following required params:
         `"author": [string]` - Author of the comment
         `"body": [string]` - Content of the comment
@@ -1670,6 +1671,7 @@ Adds or overwrites a comment thread to a file.
   ```json
     {
         "line": 0,
+        "lineText": "Test line",
         "comments": [
             {
                 "author": "johndoe",
@@ -1707,6 +1709,7 @@ Adds or overwrites a comment thread to a file.
             }
         ],
         "line": 0,
+        "lineText": "Test line",
         "createDateTime": "2020-02-15T16:15:30",
         "updateDateTime": "2020-02-15T16:15:30"
     }
@@ -1762,6 +1765,7 @@ Get the posted comment threads of a file.
                 }
             ],
             "line": 0,
+            "lineText": "Test line",
             "createDateTime": "2020-02-15T16:15:30",
             "updateDateTime": "2020-02-15T16:15:30"
         }
@@ -1834,6 +1838,7 @@ Get the posted comment threads of the files owned by the given username in the g
                         }
                     ],
                     "line": 0,
+                    "lineText": "Test line",
                     "createDateTime": "2020-02-18T13:25:46",
                     "updateDateTime": "2020-02-18T13:25:46"
                 }
@@ -1847,6 +1852,58 @@ Get the posted comment threads of the files owned by the given username in the g
     OR
 
   - **Code**: 204
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
+  ```
+
+## Update comment thread line
+
+Changes the line and line text of a comment thread line in the server.
+
+---
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/comments/:id`
+- **Method**
+  `PUT`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/comments/322`
+- **Data Params**
+  - **Required**:  
+    `"line": [long]` - Line of the file that contains a comment thread  
+    `"lineText": [string]` - Text of the line in the file  
+  - **Example**:
+
+  ```json
+    {
+        "line": 3,
+        "lineText": "New line"
+    }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+    {
+        "id": 332,
+        "line": 3,
+        "lineText": "New line",
+        "createDateTime": "2020-02-15T16:15:30",
+        "updateDateTime": "2020-02-15T16:15:45"
+    }
+  ```
 
 - **Error Response**
   - **Code**: 404

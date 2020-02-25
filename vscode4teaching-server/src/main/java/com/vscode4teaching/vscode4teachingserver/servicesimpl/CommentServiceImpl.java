@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.Min;
+
 import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
@@ -13,6 +15,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentThrea
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CommentService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.CommentNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 
@@ -73,6 +76,16 @@ public class CommentServiceImpl implements CommentService {
 			file.setPath(file.getPath().split(username + separator)[1]);
 		});
 		return files;
+	}
+
+	@Override
+	public CommentThread updateCommentThreadLine(@Min(1) Long commentThreadId, @Min(0) Long line, String lineText)
+			throws CommentNotFoundException {
+		CommentThread commentThread = commentThreadRepository.findById(commentThreadId)
+				.orElseThrow(() -> new CommentNotFoundException("Comment thread not found: " + commentThreadId));
+		commentThread.setLine(line);
+		commentThread.setLineText(lineText);
+		return commentThreadRepository.save(commentThread);
 	}
 
 }

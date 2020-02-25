@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -39,11 +40,11 @@ public class Exercise {
     @JsonView(ExerciseViews.CourseView.class)
     private Course course;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> template = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
 

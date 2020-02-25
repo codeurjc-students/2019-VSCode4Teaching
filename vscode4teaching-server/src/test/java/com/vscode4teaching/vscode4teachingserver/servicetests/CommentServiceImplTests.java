@@ -18,6 +18,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentRepos
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentThreadRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.CommentNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CommentServiceImpl;
@@ -59,8 +60,8 @@ public class CommentServiceImplTests {
         logger.info("Start saveCommentThread");
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
@@ -101,7 +102,7 @@ public class CommentServiceImplTests {
     public void getCommentThreadByFile() throws FileNotFoundException {
         ExerciseFile demoFile = new ExerciseFile("testPath");
         demoFile.setId(1l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
         expectedC1.setId(3l);
@@ -133,7 +134,7 @@ public class CommentServiceImplTests {
         ExerciseFile demoFile = new ExerciseFile("johndoe" + File.separator + "testPath");
         demoFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
         demoFile.setId(1l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
         expectedCommentThread.setId(2l);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
         expectedC1.setId(3l);
@@ -162,6 +163,37 @@ public class CommentServiceImplTests {
         assertThat(johndoeFiles.get(0).getComments().size()).isEqualTo(1);
         assertThat(johndoeFiles.get(0).getComments().get(0).getComments().size()).isEqualTo(2);
         assertThat(johndoe2Files.size()).isEqualTo(0);
+
+    }
+
+    @Test
+    public void updateThreadLine() throws CommentNotFoundException {
+        ExerciseFile demoFile = new ExerciseFile("johndoe" + File.separator + "testPath");
+        demoFile.setOwner(new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe"));
+        demoFile.setId(1l);
+        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
+        commentThread.setId(2l);
+        Comment expectedC1 = new Comment(commentThread, "Test 1", "johndoe");
+        expectedC1.setId(3l);
+        Comment expectedC2 = new Comment(commentThread, "Test 2", "johndoe");
+        expectedC2.setId(4l);
+        commentThread.addComment(expectedC1);
+        commentThread.addComment(expectedC2);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 5l, "Test line 5");
+        commentThread.setId(2l);
+        expectedCommentThread.addComment(expectedC1);
+        expectedCommentThread.addComment(expectedC2);
+        when(commentThreadRepository.findById(2l)).thenReturn(Optional.of(commentThread));
+        when(commentThreadRepository.save(commentThread)).thenReturn(expectedCommentThread);
+
+        CommentThread savedCommentThread = commentServiceImpl.updateCommentThreadLine(2l, 5l, "Test line 5");
+
+        verify(commentThreadRepository, times(1)).findById(2l);
+        verify(commentThreadRepository, times(1)).save(commentThread);
+        assertThat(savedCommentThread.getLine()).isEqualTo(5l);
+        assertThat(savedCommentThread.getLineText()).isEqualToIgnoringWhitespace("Test line 5");
+        assertThat(commentThread.getLine()).isEqualTo(5l);
+        assertThat(commentThread.getLineText()).isEqualToIgnoringWhitespace("Test line 5");
 
     }
 }
