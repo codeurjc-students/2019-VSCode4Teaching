@@ -80,20 +80,7 @@ export class TeacherCommentProvider {
                         for (let commentThread of fileInfo.comments) {
                             let uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
                             vscode.workspace.openTextDocument(uri).then((textDoc: vscode.TextDocument) => {
-                                let lineText = textDoc.lineAt(commentThread.line).text;
-                                if (commentThread.comments && lineText.trim() === commentThread.lineText.trim()) {
-                                    let comments = commentThread.comments.map(comment => new NoteComment(
-                                        new vscode.MarkdownString(comment.body), vscode.CommentMode.Preview, { name: comment.author }, lineText
-                                    ));
-                                    let newThread = this.commentController.createCommentThread(
-                                        uri,
-                                        new vscode.Range(commentThread.line, 0, commentThread.line, 0),
-                                        comments
-                                    );
-                                    if (commentThread.id) {
-                                        this.threads.set(commentThread.id, newThread);
-                                    }
-                                }
+                                this.createThreadFromServer(commentThread, textDoc);
                             });
                         }
                     }
@@ -102,6 +89,23 @@ export class TeacherCommentProvider {
         })).catch((error: any) => {
             errorCallback(error);
         });
+    }
+
+    private createThreadFromServer(commentThread: ServerCommentThread, textDoc: vscode.TextDocument) {
+        let lineText = textDoc.lineAt(commentThread.line).text;
+        if (commentThread.comments && lineText.trim() === commentThread.lineText.trim()) {
+            let comments = commentThread.comments.map(comment => new NoteComment(
+                new vscode.MarkdownString(comment.body), vscode.CommentMode.Preview, { name: comment.author }, lineText
+            ));
+            let newThread = this.commentController.createCommentThread(
+                textDoc.uri,
+                new vscode.Range(commentThread.line, 0, commentThread.line, 0),
+                comments
+            );
+            if (commentThread.id) {
+                this.threads.set(commentThread.id, newThread);
+            }
+        }
     }
 
     getFileCommentThreads(uri: vscode.Uri) {
@@ -114,8 +118,17 @@ export class TeacherCommentProvider {
         return fileThreads;
     }
 
-    removeThread(id: number) {
-        this.threads.delete(id);
+    updateThreadLine(threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
+        let client = RestClient.getClient();
+        client.updateCommentThreadLine(threadId, line, lineText).then(response => {
+            let commentThread = response.data;
+            let oldThread = this.threads.get(threadId);
+            if (oldThread) {
+                oldThread.range = new vscode.Range(commentThread.line, 0, commentThread.line, 0);
+            }
+        }).catch(error => {
+            errorCallback(error);
+        });
     }
 }
 

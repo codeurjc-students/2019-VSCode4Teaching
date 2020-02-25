@@ -295,15 +295,20 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 function checkCommentLineChanges(document: vscode.TextDocument) {
 	if (commentProvider) {
 		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
-		let client = RestClient.getClient();
 		for (let thread of fileThreads) {
 			let docText = document.getText();
-			let docTextSeparatedByLines = docText.split(/[^\r\n]+/);
+			let docTextSeparatedByLines = docText.split(/\r?\n/);
 			let threadLine = thread[1].range.start.line;
 			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText; 
 			if (docTextSeparatedByLines[threadLine].trim() !== threadLineText.trim()) {
-				// TODO: Update thread location
-				commentProvider.removeThread(thread[0]);
+				for (let i = 0; i < docTextSeparatedByLines.length; i++) {
+					let line = docTextSeparatedByLines[i];
+					if (threadLineText.trim() === line.trim()) {
+						let threadId = thread[0];
+						commentProvider.updateThreadLine(threadId, i, line, coursesProvider.handleAxiosError);
+						break;
+					}
+				}
 			}
 		}
 	}
