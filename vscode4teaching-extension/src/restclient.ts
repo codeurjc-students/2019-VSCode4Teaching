@@ -134,6 +134,14 @@ export class RestClient {
         return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
     }
 
+    public updateCommentThreadLine(id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
+        let data = {
+            line: line,
+            lineText: lineText
+        };
+        return axios(this.buildOptions("/api/comments/" + id + "/lines", "PUT", false, data));
+    }
+
     private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,
