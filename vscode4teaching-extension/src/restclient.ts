@@ -2,13 +2,22 @@ import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import { User, Exercise, FileInfo, Course, ExerciseEdit, CourseEdit, ManageCourseUsers } from './model/serverModel';
 import FormData = require('form-data');
 import { ServerCommentThread } from './model/commentServerModel';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as vscode from 'vscode';
+import { CoursesProvider } from './courses';
+import mkdirp = require('mkdirp');
 
 export class RestClient {
 
     private static instance: RestClient;
-    private _baseUrl: string | undefined;
-    private _jwtToken: string | undefined;
-    private _xsrfToken = "";
+    public baseUrl: string | undefined;
+    private jwtToken: string | undefined;
+    private xsrfToken = "";
+    private _userinfo: User | undefined;
+    readonly sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+    private error401thrown = false;
+    private error403thrown = false;
 
     private constructor() {
     }
@@ -30,6 +39,18 @@ export class RestClient {
         return axios(this.buildOptions("/api/login", "POST", false, data));
     }
 
+    isLoggedIn() {
+        return this.jwtToken !== undefined;
+    }
+
+    initializeSessionCredentials() {
+        let readSession = fs.readFileSync(this.sessionPath).toString();
+        let sessionParts = readSession.split('\n');
+        this.jwtToken = sessionParts[0];
+        this.xsrfToken = sessionParts[1];
+        this.baseUrl = sessionParts[2];
+    }
+
     async getCsrfToken() {
         let response = await axios(this.buildOptions("/api/csrf", "GET", false));
         let cookiesString: string | undefined = response.headers['set-cookie'][0];
@@ -42,7 +63,7 @@ export class RestClient {
         }
     }
 
-    public getUserInfo(): AxiosPromise<User> {
+    public getServerUserInfo(): AxiosPromise<User> {
         return axios(this.buildOptions("/api/currentuser", "GET", false));
     }
 
@@ -166,27 +187,84 @@ export class RestClient {
         return options;
     }
 
-    set jwtToken(jwtToken: string | undefined) {
-        this._jwtToken = jwtToken;
+    handleAxiosError(error: any) {
+        if (error.response) {
+            if (error.response.status === 401 && !this.error401thrown) {
+                vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
+                this.error401thrown = true;
+                this.jwtToken = undefined;
+                this.xsrfToken = '';
+                if (fs.existsSync(this.sessionPath)) {
+                    fs.unlinkSync(this.sessionPath);
+                }
+                CoursesProvider.triggerTreeReload();
+            } else if (error.response.status === 403 && !this.error403thrown) {
+                vscode.window.showWarningMessage('Something went wrong, please try again.');
+                this.error403thrown = true;
+                this.getCsrfToken();
+            } else {
+                let msg = error.response.data;
+                if (error.response.data instanceof Object) {
+                    msg = JSON.stringify(error.response.data);
+                }
+                vscode.window.showErrorMessage('Error ' + error.response.status + '. ' + msg);
+                this.error401thrown = false;
+                this.error403thrown = false;
+            }
+        } else if (error.request) {
+            vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
+        } else {
+            vscode.window.showErrorMessage(error.message);
+        }
     }
 
-    get jwtToken() {
-        return this._jwtToken;
+    errorThrown() {
+        return this.error401thrown && this.error403thrown;
     }
 
-    get baseUrl() {
-        return this._baseUrl;
+    async callLogin(username: string, password: string) {
+        try {
+            let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
+            if (fs.existsSync(sessionPath)) {
+                fs.unlinkSync(sessionPath);
+            }
+            this.jwtToken = undefined;
+            this.xsrfToken = '';
+            await this.getCsrfToken();
+            let loginThenable = this.login(username, password);
+            vscode.window.setStatusBarMessage('Logging in to VS Code 4 Teaching...', loginThenable);
+            let response = await loginThenable;
+            vscode.window.showInformationMessage('Logged in');
+            this.jwtToken = response.data['jwtToken'];
+            let v4tPath = path.resolve(__dirname, 'v4t');
+            if (!fs.existsSync(v4tPath)) {
+                mkdirp.sync(v4tPath);
+            }
+            fs.writeFileSync(sessionPath, this.jwtToken + '\n' + this.xsrfToken + '\n' + this.baseUrl);
+            await this.getUserInfo();
+            CoursesProvider.triggerTreeReload();
+        } catch (error) {
+            this.handleAxiosError(error);
+        }
     }
 
-    set baseUrl(url: string | undefined) {
-        this._baseUrl = url;
+    async getUserInfo() {
+        let coursesThenable = this.getServerUserInfo();
+        vscode.window.setStatusBarMessage('Getting user courses...', coursesThenable);
+        // Errors have to be controlled in the caller function
+        let userResponse = await coursesThenable;
+        if (userResponse.data.courses && userResponse.data.courses.length > 0) {
+            userResponse.data.courses.forEach(course => {
+                if (!course.exercises) {
+                    course.exercises = [];
+                }
+            });
+        }
+        this._userinfo = userResponse.data;
     }
 
-    get xsrfToken(): string {
-        return this._xsrfToken;
+    get userinfo(): User | undefined {
+        return this.userinfo;
     }
 
-    set xsrfToken(xsrfToken: string) {
-        this._xsrfToken = xsrfToken;
-    }
 }
