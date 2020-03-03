@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CoursesProvider } from './courses';
+import { CoursesProvider } from './coursesTreeProvider';
 import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
 import { V4TItem } from './v4titem';
 import * as path from 'path';
@@ -16,7 +16,7 @@ export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentProvider | undefined;
 const client = RestClient.getClient();
-export function activate(context: vscode.ExtensionContext) {
+export function activate (context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	if (fs.existsSync(client.sessionPath)) {
 		client.initializeSessionCredentials();
@@ -181,18 +181,18 @@ export function activate(context: vscode.ExtensionContext) {
 		removeUsersFromCourse, getStudentFiles, diff, createComment);
 }
 
-export function deactivate() {
+export function deactivate () {
 	if (commentProvider) {
 		commentProvider.dispose();
 	}
 }
 
 // Meant to be used for tests
-export function createNewCoursesProvider() {
+export function createNewCoursesProvider () {
 	coursesProvider = new CoursesProvider();
 }
 
-export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
+export function enableFSWIfExercise (cwds: vscode.WorkspaceFolder[]) {
 	let checkedUris: string[] = [];
 	cwds.forEach((cwd: vscode.WorkspaceFolder) => {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -268,7 +268,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 
 }
 
-function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
 	if (!ignoredFiles.includes(e.fsPath)) {
 		let filePath = path.resolve(e.fsPath);
 		fs.readFile(filePath, (err, data) => {
@@ -285,14 +285,14 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 	}
 }
 
-function checkCommentLineChanges(document: vscode.TextDocument) {
+function checkCommentLineChanges (document: vscode.TextDocument) {
 	if (commentProvider) {
 		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
 		for (let thread of fileThreads) {
 			let docText = document.getText();
 			let docTextSeparatedByLines = docText.split(/\r?\n/);
 			let threadLine = thread[1].range.start.line;
-			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText; 
+			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText;
 			if (docTextSeparatedByLines[threadLine].trim() !== threadLineText.trim()) {
 				for (let i = 0; i < docTextSeparatedByLines.length; i++) {
 					let line = docTextSeparatedByLines[i];

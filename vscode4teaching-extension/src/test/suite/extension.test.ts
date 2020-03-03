@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
 import JSZip = require('jszip');
-import { UserPick } from '../../courses';
+import { UserPick } from '../../coursesTreeProvider';
 import { RestClient } from '../../restclient';
 
 suite('Extension Test Suite', () => {
@@ -17,6 +17,7 @@ suite('Extension Test Suite', () => {
 	afterEach(() => {
 		simple.restore();
 		extension.createNewCoursesProvider();
+		RestClient.getClient().invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
 				// console.log(error);
@@ -29,9 +30,9 @@ suite('Extension Test Suite', () => {
 		}
 		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
 		if (fs.existsSync(v4tPath)) {
-			rimraf(v4tPath, error => {
-				// console.log(error);
-			});
+			rimraf(v4tPath, ((error) => {
+				console.log(error);
+			}));
 		}
 
 	});
@@ -118,7 +119,6 @@ suite('Extension Test Suite', () => {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
-
 
 		let loginButton = extension.coursesProvider.getChildren();
 		if (loginButton instanceof Array) {
@@ -362,7 +362,7 @@ suite('Extension Test Suite', () => {
 		existsMock.returnWith(true);
 		let fileMock = simple.mock(fs, "readFileSync");
 		fileMock.returnWith(new MockFile("mockToken\nmockXsrf\nmockUrl"));
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({
 			id: 1,
 			name: "johndoe"
@@ -374,10 +374,10 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(client.baseUrl, "mockUrl");
 	});
 
-	test('refresh should call getUserInfo', () => {
+	test('refresh should call getServerUserInfo', () => {
 		let client = RestClient.getClient();
 		client.jwtToken = "mockToken";
-		let userInfoMock = simple.mock(extension.coursesProvider, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
 	});
@@ -408,7 +408,7 @@ suite('Extension Test Suite', () => {
 		let client = RestClient.getClient();
 		let addCourseClientMock = simple.mock(client, "addCourse");
 		addCourseClientMock.resolveWith(course);
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith(user);
 		await extension.coursesProvider.addCourse();
 		if (client.userinfo && client.userinfo.courses) {
@@ -457,7 +457,7 @@ suite('Extension Test Suite', () => {
 			],
 			courses: []
 		};
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		await extension.coursesProvider.deleteCourse(item);
@@ -522,7 +522,7 @@ suite('Extension Test Suite', () => {
 		editCourseClientMock.resolveWith(newCourse);
 		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
 		vscodeInputMock.resolveWith("Test course");
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		client.userinfo = user;
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
@@ -781,7 +781,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "addUsersToCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3] });
 	});
 
 	test('remove users from course', async () => {
@@ -877,7 +877,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "removeUsersFromCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "removeUsersFromCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3] });
 	});
 });
 
@@ -887,7 +887,7 @@ class MockFile {
 		this.text = text;
 	}
 
-	toString() {
+	toString () {
 		return this.text;
 	}
 }
