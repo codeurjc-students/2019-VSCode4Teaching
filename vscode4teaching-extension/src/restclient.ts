@@ -12,9 +12,9 @@ export class RestClient {
 
     private static instance: RestClient;
     public baseUrl: string | undefined;
-    private jwtToken: string | undefined;
-    private xsrfToken = "";
-    private _userinfo: User | undefined;
+    public jwtToken: string | undefined;
+    public xsrfToken = "";
+    public userinfo: User | undefined;
     readonly sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
     private error401thrown = false;
     private error403thrown = false;
@@ -218,10 +218,6 @@ export class RestClient {
         }
     }
 
-    errorThrown() {
-        return this.error401thrown && this.error403thrown;
-    }
-
     async callLogin(username: string, password: string) {
         try {
             let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
@@ -260,11 +256,7 @@ export class RestClient {
                 }
             });
         }
-        this._userinfo = userResponse.data;
-    }
-
-    get userinfo(): User | undefined {
-        return this.userinfo;
+        this.userinfo = userResponse.data;
     }
 
 }

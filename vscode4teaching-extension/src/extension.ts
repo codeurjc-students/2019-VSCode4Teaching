@@ -18,8 +18,7 @@ let commentProvider: TeacherCommentProvider | undefined;
 const client = RestClient.getClient();
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
-	let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
-	if (fs.existsSync(sessionPath)) {
+	if (fs.existsSync(client.sessionPath)) {
 		client.initializeSessionCredentials();
 		client.getUserInfo().catch((error) => client.handleAxiosError(error));
 	}

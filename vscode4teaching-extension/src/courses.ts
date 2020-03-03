@@ -22,6 +22,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         'command': 'vscode4teaching.login',
         'title': 'Log in to VS Code 4 Teaching'
     })];
+    private NO_COURSES_ITEM = [new V4TItem('No courses available', V4TItemType.NoCourses, vscode.TreeItemCollapsibleState.None)];
 
     getParent(element: V4TItem) {
         return element.parent;
@@ -35,49 +36,21 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (!this.loading) {
             if (element) {
                 // Only collapsable items are courses
-                this.getExerciseButtons(element);
+                return this.getExerciseButtons(element);
             } else {
                 // If not logged add login button, else show courses
                 if (!this.client.isLoggedIn()) {
                     try {
-                        let sessionPath = path.resolve(this.internalFilesDir, 'v4tsession');
-                        if (fs.existsSync(sessionPath)) {
+                        if (fs.existsSync(this.client.sessionPath)) {
                             this.client.initializeSessionCredentials();
-                            this.getChildren();
+                            return this.getCourseButtons();
                         }
                     } catch (error) {
                         return this.LOGIN_ITEM;
                     }
                     return this.LOGIN_ITEM;
                 } else {
-                    if ((!this.client.userinfo || !this.client.userinfo.courses) && !this.client.errorThrown()) {
-                        this.loading = true;
-                        let thenable = this.client.getUserInfo();
-                        vscode.window.setStatusBarMessage('Getting data...', thenable);
-                        thenable.then(() => {
-                            CoursesProvider.triggerTreeReload();
-                        }).finally(() => {
-                            this.loading = false;
-                        });
-                    }
-                    if (this.client.userinfo && this.client.userinfo.courses) {
-                        let isTeacher = ModelUtils.isTeacher(this.client.userinfo);
-                        let type: V4TItemType;
-                        if (isTeacher) {
-                            type = V4TItemType.CourseTeacher;
-                        } else {
-                            type = V4TItemType.CourseStudent;
-                        }
-                        let items = this.client.userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
-                        if (isTeacher) {
-                            items.unshift(new V4TItem('Add Course', V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-                                command: 'vscode4teaching.addcourse',
-                                title: 'Add Course'
-                            }));
-                        }
-                        return items;
-                    }
-                    return this.LOGIN_ITEM;
+                    return this.getCourseButtons();
                 }
             }
         }
@@ -87,7 +60,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         CoursesProvider._onDidChangeTreeData.fire(item);
     }
 
-    private getExerciseButtons(element: V4TItem) {
+    private getExerciseButtons(element: V4TItem): V4TItem[] {
         let course = element.item;
         if (course && 'exercises' in course) {
             this.getExercises(element, course);
@@ -110,7 +83,45 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }));
             }
         }
+        return this.LOGIN_ITEM;
     }
+
+    private getCourseButtons(): V4TItem[] {
+        if (!this.client.userinfo) {
+            this.loading = true;
+            let thenable = this.client.getUserInfo();
+            vscode.window.setStatusBarMessage('Getting data...', thenable);
+            thenable.then(() => {
+                // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
+                CoursesProvider.triggerTreeReload();
+            }).finally(() => {
+                this.loading = false;
+            });
+            return [];
+        } else {
+            return this.getCourseButtonsWithUserinfo(this.client.userinfo);
+        }
+    }
+
+    private getCourseButtonsWithUserinfo(userinfo: User) {
+        if (userinfo.courses) {
+            let isTeacher = ModelUtils.isTeacher(userinfo);
+            let type: V4TItemType;
+            type = isTeacher ? V4TItemType.CourseTeacher : V4TItemType.CourseStudent;
+            // From courses create buttons
+            let items = userinfo.courses.map(course => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
+            // Add 'add course' button if user is teacher
+            if (isTeacher) {
+                items.unshift(new V4TItem('Add Course', V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+                    command: 'vscode4teaching.addcourse',
+                    title: 'Add Course'
+                }));
+            }
+            return items;
+        }
+        return this.NO_COURSES_ITEM;
+    }
+
     async login() {
         // Ask for server url, then username, then password, and try to log in at the end
         let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];

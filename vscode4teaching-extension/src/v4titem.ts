@@ -8,7 +8,7 @@ export class V4TItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly type: V4TItemType,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly parent: V4TItem | undefined,
+        public readonly parent?: V4TItem,
         public readonly item?: Course | Exercise,
         public readonly command?: vscode.Command
     ) {
@@ -43,5 +43,6 @@ export enum V4TItemType {
     CourseStudent = "coursestudent",
     ExerciseTeacher = "exerciseteacher",
     ExerciseStudent = "exercisestudent",
-    AddCourse = "addcourse"
+    AddCourse = "addcourse",
+    NoCourses = "nocourses"
 }
