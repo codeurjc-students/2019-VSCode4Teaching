@@ -124,4 +124,10 @@ public class CourseController {
         return ResponseEntity.ok(courseService.removeUsersFromCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
     }
+
+    @GetMapping("/courses/{courseId}/code")
+    public ResponseEntity<String> getCode(@PathVariable Long courseId, HttpServletRequest request)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        return ResponseEntity.ok(courseService.getCourseCode(courseId, jwtTokenUtil.getUsernameFromToken(request)));
+    }
 }

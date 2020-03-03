@@ -20,19 +20,21 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @Validated
 public interface ExerciseFilesService {
-        public Map<Exercise, List<File>> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
-                        throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
+    public Map<Exercise, List<File>> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 
-        public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile zip, String requestUsername)
-                        throws ExerciseNotFoundException, NotInCourseException, IOException;
+    public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile zip,
+            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
 
-        public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip, String requestUsername)
-                        throws ExerciseNotFoundException, NotInCourseException, IOException;
+    public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip,
+            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
 
-        public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
-                        throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
+    public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 
-        public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername) throws ExerciseNotFoundException, NotInCourseException;
+    public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException;
 
-        public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername) throws ExerciseNotFoundException;
+    public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
+            throws ExerciseNotFoundException;
 }

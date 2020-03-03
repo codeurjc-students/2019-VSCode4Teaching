@@ -12,4 +12,7 @@ public class ExerciseViews {
 
     public static interface FileView extends GeneralView, FileViews.GeneralView {
     }
+
+	public interface CodeView extends GeneralView {
+	}
 }

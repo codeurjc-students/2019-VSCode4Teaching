@@ -193,4 +193,23 @@ public class ExerciseControllerTests {
 
         logger.info("Test deleteExercise_valid() ends.");
     }
+
+    @Test
+    public void getCode_valid() throws Exception {
+        Exercise ex = new Exercise("Spring Boot Exercise 1");
+        ex.setId(1l);
+        String code = ex.getUuid();
+
+        when(courseService.getExerciseCode(1l, "johndoe")).thenReturn(code);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/exercises/1/code").contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getExerciseCode(1l, "johndoe");
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = code;
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
 }

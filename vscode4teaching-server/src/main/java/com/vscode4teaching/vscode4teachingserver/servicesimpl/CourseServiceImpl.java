@@ -165,4 +165,21 @@ public class CourseServiceImpl implements CourseService {
         return savedCourse;
     }
 
+    @Override
+    public String getCourseCode(Long courseId, String requestUsername)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
+        return course.getUuid();
+    }
+
+    @Override
+    public String getExerciseCode(Long exerciseId, String requestUsername)
+            throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = this.exerciseRepo.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        return exercise.getUuid();
+    }
+
 }
