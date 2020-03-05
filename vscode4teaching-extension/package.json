@@ -200,6 +200,11 @@
 					"group": "inline@6"
 				},
 				{
+					"command": "vscode4teaching.share",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@7"
+				},
+				{
 					"command": "vscode4teaching.editexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@1"
@@ -211,8 +216,8 @@
 				},
 				{
 					"command": "vscode4teaching.share",
-					"when": "view == vscode4teachingview && (viewItem == courseteacher || viewItem == exerciseteacher)",
-					"group": "inline@7"
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@3"
 				}
 			],
 			"comments/commentThread/context": [
