@@ -14,7 +14,6 @@
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "0.3.0",
 	"license": "Apache-2.0",
-	"enableProposedApi": true,
 	"engines": {
 		"vscode": "^1.39.0"
 	},
