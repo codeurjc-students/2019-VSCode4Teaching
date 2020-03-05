@@ -19,14 +19,14 @@ export class V4TItem extends vscode.TreeItem {
         switch (this.type) {
             case V4TItemType.Login: {
                 return {
-                    light: path.join(__filename, '..', '..', 'resources', 'light', 'login.svg'),
-                    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'login.svg')
+                    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'login.svg'),
+                    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'login.svg')
                 };
             }
             case V4TItemType.AddCourse: {
                 return {
-                    light: path.join(__filename, '..', '..', 'resources', 'light', 'add.svg'),
-                    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'add.svg')
+                    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'add.svg'),
+                    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'add.svg')
                 };
             }
         }
