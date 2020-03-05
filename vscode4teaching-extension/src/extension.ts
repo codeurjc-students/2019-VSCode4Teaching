@@ -16,7 +16,7 @@ export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentProvider | undefined;
 const client = RestClient.getClient();
-export function activate (context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	if (fs.existsSync(client.sessionPath)) {
 		client.initializeSessionCredentials();
@@ -25,7 +25,7 @@ export function activate (context: vscode.ExtensionContext) {
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
 	if (cwds) {
-		enableFSWIfExercise(cwds);
+		initializeExtension(cwds);
 	}
 
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
@@ -54,7 +54,7 @@ export function activate (context: vscode.ExtensionContext) {
 					{ uri: uri, name: exercise.name });
 				cwds = vscode.workspace.workspaceFolders;
 				if (cwds) {
-					enableFSWIfExercise(cwds);
+					initializeExtension(cwds);
 				}
 			}
 		});
@@ -132,7 +132,7 @@ export function activate (context: vscode.ExtensionContext) {
 					...subdirectoriesURIs);
 				cwds = vscode.workspace.workspaceFolders;
 				if (cwds) {
-					enableFSWIfExercise(cwds);
+					initializeExtension(cwds);
 				}
 			}
 		});
@@ -181,18 +181,18 @@ export function activate (context: vscode.ExtensionContext) {
 		removeUsersFromCourse, getStudentFiles, diff, createComment);
 }
 
-export function deactivate () {
+export function deactivate() {
 	if (commentProvider) {
 		commentProvider.dispose();
 	}
 }
 
 // Meant to be used for tests
-export function createNewCoursesProvider () {
+export function createNewCoursesProvider() {
 	coursesProvider = new CoursesProvider();
 }
 
-export function enableFSWIfExercise (cwds: vscode.WorkspaceFolder[]) {
+export function initializeExtension(cwds: vscode.WorkspaceFolder[]) {
 	let checkedUris: string[] = [];
 	cwds.forEach((cwd: vscode.WorkspaceFolder) => {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -227,39 +227,7 @@ export function enableFSWIfExercise (cwds: vscode.WorkspaceFolder[]) {
 					}
 					let jszipFile = new JSZip();
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
-						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
-						jszipFile.loadAsync(fs.readFileSync(zipUri));
-						let pattern = new vscode.RelativePattern(cwd, "**/*");
-						let fsw = vscode.workspace.createFileSystemWatcher(pattern);
-						fsw.onDidChange((e: vscode.Uri) => {
-							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
-						});
-						fsw.onDidCreate((e: vscode.Uri) => {
-							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
-						});
-						fsw.onDidDelete((e: vscode.Uri) => {
-							if (!ignoredFiles.includes(e.fsPath)) {
-								let filePath = path.resolve(e.fsPath);
-								filePath = path.relative(cwd.uri.fsPath, filePath);
-								jszipFile.remove(filePath);
-								let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-								vscode.window.setStatusBarMessage("Uploading files...", thenable);
-								thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
-									.catch(err => client.handleAxiosError(err));
-							}
-						});
-
-						vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
-							if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
-								vscode.window.showWarningMessage(
-									"If you write over a line with comments, the comments could be deleted next time you open VS Code."
-								);
-							}
-						});
-
-						vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
-							checkCommentLineChanges(e);
-						});
+						setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
 					}
 				}
 			});
@@ -268,7 +236,44 @@ export function enableFSWIfExercise (cwds: vscode.WorkspaceFolder[]) {
 
 }
 
-function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+// Set File System Watcher and comment events
+function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri: string, exerciseId: number) {
+	let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
+	jszipFile.loadAsync(fs.readFileSync(zipUri));
+	let pattern = new vscode.RelativePattern(cwd, "**/*");
+	let fsw = vscode.workspace.createFileSystemWatcher(pattern);
+	fsw.onDidChange((e: vscode.Uri) => {
+		updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+	});
+	fsw.onDidCreate((e: vscode.Uri) => {
+		updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+	});
+	fsw.onDidDelete((e: vscode.Uri) => {
+		if (!ignoredFiles.includes(e.fsPath)) {
+			let filePath = path.resolve(e.fsPath);
+			filePath = path.relative(cwd.uri.fsPath, filePath);
+			jszipFile.remove(filePath);
+			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+			vscode.window.setStatusBarMessage("Uploading files...", thenable);
+			thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
+				.catch(err => client.handleAxiosError(err));
+		}
+	});
+
+	vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
+		if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
+			vscode.window.showWarningMessage(
+				"If you write over a line with comments, the comments could be deleted next time you open VS Code."
+			);
+		}
+	});
+
+	vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
+		checkCommentLineChanges(e);
+	});
+}
+
+function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
 	if (!ignoredFiles.includes(e.fsPath)) {
 		let filePath = path.resolve(e.fsPath);
 		fs.readFile(filePath, (err, data) => {
@@ -285,7 +290,7 @@ function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, 
 	}
 }
 
-function checkCommentLineChanges (document: vscode.TextDocument) {
+function checkCommentLineChanges(document: vscode.TextDocument) {
 	if (commentProvider) {
 		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
 		for (let thread of fileThreads) {
