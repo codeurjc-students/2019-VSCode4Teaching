@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { CoursesProvider } from './coursesTreeProvider';
+import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
 import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
-import { V4TItem } from './v4titem';
+import { V4TItem } from './coursesTreeProvider/v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
@@ -9,7 +9,7 @@ import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
 import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
-import { RestClient } from './restclient';
+import { RestClient } from './restClient';
 import mkdirp = require('mkdirp');
 
 export let coursesProvider = new CoursesProvider();

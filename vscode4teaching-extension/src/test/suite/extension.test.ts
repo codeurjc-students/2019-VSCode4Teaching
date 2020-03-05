@@ -3,14 +3,14 @@ import { afterEach, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import * as extension from '../../extension';
 import * as simple from 'simple-mock';
-import { V4TItem, V4TItemType } from '../../v4titem';
+import { V4TItem, V4TItemType } from '../../coursesTreeProvider/v4titem';
 import { Course, Exercise, User } from '../../model/serverModel';
 import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
 import JSZip = require('jszip');
-import { UserPick } from '../../coursesTreeProvider';
-import { RestClient } from '../../restclient';
+import { UserPick } from '../../coursesTreeProvider/coursesTreeProvider';
+import { RestClient } from '../../restClient';
 
 suite('Extension Test Suite', () => {
 

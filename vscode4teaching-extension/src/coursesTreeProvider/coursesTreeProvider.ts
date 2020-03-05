@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { RestClient } from './restclient';
+import { RestClient } from '../restClient';
 import * as path from 'path';
-import { User, Course, Exercise, ModelUtils, ManageCourseUsers } from './model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers } from '../model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
 import mkdirp = require('mkdirp');
-import { V4TExerciseFile } from './model/v4texerciseFile';
-import { FileIgnoreUtil } from './fileIgnoreUtil';
+import { V4TExerciseFile } from '../model/v4texerciseFile';
+import { FileIgnoreUtil } from '../fileIgnoreUtil';
 import { AxiosPromise } from 'axios';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {

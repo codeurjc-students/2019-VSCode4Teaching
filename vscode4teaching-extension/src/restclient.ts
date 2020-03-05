@@ -5,7 +5,7 @@ import { ServerCommentThread } from './model/commentServerModel';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { CoursesProvider } from './coursesTreeProvider';
+import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
 import mkdirp = require('mkdirp');
 
 export class RestClient {
