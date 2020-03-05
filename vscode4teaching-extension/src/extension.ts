@@ -177,7 +177,14 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let share = vscode.commands.registerCommand('vscode4teaching.share', (item: V4TItem) => {
-		vscode.window.showInformationMessage("Share button clicked" + item);
+		if (item.item) {
+			let codeThenable = client.getSharingCode(item.item);
+			vscode.window.setStatusBarMessage("Getting sharing code...", codeThenable);
+			codeThenable.then(response => {
+				let code = response.data;
+				vscode.window.showInformationMessage("Sharing code: " + code);
+			}).catch(error => client.handleAxiosError(error));
+		}
 	});
 
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
