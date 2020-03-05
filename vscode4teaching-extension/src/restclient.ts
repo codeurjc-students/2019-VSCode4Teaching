@@ -1,5 +1,5 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { User, Exercise, FileInfo, Course, ExerciseEdit, CourseEdit, ManageCourseUsers } from './model/serverModel';
+import { User, Exercise, FileInfo, Course, ExerciseEdit, CourseEdit, ManageCourseUsers, instanceOfCourse } from './model/serverModel';
 import FormData = require('form-data');
 import { ServerCommentThread } from './model/commentServerModel';
 import * as path from 'path';
@@ -236,6 +236,11 @@ export class RestClient {
 
     public getAllComments (username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
         return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
+    }
+
+    public getSharingCode(element: Course | Exercise): AxiosPromise<string> {
+        let typeOfUrl = instanceOfCourse(element) ? "courses/" : "exercises/";
+        return axios(this.buildOptions("/api/" + typeOfUrl + element.id + "/code", "GET", false));
     }
 
     public updateCommentThreadLine (id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {

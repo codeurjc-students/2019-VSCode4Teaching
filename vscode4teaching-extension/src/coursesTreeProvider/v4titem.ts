@@ -44,5 +44,6 @@ export enum V4TItemType {
     ExerciseTeacher = "exerciseteacher",
     ExerciseStudent = "exercisestudent",
     AddCourse = "addcourse",
-    NoCourses = "nocourses"
+    NoCourses = "nocourses",
+    NoExercises = "noexercises"
 }

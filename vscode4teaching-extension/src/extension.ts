@@ -176,9 +176,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	let share = vscode.commands.registerCommand('vscode4teaching.share', (item: V4TItem) => {
+		vscode.window.showInformationMessage("Share button clicked" + item);
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, share);
 }
 
 export function deactivate() {

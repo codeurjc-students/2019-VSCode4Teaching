@@ -123,6 +123,14 @@
 				"command": "vscode4teaching.createComment",
 				"title": "Create comment",
 				"enablement": "!commentIsEmpty"
+			},
+			{
+				"command": "vscode4teaching.share",
+				"title": "Get Sharing Code",
+				"icon": {
+					"light": "resources/light/share.svg",
+					"dark": "resources/dark/share.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -201,6 +209,11 @@
 					"command": "vscode4teaching.deleteexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@2"
+				},
+				{
+					"command": "vscode4teaching.share",
+					"when": "view == vscode4teachingview && (viewItem == courseteacher || viewItem == exerciseteacher)",
+					"group": "inline@7"
 				}
 			],
 			"comments/commentThread/context": [
@@ -240,6 +253,10 @@
 				},
 				{
 					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "false"
+				},
+				{
+					"command": "vscode4teaching.share",
 					"when": "false"
 				},
 				{

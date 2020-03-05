@@ -17,8 +17,12 @@ export interface Role {
 export interface Course {
     id: number;
     name: string;
-    creator: User;
+    creator?: User;
     exercises: Exercise[];
+}
+
+export function instanceOfCourse(object: any): object is Course {
+    return 'id' in object && 'name' in object && 'exercises' in object;
 }
 
 export interface CourseEdit {
