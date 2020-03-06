@@ -38,6 +38,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
 - [Get course unique code](API.md#get-course-unique-code)
 - [Get exercise unique code](API.md#get-exercise-unique-code)
+- [Get course and its exercises with sharing code](API.md#get-course-and-its-exercises-with-sharing-code)
 
 ## Login
 
@@ -2032,3 +2033,72 @@ Get exercise unique code for sharing.
   Not found: 1
   ```
   
+## Get course and its exercises with sharing code
+
+---
+
+Get a course and its exercises using the sharing code
+
+- **Required role**:
+  None
+- **URL**
+  `/api/courses/code/:code`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `code=[string]`
+  - **Example**
+    - `/api/courses/code/f3db9572-0263-417e-a429-e8d7ef7f63e2`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    {
+        "id": 7,
+        "name": "Spring Boot Course",
+        "exercises": [
+            {
+                "id": 10,
+                "name": "Exercise 1",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 11,
+                "name": "Exercise 2",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 12,
+                "name": "Exercise 3",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 13,
+                "name": "Exercise 4",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 14,
+                "name": "Exercise 5",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            }
+        ],
+        "createDateTime": "2020-03-06T16:16:42",
+        "updateDateTime": "2020-03-06T16:16:42"
+    }
+    ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Course not found: 1
+  ```

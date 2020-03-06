@@ -78,6 +78,12 @@ public class CourseController {
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
+    @GetMapping("/courses/code/{courseCode}")
+    @JsonView(CourseViews.ExercisesView.class)
+    public ResponseEntity<Course> getExercisesWithCode(@PathVariable String courseCode) throws CourseNotFoundException {
+        return ResponseEntity.ok(courseService.getCourseWithSharingCode(courseCode));
+    }
+
     @PutMapping("/courses/{id}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
