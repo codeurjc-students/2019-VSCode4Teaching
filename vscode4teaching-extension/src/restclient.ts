@@ -42,7 +42,7 @@ export class RestClient {
     }
 
     isLoggedIn () {
-        return this.jwtToken !== undefined;
+        return this.userinfo !== undefined;
     }
 
     initializeSessionCredentials () {
@@ -105,6 +105,7 @@ export class RestClient {
         this.jwtToken = undefined;
         this.xsrfToken = '';
         this.userinfo = undefined;
+        this.baseUrl = undefined;
     }
 
     async callLogin (username: string, password: string) {
@@ -142,6 +143,23 @@ export class RestClient {
             });
         }
         this.userinfo = userResponse.data;
+    }
+
+    newUserInfo () {
+        this.userinfo = {
+            id: -1,
+            username: "",
+            roles: []
+        }
+        return this.userinfo;
+    }
+
+    isBaseUrlInitialized () {
+        return this.baseUrl !== undefined;
+    }
+
+    setBaseUrl (url: string) {
+        this.baseUrl = url;
     }
 
     // Server calling methods
@@ -238,7 +256,7 @@ export class RestClient {
         return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
     }
 
-    public getSharingCode(element: Course | Exercise): AxiosPromise<string> {
+    public getSharingCode (element: Course | Exercise): AxiosPromise<string> {
         let typeOfUrl = instanceOfCourse(element) ? "courses/" : "exercises/";
         return axios(this.buildOptions("/api/" + typeOfUrl + element.id + "/code", "GET", false));
     }
@@ -249,6 +267,10 @@ export class RestClient {
             lineText: lineText
         };
         return axios(this.buildOptions("/api/comments/" + id + "/lines", "PUT", false, data));
+    }
+
+    public getCourseWithCode (code: string): AxiosPromise<Course> {
+        return axios(this.buildOptions("/api/courses/code/" + code, "GET", false));
     }
 
     private buildOptions (url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {

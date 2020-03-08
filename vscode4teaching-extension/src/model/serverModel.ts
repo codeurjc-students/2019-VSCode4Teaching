@@ -21,7 +21,7 @@ export interface Course {
     exercises: Exercise[];
 }
 
-export function instanceOfCourse(object: any): object is Course {
+export function instanceOfCourse (object: any): object is Course {
     return 'id' in object && 'name' in object && 'exercises' in object;
 }
 
@@ -49,7 +49,7 @@ export interface FileInfo {
 }
 
 export class ModelUtils {
-    static isTeacher(user: User) {
+    static isTeacher (user: User) {
         return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
     }
 }

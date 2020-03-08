@@ -16,7 +16,7 @@ export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentProvider | undefined;
 const client = RestClient.getClient();
-export function activate(context: vscode.ExtensionContext) {
+export function activate (context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	if (fs.existsSync(client.sessionPath)) {
 		client.initializeSessionCredentials();
@@ -187,23 +187,27 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	let getWithCode = vscode.commands.registerCommand('vscode4teaching.getwithcode', () => {
+		coursesProvider.getCourseWithCode();
+	});
+
 	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment, share);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, share, getWithCode);
 }
 
-export function deactivate() {
+export function deactivate () {
 	if (commentProvider) {
 		commentProvider.dispose();
 	}
 }
 
 // Meant to be used for tests
-export function createNewCoursesProvider() {
+export function createNewCoursesProvider () {
 	coursesProvider = new CoursesProvider();
 }
 
-export function initializeExtension(cwds: vscode.WorkspaceFolder[]) {
+export function initializeExtension (cwds: vscode.WorkspaceFolder[]) {
 	let checkedUris: string[] = [];
 	cwds.forEach((cwd: vscode.WorkspaceFolder) => {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -248,7 +252,7 @@ export function initializeExtension(cwds: vscode.WorkspaceFolder[]) {
 }
 
 // Set File System Watcher and comment events
-function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri: string, exerciseId: number) {
+function setStudentEvents (jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri: string, exerciseId: number) {
 	let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
 	jszipFile.loadAsync(fs.readFileSync(zipUri));
 	let pattern = new vscode.RelativePattern(cwd, "**/*");
@@ -284,7 +288,7 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
 	});
 }
 
-function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
 	if (!ignoredFiles.includes(e.fsPath)) {
 		let filePath = path.resolve(e.fsPath);
 		fs.readFile(filePath, (err, data) => {
@@ -301,7 +305,7 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 	}
 }
 
-function checkCommentLineChanges(document: vscode.TextDocument) {
+function checkCommentLineChanges (document: vscode.TextDocument) {
 	if (commentProvider) {
 		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
 		for (let thread of fileThreads) {

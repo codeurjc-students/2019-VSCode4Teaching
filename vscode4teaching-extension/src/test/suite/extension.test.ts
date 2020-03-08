@@ -115,14 +115,19 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('get login button (get children, not logged in)', () => {
-		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+		let expectedButtonLogin = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
+		let expectedButtonCode = new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+			'command': 'vscode4teaching.getwithcode',
+			'title': 'Get course with sharing code'
+		});
 
-		let loginButton = extension.coursesProvider.getChildren();
-		if (loginButton instanceof Array) {
-			assert.deepStrictEqual(loginButton[0], expectedButton);
+		let loginButtons = extension.coursesProvider.getChildren();
+		if (loginButtons instanceof Array) {
+			assert.deepStrictEqual(loginButtons[0], expectedButtonCode);
+			assert.deepStrictEqual(loginButtons[1], expectedButtonLogin);
 		} else {
 			assert.fail("loginButton is not an array");
 		}

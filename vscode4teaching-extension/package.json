@@ -127,8 +127,8 @@
 				"command": "vscode4teaching.share",
 				"title": "Get Sharing Code",
 				"icon": {
-					"light": "resources/light/share.svg",
-					"dark": "resources/dark/share.svg"
+					"light": "resources/light/share.png",
+					"dark": "resources/dark/share.png"
 				}
 			}
 		],
