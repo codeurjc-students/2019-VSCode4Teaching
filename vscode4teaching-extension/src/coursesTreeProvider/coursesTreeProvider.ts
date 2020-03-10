@@ -552,8 +552,24 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (code) {
                 this.client.getCourseWithCode(code).then(response => {
                     let course = response.data;
-                    let userinfo = this.client.newUserInfo();
-                    userinfo.courses = [course];
+                    let userinfo = this.client.userinfo;
+                    if (!userinfo) {
+                        userinfo = this.client.newUserInfo();
+                    }
+                    if (userinfo && !userinfo.courses) {
+                        userinfo.courses = [course];
+                    } else if (userinfo && userinfo.courses) {
+                        let found = false;
+                        for (let courseInCourses of userinfo.courses) {
+                            if (course.id === courseInCourses.id) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            userinfo.courses.push(course);
+                        }
+                    }
                     CoursesProvider._onDidChangeTreeData.fire();
                 }).catch(error => this.client.handleAxiosError(error));
             }

@@ -153,7 +153,7 @@ export class RestClient {
             id: -1,
             username: "",
             roles: []
-        }
+        };
         return this.userinfo;
     }
 
