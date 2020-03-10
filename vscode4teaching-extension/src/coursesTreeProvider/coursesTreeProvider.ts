@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { RestClient } from '../restClient';
 import * as path from 'path';
-import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse } from '../model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, CourseAddedWithCode } from '../model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
@@ -71,7 +71,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }
             }
         }
-        treeElements.unshift(this.GET_WITH_CODE_ITEM[0]);
+        if (!this.client.userinfo || !ModelUtils.isTeacher(this.client.userinfo)) {
+            treeElements.unshift(this.GET_WITH_CODE_ITEM[0]);
+        }
         return treeElements;
     }
 
@@ -551,7 +553,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         vscode.window.showInputBox({ 'prompt': 'Introduce sharing code' }).then(code => {
             if (code) {
                 this.client.getCourseWithCode(code).then(response => {
-                    let course = response.data;
+                    let course: CourseAddedWithCode = Object.assign(response.data, {uuid: code});
                     let userinfo = this.client.userinfo;
                     if (!userinfo) {
                         userinfo = this.client.newUserInfo();

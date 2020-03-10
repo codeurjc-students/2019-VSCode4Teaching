@@ -23,7 +23,7 @@ export class RestClient {
     }
 
     // Client is a singleton
-    public static getClient (): RestClient {
+    public static getClient(): RestClient {
         if (!RestClient.instance) {
             RestClient.instance = new RestClient();
         }
@@ -33,7 +33,7 @@ export class RestClient {
 
     // Session methods
 
-    login (username: string, password: string): AxiosPromise<{ jwtToken: string }> {
+    login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {
         const data = {
             "username": username,
             "password": password
@@ -41,11 +41,11 @@ export class RestClient {
         return axios(this.buildOptions("/api/login", "POST", false, data));
     }
 
-    isLoggedIn () {
+    isLoggedIn() {
         return this.userinfo !== undefined;
     }
 
-    initializeSessionCredentials () {
+    initializeSessionCredentials() {
         let readSession = fs.readFileSync(this.sessionPath).toString();
         let sessionParts = readSession.split('\n');
         this.jwtToken = sessionParts[0];
@@ -53,7 +53,7 @@ export class RestClient {
         this.baseUrl = sessionParts[2];
     }
 
-    async getCsrfToken () {
+    async getCsrfToken() {
         let response = await axios(this.buildOptions("/api/csrf", "GET", false));
         let cookiesString: string | undefined = response.headers['set-cookie'][0];
         if (cookiesString) {
@@ -65,7 +65,7 @@ export class RestClient {
         }
     }
 
-    handleAxiosError (error: any) {
+    handleAxiosError(error: any) {
         if (error.response) {
             if (error.response.status === 401 && !this.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
@@ -97,7 +97,7 @@ export class RestClient {
         }
     }
 
-    invalidateSession () {
+    invalidateSession() {
         let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
         if (fs.existsSync(sessionPath)) {
             fs.unlinkSync(sessionPath);
@@ -108,7 +108,7 @@ export class RestClient {
         this.baseUrl = undefined;
     }
 
-    async callLogin (username: string, password: string, url?: string) {
+    async callLogin(username: string, password: string, url?: string) {
         try {
             if (url) {
                 this.invalidateSession();
@@ -133,7 +133,7 @@ export class RestClient {
         }
     }
 
-    async getUserInfo () {
+    async getUserInfo() {
         let coursesThenable = this.getServerUserInfo();
         vscode.window.setStatusBarMessage('Getting user courses...', coursesThenable);
         // Errors have to be controlled in the caller function
@@ -148,123 +148,123 @@ export class RestClient {
         this.userinfo = userResponse.data;
     }
 
-    newUserInfo () {
+    newUserInfo() {
         this.userinfo = {
             id: -1,
             username: "",
-            roles: []
+            roles: [{ roleName: "ROLE_STUDENT" }]
         };
         return this.userinfo;
     }
 
-    isBaseUrlInitialized () {
+    isBaseUrlInitialized() {
         return this.baseUrl !== undefined;
     }
 
-    setBaseUrl (url: string) {
+    setBaseUrl(url: string) {
         this.baseUrl = url;
     }
 
     // Server calling methods
 
-    public getServerUserInfo (): AxiosPromise<User> {
+    public getServerUserInfo(): AxiosPromise<User> {
         return axios(this.buildOptions("/api/currentuser", "GET", false));
     }
 
-    public getExercises (courseId: number): AxiosPromise<Exercise[]> {
+    public getExercises(courseId: number): AxiosPromise<Exercise[]> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/exercises", "GET", false));
     }
 
-    public getExerciseFiles (exerciseId: number): AxiosPromise<ArrayBuffer> {
+    public getExerciseFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "GET", true));
     }
 
-    public addCourse (data: CourseEdit): AxiosPromise<Course> {
+    public addCourse(data: CourseEdit): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses", "POST", false, data));
     }
 
-    public editCourse (id: number, data: CourseEdit): AxiosPromise<Course> {
+    public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + id, "PUT", false, data));
     }
 
-    public deleteCourse (id: number): AxiosPromise<void> {
+    public deleteCourse(id: number): AxiosPromise<void> {
         return axios(this.buildOptions("/api/courses/" + id, "DELETE", false));
     }
 
-    public addExercise (id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
+    public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         return axios(this.buildOptions("/api/courses/" + id + "/exercises", "POST", false, data));
     }
 
-    public editExercise (id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
+    public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         return axios(this.buildOptions("/api/exercises/" + id, "PUT", false, data));
     }
 
-    public uploadExerciseTemplate (id: number, data: Buffer): AxiosPromise<any> {
+    public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
         let dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + id + "/files/template", "POST", false, dataForm));
     }
 
-    public deleteExercise (id: number): AxiosPromise<void> {
+    public deleteExercise(id: number): AxiosPromise<void> {
         return axios(this.buildOptions("/api/exercises/" + id, "DELETE", false));
     }
 
-    public getAllUsers (): AxiosPromise<User[]> {
+    public getAllUsers(): AxiosPromise<User[]> {
         return axios(this.buildOptions("/api/users", "GET", false));
     }
 
-    public getUsersInCourse (courseId: number): AxiosPromise<User[]> {
+    public getUsersInCourse(courseId: number): AxiosPromise<User[]> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "GET", false));
     }
 
-    public addUsersToCourse (courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
+    public addUsersToCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "POST", false, data));
     }
 
-    public removeUsersFromCourse (courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
+    public removeUsersFromCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/users", "DELETE", false, data));
     }
 
-    public getCreator (courseId: number): AxiosPromise<User> {
+    public getCreator(courseId: number): AxiosPromise<User> {
         return axios(this.buildOptions("/api/courses/" + courseId + "/creator", "GET", false));
     }
 
-    public uploadFiles (exerciseId: number, data: Buffer): AxiosPromise<any> {
+    public uploadFiles(exerciseId: number, data: Buffer): AxiosPromise<any> {
         let dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files", "POST", false, dataForm));
     }
 
-    public getAllStudentFiles (exerciseId: number): AxiosPromise<ArrayBuffer> {
+    public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/teachers/files", "GET", true));
     }
 
-    public getTemplate (exerciseId: number): AxiosPromise<ArrayBuffer> {
+    public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
         return axios(this.buildOptions("/api/exercises/" + exerciseId + "/files/template", "GET", true));
     }
 
-    public getFilesInfo (username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
+    public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
         return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/files", "GET", false));
     }
 
-    public saveComment (fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
+    public saveComment(fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
         return axios(this.buildOptions("/api/files/" + fileId + "/comments", "POST", false, commentThread));
     }
 
-    public getComments (fileId: number): AxiosPromise<ServerCommentThread[] | void> {
+    public getComments(fileId: number): AxiosPromise<ServerCommentThread[] | void> {
         return axios(this.buildOptions("/api/files/" + fileId + "/comments", "GET", false));
     }
 
-    public getAllComments (username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
+    public getAllComments(username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
         return axios(this.buildOptions("/api/users/" + username + "/exercises/" + exerciseId + "/comments", "GET", false));
     }
 
-    public getSharingCode (element: Course | Exercise): AxiosPromise<string> {
+    public getSharingCode(element: Course | Exercise): AxiosPromise<string> {
         let typeOfUrl = instanceOfCourse(element) ? "courses/" : "exercises/";
         return axios(this.buildOptions("/api/" + typeOfUrl + element.id + "/code", "GET", false));
     }
 
-    public updateCommentThreadLine (id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
+    public updateCommentThreadLine(id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
         let data = {
             line: line,
             lineText: lineText
@@ -272,11 +272,11 @@ export class RestClient {
         return axios(this.buildOptions("/api/comments/" + id + "/lines", "PUT", false, data));
     }
 
-    public getCourseWithCode (code: string): AxiosPromise<Course> {
+    public getCourseWithCode(code: string): AxiosPromise<Course> {
         return axios(this.buildOptions("/api/courses/code/" + code, "GET", false));
     }
 
-    private buildOptions (url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
+    private buildOptions(url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
         let options: AxiosRequestConfig = {
             url: url,
             baseURL: this.baseUrl,

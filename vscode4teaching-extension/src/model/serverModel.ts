@@ -25,6 +25,14 @@ export function instanceOfCourse (object: any): object is Course {
     return 'id' in object && 'name' in object && 'exercises' in object;
 }
 
+export interface CourseAddedWithCode extends Course {
+    uuid: string;
+}
+
+export function instanceOfCourseAddedWithCode (object: any): object is CourseAddedWithCode {
+    return instanceOfCourse(object) && 'uuid' in object;
+}
+
 export interface CourseEdit {
     name: string;
 }
@@ -49,7 +57,11 @@ export interface FileInfo {
 }
 
 export class ModelUtils {
-    static isTeacher (user: User) {
-        return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
+    static isTeacher (user?: User) {
+        if (user) {
+            return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
+        } else {
+            return false;
+        }
     }
 }

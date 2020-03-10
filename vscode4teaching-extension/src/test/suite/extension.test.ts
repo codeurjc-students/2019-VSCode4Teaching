@@ -237,10 +237,6 @@ suite('Extension Test Suite', () => {
 				'command': 'vscode4teaching.logout',
 				'title': 'Log out of VS Code 4 Teaching'
 			}));
-			expectedButtons.unshift(new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-				'command': 'vscode4teaching.getwithcode',
-				'title': 'Get course with sharing code'
-			}));
 			client.userinfo = user;
 			client.jwtToken = "mockToken";
 
