@@ -47,9 +47,10 @@ suite('Extension Test Suite', () => {
 			return extensionActivator.activate().then(() => {
 				return vscode.commands.getCommands(true).then((commands) => {
 					const V4T_COMMANDS = [
-						"vscode4teaching.addcourse",
 						"vscode4teaching.login",
+						'vscode4teaching.logout',
 						"vscode4teaching.getexercisefiles",
+						'vscode4teaching.addcourse',
 						"vscode4teaching.editcourse",
 						"vscode4teaching.deletecourse",
 						"vscode4teaching.refreshcourses",
@@ -60,7 +61,10 @@ suite('Extension Test Suite', () => {
 						"vscode4teaching.adduserstocourse",
 						"vscode4teaching.removeusersfromcourse",
 						"vscode4teaching.getstudentfiles",
-						"vscode4teaching.diff"
+						"vscode4teaching.diff",
+						'vscode4teaching.createComment',
+						'vscode4teaching.share',
+						'vscode4teaching.getwithcode'
 					];
 
 					const foundCommands = commands.filter((value) => {
@@ -166,6 +170,14 @@ suite('Extension Test Suite', () => {
 		user.courses = courses;
 		if (user.courses) {
 			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
+			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.logout',
+				'title': 'Log out of VS Code 4 Teaching'
+			}));
+			expectedButtons.unshift(new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.getwithcode',
+				'title': 'Get course with sharing code'
+			}));
 			client.userinfo = user;
 			client.jwtToken = "mockToken";
 
@@ -220,6 +232,14 @@ suite('Extension Test Suite', () => {
 			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
+			}));
+			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.logout',
+				'title': 'Log out of VS Code 4 Teaching'
+			}));
+			expectedButtons.unshift(new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.getwithcode',
+				'title': 'Get course with sharing code'
 			}));
 			client.userinfo = user;
 			client.jwtToken = "mockToken";
@@ -381,7 +401,11 @@ suite('Extension Test Suite', () => {
 
 	test('refresh should call getServerUserInfo', () => {
 		let client = RestClient.getClient();
-		client.jwtToken = "mockToken";
+		client.userinfo = {
+			id: 1,
+			username: "mockUser",
+			roles: []
+		};
 		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
