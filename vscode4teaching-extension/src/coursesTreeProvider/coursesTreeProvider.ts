@@ -29,10 +29,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         'title': 'Get course with sharing code'
     })];
     // Login Button that will be show when user is not logged in
-    private LOGIN_ITEM = [new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+    private LOGIN_ITEM = new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.login',
         'title': 'Log in to VS Code 4 Teaching'
-    })];
+    });
+    private LOGOUT_ITEM = new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+        'command': 'vscode4teaching.logout',
+        'title': 'Log out of VS Code 4 Teaching'
+    });
     private NO_COURSES_ITEM = [new V4TItem('No courses available', V4TItemType.NoCourses, vscode.TreeItemCollapsibleState.None)];
     private NO_EXERCISES_ITEM = [new V4TItem('No exercises available', V4TItemType.NoExercises, vscode.TreeItemCollapsibleState.None)];
 
@@ -59,9 +63,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             treeElements = this.getCourseButtons();
                         }
                     } catch (error) {
-                        treeElements = this.LOGIN_ITEM;
+                        treeElements = [this.LOGIN_ITEM];
                     }
-                    treeElements = this.LOGIN_ITEM;
+                    treeElements = [this.LOGIN_ITEM];
                 } else {
                     treeElements = this.getCourseButtons();
                 }
@@ -137,6 +141,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     title: 'Add Course'
                 }));
             }
+            items.push(this.LOGOUT_ITEM);
             return items;
         }
         return this.NO_COURSES_ITEM;
@@ -149,17 +154,21 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         serverInputOptions.validateInput = this.validateInputCustomUrl;
         let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
         if (url) {
-            this.client.baseUrl = url;
             let username: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Username' });
             if (username) {
                 let password: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Password', 'password': true });
                 if (password) {
-                    this.client.callLogin(username, password).catch(error => {
+                    this.client.callLogin(username, password, url).catch(error => {
                         this.client.handleAxiosError(error);
                     });
                 }
             }
         }
+    }
+
+    logout () {
+        this.client.invalidateSession();
+        CoursesProvider._onDidChangeTreeData.fire();
     }
 
     validateInputCustomUrl (value: string): string | undefined | null | Thenable<string | undefined | null> {

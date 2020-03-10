@@ -32,6 +32,10 @@ export function activate (context: vscode.ExtensionContext) {
 		coursesProvider.login();
 	});
 
+	let logoutDisposable = vscode.commands.registerCommand('vscode4teaching.logout', () => {
+		coursesProvider.logout();
+	});
+
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
 		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
@@ -191,7 +195,7 @@ export function activate (context: vscode.ExtensionContext) {
 		coursesProvider.getCourseWithCode();
 	});
 
-	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
+	context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
 		removeUsersFromCourse, getStudentFiles, diff, createComment, share, getWithCode);
 }

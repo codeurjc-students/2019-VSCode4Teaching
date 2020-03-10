@@ -108,9 +108,12 @@ export class RestClient {
         this.baseUrl = undefined;
     }
 
-    async callLogin (username: string, password: string) {
+    async callLogin (username: string, password: string, url?: string) {
         try {
-            this.invalidateSession();
+            if (url) {
+                this.invalidateSession();
+                this.baseUrl = url;
+            }
             await this.getCsrfToken();
             let loginThenable = this.login(username, password);
             vscode.window.setStatusBarMessage('Logging in to VS Code 4 Teaching...', loginThenable);

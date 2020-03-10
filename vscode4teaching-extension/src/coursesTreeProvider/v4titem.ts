@@ -46,6 +46,7 @@ export class V4TItem extends vscode.TreeItem {
 
 export enum V4TItemType {
     Login = "login",
+    Logout = "logout",
     GetWithCode = "getwithcode",
     CourseTeacher = "courseteacher",
     CourseStudent = "coursestudent",
