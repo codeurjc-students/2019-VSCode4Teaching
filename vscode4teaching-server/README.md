@@ -30,11 +30,14 @@ The data.sql file in resources will initialize some demo data to the database. T
       - password: `studentpassword`  
     - Student 2:  
       - username: `johndoejr2`  
-      - password: `studentpassword`  
+      - password: `studentpassword2`  
     - Student 3:  
       - username: `johndoejr3`  
-      - password: `studentpassword`  
-- Courses: Spring Boot Course, Angular Course, VSCode Extension API Course. Each course has every user above as a participant or teacher.  
+      - password: `studentpassword3`  
+    - Student 4:
+      - username: `emptyjoe`
+      - password: `emptyjoe`
+- Courses: Spring Boot Course, Angular Course, VSCode Extension API Course. Each course has every user above (except Student 4 who has no courses assigned to) as a student (Student 1, Student 2 and Student 3) or teacher (Teacher).  
 - Exercises: each course has 5 exercises: Exercise 1, Exercise 2 and so on.  
 File data is not included (see below).  
 
