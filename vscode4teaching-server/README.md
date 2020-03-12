@@ -96,8 +96,17 @@ List of allowed arguments:
     Indicates whether to initialize demo database information or not.
     Default: true
     Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.datasource.initialization-mode=none`
+- --spring.jpa.hibernate.ddl-auto=[validate|update|create|create-drop|none]
+    Indicates what will the server do with the database. Recomended to change in production environments.  
+  - validate: validate the schema, makes no changes to the database.
+  - update: update the schema.
+  - create: creates the schema, destroying previous data.
+  - create-drop: drop the schema the application is stopped.
+  - none: does nothing with the schema, makes no changes to the database
+    Default: create-drop  
+    Example: `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --spring.jpa.hibernate.ddl-auto=validate`
   Example with all arguments:  
-  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses --file.initialization=false --data.initialization=true`
+  `java -jar vscode4teaching-server-0.0.1-SNAPSHOT.jar --server.port=9090 --spring.datasource.url=jdbc:mysql://localhost:3306/vsc4teach --spring.datasource.username=root --spring.datasource.password=root --jwt.secret=vscode4teaching --v4t.filedirectory=courses --file.initialization=false --data.initialization=true --spring.jpa.hibernate.ddl-auto=create`
 
   For environment variables, just choose an argument above, put it in all caps and change the . (dots) into \_ (underscores) eg.: SPRING_DATASOURCE_URL
   and set the value to the value desired (see the examples above for guidance).
