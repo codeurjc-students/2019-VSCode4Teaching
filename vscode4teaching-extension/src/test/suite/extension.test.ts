@@ -238,6 +238,10 @@ suite('Extension Test Suite', () => {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
 			}));
+			expectedButtons.push(new V4TItem('Sign up a teacher', V4TItemType.SignupTeacher, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.signupteacher',
+				'title': 'Sign up in VS Code 4 Teaching'
+			}));
 			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 				'command': 'vscode4teaching.logout',
 				'title': 'Log out of VS Code 4 Teaching'
