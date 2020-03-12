@@ -11,6 +11,7 @@ import rimraf = require('rimraf');
 import JSZip = require('jszip');
 import { UserPick } from '../../coursesTreeProvider/coursesTreeProvider';
 import { RestClient } from '../../restClient';
+import { Validators } from '../../model/validators';
 
 suite('Extension Test Suite', () => {
 
@@ -64,6 +65,7 @@ suite('Extension Test Suite', () => {
 						"vscode4teaching.diff",
 						'vscode4teaching.createComment',
 						'vscode4teaching.share',
+						'vscode4teaching.signup',
 						'vscode4teaching.getwithcode'
 					];
 
@@ -95,11 +97,17 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].returned, Promise.resolve("http://test.com"), "server input box should return test url");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].returned, Promise.resolve("johndoe"), "username input box should return test username");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].returned, Promise.resolve("password"), "password input box should return test password");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, { "prompt": "Server", "validateInput": extension.coursesProvider.validateInputCustomUrl, "value": "http://localhost:8080" },
+		let serverInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Server", "validateInput": Validators.validateUrl, "value": "http://localhost:8080" };
+		serverInputBoxOptions.validateInput = Validators.validateUrl;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, serverInputBoxOptions,
 			"config for the server input box should have correct prompt, be validated and default value localhost:8080");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, { "prompt": "Username" },
+		let usernameInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Username" };
+		usernameInputBoxOptions.validateInput = Validators.validateUsername;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, usernameInputBoxOptions,
 			"config for the username input box should have correct prompt");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, { "prompt": "Password", "password": true },
+		let passwordInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Password", "password": true };
+		passwordInputBoxOptions.validateInput = Validators.validatePasswordLogin;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, passwordInputBoxOptions,
 			"config for the password input box should have correct prompt and hide the input");
 		assert.deepStrictEqual(mockCsrf.callCount, 1, "csrf should be set");
 		assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
@@ -108,14 +116,14 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('validate URL', () => {
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://localhost:8080"), null, "http://localhost:8080");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://localhost:3000"), null, "http://localhost:3000");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://192.168.99.100:8080"), null, "http://192.168.99.100:8080");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://1.2.4.3"), null, "http://1.2.4.3");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com:4567"), null, "http://test.com:4567");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://api.test.com"), null, "http://api.test.com");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com/api"), null, "http://test.com/api");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com/api:8080"), null, "http://test.com/api:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://localhost:8080"), null, "http://localhost:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://localhost:3000"), null, "http://localhost:3000");
+		assert.deepStrictEqual(Validators.validateUrl("http://192.168.99.100:8080"), null, "http://192.168.99.100:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://1.2.4.3"), null, "http://1.2.4.3");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com:4567"), null, "http://test.com:4567");
+		assert.deepStrictEqual(Validators.validateUrl("http://api.test.com"), null, "http://api.test.com");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com/api"), null, "http://test.com/api");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com/api:8080"), null, "http://test.com/api:8080");
 	});
 
 	test('get login button (get children, not logged in)', () => {
@@ -123,15 +131,10 @@ suite('Extension Test Suite', () => {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
-		let expectedButtonCode = new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-			'command': 'vscode4teaching.getwithcode',
-			'title': 'Get course with sharing code'
-		});
 
 		let loginButtons = extension.coursesProvider.getChildren();
 		if (loginButtons instanceof Array) {
-			assert.deepStrictEqual(loginButtons[0], expectedButtonCode);
-			assert.deepStrictEqual(loginButtons[1], expectedButtonLogin);
+			assert.deepStrictEqual(loginButtons[0], expectedButtonLogin);
 		} else {
 			assert.fail("loginButton is not an array");
 		}

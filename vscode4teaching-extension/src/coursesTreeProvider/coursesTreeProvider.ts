@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { RestClient } from '../restClient';
 import * as path from 'path';
-import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, CourseAddedWithCode } from '../model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, CourseAddedWithCode, UserSignup } from '../model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
@@ -9,6 +9,7 @@ import mkdirp = require('mkdirp');
 import { V4TExerciseFile } from '../model/v4texerciseFile';
 import { FileIgnoreUtil } from '../fileIgnoreUtil';
 import { AxiosPromise } from 'axios';
+import { Validators } from '../model/validators';
 
 export class UserPick implements vscode.QuickPickItem {
     constructor(
@@ -32,6 +33,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private LOGIN_ITEM = new V4TItem('Login', V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.login',
         'title': 'Log in to VS Code 4 Teaching'
+    });
+    private SIGNUP_ITEM = new V4TItem('Sign up', V4TItemType.Signup, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+        'command': 'vscode4teaching.signup',
+        'title': 'Sign up in VS Code 4 Teaching'
     });
     private LOGOUT_ITEM = new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.logout',
@@ -63,15 +68,15 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             treeElements = this.getCourseButtons();
                         }
                     } catch (error) {
-                        treeElements = [this.LOGIN_ITEM];
+                        treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                     }
-                    treeElements = [this.LOGIN_ITEM];
+                    treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                 } else {
                     treeElements = this.getCourseButtons();
                 }
             }
         }
-        if (!this.client.userinfo || !ModelUtils.isTeacher(this.client.userinfo)) {
+        if (ModelUtils.isStudent(this.client.userinfo)) {
             treeElements.unshift(this.GET_WITH_CODE_ITEM[0]);
         }
         return treeElements;
@@ -149,40 +154,100 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         return this.NO_COURSES_ITEM;
     }
 
+    private async getInput (prompt: string, validator: ((value: string) => string | undefined | null | Thenable<string | undefined | null>), options?: { value?: string, password?: boolean }) {
+        let inputOptions: vscode.InputBoxOptions = { 'prompt': prompt };
+        if (options) {
+            if (options.value) {
+                inputOptions = Object.assign(inputOptions, { value: options.value });
+            }
+            if (options.password) {
+                inputOptions = Object.assign(inputOptions, { password: options.password });
+            }
+        }
+        inputOptions.validateInput = validator;
+        return vscode.window.showInputBox(inputOptions);
+    }
+
     async login () {
         // Ask for server url, then username, then password, and try to log in at the end
         let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
-        let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
-        serverInputOptions.validateInput = this.validateInputCustomUrl;
-        let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
+        let url: string | undefined = await this.getInput('Server', Validators.validateUrl, { value: defaultServer });
         if (url) {
-            let username: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Username' });
+            let username: string | undefined = await this.getInput('Username', Validators.validateUsername);
             if (username) {
-                let password: string | undefined = await vscode.window.showInputBox({ 'prompt': 'Password', 'password': true });
+                let password: string | undefined = await this.getInput('Password', Validators.validatePasswordLogin, { password: true });
                 if (password) {
-                    this.client.callLogin(username, password, url).catch(error => {
-                        this.client.handleAxiosError(error);
+                    this.client.callLogin(username, password, url).then(() => {
+                        // Maybe do something?
                     });
                 }
             }
         }
     }
 
+    signup () {
+        let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
+        let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
+        serverInputOptions.validateInput = Validators.validateUrl;
+        let url: string;
+        let userCredentials: UserSignup = {
+            username: "",
+            password: "",
+            email: "",
+            name: "",
+            lastName: ""
+        };
+        this.getInput('Server', Validators.validateUrl, { value: defaultServer }).then(userUrl => {
+            if (userUrl) {
+                url = userUrl;
+                return this.getInput('Username', Validators.validateUsername);
+            }
+        }).then(username => {
+            if (username) {
+                userCredentials = Object.assign(userCredentials, { username: username });
+                return this.getInput('Password', Validators.validatePasswordSignup, { password: true });
+            }
+        }).then(password => {
+            if (password) {
+                userCredentials = Object.assign(userCredentials, { password: password });
+                let validator = ((value: string) => {
+                    if (value === password) {
+                        return null;
+                    } else {
+                        return "Passwords don't match";
+                    }
+                });
+                return this.getInput('Confirm password', validator, { password: true });
+            }
+        }).then(confirmPassword => {
+            if (confirmPassword) {
+                return this.getInput('Email', Validators.validateEmail);
+            }
+        }).then(email => {
+            if (email) {
+                userCredentials = Object.assign(userCredentials, { email: email });
+                return this.getInput('Name', Validators.validateName);
+            }
+        }).then(name => {
+            if (name) {
+                let inputOptions: vscode.InputBoxOptions = { 'prompt': 'Last name' };
+                inputOptions.validateInput = Validators.validateLastName;
+                userCredentials = Object.assign(userCredentials, { name: name });
+                return this.getInput('Last name', Validators.validateLastName);
+            }
+        }).then(lastName => {
+            if (lastName) {
+                userCredentials = Object.assign(userCredentials, { lastName: lastName });
+                return this.client.callSignup(userCredentials, url);
+            }
+        }).then(() => {
+            // Maybe do something?
+        });
+    }
+
     logout () {
         this.client.invalidateSession();
         CoursesProvider._onDidChangeTreeData.fire();
-    }
-
-    validateInputCustomUrl (value: string): string | undefined | null | Thenable<string | undefined | null> {
-        // Regular expresion for urls
-        let regexp = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
-        let pattern = new RegExp(regexp);
-        if (pattern.test(value)) {
-            return null;
-        } else {
-            return 'Invalid URL';
-        }
-
     }
 
     private getExercises (item: V4TItem, course: Course) {
@@ -283,7 +348,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async addCourse () {
         try {
-            let courseName = await vscode.window.showInputBox({ prompt: 'Course name' });
+            let courseName = await this.getInput('Course name', Validators.validateCourseName);
             if (courseName) {
                 let addCourseThenable = this.client.addCourse({ name: courseName });
                 vscode.window.setStatusBarMessage('Sending course info...', addCourseThenable);
@@ -303,7 +368,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     async editCourse (item: V4TItem) {
         if (item.item && "exercises" in item.item) {
             try {
-                let newCourseName = await vscode.window.showInputBox({ prompt: 'Course name' });
+                let newCourseName = await this.getInput('Course name', Validators.validateCourseName);
                 if (newCourseName && this.client.userinfo && this.client.userinfo.courses) {
                     let editCourseThenable = this.client.editCourse(item.item.id, { name: newCourseName });
                     vscode.window.setStatusBarMessage('Sending course info...', editCourseThenable);
@@ -359,7 +424,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async addExercise (item: V4TItem) {
         if (item.item && instanceOfCourse(item.item)) {
-            let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
+            let name = await this.getInput('Exercise name', Validators.validateExerciseName);
             if (name) {
                 let fileUris = await vscode.window.showOpenDialog({
                     canSelectFiles: true,
@@ -434,7 +499,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     async editExercise (item: V4TItem) {
         if (item.item && "id" in item.item) {
-            let name = await vscode.window.showInputBox({ prompt: 'Exercise name' });
+            let name = await this.getInput('Exercise name', Validators.validateExerciseName);
             if (name) {
                 let thenable = this.client.editExercise(item.item.id, { name: name });
                 vscode.window.setStatusBarMessage("Sending exercise info...", thenable);
@@ -536,9 +601,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (!this.client.isBaseUrlInitialized()) {
             // Ask for server url
             let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
-            let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
-            serverInputOptions.validateInput = this.validateInputCustomUrl;
-            let url: string | undefined = await vscode.window.showInputBox(serverInputOptions);
+            let url: string | undefined = await this.getInput('Server', Validators.validateUrl, { value: defaultServer });
             if (url) {
                 this.client.setBaseUrl(url);
                 this.getCourseWithCodeAndUrl();
@@ -550,10 +613,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     private getCourseWithCodeAndUrl () {
-        vscode.window.showInputBox({ 'prompt': 'Introduce sharing code' }).then(code => {
+        this.getInput('Introduce sharing code', Validators.validateSharingCode).then(code => {
             if (code) {
                 this.client.getCourseWithCode(code).then(response => {
-                    let course: CourseAddedWithCode = Object.assign(response.data, {uuid: code});
+                    let course: CourseAddedWithCode = Object.assign(response.data, { uuid: code });
                     let userinfo = this.client.userinfo;
                     if (!userinfo) {
                         userinfo = this.client.newUserInfo();

@@ -36,6 +36,18 @@ export class V4TItem extends vscode.TreeItem {
                     dark: path.join(resourcesPath, 'dark', 'link.png')
                 };
             }
+            case V4TItemType.Signup: {
+                return {
+                    light: path.join(resourcesPath, 'light', 'add_user.png'),
+                    dark: path.join(resourcesPath, 'dark', 'add_user.png')
+                };
+            }
+            case V4TItemType.Logout: {
+                return {
+                    light: path.join(resourcesPath, 'light', 'logout.svg'),
+                    dark: path.join(resourcesPath, 'dark', 'logout.svg')
+                };
+            }
         }
     }
 
@@ -54,5 +66,6 @@ export enum V4TItemType {
     ExerciseStudent = "exercisestudent",
     AddCourse = "addcourse",
     NoCourses = "nocourses",
-    NoExercises = "noexercises"
+    NoExercises = "noexercises",
+    Signup = "signup"
 }

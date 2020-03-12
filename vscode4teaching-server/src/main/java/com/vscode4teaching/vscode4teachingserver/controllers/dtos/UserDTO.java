@@ -2,18 +2,21 @@ package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.Length;
 
 public class UserDTO {
-    
+
     @Email(message = "Please provide a valid email")
     @NotEmpty(message = "Please provide an email")
     private String email;
 
     @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
+    @Pattern(regexp = "^(?:(?!template).)+$", message = "Username is not valid")
     private String username;
 
+    @NotEmpty(message = "Please provide a password")
     @Length(min = 8, message = "Your password must have at least 8 characters")
     private String password;
 
@@ -63,5 +66,4 @@ public class UserDTO {
         this.lastName = lastName;
     }
 
-    
 }

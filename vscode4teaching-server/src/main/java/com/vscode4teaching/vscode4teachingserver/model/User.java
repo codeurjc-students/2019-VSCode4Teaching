@@ -44,6 +44,7 @@ public class User {
     private String username;
 
     @NotEmpty(message = "Please provide a password")
+    @Length(min = 8, message = "Your password must have at least 8 characters")
     @JsonIgnore
     private String password;
 
