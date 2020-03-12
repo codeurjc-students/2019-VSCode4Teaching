@@ -230,8 +230,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }).then(name => {
             if (name) {
-                let inputOptions: vscode.InputBoxOptions = { 'prompt': 'Last name' };
-                inputOptions.validateInput = Validators.validateLastName;
                 userCredentials = Object.assign(userCredentials, { name: name });
                 return this.getInput('Last name', Validators.validateLastName);
             }
