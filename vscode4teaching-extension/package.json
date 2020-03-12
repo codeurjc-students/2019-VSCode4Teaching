@@ -279,7 +279,8 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"release": "vsce package --baseContentUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/ --baseImagesUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.10",
