@@ -195,13 +195,17 @@ export function activate (context: vscode.ExtensionContext) {
 		coursesProvider.signup();
 	});
 
+	let signupTeacher = vscode.commands.registerCommand('vscode4teaching.signupteacher', () => {
+		coursesProvider.signup(true);
+	});
+
 	let getWithCode = vscode.commands.registerCommand('vscode4teaching.getwithcode', () => {
 		coursesProvider.getCourseWithCode();
 	});
 
 	context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, getWithCode);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode);
 }
 
 export function deactivate () {

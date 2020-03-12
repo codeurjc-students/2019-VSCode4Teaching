@@ -133,17 +133,26 @@ export class RestClient {
         }
     }
 
-    async callSignup (userCredentials: UserSignup, url?: string) {
+    async callSignup (userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
         try {
-            if (url) {
+            if (url && !isTeacher) {
                 this.invalidateSession();
                 this.baseUrl = url;
+                await this.getCsrfToken();
             }
-            await this.getCsrfToken();
-            let signupThenable = this.signUp(userCredentials);
+            let signupThenable;
+            if (isTeacher) {
+                signupThenable = this.signUpTeacher(userCredentials);
+            } else {
+                signupThenable = this.signUp(userCredentials);
+            }
             vscode.window.setStatusBarMessage('Signing up to VS Code 4 Teaching...', signupThenable);
             await signupThenable;
-            vscode.window.showInformationMessage('Signed up. Please log in.');
+            if (isTeacher) {
+
+            } else {
+                vscode.window.showInformationMessage('Signed up. Please log in.');
+            }
         } catch (error) {
             this.handleAxiosError(error);
         }
@@ -294,6 +303,10 @@ export class RestClient {
 
     public signUp (credentials: UserSignup): AxiosPromise<User> {
         return axios(this.buildOptions("/api/register", "POST", false, credentials));
+    }
+
+    public signUpTeacher (credentials: UserSignup): AxiosPromise<User> {
+        return axios(this.buildOptions("/api/teachers/register", "POST", false, credentials));
     }
 
     private buildOptions (url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {

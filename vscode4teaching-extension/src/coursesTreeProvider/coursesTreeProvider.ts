@@ -38,6 +38,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         'command': 'vscode4teaching.signup',
         'title': 'Sign up in VS Code 4 Teaching'
     });
+    private SIGNUP_TEACHER_ITEM = new V4TItem('Sign up a teacher', V4TItemType.SignupTeacher, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+        'command': 'vscode4teaching.signupteacher',
+        'title': 'Sign up in VS Code 4 Teaching'
+    });
     private LOGOUT_ITEM = new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.logout',
         'title': 'Log out of VS Code 4 Teaching'
@@ -66,6 +70,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         if (fs.existsSync(this.client.sessionPath)) {
                             this.client.initializeSessionCredentials();
                             treeElements = this.getCourseButtons();
+                        } else {
+                            treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                         }
                     } catch (error) {
                         return [this.LOGIN_ITEM, this.SIGNUP_ITEM];
@@ -147,6 +153,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     title: 'Add Course'
                 }));
             }
+            if (ModelUtils.isTeacher(userinfo)) {
+                items.push(this.SIGNUP_TEACHER_ITEM);
+            }
             items.push(this.LOGOUT_ITEM);
             return items;
         }
@@ -184,7 +193,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    signup () {
+    signup (isTeacher?: boolean) {
         let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
         let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
         serverInputOptions.validateInput = Validators.validateUrl;
@@ -235,7 +244,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }).then(lastName => {
             if (lastName) {
                 userCredentials = Object.assign(userCredentials, { lastName: lastName });
-                return this.client.callSignup(userCredentials, url);
+                return this.client.callSignup(userCredentials, url, isTeacher);
             }
         }).then(() => {
             // Maybe do something?

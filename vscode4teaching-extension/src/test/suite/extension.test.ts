@@ -66,6 +66,7 @@ suite('Extension Test Suite', () => {
 						'vscode4teaching.createComment',
 						'vscode4teaching.share',
 						'vscode4teaching.signup',
+						'vscode4teaching.signupteacher',
 						'vscode4teaching.getwithcode'
 					];
 
