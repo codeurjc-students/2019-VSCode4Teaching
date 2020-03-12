@@ -24,7 +24,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private client = RestClient.getClient();
     private loading = false;
     readonly downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
-    readonly internalFilesDir = path.resolve(__dirname, 'v4t');
+    readonly internalFilesDir = path.resolve(__dirname, '..', 'v4t');
     private GET_WITH_CODE_ITEM = new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.getwithcode',
         'title': 'Get course with sharing code'
