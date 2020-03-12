@@ -33,14 +33,6 @@ export function instanceOfCourse (object: any): object is Course {
     return 'id' in object && 'name' in object && 'exercises' in object;
 }
 
-export interface CourseAddedWithCode extends Course {
-    uuid: string;
-}
-
-export function instanceOfCourseAddedWithCode (object: any): object is CourseAddedWithCode {
-    return instanceOfCourse(object) && 'uuid' in object;
-}
-
 export interface CourseEdit {
     name: string;
 }

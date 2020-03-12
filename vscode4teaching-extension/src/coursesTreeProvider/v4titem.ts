@@ -38,8 +38,8 @@ export class V4TItem extends vscode.TreeItem {
             }
             case V4TItemType.Signup: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'add_user.png'),
-                    dark: path.join(resourcesPath, 'dark', 'add_user.png')
+                    light: path.join(resourcesPath, 'light', 'add_user.svg'),
+                    dark: path.join(resourcesPath, 'dark', 'add_user.svg')
                 };
             }
             case V4TItemType.Logout: {

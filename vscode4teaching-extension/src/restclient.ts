@@ -142,7 +142,7 @@ export class RestClient {
             await this.getCsrfToken();
             let signupThenable = this.signUp(userCredentials);
             vscode.window.setStatusBarMessage('Signing up to VS Code 4 Teaching...', signupThenable);
-            let response = await signupThenable;
+            await signupThenable;
             vscode.window.showInformationMessage('Signed up. Please log in.');
         } catch (error) {
             this.handleAxiosError(error);

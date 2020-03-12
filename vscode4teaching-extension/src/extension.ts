@@ -307,7 +307,7 @@ function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, 
 				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 				vscode.window.setStatusBarMessage("Uploading files...", thenable);
 				thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
-					.catch(err => client.handleAxiosError(err));
+					.catch(axiosError => client.handleAxiosError(axiosError));
 			}
 		});
 	}

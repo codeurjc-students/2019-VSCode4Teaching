@@ -21,18 +21,18 @@ suite('Extension Test Suite', () => {
 		RestClient.getClient().invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
-				// console.log(error);
+				console.error(error);
 			});
 		}
 		if (fs.existsSync('openworkspacetest')) {
 			rimraf('openworkspacetest', error => {
-				// console.log(error);
+				console.error(error);
 			});
 		}
 		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
 		if (fs.existsSync(v4tPath)) {
 			rimraf(v4tPath, ((error) => {
-				console.log(error);
+				console.error(error);
 			}));
 		}
 

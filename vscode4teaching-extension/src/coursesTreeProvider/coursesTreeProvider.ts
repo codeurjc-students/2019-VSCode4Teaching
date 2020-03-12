@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { RestClient } from '../restClient';
 import * as path from 'path';
-import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, CourseAddedWithCode, UserSignup } from '../model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, UserSignup } from '../model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
@@ -68,9 +68,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             treeElements = this.getCourseButtons();
                         }
                     } catch (error) {
-                        treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
+                        return [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                     }
-                    treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                 } else {
                     treeElements = this.getCourseButtons();
                 }
@@ -276,7 +275,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    private async getFiles (dir: string, zipDir: string, zipName: string, requestThenable: Thenable<any>, templateDir?: string) {
+    private async getFiles (dir: string, zipDir: string, zipName: string, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
         if (!fs.existsSync(dir)) {
             mkdirp.sync(dir);
         }
@@ -614,7 +613,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         this.getInput('Introduce sharing code', Validators.validateSharingCode).then(code => {
             if (code) {
                 this.client.getCourseWithCode(code).then(response => {
-                    let course: CourseAddedWithCode = Object.assign(response.data, { uuid: code });
+                    let course: Course = response.data;
                     let userinfo = this.client.userinfo;
                     if (!userinfo) {
                         userinfo = this.client.newUserInfo();
