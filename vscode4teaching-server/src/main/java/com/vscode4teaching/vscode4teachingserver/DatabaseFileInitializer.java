@@ -71,8 +71,8 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                         courseOpt = courseRepository.findByNameIgnoreCase(courseName);
                         if (courseOpt.isPresent()) {
                             File dir = Paths.get(rootPath + File.separator + parts[1]).toFile();
-                            File renamedDir = new File(dir.getParent() + File.separator + String.join("_", coursePartsList)
-                                    + "_" + courseOpt.get().getId());
+                            File renamedDir = new File(dir.getParent() + File.separator
+                                    + String.join("_", coursePartsList) + "_" + courseOpt.get().getId());
                             boolean isComplete = dir.renameTo(renamedDir);
                             if (!isComplete) {
                                 logger.error("Couldn't change name of dir: " + dir.getName());
