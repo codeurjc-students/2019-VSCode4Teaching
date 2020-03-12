@@ -4,13 +4,14 @@ import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
 import { V4TItem } from './coursesTreeProvider/v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
-import JSZip = require('jszip');
+import * as JSZip from 'jszip';
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
 import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
 import { RestClient } from './restClient';
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
+import { AxiosResponse } from 'axios';
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
@@ -48,7 +49,7 @@ export function activate (context: vscode.ExtensionContext) {
 						mkdirp.sync(fileInfoPath);
 					}
 					client.getFilesInfo(username, exercise.id).then(
-						filesInfo => {
+						(filesInfo: AxiosResponse<FileInfo[]>) => {
 							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 						}
 					).catch(error => client.handleAxiosError(error));
@@ -186,7 +187,16 @@ export function activate (context: vscode.ExtensionContext) {
 			vscode.window.setStatusBarMessage("Getting sharing code...", codeThenable);
 			codeThenable.then(response => {
 				let code = response.data;
-				vscode.window.showInformationMessage("Sharing code: " + code);
+				vscode.window.showInformationMessage(
+					"Share this code with your students to give them access to this course:\n" + code,
+					"Copy to clipboard"
+				).then(clicked => {
+					if (clicked) {
+						vscode.env.clipboard.writeText(code).then(() => {
+							vscode.window.showInformationMessage("Copied to clipboard");
+						});
+					}
+				});
 			}).catch(error => client.handleAxiosError(error));
 		}
 	});
@@ -195,13 +205,17 @@ export function activate (context: vscode.ExtensionContext) {
 		coursesProvider.signup();
 	});
 
+	let signupTeacher = vscode.commands.registerCommand('vscode4teaching.signupteacher', () => {
+		coursesProvider.signup(true);
+	});
+
 	let getWithCode = vscode.commands.registerCommand('vscode4teaching.getwithcode', () => {
 		coursesProvider.getCourseWithCode();
 	});
 
 	context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, getWithCode);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode);
 }
 
 export function deactivate () {
@@ -307,7 +321,7 @@ function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, 
 				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 				vscode.window.setStatusBarMessage("Uploading files...", thenable);
 				thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
-					.catch(err => client.handleAxiosError(err));
+					.catch(axiosError => client.handleAxiosError(axiosError));
 			}
 		});
 	}

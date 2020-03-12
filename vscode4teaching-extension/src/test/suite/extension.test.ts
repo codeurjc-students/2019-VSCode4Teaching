@@ -7,8 +7,8 @@ import { V4TItem, V4TItemType } from '../../coursesTreeProvider/v4titem';
 import { Course, Exercise, User } from '../../model/serverModel';
 import * as fs from 'fs';
 import * as path from 'path';
-import rimraf = require('rimraf');
-import JSZip = require('jszip');
+import * as rimraf from 'rimraf';
+import * as JSZip from 'JSZip';
 import { UserPick } from '../../coursesTreeProvider/coursesTreeProvider';
 import { RestClient } from '../../restClient';
 import { Validators } from '../../model/validators';
@@ -21,18 +21,18 @@ suite('Extension Test Suite', () => {
 		RestClient.getClient().invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
-				// console.log(error);
+				console.error(error);
 			});
 		}
 		if (fs.existsSync('openworkspacetest')) {
 			rimraf('openworkspacetest', error => {
-				// console.log(error);
+				console.error(error);
 			});
 		}
 		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
 		if (fs.existsSync(v4tPath)) {
 			rimraf(v4tPath, ((error) => {
-				console.log(error);
+				console.error(error);
 			}));
 		}
 
@@ -66,6 +66,7 @@ suite('Extension Test Suite', () => {
 						'vscode4teaching.createComment',
 						'vscode4teaching.share',
 						'vscode4teaching.signup',
+						'vscode4teaching.signupteacher',
 						'vscode4teaching.getwithcode'
 					];
 
@@ -236,6 +237,10 @@ suite('Extension Test Suite', () => {
 			expectedButtons.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
+			}));
+			expectedButtons.push(new V4TItem('Sign up a teacher', V4TItemType.SignupTeacher, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.signupteacher',
+				'title': 'Sign up in VS Code 4 Teaching'
 			}));
 			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 				'command': 'vscode4teaching.logout',

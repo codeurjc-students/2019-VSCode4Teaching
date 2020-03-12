@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { RestClient } from '../restClient';
 import * as path from 'path';
-import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, CourseAddedWithCode, UserSignup } from '../model/serverModel';
+import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse, UserSignup } from '../model/serverModel';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
 import { V4TExerciseFile } from '../model/v4texerciseFile';
 import { FileIgnoreUtil } from '../fileIgnoreUtil';
 import { AxiosPromise } from 'axios';
@@ -24,7 +24,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private client = RestClient.getClient();
     private loading = false;
     readonly downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
-    readonly internalFilesDir = path.resolve(__dirname, 'v4t');
+    readonly internalFilesDir = path.resolve(__dirname, '..', 'v4t');
     private GET_WITH_CODE_ITEM = new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.getwithcode',
         'title': 'Get course with sharing code'
@@ -36,6 +36,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     });
     private SIGNUP_ITEM = new V4TItem('Sign up', V4TItemType.Signup, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.signup',
+        'title': 'Sign up in VS Code 4 Teaching'
+    });
+    private SIGNUP_TEACHER_ITEM = new V4TItem('Sign up a teacher', V4TItemType.SignupTeacher, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+        'command': 'vscode4teaching.signupteacher',
         'title': 'Sign up in VS Code 4 Teaching'
     });
     private LOGOUT_ITEM = new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
@@ -66,11 +70,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         if (fs.existsSync(this.client.sessionPath)) {
                             this.client.initializeSessionCredentials();
                             treeElements = this.getCourseButtons();
+                        } else {
+                            treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                         }
                     } catch (error) {
-                        treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
+                        return [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                     }
-                    treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                 } else {
                     treeElements = this.getCourseButtons();
                 }
@@ -148,6 +153,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     title: 'Add Course'
                 }));
             }
+            if (ModelUtils.isTeacher(userinfo)) {
+                items.push(this.SIGNUP_TEACHER_ITEM);
+            }
             items.push(this.LOGOUT_ITEM);
             return items;
         }
@@ -185,7 +193,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    signup () {
+    signup (isTeacher?: boolean) {
         let defaultServer = vscode.workspace.getConfiguration('vscode4teaching')['defaultServer'];
         let serverInputOptions: vscode.InputBoxOptions = { 'prompt': 'Server', 'value': defaultServer };
         serverInputOptions.validateInput = Validators.validateUrl;
@@ -236,7 +244,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }).then(lastName => {
             if (lastName) {
                 userCredentials = Object.assign(userCredentials, { lastName: lastName });
-                return this.client.callSignup(userCredentials, url);
+                return this.client.callSignup(userCredentials, url, isTeacher);
             }
         }).then(() => {
             // Maybe do something?
@@ -276,7 +284,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    private async getFiles (dir: string, zipDir: string, zipName: string, requestThenable: Thenable<any>, templateDir?: string) {
+    private async getFiles (dir: string, zipDir: string, zipName: string, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
         if (!fs.existsSync(dir)) {
             mkdirp.sync(dir);
         }
@@ -614,7 +622,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         this.getInput('Introduce sharing code', Validators.validateSharingCode).then(code => {
             if (code) {
                 this.client.getCourseWithCode(code).then(response => {
-                    let course: CourseAddedWithCode = Object.assign(response.data, { uuid: code });
+                    let course: Course = response.data;
                     let userinfo = this.client.userinfo;
                     if (!userinfo) {
                         userinfo = this.client.newUserInfo();
