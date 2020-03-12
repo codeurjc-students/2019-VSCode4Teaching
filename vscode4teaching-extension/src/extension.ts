@@ -215,7 +215,7 @@ export function createNewCoursesProvider () {
 	coursesProvider = new CoursesProvider();
 }
 
-export function initializeExtension (cwds: vscode.WorkspaceFolder[]) {
+export function initializeExtension (cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
 	let checkedUris: string[] = [];
 	cwds.forEach((cwd: vscode.WorkspaceFolder) => {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
