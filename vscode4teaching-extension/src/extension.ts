@@ -278,7 +278,7 @@ function setStudentEvents (jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri
 			jszipFile.remove(filePath);
 			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 			vscode.window.setStatusBarMessage("Uploading files...", thenable);
-			thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
+			thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
 				.catch(err => client.handleAxiosError(err));
 		}
 	});
@@ -306,7 +306,7 @@ function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, 
 				jszipFile.file(filePath, data);
 				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 				vscode.window.setStatusBarMessage("Uploading files...", thenable);
-				thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
+				thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
 					.catch(err => client.handleAxiosError(err));
 			}
 		});

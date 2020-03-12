@@ -27,10 +27,7 @@ matrix:
     before_script:
         - cd ./vscode4teaching-extension
     script:
-      - |
-        yarn && yarn compile
-        cd sample
-        yarn && yarn compile && yarn test
+      - npm install && npm test
     cache: yarn
   - language: java
     jdk: oraclejdk8

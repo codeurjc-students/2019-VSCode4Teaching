@@ -2040,7 +2040,7 @@ Get exercise unique code for sharing.
 Get a course and its exercises using the sharing code
 
 - **Required role**:
-  None
+  Student or Teacher
 - **URL**
   `/api/courses/code/:code`
 - **Method**
