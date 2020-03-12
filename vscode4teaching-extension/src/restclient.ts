@@ -149,7 +149,7 @@ export class RestClient {
             vscode.window.setStatusBarMessage('Signing up to VS Code 4 Teaching...', signupThenable);
             await signupThenable;
             if (isTeacher) {
-
+                vscode.window.showInformationMessage('Teacher signed up successfully.');
             } else {
                 vscode.window.showInformationMessage('Signed up. Please log in.');
             }

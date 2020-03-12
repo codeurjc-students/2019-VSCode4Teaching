@@ -186,7 +186,16 @@ export function activate (context: vscode.ExtensionContext) {
 			vscode.window.setStatusBarMessage("Getting sharing code...", codeThenable);
 			codeThenable.then(response => {
 				let code = response.data;
-				vscode.window.showInformationMessage("Sharing code: " + code);
+				vscode.window.showInformationMessage(
+					"Share this code with your students to give them access to this course:\n" + code,
+					"Copy to clipboard"
+				).then(clicked => {
+					if (clicked) {
+						vscode.env.clipboard.writeText(code).then(() => {
+							vscode.window.showInformationMessage("Copied to clipboard");
+						});
+					}
+				});
 			}).catch(error => client.handleAxiosError(error));
 		}
 	});
