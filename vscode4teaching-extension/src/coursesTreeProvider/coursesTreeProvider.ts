@@ -5,7 +5,7 @@ import { User, Course, Exercise, ModelUtils, ManageCourseUsers, instanceOfCourse
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import { V4TItem, V4TItemType } from './v4titem';
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
 import { V4TExerciseFile } from '../model/v4texerciseFile';
 import { FileIgnoreUtil } from '../fileIgnoreUtil';
 import { AxiosPromise } from 'axios';

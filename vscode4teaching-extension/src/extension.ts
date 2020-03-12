@@ -4,13 +4,14 @@ import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
 import { V4TItem } from './coursesTreeProvider/v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
-import JSZip = require('jszip');
+import * as JSZip from 'jszip';
 import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
 import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
 import { RestClient } from './restClient';
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
+import { AxiosResponse } from 'axios';
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
@@ -48,7 +49,7 @@ export function activate (context: vscode.ExtensionContext) {
 						mkdirp.sync(fileInfoPath);
 					}
 					client.getFilesInfo(username, exercise.id).then(
-						filesInfo => {
+						(filesInfo: AxiosResponse<FileInfo[]>) => {
 							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 						}
 					).catch(error => client.handleAxiosError(error));

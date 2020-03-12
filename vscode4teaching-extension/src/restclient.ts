@@ -1,12 +1,12 @@
 import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import { User, Exercise, FileInfo, Course, ExerciseEdit, CourseEdit, ManageCourseUsers, instanceOfCourse, UserSignup } from './model/serverModel';
-import FormData = require('form-data');
+import * as FormData from 'form-data';
 import { ServerCommentThread } from './model/commentServerModel';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
 
 export class RestClient {
 
@@ -164,7 +164,7 @@ export class RestClient {
         // Errors have to be controlled in the caller function
         let userResponse = await coursesThenable;
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
-            userResponse.data.courses.forEach(course => {
+            userResponse.data.courses.forEach((course: Course) => {
                 if (!course.exercises) {
                     course.exercises = [];
                 }
