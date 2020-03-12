@@ -41,34 +41,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-        .authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator")
-                .permitAll()
-            .antMatchers(HttpMethod.POST, "/api/login", "/api/register")
-                .permitAll()
-            .antMatchers(HttpMethod.POST, "/api/teachers/register", "/api/exercises/*/teachers/**")
+        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator")
+                .permitAll().antMatchers(HttpMethod.POST, "/api/login", "/api/register").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/teachers/register", "/api/exercises/*/teachers/**")
                 .hasAnyRole("TEACHER")
-            .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users")
+                .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users")
                 .hasAnyRole("TEACHER")
-            .antMatchers(HttpMethod.PUT, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
+                .antMatchers(HttpMethod.PUT, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole("TEACHER")
-            .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
-                .hasAnyRole("TEACHER")
-            .antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
-                .hasAnyRole("TEACHER")
-            .anyRequest()
-                .hasAnyRole("STUDENT")
-        .and()
-        .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        .and()
-        .exceptionHandling()
-            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        .and()
-        .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        
+                .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
+                .hasAnyRole("TEACHER").antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
+                .hasAnyRole("TEACHER").anyRequest().hasAnyRole("STUDENT").and().csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 

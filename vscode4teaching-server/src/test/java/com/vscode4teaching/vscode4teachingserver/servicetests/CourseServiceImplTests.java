@@ -373,7 +373,7 @@ public class CourseServiceImplTests {
         when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
 
-        long[] ids = {1l, 5l};
+        long[] ids = { 1l, 5l };
         Course savedCourse = courseServiceImpl.addUsersToCourse(5l, ids, "johndoe");
 
         assertThat(course.getUsersInCourse()).contains(newUser1);
@@ -448,7 +448,7 @@ public class CourseServiceImplTests {
         when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
 
-        long[] ids = {1l, 5l};
+        long[] ids = { 1l, 5l };
         Course savedCourse = courseServiceImpl.removeUsersFromCourse(5l, ids, "johndoe");
 
         assertThat(course.getUsersInCourse()).doesNotContain(newUser1);
@@ -482,5 +482,62 @@ public class CourseServiceImplTests {
         assertThat(course.getCreator()).isEqualTo(user);
 
         logger.info("Test getCreator() ends.");
+    }
+
+    @Test
+    public void getCourseCode_valid()
+            throws CourseNotFoundException, NotInCourseException, NotCreatorException, UserNotFoundException {
+        Course course = new Course("Spring Boot Course");
+        String courseCode = course.getUuid();
+        Long courseTestId = 1l;
+        course.setId(1l);
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        course.setCreator(teacher);
+        Optional<Course> courseOpt = Optional.of(course);
+
+        when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
+
+        String courseCodeByService = courseServiceImpl.getCourseCode(courseTestId, "johndoe");
+
+        verify(courseRepository, times(1)).findById(courseTestId);
+        assertThat(courseCodeByService).isEqualTo(courseCode);
+
+    }
+
+    @Test
+    public void getExerciseCode_valid()
+            throws CourseNotFoundException, NotInCourseException, ExerciseNotFoundException, UserNotFoundException {
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        teacherRole.setId(3l);
+        Course course = new Course("Spring Boot Course");
+        course.setId(1l);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        teacher.addCourse(course);
+        course.addUserInCourse(teacher);
+        Exercise exercise = new Exercise();
+        String exCode = exercise.getUuid();
+        exercise.setName("Spring Boot Exercise 1");
+        exercise.setId(6l);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        Optional<Exercise> exerciseOpt = Optional.of(exercise);
+        when(exerciseRepository.findById(6l)).thenReturn(exerciseOpt);
+
+        String exCodeByService = courseServiceImpl.getExerciseCode(6l, "johndoe");
+
+        assertThat(exCodeByService).isEqualTo(exCode);
+        verify(exerciseRepository, times(1)).findById(6l);
     }
 }

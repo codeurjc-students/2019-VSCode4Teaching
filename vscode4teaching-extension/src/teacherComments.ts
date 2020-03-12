@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ServerComment, ServerCommentThread } from './model/commentServerModel';
-import { RestClient } from './restclient';
+import { RestClient } from './restClient';
 
 let commentId = 1;
 

@@ -376,4 +376,26 @@ public class CourseControllerTests {
 
         logger.info("Test removeUsersFromCourse_valid() ends.");
     }
+
+    @Test
+    public void getCode_valid() throws Exception {
+        Course c0 = new Course("Spring Boot Course");
+        c0.setId(1l);
+        String code = c0.getUuid();
+        User user = new User("johndoe@john.com", "johndoejr", "password", "John", "Doe");
+        user.addCourse(c0);
+        user.setId(4l);
+
+        when(courseService.getCourseCode(1l, "johndoe")).thenReturn(code);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/courses/1/code").contentType("application/json").with(csrf()).header("Authorization",
+                        "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getCourseCode(1l, "johndoe");
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = code;
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
 }

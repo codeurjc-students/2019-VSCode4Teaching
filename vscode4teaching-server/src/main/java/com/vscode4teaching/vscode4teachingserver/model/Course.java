@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -34,6 +35,9 @@ public class Course {
     @NotEmpty(message = "Name cannot be null")
     @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters")
     private String name;
+
+    @JsonView(CourseViews.CodeView.class)
+    private String uuid = UUID.randomUUID().toString();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonView(CourseViews.ExercisesView.class)
@@ -118,9 +122,9 @@ public class Course {
         return updateDateTime;
     }
 
-	public void removeUserFromCourse(User user) {
+    public void removeUserFromCourse(User user) {
         this.usersInCourse.remove(user);
-	}
+    }
 
     public User getCreator() {
         return this.creator;
@@ -128,5 +132,9 @@ public class Course {
 
     public void setCreator(User creator) {
         this.creator = creator;
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 }

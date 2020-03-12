@@ -15,4 +15,7 @@ public class CourseViews {
 
     public static interface CreatorView extends GeneralView {
     }
+
+	public interface CodeView extends GeneralView {
+	}
 }

@@ -3,20 +3,22 @@ import { afterEach, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import * as extension from '../../extension';
 import * as simple from 'simple-mock';
-import { V4TItem, V4TItemType } from '../../v4titem';
+import { V4TItem, V4TItemType } from '../../coursesTreeProvider/v4titem';
 import { Course, Exercise, User } from '../../model/serverModel';
 import * as fs from 'fs';
 import * as path from 'path';
 import rimraf = require('rimraf');
 import JSZip = require('jszip');
-import { UserPick } from '../../courses';
-import { RestClient } from '../../restclient';
+import { UserPick } from '../../coursesTreeProvider/coursesTreeProvider';
+import { RestClient } from '../../restClient';
+import { Validators } from '../../model/validators';
 
 suite('Extension Test Suite', () => {
 
 	afterEach(() => {
 		simple.restore();
 		extension.createNewCoursesProvider();
+		RestClient.getClient().invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
 				// console.log(error);
@@ -29,9 +31,9 @@ suite('Extension Test Suite', () => {
 		}
 		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
 		if (fs.existsSync(v4tPath)) {
-			rimraf(v4tPath, error => {
-				// console.log(error);
-			});
+			rimraf(v4tPath, ((error) => {
+				console.log(error);
+			}));
 		}
 
 	});
@@ -46,9 +48,10 @@ suite('Extension Test Suite', () => {
 			return extensionActivator.activate().then(() => {
 				return vscode.commands.getCommands(true).then((commands) => {
 					const V4T_COMMANDS = [
-						"vscode4teaching.addcourse",
 						"vscode4teaching.login",
+						'vscode4teaching.logout',
 						"vscode4teaching.getexercisefiles",
+						'vscode4teaching.addcourse',
 						"vscode4teaching.editcourse",
 						"vscode4teaching.deletecourse",
 						"vscode4teaching.refreshcourses",
@@ -59,7 +62,11 @@ suite('Extension Test Suite', () => {
 						"vscode4teaching.adduserstocourse",
 						"vscode4teaching.removeusersfromcourse",
 						"vscode4teaching.getstudentfiles",
-						"vscode4teaching.diff"
+						"vscode4teaching.diff",
+						'vscode4teaching.createComment',
+						'vscode4teaching.share',
+						'vscode4teaching.signup',
+						'vscode4teaching.getwithcode'
 					];
 
 					const foundCommands = commands.filter((value) => {
@@ -90,11 +97,17 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].returned, Promise.resolve("http://test.com"), "server input box should return test url");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].returned, Promise.resolve("johndoe"), "username input box should return test username");
 		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].returned, Promise.resolve("password"), "password input box should return test password");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, { "prompt": "Server", "validateInput": extension.coursesProvider.validateInputCustomUrl, "value": "http://localhost:8080" },
+		let serverInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Server", "validateInput": Validators.validateUrl, "value": "http://localhost:8080" };
+		serverInputBoxOptions.validateInput = Validators.validateUrl;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[0].arg, serverInputBoxOptions,
 			"config for the server input box should have correct prompt, be validated and default value localhost:8080");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, { "prompt": "Username" },
+		let usernameInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Username" };
+		usernameInputBoxOptions.validateInput = Validators.validateUsername;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[1].arg, usernameInputBoxOptions,
 			"config for the username input box should have correct prompt");
-		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, { "prompt": "Password", "password": true },
+		let passwordInputBoxOptions: vscode.InputBoxOptions = { "prompt": "Password", "password": true };
+		passwordInputBoxOptions.validateInput = Validators.validatePasswordLogin;
+		assert.deepStrictEqual(mockVSCodeInputBox.calls[2].arg, passwordInputBoxOptions,
 			"config for the password input box should have correct prompt and hide the input");
 		assert.deepStrictEqual(mockCsrf.callCount, 1, "csrf should be set");
 		assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
@@ -103,26 +116,26 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('validate URL', () => {
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://localhost:8080"), null, "http://localhost:8080");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://localhost:3000"), null, "http://localhost:3000");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://192.168.99.100:8080"), null, "http://192.168.99.100:8080");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://1.2.4.3"), null, "http://1.2.4.3");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com:4567"), null, "http://test.com:4567");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://api.test.com"), null, "http://api.test.com");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com/api"), null, "http://test.com/api");
-		assert.deepStrictEqual(extension.coursesProvider.validateInputCustomUrl("http://test.com/api:8080"), null, "http://test.com/api:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://localhost:8080"), undefined, "http://localhost:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://localhost:3000"), undefined, "http://localhost:3000");
+		assert.deepStrictEqual(Validators.validateUrl("http://192.168.99.100:8080"), undefined, "http://192.168.99.100:8080");
+		assert.deepStrictEqual(Validators.validateUrl("http://1.2.4.3"), undefined, "http://1.2.4.3");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com:4567"), undefined, "http://test.com:4567");
+		assert.deepStrictEqual(Validators.validateUrl("http://api.test.com"), undefined, "http://api.test.com");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com/api"), undefined, "http://test.com/api");
+		assert.deepStrictEqual(Validators.validateUrl("http://test.com/api:8080"), undefined, "http://test.com/api:8080");
+		assert.deepStrictEqual(Validators.validateUrl("asdasdasd"), "Invalid URL", "invalid url should fail");
 	});
 
 	test('get login button (get children, not logged in)', () => {
-		let expectedButton = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+		let expectedButtonLogin = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
 			"command": "vscode4teaching.login",
 			"title": "Log in to VS Code 4 Teaching"
 		});
 
-
-		let loginButton = extension.coursesProvider.getChildren();
-		if (loginButton instanceof Array) {
-			assert.deepStrictEqual(loginButton[0], expectedButton);
+		let loginButtons = extension.coursesProvider.getChildren();
+		if (loginButtons instanceof Array) {
+			assert.deepStrictEqual(loginButtons[0], expectedButtonLogin);
 		} else {
 			assert.fail("loginButton is not an array");
 		}
@@ -161,7 +174,15 @@ suite('Extension Test Suite', () => {
 		user.courses = courses;
 		if (user.courses) {
 			let expectedButtons = user.courses.map(course => new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
-			extension.coursesProvider.userinfo = user;
+			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.logout',
+				'title': 'Log out of VS Code 4 Teaching'
+			}));
+			expectedButtons.unshift(new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.getwithcode',
+				'title': 'Get course with sharing code'
+			}));
+			client.userinfo = user;
 			client.jwtToken = "mockToken";
 
 			let courseButtons = extension.coursesProvider.getChildren();
@@ -216,7 +237,11 @@ suite('Extension Test Suite', () => {
 				command: "vscode4teaching.addcourse",
 				title: "Add Course"
 			}));
-			extension.coursesProvider.userinfo = user;
+			expectedButtons.push(new V4TItem('Logout', V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+				'command': 'vscode4teaching.logout',
+				'title': 'Log out of VS Code 4 Teaching'
+			}));
+			client.userinfo = user;
 			client.jwtToken = "mockToken";
 
 			let courseButtons = extension.coursesProvider.getChildren();
@@ -249,7 +274,8 @@ suite('Extension Test Suite', () => {
 		};
 		user.courses = [course];
 		let courseItem = new V4TItem(course.name, V4TItemType.CourseStudent, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
-		extension.coursesProvider.userinfo = user;
+		let client = RestClient.getClient();
+		client.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
 			name: "Exercise 1"
@@ -267,7 +293,6 @@ suite('Extension Test Suite', () => {
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
 		}));
-		let client = RestClient.getClient();
 		let getExercisesMock = simple.mock(client, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
 
@@ -301,7 +326,8 @@ suite('Extension Test Suite', () => {
 		};
 		user.courses = [course];
 		let courseItem = new V4TItem(course.name, V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
-		extension.coursesProvider.userinfo = user;
+		let client = RestClient.getClient();
+		client.userinfo = user;
 		let exercises: Exercise[] = [{
 			id: 4,
 			name: "Exercise 1"
@@ -319,7 +345,6 @@ suite('Extension Test Suite', () => {
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
 		}));
-		let client = RestClient.getClient();
 		let getExercisesMock = simple.mock(client, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
 
@@ -343,7 +368,7 @@ suite('Extension Test Suite', () => {
 		getExercisesMock.resolveWith({
 			data: fs.readFileSync(filePath)
 		});
-		extension.coursesProvider.userinfo = user;
+		client.userinfo = user;
 		let newWorkspaceURI = await extension.coursesProvider.getExerciseFiles("Spring Boot Course", { id: 4, name: "Exercise 1" });
 		await new Promise(resolve => setTimeout(resolve, 200)); // Wait for exercises to "download"
 		let ex1Path = path.resolve('v4tdownloads', 'johndoe', 'Spring Boot Course', 'Exercise 1');
@@ -362,7 +387,7 @@ suite('Extension Test Suite', () => {
 		existsMock.returnWith(true);
 		let fileMock = simple.mock(fs, "readFileSync");
 		fileMock.returnWith(new MockFile("mockToken\nmockXsrf\nmockUrl"));
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({
 			id: 1,
 			name: "johndoe"
@@ -374,10 +399,14 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(client.baseUrl, "mockUrl");
 	});
 
-	test('refresh should call getUserInfo', () => {
+	test('refresh should call getServerUserInfo', () => {
 		let client = RestClient.getClient();
-		client.jwtToken = "mockToken";
-		let userInfoMock = simple.mock(extension.coursesProvider, "getUserInfo");
+		client.userinfo = {
+			id: 1,
+			username: "mockUser",
+			roles: []
+		};
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
 	});
@@ -408,11 +437,11 @@ suite('Extension Test Suite', () => {
 		let client = RestClient.getClient();
 		let addCourseClientMock = simple.mock(client, "addCourse");
 		addCourseClientMock.resolveWith(course);
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith(user);
 		await extension.coursesProvider.addCourse();
-		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
-			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [course]);
+		if (client.userinfo && client.userinfo.courses) {
+			assert.deepStrictEqual(client.userinfo.courses, [course]);
 		}
 	});
 
@@ -443,7 +472,7 @@ suite('Extension Test Suite', () => {
 		let deleteCourseClientMock = simple.mock(client, "deleteCourse");
 		deleteCourseClientMock.resolveWith(course);
 		user.courses = [course];
-		extension.coursesProvider.userinfo = user;
+		client.userinfo = user;
 		let newUser: User = {
 			id: 456,
 			username: "johndoe",
@@ -457,12 +486,12 @@ suite('Extension Test Suite', () => {
 			],
 			courses: []
 		};
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		await extension.coursesProvider.deleteCourse(item);
-		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
-			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, []);
+		if (client.userinfo && client.userinfo.courses) {
+			assert.deepStrictEqual(client.userinfo.courses, []);
 		}
 	});
 
@@ -522,13 +551,13 @@ suite('Extension Test Suite', () => {
 		editCourseClientMock.resolveWith(newCourse);
 		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
 		vscodeInputMock.resolveWith("Test course");
-		let userInfoMock = simple.mock(client, "getUserInfo");
+		let userInfoMock = simple.mock(client, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
-		extension.coursesProvider.userinfo = user;
+		client.userinfo = user;
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		await extension.coursesProvider.editCourse(item);
-		if (extension.coursesProvider.userinfo && extension.coursesProvider.userinfo.courses) {
-			assert.deepStrictEqual(extension.coursesProvider.userinfo.courses, [newCourse]);
+		if (client.userinfo && client.userinfo.courses) {
+			assert.deepStrictEqual(client.userinfo.courses, [newCourse]);
 		}
 	});
 
@@ -781,7 +810,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "addUsersToCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "addUsersToCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3] });
 	});
 
 	test('remove users from course', async () => {
@@ -877,7 +906,7 @@ suite('Extension Test Suite', () => {
 		assert.deepStrictEqual(quickpickMock.lastCall.args[0], selectableUsersPicks, "showQuickPick should show selectable users");
 		assert.deepStrictEqual(addUsersMock.callCount, 1, "removeUsersFromCourse should be called");
 		assert.deepStrictEqual(addUsersMock.lastCall.args[0], 10, "removeUsersFromCourse should be called");
-		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3]});
+		assert.deepStrictEqual(addUsersMock.lastCall.args[1], { ids: [1, 3] });
 	});
 });
 
@@ -887,7 +916,7 @@ class MockFile {
 		this.text = text;
 	}
 
-	toString() {
+	toString () {
 		return this.text;
 	}
 }

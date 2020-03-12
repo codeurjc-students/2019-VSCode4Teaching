@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByNameIgnoreCase(String name);
+
+    Optional<Course> findByUuid(String uuid);
 }

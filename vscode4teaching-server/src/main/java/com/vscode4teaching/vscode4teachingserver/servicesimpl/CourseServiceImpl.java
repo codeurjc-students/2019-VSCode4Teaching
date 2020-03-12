@@ -99,6 +99,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Course getCourseWithSharingCode(String uuid, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        Course course = this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
+        course.addUserInCourse(userRepo.findByUsername(requestUsername)
+                .orElseThrow(() -> new UserNotFoundException("User not found:" + requestUsername)));
+        Course savedCourse = courseRepo.save(course);
+        return savedCourse;
+    }
+
+    @Override
     public Exercise editExercise(Long exerciseId, Exercise exerciseData, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
@@ -163,6 +173,23 @@ public class CourseServiceImpl implements CourseService {
         }
         Course savedCourse = this.courseRepo.save(course);
         return savedCourse;
+    }
+
+    @Override
+    public String getCourseCode(Long courseId, String requestUsername)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
+        return course.getUuid();
+    }
+
+    @Override
+    public String getExerciseCode(Long exerciseId, String requestUsername)
+            throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
+        Exercise exercise = this.exerciseRepo.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
+        return exercise.getUuid();
     }
 
 }

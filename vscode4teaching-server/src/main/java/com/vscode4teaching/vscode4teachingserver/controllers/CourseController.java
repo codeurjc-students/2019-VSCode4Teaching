@@ -78,6 +78,14 @@ public class CourseController {
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
+    @GetMapping("/courses/code/{courseCode}")
+    @JsonView(CourseViews.ExercisesView.class)
+    public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        return ResponseEntity
+                .ok(courseService.getCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
     @PutMapping("/courses/{id}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
@@ -123,5 +131,11 @@ public class CourseController {
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException {
         return ResponseEntity.ok(courseService.removeUsersFromCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
+    @GetMapping("/courses/{courseId}/code")
+    public ResponseEntity<String> getCode(@PathVariable Long courseId, HttpServletRequest request)
+            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+        return ResponseEntity.ok(courseService.getCourseCode(courseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
 }

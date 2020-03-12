@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -47,6 +48,9 @@ public class Exercise {
     @OneToMany(cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
+
+    @JsonView(ExerciseViews.CodeView.class)
+    private String uuid = UUID.randomUUID().toString();
 
     @CreationTimestamp
     @JsonView(ExerciseViews.GeneralView.class)
@@ -143,8 +147,7 @@ public class Exercise {
     }
 
     public List<ExerciseFile> getFilesByOwner(Long userId) {
-        return userFiles.stream()
-                .filter(file -> file.getOwner() != null && file.getOwner().getId().equals(userId))
+        return userFiles.stream().filter(file -> file.getOwner() != null && file.getOwner().getId().equals(userId))
                 .collect(Collectors.toList());
     }
 
@@ -153,5 +156,9 @@ public class Exercise {
                 .filter(file -> file.getOwner() != null && file.getOwner().getRoles().size() == 1 && file.getOwner()
                         .getRoles().stream().filter(role -> role.getRoleName().equals("ROLE_STUDENT")).count() == 1)
                 .collect(Collectors.toList());
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 }

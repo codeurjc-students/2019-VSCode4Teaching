@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { CoursesProvider } from './courses';
+import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
 import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
-import { V4TItem } from './v4titem';
+import { V4TItem } from './coursesTreeProvider/v4titem';
 import * as path from 'path';
 import * as fs from 'fs';
 import JSZip = require('jszip');
@@ -9,32 +9,31 @@ import { V4TExerciseFile } from './model/v4texerciseFile';
 import { FileIgnoreUtil } from './fileIgnoreUtil';
 import { TeacherCommentProvider, NoteComment } from './teacherComments';
 import { Dictionary } from './model/dictionary';
-import { RestClient } from './restclient';
+import { RestClient } from './restClient';
 import mkdirp = require('mkdirp');
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentProvider | undefined;
-export function activate(context: vscode.ExtensionContext) {
+const client = RestClient.getClient();
+export function activate (context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
-	let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
-	if (fs.existsSync(sessionPath)) {
-		let readSession = fs.readFileSync(sessionPath).toString();
-		let sessionParts = readSession.split('\n');
-		let client = RestClient.getClient();
-		client.jwtToken = sessionParts[0];
-		client.xsrfToken = sessionParts[1];
-		client.baseUrl = sessionParts[2];
-		coursesProvider.getUserInfo().catch((error) => coursesProvider.handleAxiosError(error));
+	if (fs.existsSync(client.sessionPath)) {
+		client.initializeSessionCredentials();
+		client.getUserInfo().catch((error) => client.handleAxiosError(error));
 	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
 	if (cwds) {
-		enableFSWIfExercise(cwds);
+		initializeExtension(cwds);
 	}
 
 	let loginDisposable = vscode.commands.registerCommand('vscode4teaching.login', () => {
 		coursesProvider.login();
+	});
+
+	let logoutDisposable = vscode.commands.registerCommand('vscode4teaching.logout', () => {
+		coursesProvider.logout();
 	});
 
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
@@ -42,9 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
 			if (newWorkspaceURI) {
 				let uri = vscode.Uri.file(newWorkspaceURI);
 				// Get file info for id references
-				let client = RestClient.getClient();
-				if (coursesProvider && coursesProvider.userinfo) {
-					let username = coursesProvider.userinfo.username;
+				if (coursesProvider && client.userinfo) {
+					let username = client.userinfo.username;
 					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, username, ".fileInfo", exercise.name);
 					if (!fs.existsSync(fileInfoPath)) {
 						mkdirp.sync(fileInfoPath);
@@ -53,14 +51,14 @@ export function activate(context: vscode.ExtensionContext) {
 						filesInfo => {
 							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 						}
-					).catch(error => coursesProvider.handleAxiosError(error));
+					).catch(error => client.handleAxiosError(error));
 				}
 				vscode.workspace.updateWorkspaceFolders(0,
 					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
 					{ uri: uri, name: exercise.name });
 				cwds = vscode.workspace.workspaceFolders;
 				if (cwds) {
-					enableFSWIfExercise(cwds);
+					initializeExtension(cwds);
 				}
 			}
 		});
@@ -113,19 +111,18 @@ export function activate(context: vscode.ExtensionContext) {
 				let directories = fs.readdirSync(newWorkspaceURI[1], { withFileTypes: true })
 					.filter(dirent => dirent.isDirectory());
 				// Get file info for id references
-				if (coursesProvider && coursesProvider.userinfo) {
-					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exercise.name);
+				if (coursesProvider && client.userinfo) {
+					let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, client.userinfo.username, ".fileInfo", exercise.name);
 					if (!fs.existsSync(fileInfoPath)) {
 						mkdirp.sync(fileInfoPath);
 					}
 					let directoriesWithoutTemplate = directories.filter(dirent => !dirent.name.includes("template"));
-					let client = RestClient.getClient();
 					directoriesWithoutTemplate.forEach(dirent => {
 						client.getFilesInfo(dirent.name, exercise.id).then(
 							filesInfo => {
 								fs.writeFileSync(path.resolve(fileInfoPath, dirent.name + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 							}
-						).catch(error => coursesProvider.handleAxiosError(error));
+						).catch(error => client.handleAxiosError(error));
 					});
 				}
 				let subdirectoriesURIs = directories.map(dirent => {
@@ -139,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
 					...subdirectoriesURIs);
 				cwds = vscode.workspace.workspaceFolders;
 				if (cwds) {
-					enableFSWIfExercise(cwds);
+					initializeExtension(cwds);
 				}
 			}
 		});
@@ -160,46 +157,65 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
-		if (commentProvider && coursesProvider && coursesProvider.userinfo) {
+		if (commentProvider && coursesProvider && client.userinfo) {
 			let filePath = reply.thread.uri.fsPath;
 			let separator = path.sep;
-			let currentUsername = coursesProvider.userinfo.username;
+			let currentUsername = client.userinfo.username;
 			let teacherRelativePath = filePath.split(separator + currentUsername + separator)[1];
 			let teacherRelativePathSplit = teacherRelativePath.split(separator);
 			let exerciseName = teacherRelativePathSplit[1];
 			// If teacher use username from student, else use own
-			let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
+			let currentUserIsTeacher = ModelUtils.isTeacher(client.userinfo);
 			let username = currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
 
-			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, coursesProvider.userinfo.username, ".fileInfo", exerciseName, username + ".json");
+			let fileInfoPath = path.resolve(coursesProvider.internalFilesDir, client.userinfo.username, ".fileInfo", exerciseName, username + ".json");
 			let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
 			let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
 			let fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
 			if (fileInfo) {
-				commentProvider.replyNote(reply, fileInfo.id, coursesProvider.handleAxiosError);
+				commentProvider.replyNote(reply, fileInfo.id, client.handleAxiosError);
 			} else {
 				vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
 			}
 		}
 	});
 
-	context.subscriptions.push(loginDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
+	let share = vscode.commands.registerCommand('vscode4teaching.share', (item: V4TItem) => {
+		if (item.item) {
+			let codeThenable = client.getSharingCode(item.item);
+			vscode.window.setStatusBarMessage("Getting sharing code...", codeThenable);
+			codeThenable.then(response => {
+				let code = response.data;
+				vscode.window.showInformationMessage("Sharing code: " + code);
+			}).catch(error => client.handleAxiosError(error));
+		}
+	});
+
+	let signup = vscode.commands.registerCommand('vscode4teaching.signup', () => {
+		coursesProvider.signup();
+	});
+
+	let getWithCode = vscode.commands.registerCommand('vscode4teaching.getwithcode', () => {
+		coursesProvider.getCourseWithCode();
+	});
+
+	context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
 		deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-		removeUsersFromCourse, getStudentFiles, diff, createComment);
+		removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, getWithCode);
 }
 
-export function deactivate() {
+export function deactivate () {
 	if (commentProvider) {
 		commentProvider.dispose();
 	}
 }
 
 // Meant to be used for tests
-export function createNewCoursesProvider() {
+export function createNewCoursesProvider () {
 	coursesProvider = new CoursesProvider();
 }
 
-export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
+export function initializeExtension (cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
 	let checkedUris: string[] = [];
 	cwds.forEach((cwd: vscode.WorkspaceFolder) => {
 		// Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -214,17 +230,17 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					// Exercise id is in the name of the zip file
 					let zipSplit = zipUri.split(path.sep);
 					let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-					if (!commentProvider && coursesProvider.userinfo) {
-						commentProvider = new TeacherCommentProvider(coursesProvider.userinfo.username);
+					if (!commentProvider && client.userinfo) {
+						commentProvider = new TeacherCommentProvider(client.userinfo.username);
 					}
-					if (commentProvider && coursesProvider.userinfo) {
+					if (commentProvider && client.userinfo) {
 						commentProvider.addCwd(cwd);
 						// Download comments
 						if (cwd.name !== "template") {
-							let currentUserIsTeacher = ModelUtils.isTeacher(coursesProvider.userinfo);
-							let username: string = currentUserIsTeacher ? cwd.name : coursesProvider.userinfo.username;
-							commentProvider.getThreads(exerciseId, username, cwd, coursesProvider.handleAxiosError);
-							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, coursesProvider.handleAxiosError);
+							let currentUserIsTeacher = ModelUtils.isTeacher(client.userinfo);
+							let username: string = currentUserIsTeacher ? cwd.name : client.userinfo.username;
+							commentProvider.getThreads(exerciseId, username, cwd, client.handleAxiosError);
+							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, client.handleAxiosError);
 						}
 					}
 					// Set template location if exists
@@ -234,39 +250,7 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 					}
 					let jszipFile = new JSZip();
 					if (!v4tjson.teacher && fs.existsSync(zipUri)) {
-						let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
-						jszipFile.loadAsync(fs.readFileSync(zipUri));
-						let pattern = new vscode.RelativePattern(cwd, "**/*");
-						let fsw = vscode.workspace.createFileSystemWatcher(pattern);
-						fsw.onDidChange((e: vscode.Uri) => {
-							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
-						});
-						fsw.onDidCreate((e: vscode.Uri) => {
-							updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
-						});
-						fsw.onDidDelete((e: vscode.Uri) => {
-							if (!ignoredFiles.includes(e.fsPath)) {
-								let filePath = path.resolve(e.fsPath);
-								filePath = path.relative(cwd.uri.fsPath, filePath);
-								jszipFile.remove(filePath);
-								let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-								vscode.window.setStatusBarMessage("Uploading files...", thenable);
-								thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
-									.catch(err => coursesProvider.handleAxiosError(err));
-							}
-						});
-
-						vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
-							if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
-								vscode.window.showWarningMessage(
-									"If you write over a line with comments, the comments could be deleted next time you open VS Code."
-								);
-							}
-						});
-
-						vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
-							checkCommentLineChanges(e);
-						});
+						setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
 					}
 				}
 			});
@@ -275,7 +259,44 @@ export function enableFSWIfExercise(cwds: vscode.WorkspaceFolder[]) {
 
 }
 
-function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
+// Set File System Watcher and comment events
+function setStudentEvents (jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri: string, exerciseId: number) {
+	let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
+	jszipFile.loadAsync(fs.readFileSync(zipUri));
+	let pattern = new vscode.RelativePattern(cwd, "**/*");
+	let fsw = vscode.workspace.createFileSystemWatcher(pattern);
+	fsw.onDidChange((e: vscode.Uri) => {
+		updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+	});
+	fsw.onDidCreate((e: vscode.Uri) => {
+		updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+	});
+	fsw.onDidDelete((e: vscode.Uri) => {
+		if (!ignoredFiles.includes(e.fsPath)) {
+			let filePath = path.resolve(e.fsPath);
+			filePath = path.relative(cwd.uri.fsPath, filePath);
+			jszipFile.remove(filePath);
+			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+			vscode.window.setStatusBarMessage("Uploading files...", thenable);
+			thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
+				.catch(err => client.handleAxiosError(err));
+		}
+	});
+
+	vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
+		if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
+			vscode.window.showWarningMessage(
+				"If you write over a line with comments, the comments could be deleted next time you open VS Code."
+			);
+		}
+	});
+
+	vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
+		checkCommentLineChanges(e);
+	});
+}
+
+function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
 	if (!ignoredFiles.includes(e.fsPath)) {
 		let filePath = path.resolve(e.fsPath);
 		fs.readFile(filePath, (err, data) => {
@@ -285,27 +306,27 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 				jszipFile.file(filePath, data);
 				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 				vscode.window.setStatusBarMessage("Uploading files...", thenable);
-				thenable.then(zipData => RestClient.getClient().uploadFiles(exerciseId, zipData))
-					.catch(err => coursesProvider.handleAxiosError(err));
+				thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
+					.catch(err => client.handleAxiosError(err));
 			}
 		});
 	}
 }
 
-function checkCommentLineChanges(document: vscode.TextDocument) {
+function checkCommentLineChanges (document: vscode.TextDocument) {
 	if (commentProvider) {
 		let fileThreads = commentProvider.getFileCommentThreads(document.uri);
 		for (let thread of fileThreads) {
 			let docText = document.getText();
 			let docTextSeparatedByLines = docText.split(/\r?\n/);
 			let threadLine = thread[1].range.start.line;
-			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText; 
+			let threadLineText = (<NoteComment>thread[1].comments[0]).lineText;
 			if (docTextSeparatedByLines[threadLine].trim() !== threadLineText.trim()) {
 				for (let i = 0; i < docTextSeparatedByLines.length; i++) {
 					let line = docTextSeparatedByLines[i];
 					if (threadLineText.trim() === line.trim()) {
 						let threadId = thread[0];
-						commentProvider.updateThreadLine(threadId, i, line, coursesProvider.handleAxiosError);
+						commentProvider.updateThreadLine(threadId, i, line, client.handleAxiosError);
 						break;
 					}
 				}

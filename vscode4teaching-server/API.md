@@ -36,6 +36,9 @@ Needed header key: `X-XSRF-TOKEN`
 - [Get comment threads](API.md#get-comment-threads)
 - [Get comments by exercise and username](API.md#get-comments-by-exercise-and-username)
 - [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
+- [Get course unique code](API.md#get-course-unique-code)
+- [Get exercise unique code](API.md#get-exercise-unique-code)
+- [Get course and its exercises with sharing code](API.md#get-course-and-its-exercises-with-sharing-code)
 
 ## Login
 
@@ -1962,4 +1965,140 @@ Get information of all of the files owned by a user in an exercise.
 
   ```text
   Not found: 322
+  ```
+
+## Get course unique code
+
+---
+
+Get course unique code for sharing.
+
+- **Required role**:
+  Teacher
+- **URL**
+  `/api/courses/:id/code`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/courses/1/code`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```text
+    c53375af-82f7-4420-9d53-d787cf442cd2
+    ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 1
+  ```
+
+## Get exercise unique code
+
+---
+
+Get exercise unique code for sharing.
+
+- **Required role**:
+  Teacher
+- **URL**
+  `/api/exercises/:id/code`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/1/code`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```text
+    c53375af-82f7-4420-9d53-d787cf442cd2
+    ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 1
+  ```
+  
+## Get course and its exercises with sharing code
+
+---
+
+Get a course and its exercises using the sharing code
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/courses/code/:code`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `code=[string]`
+  - **Example**
+    - `/api/courses/code/f3db9572-0263-417e-a429-e8d7ef7f63e2`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    {
+        "id": 7,
+        "name": "Spring Boot Course",
+        "exercises": [
+            {
+                "id": 10,
+                "name": "Exercise 1",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 11,
+                "name": "Exercise 2",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 12,
+                "name": "Exercise 3",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 13,
+                "name": "Exercise 4",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            },
+            {
+                "id": 14,
+                "name": "Exercise 5",
+                "createDateTime": "2020-03-06T16:16:42",
+                "updateDateTime": "2020-03-06T16:16:42"
+            }
+        ],
+        "createDateTime": "2020-03-06T16:16:42",
+        "updateDateTime": "2020-03-06T16:16:42"
+    }
+    ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Course not found: 1
   ```

@@ -65,17 +65,20 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");
-        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode("studentpassword"), "John",
-                "Doe Jr 1");
+        User student1 = new User("johndoejr@student.com", "johndoejr", passwordEncoder.encode("studentpassword"),
+                "John", "Doe Jr 1");
         User student2 = new User("johndoejr2@student.com", "johndoejr2", passwordEncoder.encode("studentpassword2"),
                 "John", "Doe Jr 2");
         User student3 = new User("johndoejr3@student.com", "johndoejr3", passwordEncoder.encode("studentpassword3"),
                 "John", "Doe Jr 3");
+        User student4 = new User("emptyjoe@student.com", "emptyjoe", passwordEncoder.encode("emptyjoe"), "Empty",
+                "Joe");
         List<User> users = new ArrayList<>();
         users.add(saveUser(teacher, true));
         users.add(saveUser(student1, false));
         users.add(saveUser(student2, false));
         users.add(saveUser(student3, false));
+        saveUser(student4, false);
 
         List<Course> courses = new ArrayList<>();
 

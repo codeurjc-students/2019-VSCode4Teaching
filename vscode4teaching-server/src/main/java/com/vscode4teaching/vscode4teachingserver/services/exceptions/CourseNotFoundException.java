@@ -6,4 +6,8 @@ public class CourseNotFoundException extends NotFoundException {
     public CourseNotFoundException(Long courseId) {
         super("Course not found: " + courseId);
     }
+
+    public CourseNotFoundException(String courseId) {
+        super("Course not found: " + courseId);
+    }
 }
