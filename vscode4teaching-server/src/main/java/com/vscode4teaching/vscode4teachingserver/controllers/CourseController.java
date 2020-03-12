@@ -80,8 +80,10 @@ public class CourseController {
 
     @GetMapping("/courses/code/{courseCode}")
     @JsonView(CourseViews.ExercisesView.class)
-    public ResponseEntity<Course> getExercisesWithCode(@PathVariable String courseCode) throws CourseNotFoundException {
-        return ResponseEntity.ok(courseService.getCourseWithSharingCode(courseCode));
+    public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        return ResponseEntity
+                .ok(courseService.getCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
     @PutMapping("/courses/{id}")

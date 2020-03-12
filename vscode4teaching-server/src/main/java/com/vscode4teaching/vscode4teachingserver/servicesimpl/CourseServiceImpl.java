@@ -99,9 +99,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course getCourseWithSharingCode(String uuid) throws CourseNotFoundException {
+    public Course getCourseWithSharingCode(String uuid, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
         Course course = this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
-        return course;
+        course.addUserInCourse(userRepo.findByUsername(requestUsername)
+                .orElseThrow(() -> new UserNotFoundException("User not found:" + requestUsername)));
+        Course savedCourse = courseRepo.save(course);
+        return savedCourse;
     }
 
     @Override
