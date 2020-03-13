@@ -1,17 +1,17 @@
 import * as assert from 'assert';
 import { afterEach, suite, test } from 'mocha';
 import * as vscode from 'vscode';
-import * as extension from '../../extension';
+import * as extension from '../../src/extension';
 import * as simple from 'simple-mock';
-import { V4TItem, V4TItemType } from '../../coursesTreeProvider/v4titem';
-import { Course, Exercise, User } from '../../model/serverModel';
+import { V4TItem, V4TItemType } from '../../src/coursesTreeProvider/v4titem';
+import { Course, Exercise, User } from '../../src/model/serverModel';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
 import * as JSZip from 'JSZip';
-import { UserPick } from '../../coursesTreeProvider/coursesTreeProvider';
-import { RestClient } from '../../restClient';
-import { Validators } from '../../model/validators';
+import { UserPick } from '../../src/coursesTreeProvider/coursesTreeProvider';
+import { RestClient } from '../../src/restClient';
+import { Validators } from '../../src/model/validators';
 
 suite('Extension Test Suite', () => {
 
