@@ -21,18 +21,18 @@ suite('Extension Test Suite', () => {
 		RestClient.getClient().invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
-				console.error(error);
+				// console.error(error);
 			});
 		}
 		if (fs.existsSync('openworkspacetest')) {
 			rimraf('openworkspacetest', error => {
-				console.error(error);
+				// console.error(error);
 			});
 		}
 		let v4tPath = path.resolve(__dirname, '..', '..', 'v4t');
 		if (fs.existsSync(v4tPath)) {
 			rimraf(v4tPath, ((error) => {
-				console.error(error);
+				// console.error(error);
 			}));
 		}
 
@@ -655,7 +655,7 @@ suite('Extension Test Suite', () => {
 			zipEntries.push(relativePath);
 		});
 
-		console.log(zipEntries);
+		// console.log(zipEntries);
 		// Depending on system directories can be saved as entries or whole path can be saved
 		assert.deepStrictEqual(zipEntries.includes("ex1.html"), true, "ex1.html should be saved");
 		assert.deepStrictEqual(zipEntries.includes("ex2.html"), true, "ex2.html should be saved");

@@ -23,7 +23,7 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./out/extension.js",
+	"main": "./out/src/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "VSCode4Teaching",

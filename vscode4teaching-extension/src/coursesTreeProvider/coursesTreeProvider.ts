@@ -332,7 +332,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     async getExerciseFiles (courseName: string, exercise: Exercise) {
         if (this.client.userinfo) {
             let dir = path.resolve(this.downloadDir, this.client.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(__dirname, "v4t", this.client.userinfo.username);
+            let zipDir = path.resolve(this.internalFilesDir, this.client.userinfo.username);
             let zipName = exercise.id + ".zip";
             return this.getFiles(dir, zipDir, zipName, this.client.getExerciseFiles(exercise.id));
         }
@@ -341,7 +341,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     async getStudentFiles (courseName: string, exercise: Exercise) {
         if (this.client.userinfo) {
             let dir = path.resolve(this.downloadDir, "teacher", this.client.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(__dirname, "v4t", "teacher", this.client.userinfo.username);
+            let zipDir = path.resolve(this.internalFilesDir, "teacher", this.client.userinfo.username);
             let studentZipName = exercise.id + ".zip";
             let templateDir = path.resolve(this.downloadDir, "teacher", this.client.userinfo.username, courseName, exercise.name, "template");
             let templateZipName = exercise.id + "-template.zip";
