@@ -5,12 +5,12 @@ import * as path from 'path';
 export class V4TItem extends vscode.TreeItem {
 
     constructor(
-        public readonly label: string,
-        public readonly type: V4TItemType,
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly parent?: V4TItem,
-        public readonly item?: Course | Exercise,
-        public readonly command?: vscode.Command
+        readonly label: string,
+        readonly type: V4TItemType,
+        readonly collapsibleState: vscode.TreeItemCollapsibleState,
+        readonly parent?: V4TItem,
+        readonly item?: Course | Exercise,
+        readonly command?: vscode.Command
     ) {
         super(label, collapsibleState);
     }

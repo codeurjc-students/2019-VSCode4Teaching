@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ServerComment, ServerCommentThread } from './model/commentServerModel';
-import { RestClient } from './restClient';
+import { ServerComment, ServerCommentThread } from '../model/commentServerModel';
+import { RestController } from '../restController';
 
 let commentId = 1;
 
-export class TeacherCommentProvider {
+export class TeacherCommentService {
     readonly commentController: vscode.CommentController;
     private cwds: vscode.WorkspaceFolder[] = [];
     // Key: server id, value: thread
@@ -20,7 +20,7 @@ export class TeacherCommentProvider {
         };
     }
 
-    private isValidDocument(document: vscode.TextDocument) {
+    private isValidDocument (document: vscode.TextDocument) {
         let relPath: string = "";
         for (let cwd of this.cwds) {
             relPath = path.relative(cwd.uri.fsPath, document.fileName);
@@ -31,17 +31,17 @@ export class TeacherCommentProvider {
         return false;
     }
 
-    addCwd(cwd: vscode.WorkspaceFolder) {
+    addCwd (cwd: vscode.WorkspaceFolder) {
         if (!this.cwds.includes(cwd)) {
             this.cwds.push(cwd);
         }
     }
 
-    dispose() {
+    dispose () {
         this.commentController.dispose();
     }
 
-    replyNote(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
+    replyNote (reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
         let thread = reply.thread;
         let markdownText = new vscode.MarkdownString(reply.text);
         vscode.workspace.openTextDocument(reply.thread.uri).then((textDoc: vscode.TextDocument) => {
@@ -59,8 +59,8 @@ export class TeacherCommentProvider {
                     return serverComment;
                 })
             };
-            let client = RestClient.getClient();
-            client.saveComment(fileId, serverCommentThread).then(response => {
+            let restController = RestController.getController();
+            restController.saveComment(fileId, serverCommentThread).then(response => {
                 if (response.data.id) {
                     this.threads.set(response.data.id, thread);
                 }
@@ -70,9 +70,9 @@ export class TeacherCommentProvider {
         });
     }
 
-    getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
-        let client = RestClient.getClient();
-        client.getAllComments(username, exerciseId).then((response => {
+    getThreads (exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
+        let restController = RestController.getController();
+        restController.getAllComments(username, exerciseId).then((response => {
             if (response.data) {
                 let fileInfoArray = response.data;
                 for (let fileInfo of fileInfoArray) {
@@ -91,7 +91,7 @@ export class TeacherCommentProvider {
         });
     }
 
-    private createThreadFromServer(commentThread: ServerCommentThread, textDoc: vscode.TextDocument) {
+    private createThreadFromServer (commentThread: ServerCommentThread, textDoc: vscode.TextDocument) {
         let lineText = textDoc.lineAt(commentThread.line).text;
         if (commentThread.comments && lineText.trim() === commentThread.lineText.trim()) {
             let comments = commentThread.comments.map(comment => new NoteComment(
@@ -108,7 +108,7 @@ export class TeacherCommentProvider {
         }
     }
 
-    getFileCommentThreads(uri: vscode.Uri) {
+    getFileCommentThreads (uri: vscode.Uri) {
         let fileThreads: [number, vscode.CommentThread][] = [];
         for (let thread of this.threads) {
             if (uri.fsPath === thread[1].uri.fsPath) {
@@ -118,9 +118,9 @@ export class TeacherCommentProvider {
         return fileThreads;
     }
 
-    updateThreadLine(threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
-        let client = RestClient.getClient();
-        client.updateCommentThreadLine(threadId, line, lineText).then(response => {
+    updateThreadLine (threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
+        let restController = RestController.getController();
+        restController.updateCommentThreadLine(threadId, line, lineText).then(response => {
             let commentThread = response.data;
             let oldThread = this.threads.get(threadId);
             if (oldThread) {
