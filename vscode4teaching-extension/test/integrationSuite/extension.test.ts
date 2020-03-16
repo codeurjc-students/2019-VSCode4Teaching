@@ -8,11 +8,11 @@ import { Course, Exercise, User } from '../../src/model/serverModel/ServerModel'
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import * as JSZip from 'JSZip';
 import { UserPick } from '../../src/components/courses/CoursesTreeProvider';
 import { APIClient } from "../../src/client/APIClient";
 import { Validators } from '../../src/model/Validators';
 import { CurrentUser } from '../../src/model/CurrentUser';
+import JSZip = require('jszip');
 
 suite('Extension Integration Test Suite', () => {
 
