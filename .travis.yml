@@ -35,7 +35,8 @@ jobs:
         - npm install
       script:
         - npm test
-      cache: npm
+      cache:
+        npm: false
 env:
   global:
     secure: nI25Y4EHLUXmVAiK3JPPYe1ci60togbKDwvBkOEZCzkYcKjzbKH7q6RLisaFOOJyhJP1ffr5c/ME/mLOu3tgmGLq4hfl2k03wAFwLobsLzpuwQigFutByDIPndzFPkpZsV+wDv4nhChgTUVzC9lw2d1DvE2t3RYpA165V0PukrGx37CYfwe0+4IrZ7e59YPyiA33Op2sCvLugDg7qlM/qlpW0ifeoznfiN7C915/uwf93FBcbMW7jzKCuyIg0T/siR5SHTfrXfF+mhsSZi9XpZJmkokpjEz/KqE9Y1kYNTaPdoy0QtMKppd7ysCjJFUv0PNQ9DMTOvQrk8sFCQLCd3w5gXnDHYZIIGCjqf/9ZqNxAH6dLf98rUImbHim2f8jh+wXs4x8HipIZEWNDkUFfqPBaumCHmHNTDkolGPneBg5wnRqlnZ/7A/IrTytZIX+Cl8GmkWPleZ42947skS1JLHmnw1c9yoOgFKFS3QN93lIV3+zU1PMQTrwvoj5OQRKWj/fSW6Y3ZxaFaIFbEhupH16//Ml8gNPbRBXmEwfFaTChru6hl10qWiLcrZyL7eXXAfsfr9Wd9lZnB3ri0hNtJWVEXDomXfalMFWBon0tXykMd2/HYNiZK8EsPuTiIh5ISq6+5t1S4q818hrV+qp4Vk73qwTY5GAVoULSXjP7VQ=
