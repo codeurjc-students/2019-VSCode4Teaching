@@ -10,17 +10,17 @@ import * as path from 'path';
 import * as rimraf from 'rimraf';
 import * as JSZip from 'JSZip';
 import { UserPick } from '../../src/components/coursesTreeProvider/CoursesTreeProvider';
-import { RestController } from '../../src/controllers/RestController';
+import { APIClient } from "../../src/client/APIClient";
 import { Validators } from '../../src/model/Validators';
 import { CurrentUser } from '../../src/model/CurrentUser';
 
 suite('Extension Test Suite', () => {
 
-	let restController = RestController;
+	let apiClient = APIClient;
 	afterEach(() => {
 		simple.restore();
 		extension.createNewCoursesProvider();
-		restController.invalidateSession();
+		apiClient.invalidateSession();
 		if (fs.existsSync('v4tdownloads')) {
 			rimraf('v4tdownloads', error => {
 				// console.error(error);
@@ -88,9 +88,9 @@ suite('Extension Test Suite', () => {
 		let mockVSCodeInputBox = simple.mock(vscode.window, "showInputBox");
 		mockVSCodeInputBox.resolveWith("http://test.com").resolveWith("johndoe").resolveWith("password");
 
-		let mockLogin = simple.mock(restController, "callLogin");
+		let mockLogin = simple.mock(apiClient, "callLogin");
 		mockLogin.resolveWith(null);
-		// let mockCsrf = simple.mock(restController, "getXSRFToken");
+		// let mockCsrf = simple.mock(apiClient, "getXSRFToken");
 		// mockCsrf.resolveWith(null);
 		await extension.coursesProvider.login();
 		assert.deepStrictEqual(mockVSCodeInputBox.callCount, 3, "vs code should ask for server, username and password");
@@ -111,8 +111,8 @@ suite('Extension Test Suite', () => {
 			"config for the password input box should have correct prompt and hide the input");
 		// assert.deepStrictEqual(mockCsrf.callCount, 1, "csrf should be set");
 		assert.deepStrictEqual(mockLogin.callCount, 1, "login should be called 1 time");
-		// assert.deepStrictEqual(mockLogin.lastCall.returned, Promise.resolve(loginResponse), "restController login mock should resolve with a mock token");
-		assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password", "http://test.com"], "restController should login with the credentials above");
+		// assert.deepStrictEqual(mockLogin.lastCall.returned, Promise.resolve(loginResponse), "apiClient login mock should resolve with a mock token");
+		assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password", "http://test.com"], "apiClient should login with the credentials above");
 	});
 
 	test('validate URL', () => {
@@ -143,7 +143,7 @@ suite('Extension Test Suite', () => {
 
 	test('get courses (get children, logged in)', () => {
 
-		let getJwtTokenMock = simple.mock(restController, "getJwtToken");
+		let getJwtTokenMock = simple.mock(apiClient, "getJwtToken");
 		getJwtTokenMock.returnWith("mockToken");
 		let user: User = {
 			id: 20,
@@ -183,7 +183,7 @@ suite('Extension Test Suite', () => {
 				'title': 'Get course with sharing code'
 			}));
 			CurrentUser.userinfo = user;
-			restController.jwtToken = "mockToken";
+			apiClient.jwtToken = "mockToken";
 
 			let courseButtons = extension.coursesProvider.getChildren();
 
@@ -199,7 +199,7 @@ suite('Extension Test Suite', () => {
 
 	test('get courses with add button (get children, logged in, is teacher)', () => {
 
-		let getJwtTokenMock = simple.mock(restController, "getJwtToken");
+		let getJwtTokenMock = simple.mock(apiClient, "getJwtToken");
 		getJwtTokenMock.returnWith("mockToken");
 		let user: User = {
 			id: 20,
@@ -246,7 +246,7 @@ suite('Extension Test Suite', () => {
 				'title': 'Log out of VS Code 4 Teaching'
 			}));
 			CurrentUser.userinfo = user;
-			restController.jwtToken = "mockToken";
+			apiClient.jwtToken = "mockToken";
 
 			let courseButtons = extension.coursesProvider.getChildren();
 
@@ -297,7 +297,7 @@ suite('Extension Test Suite', () => {
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
 		}));
-		let getExercisesMock = simple.mock(restController, "getExercises");
+		let getExercisesMock = simple.mock(apiClient, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
 
 		extension.coursesProvider.getChildren(courseItem);
@@ -349,7 +349,7 @@ suite('Extension Test Suite', () => {
 			"title": "Get exercise files",
 			"arguments": [course.name, exercise]
 		}));
-		let getExercisesMock = simple.mock(restController, "getExercises");
+		let getExercisesMock = simple.mock(apiClient, "getExercises");
 		getExercisesMock.resolveWith({ data: exercises });
 
 		extension.coursesProvider.getChildren(courseItem);
@@ -367,7 +367,7 @@ suite('Extension Test Suite', () => {
 			roles: []
 		};
 
-		let getExercisesMock = simple.mock(restController, "getExerciseFiles");
+		let getExercisesMock = simple.mock(apiClient, "getExerciseFiles");
 		let filePath = path.resolve(__dirname, "..", "..", "..", 'test-resources', 'files', 'exs.zip');
 		getExercisesMock.resolveWith({
 			data: fs.readFileSync(filePath)
@@ -386,21 +386,21 @@ suite('Extension Test Suite', () => {
 
 	test('if session file exists', () => {
 
-		restController.jwtToken = undefined;
+		apiClient.jwtToken = undefined;
 		let existsMock = simple.mock(fs, "existsSync");
 		existsMock.returnWith(true);
 		let fileMock = simple.mock(fs, "readFileSync");
 		fileMock.returnWith(new MockFile("mockToken\nmockXsrf\nmockUrl"));
-		let userInfoMock = simple.mock(restController, "getServerUserInfo");
+		let userInfoMock = simple.mock(apiClient, "getServerUserInfo");
 		userInfoMock.resolveWith({
 			id: 1,
 			name: "johndoe"
 		});
 		extension.coursesProvider.getChildren();
 
-		assert.deepStrictEqual(restController.jwtToken, "mockToken");
-		assert.deepStrictEqual(restController.xsrfToken, "mockXsrf");
-		assert.deepStrictEqual(restController.baseUrl, "mockUrl");
+		assert.deepStrictEqual(apiClient.jwtToken, "mockToken");
+		assert.deepStrictEqual(apiClient.xsrfToken, "mockXsrf");
+		assert.deepStrictEqual(apiClient.baseUrl, "mockUrl");
 	});
 
 	test('refresh should call getServerUserInfo', () => {
@@ -410,7 +410,7 @@ suite('Extension Test Suite', () => {
 			username: "mockUser",
 			roles: []
 		};
-		let userInfoMock = simple.mock(restController, "getServerUserInfo");
+		let userInfoMock = simple.mock(apiClient, "getServerUserInfo");
 		extension.coursesProvider.refreshCourses();
 		assert.deepStrictEqual(userInfoMock.callCount, 1);
 	});
@@ -439,9 +439,9 @@ suite('Extension Test Suite', () => {
 		};
 		user.courses = [course];
 
-		let addCourseClientMock = simple.mock(restController, "addCourse");
+		let addCourseClientMock = simple.mock(apiClient, "addCourse");
 		addCourseClientMock.resolveWith(course);
-		let userInfoMock = simple.mock(restController, "getServerUserInfo");
+		let userInfoMock = simple.mock(apiClient, "getServerUserInfo");
 		userInfoMock.resolveWith(user);
 		await extension.coursesProvider.addCourse();
 		if (CurrentUser.userinfo && CurrentUser.userinfo.courses) {
@@ -473,7 +473,7 @@ suite('Extension Test Suite', () => {
 			exercises: []
 		};
 
-		let deleteCourseClientMock = simple.mock(restController, "deleteCourse");
+		let deleteCourseClientMock = simple.mock(apiClient, "deleteCourse");
 		deleteCourseClientMock.resolveWith(course);
 		user.courses = [course];
 		CurrentUser.userinfo = user;
@@ -490,7 +490,7 @@ suite('Extension Test Suite', () => {
 			],
 			courses: []
 		};
-		let userInfoMock = simple.mock(restController, "getServerUserInfo");
+		let userInfoMock = simple.mock(apiClient, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 		await extension.coursesProvider.deleteCourse(item);
@@ -551,11 +551,11 @@ suite('Extension Test Suite', () => {
 		user.courses = [course];
 		newUser.courses = [newCourse];
 
-		let editCourseClientMock = simple.mock(restController, "editCourse");
+		let editCourseClientMock = simple.mock(apiClient, "editCourse");
 		editCourseClientMock.resolveWith(newCourse);
 		let vscodeInputMock = simple.mock(vscode.window, "showInputBox");
 		vscodeInputMock.resolveWith("Test course");
-		let userInfoMock = simple.mock(restController, "getServerUserInfo");
+		let userInfoMock = simple.mock(apiClient, "getServerUserInfo");
 		userInfoMock.resolveWith({ data: newUser });
 		CurrentUser.userinfo = user;
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
@@ -628,25 +628,25 @@ suite('Extension Test Suite', () => {
 			exercises: []
 		};
 
-		let restControllerAddMock = simple.mock(restController, "addExercise");
+		let apiClientAddMock = simple.mock(apiClient, "addExercise");
 		let exerciseDataMock: Exercise = {
 			id: 123,
 			name: "Test exercise"
 		};
-		restControllerAddMock.resolveWith({ data: exerciseDataMock });
-		let restControllerTemplateMock = simple.mock(restController, "uploadExerciseTemplate");
-		restControllerTemplateMock.resolveWith(null);
+		apiClientAddMock.resolveWith({ data: exerciseDataMock });
+		let apiClientTemplateMock = simple.mock(apiClient, "uploadExerciseTemplate");
+		apiClientTemplateMock.resolveWith(null);
 		let refreshExercisesMock = simple.mock(extension.coursesProvider, "refreshExercises");
 		let mockItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, mockCourse);
 		await extension.coursesProvider.addExercise(mockItem);
 
-		assert.deepStrictEqual(restControllerAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
-		assert.deepStrictEqual(restControllerAddMock.lastCall.args[1], { name: "Test exercise" }, "addExercise should get name gotten on showInputBox");
+		assert.deepStrictEqual(apiClientAddMock.lastCall.args[0], 345, "addExercise should get correct course id");
+		assert.deepStrictEqual(apiClientAddMock.lastCall.args[1], { name: "Test exercise" }, "addExercise should get name gotten on showInputBox");
 
-		assert.deepStrictEqual(restControllerTemplateMock.lastCall.args[0], 123, "uploadExerciseTemplate should get correct exercise id");
+		assert.deepStrictEqual(apiClientTemplateMock.lastCall.args[0], 123, "uploadExerciseTemplate should get correct exercise id");
 
 		//Assertions on template data sent
-		let zipContent: Buffer = restControllerTemplateMock.lastCall.args[1];
+		let zipContent: Buffer = apiClientTemplateMock.lastCall.args[1];
 		let zip = new JSZip();
 		let zipEntries: string[] = [];
 		zip = await zip.loadAsync(zipContent);
@@ -696,13 +696,13 @@ suite('Extension Test Suite', () => {
 		let inputMock = simple.mock(vscode.window, "showInputBox");
 		inputMock.resolveWith("Edited exercise");
 
-		let restControllerMock = simple.mock(restController, "editExercise");
-		restControllerMock.resolveWith(null); // Not needed
+		let apiClientMock = simple.mock(apiClient, "editExercise");
+		apiClientMock.resolveWith(null); // Not needed
 		await extension.coursesProvider.editExercise(exerciseItem);
 
-		assert.deepStrictEqual(restControllerMock.callCount, 1, "editExercise is called");
-		assert.deepStrictEqual(restControllerMock.lastCall.args[0], 1, "exercise id is passed");
-		assert.deepStrictEqual(restControllerMock.lastCall.args[1], { name: "Edited exercise" }, "new exercise name is passed");
+		assert.deepStrictEqual(apiClientMock.callCount, 1, "editExercise is called");
+		assert.deepStrictEqual(apiClientMock.lastCall.args[0], 1, "exercise id is passed");
+		assert.deepStrictEqual(apiClientMock.lastCall.args[1], { name: "Edited exercise" }, "new exercise name is passed");
 	});
 
 	test('delete exercise', async () => {
@@ -731,15 +731,15 @@ suite('Extension Test Suite', () => {
 		let courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Expanded, undefined, course);
 		let exerciseItem = new V4TItem("Test exercise", V4TItemType.ExerciseTeacher, vscode.TreeItemCollapsibleState.None, courseItem, exercise);
 
-		let restControllerMock = simple.mock(restController, "deleteExercise");
-		restControllerMock.resolveWith(null);
+		let apiClientMock = simple.mock(apiClient, "deleteExercise");
+		apiClientMock.resolveWith(null);
 		let modalMock = simple.mock(vscode.window, "showWarningMessage");
 		modalMock.resolveWith('Accept');
 
 		await extension.coursesProvider.deleteExercise(exerciseItem);
 
-		assert.deepStrictEqual(restControllerMock.callCount, 1);
-		assert.deepStrictEqual(restControllerMock.lastCall.args[0], 1);
+		assert.deepStrictEqual(apiClientMock.callCount, 1);
+		assert.deepStrictEqual(apiClientMock.lastCall.args[0], 1);
 	});
 
 	test('add users to course', async () => {
@@ -796,16 +796,16 @@ suite('Extension Test Suite', () => {
 		};
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 
-		let getUsersMock = simple.mock(restController, "getAllUsers");
+		let getUsersMock = simple.mock(apiClient, "getAllUsers");
 		getUsersMock.resolveWith({ data: allUsers });
-		let getCourseUsersMock = simple.mock(restController, "getUsersInCourse");
+		let getCourseUsersMock = simple.mock(apiClient, "getUsersInCourse");
 		getCourseUsersMock.resolveWith({ data: [userInCourse] });
 		let quickpickMock = simple.mock(vscode.window, "showQuickPick");
 		let selectableUsersPicks: UserPick[] = [];
 		selectableUsers.forEach(user => selectableUsersPicks.push(new UserPick(user.name && user.lastName ? user.name + " " + user.lastName : user.username, user)));
 		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
 		quickpickMock.resolveWith(selectedUsers);
-		let addUsersMock = simple.mock(restController, "addUsersToCourse");
+		let addUsersMock = simple.mock(apiClient, "addUsersToCourse");
 
 		await extension.coursesProvider.addUsersToCourse(item);
 
@@ -873,9 +873,9 @@ suite('Extension Test Suite', () => {
 		};
 		let item = new V4TItem("Test course", V4TItemType.CourseTeacher, vscode.TreeItemCollapsibleState.Collapsed, undefined, course);
 
-		let getCourseUsersMock = simple.mock(restController, "getUsersInCourse");
+		let getCourseUsersMock = simple.mock(apiClient, "getUsersInCourse");
 		getCourseUsersMock.resolveWith({ data: selectableUsers });
-		let getCreatorMock = simple.mock(restController, "getCreator");
+		let getCreatorMock = simple.mock(apiClient, "getCreator");
 		getCreatorMock.resolveWith({
 			data: {
 				id: 4,
@@ -902,7 +902,7 @@ suite('Extension Test Suite', () => {
 		let selectedUsers = [new UserPick("John Doe", selectableUsers[0]), new UserPick("John Doe 3", selectableUsers[2])];
 		quickpickMock.resolveWith(selectedUsers);
 
-		let addUsersMock = simple.mock(restController, "removeUsersFromCourse");
+		let addUsersMock = simple.mock(apiClient, "removeUsersFromCourse");
 
 		await extension.coursesProvider.removeUsersFromCourse(item);
 

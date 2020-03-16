@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { RestController } from '../../controllers/RestController';
+import { APIClient } from "../../client/APIClient";
 import * as serverModel from '../../model/serverModel/ServerModel';
 import * as fs from 'fs';
 import { V4TItem, V4TItemType } from './V4TItem';
 import { AxiosPromise } from 'axios';
 import { Validators } from '../../model/Validators';
-import { FileZipService } from '../../utils/FileZipUtil';
+import { FileZipUtil } from '../../utils/FileZipUtil';
 import { CurrentUser } from '../../model/CurrentUser';
 
 export class UserPick implements vscode.QuickPickItem {
@@ -18,7 +18,6 @@ export class UserPick implements vscode.QuickPickItem {
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private static _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
     readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = CoursesProvider._onDidChangeTreeData.event;
-    private fileZipService = new FileZipService();
     private loading = false;
     private GET_WITH_CODE_ITEM = new V4TItem('Get with code', V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
         'command': 'vscode4teaching.getwithcode',
@@ -60,10 +59,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 return this.getExerciseButtons(element);
             } else {
                 // If not logged add login button, else show courses
-                if (!RestController.isLoggedIn()) {
+                if (!APIClient.isLoggedIn()) {
                     try {
-                        if (fs.existsSync(RestController.sessionPath)) {
-                            RestController.initializeSessionCredentials();
+                        if (fs.existsSync(APIClient.sessionPath)) {
+                            APIClient.initializeSessionCredentials();
                             treeElements = this.getCourseButtons();
                         } else {
                             treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
@@ -120,7 +119,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
                 CoursesProvider.triggerTreeReload();
             }).catch(error => {
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
                 CoursesProvider.triggerTreeReload();
             }
             ).finally(() => {
@@ -178,7 +177,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (username) {
                 let password: string | undefined = await this.getInput('Password', Validators.validatePasswordLogin, { password: true });
                 if (password) {
-                    RestController.callLogin(username, password, url).then(() => {
+                    APIClient.callLogin(username, password, url).then(() => {
                         // Maybe do something?
                     });
                 }
@@ -237,7 +236,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }).then(lastName => {
             if (lastName) {
                 userCredentials = Object.assign(userCredentials, { lastName: lastName });
-                return RestController.callSignup(userCredentials, url, isTeacher);
+                return APIClient.callSignup(userCredentials, url, isTeacher);
             }
         }).then(() => {
             // Maybe do something?
@@ -245,19 +244,19 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     logout () {
-        RestController.invalidateSession();
+        APIClient.invalidateSession();
         CoursesProvider._onDidChangeTreeData.fire();
     }
 
     private getExercises (item: V4TItem, course: serverModel.Course) {
-        let exercisesThenable = RestController.getExercises(course.id);
+        let exercisesThenable = APIClient.getExercises(course.id);
         exercisesThenable.then(response => {
             if (course) {
                 course.exercises = response.data;
                 CoursesProvider.triggerTreeReload(item);
             }
         }).catch(error => {
-            RestController.handleAxiosError(error);
+            APIClient.handleAxiosError(error);
         });
 
     }
@@ -266,13 +265,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         try {
             let courseName = await this.getInput('Course name', Validators.validateCourseName);
             if (courseName) {
-                await RestController.addCourse({ name: courseName });
+                await APIClient.addCourse({ name: courseName });
                 await CurrentUser.updateUserInfo();
                 CoursesProvider.triggerTreeReload();
             }
         } catch (error) {
             // Only axios requests throw error
-            RestController.handleAxiosError(error);
+            APIClient.handleAxiosError(error);
         }
 
     }
@@ -282,13 +281,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 let newCourseName = await this.getInput('Course name', Validators.validateCourseName);
                 if (newCourseName && CurrentUser.userinfo && CurrentUser.userinfo.courses) {
-                    await RestController.editCourse(item.item.id, { name: newCourseName });
+                    await APIClient.editCourse(item.item.id, { name: newCourseName });
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
                 }
             } catch (error) {
                 // Only axios requests throw error
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             }
         }
     }
@@ -298,24 +297,24 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
                 if ((selectedOption === 'Accept') && CurrentUser.userinfo && CurrentUser.userinfo.courses) {
-                    await RestController.deleteCourse(item.item.id);
+                    await APIClient.deleteCourse(item.item.id);
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
                 }
             } catch (error) {
                 // Only axios requests throw error
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             }
         }
     }
 
     refreshCourses () {
-        if (RestController.isLoggedIn()) {
+        if (APIClient.isLoggedIn()) {
             // If not logged refresh shouldn't do anything
             CurrentUser.updateUserInfo().then(() => {
                 CoursesProvider.triggerTreeReload();
             }).catch(error => {
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             });
         }
     }
@@ -336,23 +335,23 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     canSelectMany: true
                 });
                 if (fileUris) {
-                    let zipContent = await FileZipService.getZipFromUris(fileUris);
+                    let zipContent = await FileZipUtil.getZipFromUris(fileUris);
                     let course: serverModel.Course = item.item;
                     try {
-                        let addExerciseData = await RestController.addExercise(course.id, { name: name });
+                        let addExerciseData = await APIClient.addExercise(course.id, { name: name });
                         try {
-                            await RestController.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
+                            await APIClient.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
                             this.refreshExercises(item);
                         } catch (uploadError) {
                             try {
-                                await RestController.deleteExercise(addExerciseData.data.id);
-                                RestController.handleAxiosError(uploadError);
+                                await APIClient.deleteExercise(addExerciseData.data.id);
+                                APIClient.handleAxiosError(uploadError);
                             } catch (deleteError) {
-                                RestController.handleAxiosError(deleteError);
+                                APIClient.handleAxiosError(deleteError);
                             }
                         }
                     } catch (error) {
-                        RestController.handleAxiosError(error);
+                        APIClient.handleAxiosError(error);
                     }
                 }
             }
@@ -364,10 +363,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let name = await this.getInput('Exercise name', Validators.validateExerciseName);
             if (name) {
                 try {
-                    await RestController.editExercise(item.item.id, { name: name });
+                    await APIClient.editExercise(item.item.id, { name: name });
                     CoursesProvider.triggerTreeReload(item.parent);
                 } catch (error) {
-                    RestController.handleAxiosError(error);
+                    APIClient.handleAxiosError(error);
                 }
             }
         }
@@ -378,12 +377,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
                 if (selectedOption === 'Accept') {
-                    await RestController.deleteExercise(item.item.id);
+                    await APIClient.deleteExercise(item.item.id);
                     CoursesProvider.triggerTreeReload(item.parent);
                 }
             } catch (error) {
                 // Only axios requests throw error
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             }
         }
     }
@@ -391,17 +390,17 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     async addUsersToCourse (item: V4TItem) {
         if (item.item && "exercises" in item.item) {
             try {
-                let usersResponse = await RestController.getAllUsers();
+                let usersResponse = await APIClient.getAllUsers();
                 let users: serverModel.User[] = usersResponse.data;
-                let courseUsersResponse = await RestController.getUsersInCourse(item.item.id);
+                let courseUsersResponse = await APIClient.getUsersInCourse(item.item.id);
                 let courseUsers = courseUsersResponse.data;
                 let showArray = users.filter(user => courseUsers.filter((courseUser: serverModel.User) => courseUser.id === user.id).length === 0)
                     .map(user => {
                         return this.dontBelongToCourse(user);
                     });
-                await this.manageUsersFromCourse(showArray, item, RestController.addUsersToCourse, "Adding users to course...");
+                await this.manageUsersFromCourse(showArray, item, APIClient.addUsersToCourse, "Adding users to course...");
             } catch (error) {
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             }
         }
     }
@@ -433,16 +432,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     async removeUsersFromCourse (item: V4TItem) {
         if (item.item && "exercises" in item.item) {
             try {
-                let courseUsersResponse = await RestController.getUsersInCourse(item.item.id);
-                let creatorResponse = await RestController.getCreator(item.item.id);
+                let courseUsersResponse = await APIClient.getUsersInCourse(item.item.id);
+                let creatorResponse = await APIClient.getCreator(item.item.id);
                 let creator: serverModel.User = creatorResponse.data;
                 let courseUsers = courseUsersResponse.data;
                 let showArray = courseUsers.filter((user: serverModel.User) => user.id !== creator.id).map((user: serverModel.User) => {
                     return this.dontBelongToCourse(user);
                 });
-                await this.manageUsersFromCourse(showArray, item, RestController.removeUsersFromCourse, "Removing users from course...");
+                await this.manageUsersFromCourse(showArray, item, APIClient.removeUsersFromCourse, "Removing users from course...");
             } catch (error) {
-                RestController.handleAxiosError(error);
+                APIClient.handleAxiosError(error);
             }
         }
     }
@@ -450,7 +449,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     getCourseWithCode () {
         this.getInput('Introduce sharing code', Validators.validateSharingCode).then(code => {
             if (code) {
-                RestController.getCourseWithCode(code).then(response => {
+                APIClient.getCourseWithCode(code).then(response => {
                     let course: serverModel.Course = response.data;
                     let userinfo = CurrentUser.userinfo;
                     if (userinfo && !userinfo.courses) {
@@ -468,22 +467,22 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         }
                     }
                     CoursesProvider._onDidChangeTreeData.fire();
-                }).catch(error => RestController.handleAxiosError(error));
+                }).catch(error => APIClient.handleAxiosError(error));
             }
         });
     }
 
     async getExerciseFiles (courseName: string, exercise: serverModel.Exercise) {
-        let zipInfo = this.fileZipService.exerciseZipInfo(courseName, exercise);
-        return this.fileZipService.filesFromZip(zipInfo, RestController.getExerciseFiles(exercise.id));
+        let zipInfo = FileZipUtil.exerciseZipInfo(courseName, exercise);
+        return FileZipUtil.filesFromZip(zipInfo, APIClient.getExerciseFiles(exercise.id));
     }
 
     async getStudentFiles (courseName: string, exercise: serverModel.Exercise) {
-        let studentZipInfo = this.fileZipService.studentZipInfo(courseName, exercise);
-        let templateZipInfo = this.fileZipService.templateZipInfo(courseName, exercise);
+        let studentZipInfo = FileZipUtil.studentZipInfo(courseName, exercise);
+        let templateZipInfo = FileZipUtil.templateZipInfo(courseName, exercise);
         return Promise.all([
-            this.fileZipService.filesFromZip(templateZipInfo, RestController.getTemplate(exercise.id)),
-            this.fileZipService.filesFromZip(studentZipInfo, RestController.getAllStudentFiles(exercise.id), templateZipInfo.dir)
+            FileZipUtil.filesFromZip(templateZipInfo, APIClient.getTemplate(exercise.id)),
+            FileZipUtil.filesFromZip(studentZipInfo, APIClient.getAllStudentFiles(exercise.id), templateZipInfo.dir)
         ]);
     }
 }

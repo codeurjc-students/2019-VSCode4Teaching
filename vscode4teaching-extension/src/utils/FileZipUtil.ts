@@ -13,15 +13,15 @@ export interface ZipInfo {
     zipDir: string;
     zipName: string;
 }
-export class FileZipService {
+export namespace FileZipUtil {
 
-    private downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
-    static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, '..', 'v4t');
+    const downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
+    export const INTERNAL_FILES_DIR = path.resolve(__dirname, '..', 'v4t');
 
-    exerciseZipInfo (courseName: string, exercise: Exercise): ZipInfo {
+    export function exerciseZipInfo (courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.userinfo) {
-            let dir = path.resolve(this.downloadDir, CurrentUser.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, CurrentUser.userinfo.username);
+            let dir = path.resolve(downloadDir, CurrentUser.userinfo.username, courseName, exercise.name);
+            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username);
             let zipName = exercise.id + ".zip";
             return {
                 dir: dir,
@@ -33,10 +33,10 @@ export class FileZipService {
         }
     }
 
-    studentZipInfo (courseName: string, exercise: Exercise, templateDir?: string): ZipInfo {
+    export function studentZipInfo (courseName: string, exercise: Exercise, templateDir?: string): ZipInfo {
         if (CurrentUser.userinfo) {
-            let dir = path.resolve(this.downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
+            let dir = path.resolve(downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name);
+            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
             let studentZipName = exercise.id + ".zip";
             return {
                 dir: dir,
@@ -48,10 +48,10 @@ export class FileZipService {
         }
     }
 
-    templateZipInfo (courseName: string, exercise: Exercise): ZipInfo {
+    export function templateZipInfo (courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.userinfo) {
-            let templateDir = path.resolve(this.downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name, "template");
-            let templateZipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
+            let templateDir = path.resolve(downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name, "template");
+            let templateZipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
             let templateZipName = exercise.id + "-template.zip";
             return {
                 dir: templateDir,
@@ -63,7 +63,7 @@ export class FileZipService {
         }
     }
 
-    async filesFromZip (zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
+    export async function filesFromZip (zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
         if (!fs.existsSync(zipInfo.dir)) {
             mkdirp.sync(zipInfo.dir);
         }
@@ -107,13 +107,13 @@ export class FileZipService {
         }
     }
 
-    static async getZipFromUris (fileUris: vscode.Uri[]) {
+    export async function getZipFromUris (fileUris: vscode.Uri[]) {
         let zip = new JSZip();
         fileUris.forEach(uri => {
             let uriPath = path.resolve(uri.fsPath);
             let stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
-                FileZipService.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
+                FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
             } else {
                 const filedata = fs.readFileSync(uriPath);
                 zip.file(path.relative(path.dirname(uriPath), uriPath), filedata);
@@ -124,7 +124,7 @@ export class FileZipService {
         });
     }
 
-    private static buildZipFromDirectory (dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
+    export async function buildZipFromDirectory (dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
         const list = fs.readdirSync(dir);
         let newIgnoredFiles = FileIgnoreUtil.readGitIgnores(dir);
         newIgnoredFiles.forEach((file: string) => {
@@ -137,7 +137,7 @@ export class FileZipService {
             if (!ignoredFiles.includes(file)) {
                 let stat = fs.statSync(file);
                 if (stat && stat.isDirectory()) {
-                    FileZipService.buildZipFromDirectory(file, zip, root, ignoredFiles);
+                    FileZipUtil.buildZipFromDirectory(file, zip, root, ignoredFiles);
                 } else {
                     const filedata = fs.readFileSync(file);
                     zip.file(path.relative(root, file), filedata);

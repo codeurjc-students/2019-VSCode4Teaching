@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ServerComment, ServerCommentThread } from '../model/serverModel/CommentServerModel';
-import { RestController } from '../controllers/RestController';
+import { APIClient } from "../client/APIClient";
 
 let commentId = 1;
 
@@ -59,7 +59,7 @@ export class TeacherCommentService {
                     return serverComment;
                 })
             };
-            RestController.saveComment(fileId, serverCommentThread).then(response => {
+            APIClient.saveComment(fileId, serverCommentThread).then(response => {
                 if (response.data.id) {
                     this.threads.set(response.data.id, thread);
                 }
@@ -70,7 +70,7 @@ export class TeacherCommentService {
     }
 
     getThreads (exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
-        RestController.getAllComments(username, exerciseId).then((response => {
+        APIClient.getAllComments(username, exerciseId).then((response => {
             if (response.data) {
                 let fileInfoArray = response.data;
                 for (let fileInfo of fileInfoArray) {
@@ -117,7 +117,7 @@ export class TeacherCommentService {
     }
 
     updateThreadLine (threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
-        RestController.updateCommentThreadLine(threadId, line, lineText).then(response => {
+        APIClient.updateCommentThreadLine(threadId, line, lineText).then(response => {
             let commentThread = response.data;
             let oldThread = this.threads.get(threadId);
             if (oldThread) {

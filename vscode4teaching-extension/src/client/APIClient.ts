@@ -9,7 +9,7 @@ import { CoursesProvider } from '../components/coursesTreeProvider/CoursesTreePr
 import * as mkdirp from 'mkdirp';
 import { CurrentUser } from '../model/CurrentUser';
 
-export namespace RestController {
+export namespace APIClient {
 
     export var baseUrl: string | undefined;
     export var jwtToken: string | undefined;
