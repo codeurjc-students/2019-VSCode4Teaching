@@ -113,7 +113,7 @@ export namespace FileZipUtil {
             let uriPath = path.resolve(uri.fsPath);
             let stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
-                FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
+                buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
             } else {
                 const filedata = fs.readFileSync(uriPath);
                 zip.file(path.relative(path.dirname(uriPath), uriPath), filedata);
@@ -124,7 +124,7 @@ export namespace FileZipUtil {
         });
     }
 
-    export async function buildZipFromDirectory (dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
+    async function buildZipFromDirectory (dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {
         const list = fs.readdirSync(dir);
         let newIgnoredFiles = FileIgnoreUtil.readGitIgnores(dir);
         newIgnoredFiles.forEach((file: string) => {
@@ -137,7 +137,7 @@ export namespace FileZipUtil {
             if (!ignoredFiles.includes(file)) {
                 let stat = fs.statSync(file);
                 if (stat && stat.isDirectory()) {
-                    FileZipUtil.buildZipFromDirectory(file, zip, root, ignoredFiles);
+                    buildZipFromDirectory(file, zip, root, ignoredFiles);
                 } else {
                     const filedata = fs.readFileSync(file);
                     zip.file(path.relative(root, file), filedata);

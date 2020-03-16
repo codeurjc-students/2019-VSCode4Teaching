@@ -13,3 +13,5 @@ vsc-extension-quickstart.md
 .scannerwork/**
 doc_images/**
 test-resources/**
+.nyc_output/**
+coverage/**
