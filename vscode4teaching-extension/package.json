@@ -281,7 +281,8 @@
 		"pretest": "npm run compile",
 		"test": "npm run unitTest && npm run integrationTest",
 		"integrationTest": "node ./out/test/runTest.js",
-		"unitTest": "nyc mocha ./out/test/unitSuite/**/*.js",
+		"unitTest": "mocha ./out/test/unitSuite/**/*.js",
+		"coverage": "nyc mocha ./out/test/unitSuite/**/*.js",
 		"release": "vsce package --baseContentUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/ --baseImagesUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/"
 	},
 	"nyc": {
