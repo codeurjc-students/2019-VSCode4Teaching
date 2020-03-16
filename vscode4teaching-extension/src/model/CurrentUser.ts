@@ -1,9 +1,8 @@
-import { User, Course } from "./model/serverModel";
-import { RestController } from "./restController";
+import { User, Course } from "./serverModel/ServerModel";
+import { RestController } from "../controllers/RestController";
 
 export class CurrentUser {
     static userinfo: User | undefined;
-    private static restController = RestController.getController();
 
     static newUserInfo () {
         CurrentUser.userinfo = {
@@ -15,7 +14,7 @@ export class CurrentUser {
     }
 
     static async updateUserInfo () {
-        let coursesThenable = CurrentUser.restController.getServerUserInfo();
+        let coursesThenable = RestController.getServerUserInfo();
         // Errors have to be controlled in the caller function
         let userResponse = await coursesThenable;
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {

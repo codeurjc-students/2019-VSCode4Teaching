@@ -1,30 +1,28 @@
-import { RestController } from './restController';
+import { RestController } from './controllers/RestController';
 import * as vscode from 'vscode';
-import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
-import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
-import { V4TItem } from './coursesTreeProvider/v4titem';
+import { CoursesProvider } from './components/coursesTreeProvider/CoursesTreeProvider';
+import { Exercise, FileInfo, ModelUtils } from './model/serverModel/ServerModel';
+import { V4TItem } from './components/coursesTreeProvider/V4TItem';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
-import { V4TExerciseFile } from './model/v4texerciseFile';
-import { FileIgnoreUtil } from './fileIgnoreUtil';
-import { TeacherCommentService, NoteComment } from './services/teacherCommentsService';
-import { Dictionary } from './model/dictionary';
+import { V4TExerciseFile } from './model/V4TExerciseFile';
+import { FileIgnoreUtil } from './utils/FileIgnoreUtil';
+import { TeacherCommentService, NoteComment } from './services/TeacherCommentsService';
+import { Dictionary } from './model/Dictionary';
 import * as mkdirp from 'mkdirp';
 import { AxiosResponse } from 'axios';
-import { CurrentUser } from './currentUser';
-import { FileZipService } from './services/fileZipService';
+import { CurrentUser } from './model/CurrentUser';
+import { FileZipService } from './utils/FileZipUtil';
 
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
-const restController = RestController.getController();
-const fileZipService = new FileZipService();
 export function activate (context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
-	if (fs.existsSync(restController.sessionPath)) {
-		restController.initializeSessionCredentials();
-		CurrentUser.updateUserInfo().catch((error) => restController.handleAxiosError(error));
+	if (fs.existsSync(RestController.sessionPath)) {
+		RestController.initializeSessionCredentials();
+		CurrentUser.updateUserInfo().catch((error) => RestController.handleAxiosError(error));
 	}
 	// If cwd is a v4t exercise run file system watcher
 	let cwds = vscode.workspace.workspaceFolders;
@@ -41,7 +39,7 @@ export function activate (context: vscode.ExtensionContext) {
 	});
 
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
-		fileZipService.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
+		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI) {
 				let uri = vscode.Uri.file(newWorkspaceURI);
 				// Get file info for id references
@@ -51,11 +49,11 @@ export function activate (context: vscode.ExtensionContext) {
 					if (!fs.existsSync(fileInfoPath)) {
 						mkdirp.sync(fileInfoPath);
 					}
-					restController.getFilesInfo(username, exercise.id).then(
+					RestController.getFilesInfo(username, exercise.id).then(
 						(filesInfo: AxiosResponse<FileInfo[]>) => {
 							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 						}
-					).catch(error => restController.handleAxiosError(error));
+					).catch(error => RestController.handleAxiosError(error));
 				}
 				vscode.workspace.updateWorkspaceFolders(0,
 					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
@@ -109,7 +107,7 @@ export function activate (context: vscode.ExtensionContext) {
 	});
 
 	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
-		fileZipService.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
+		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
 			if (newWorkspaceURI && newWorkspaceURI[1]) {
 				let wsURI: string = newWorkspaceURI[1];
 				let directories = fs.readdirSync(newWorkspaceURI[1], { withFileTypes: true })
@@ -122,11 +120,11 @@ export function activate (context: vscode.ExtensionContext) {
 					}
 					let directoriesWithoutTemplate = directories.filter(dirent => !dirent.name.includes("template"));
 					directoriesWithoutTemplate.forEach(dirent => {
-						restController.getFilesInfo(dirent.name, exercise.id).then(
+						RestController.getFilesInfo(dirent.name, exercise.id).then(
 							filesInfo => {
 								fs.writeFileSync(path.resolve(fileInfoPath, dirent.name + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
 							}
-						).catch(error => restController.handleAxiosError(error));
+						).catch(error => RestController.handleAxiosError(error));
 					});
 				}
 				let subdirectoriesURIs = directories.map(dirent => {
@@ -177,7 +175,7 @@ export function activate (context: vscode.ExtensionContext) {
 			let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
 			let fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
 			if (fileInfo) {
-				commentProvider.replyNote(reply, fileInfo.id, restController.handleAxiosError);
+				commentProvider.replyNote(reply, fileInfo.id, RestController.handleAxiosError);
 			} else {
 				vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
 			}
@@ -186,7 +184,7 @@ export function activate (context: vscode.ExtensionContext) {
 
 	let share = vscode.commands.registerCommand('vscode4teaching.share', (item: V4TItem) => {
 		if (item.item) {
-			let codeThenable = restController.getSharingCode(item.item);
+			let codeThenable = RestController.getSharingCode(item.item);
 			codeThenable.then(response => {
 				let code = response.data;
 				vscode.window.showInformationMessage(
@@ -199,7 +197,7 @@ export function activate (context: vscode.ExtensionContext) {
 						});
 					}
 				});
-			}).catch(error => restController.handleAxiosError(error));
+			}).catch(error => RestController.handleAxiosError(error));
 		}
 	});
 
@@ -255,8 +253,8 @@ export function initializeExtension (cwds: ReadonlyArray<vscode.WorkspaceFolder>
 						if (cwd.name !== "template") {
 							let currentUserIsTeacher = ModelUtils.isTeacher(CurrentUser.userinfo);
 							let username: string = currentUserIsTeacher ? cwd.name : CurrentUser.userinfo.username;
-							commentProvider.getThreads(exerciseId, username, cwd, restController.handleAxiosError);
-							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, restController.handleAxiosError);
+							commentProvider.getThreads(exerciseId, username, cwd, RestController.handleAxiosError);
+							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, RestController.handleAxiosError);
 						}
 					}
 					// Set template location if exists
@@ -294,8 +292,8 @@ function setStudentEvents (jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri
 			jszipFile.remove(filePath);
 			let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 			vscode.window.setStatusBarMessage("Compressing files...", thenable);
-			thenable.then(zipData => restController.uploadFiles(exerciseId, zipData))
-				.catch(err => restController.handleAxiosError(err));
+			thenable.then(zipData => RestController.uploadFiles(exerciseId, zipData))
+				.catch(err => RestController.handleAxiosError(err));
 		}
 	});
 
@@ -322,8 +320,8 @@ function updateFile (ignoredFiles: string[], e: vscode.Uri, exerciseId: number, 
 				jszipFile.file(filePath, data);
 				let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
 				vscode.window.setStatusBarMessage("Compressing files...", thenable);
-				thenable.then(zipData => restController.uploadFiles(exerciseId, zipData))
-					.catch(axiosError => restController.handleAxiosError(axiosError));
+				thenable.then(zipData => RestController.uploadFiles(exerciseId, zipData))
+					.catch(axiosError => RestController.handleAxiosError(axiosError));
 			}
 		});
 	}
@@ -342,7 +340,7 @@ function checkCommentLineChanges (document: vscode.TextDocument) {
 					let line = docTextSeparatedByLines[i];
 					if (threadLineText.trim() === line.trim()) {
 						let threadId = thread[0];
-						commentProvider.updateThreadLine(threadId, i, line, restController.handleAxiosError);
+						commentProvider.updateThreadLine(threadId, i, line, RestController.handleAxiosError);
 						break;
 					}
 				}

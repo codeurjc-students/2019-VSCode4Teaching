@@ -1,8 +1,6 @@
-export class Validators {
+export namespace Validators {
 
-    private constructor() { }
-
-    static validateUrl (value: string): string | undefined {
+    export function validateUrl (value: string): string | undefined {
         let empty = Validators.validateNotEmpty(value, 'Please enter the URL of the server that you want to connect to');
         if (empty) {
             return empty;
@@ -15,7 +13,7 @@ export class Validators {
         }
     }
 
-    static validateEmail (value: string): string | undefined {
+    export function validateEmail (value: string): string | undefined {
         let empty = Validators.validateNotEmpty(value, 'Please enter your email');
         if (empty) {
             return empty;
@@ -28,7 +26,7 @@ export class Validators {
         }
     }
 
-    static validateUsername (value: string): string | undefined {
+    export function validateUsername (value: string): string | undefined {
         if (value.length < 4 || value.length > 50) {
             return 'Username must have between 4 and 50 characters';
         }
@@ -39,41 +37,41 @@ export class Validators {
         }
     }
 
-    static validatePasswordSignup (value: string): string | undefined {
+    export function validatePasswordSignup (value: string): string | undefined {
         if (value.length < 8) {
             return 'Password is too short';
         }
     }
 
-    static validatePasswordLogin (value: string): string | undefined {
+    export function validatePasswordLogin (value: string): string | undefined {
         return Validators.validateNotEmpty(value, 'Please enter your password');
     }
 
-    static validateNotEmpty (value: string, errorMessage: string): string | undefined {
+    export function validateNotEmpty (value: string, errorMessage: string): string | undefined {
         if (value.length <= 0) {
             return errorMessage;
         }
     }
 
-    static validateName (value: string): string | undefined {
+    export function validateName (value: string): string | undefined {
         return Validators.validateNotEmpty(value, 'Please enter your name');
     }
 
-    static validateLastName (value: string): string | undefined {
+    export function validateLastName (value: string): string | undefined {
         return Validators.validateNotEmpty(value, 'Please enter your last name');
     }
 
-    static validateCourseName (value: string): string | undefined {
+    export function validateCourseName (value: string): string | undefined {
         if (value.length < 10 || value.length > 100) {
             return "Course name must be between 10 and 100 characters";
         }
     }
 
-    static validateExerciseName (value: string): string | undefined {
+    export function validateExerciseName (value: string): string | undefined {
         return Validators.validateCourseName(value); // Same conditions as a course name
     }
 
-    static validateSharingCode (value: string): string | undefined {
+    export function validateSharingCode (value: string): string | undefined {
         return Validators.validateNotEmpty(value, 'Please introduce the sharing code');
     }
 }

@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ignore, { Ignore } from 'ignore';
 
-export class FileIgnoreUtil {
-    static readGitIgnores (currentDir: string): string[] {
+export namespace FileIgnoreUtil {
+    export function readGitIgnores (currentDir: string): string[] {
         const list = fs.readdirSync(currentDir);
         const gitignoreFile = list.find((f: string) => f.includes(".gitignore"));
         let files: string[] = [];
@@ -17,7 +17,7 @@ export class FileIgnoreUtil {
         return files;
     }
 
-    static getIgnoredFiles (dir: string, startingDir: string, ig: Ignore, files: string[] = []): string[] {
+    export function getIgnoredFiles (dir: string, startingDir: string, ig: Ignore, files: string[] = []): string[] {
         const list = fs.readdirSync(dir);
         for (let file of list) {
             file = path.resolve(dir, file);
@@ -32,7 +32,7 @@ export class FileIgnoreUtil {
         return files;
     }
 
-    static recursiveReadGitIgnores (dir: string, ignoredFiles: string[] = []) {
+    export function recursiveReadGitIgnores (dir: string, ignoredFiles: string[] = []) {
         let newIgnoredFiles = FileIgnoreUtil.readGitIgnores(dir);
         newIgnoredFiles.forEach((file: string) => {
             if (!ignoredFiles.includes(file)) {

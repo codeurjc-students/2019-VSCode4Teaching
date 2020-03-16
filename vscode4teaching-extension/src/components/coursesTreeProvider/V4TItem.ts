@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Course, Exercise } from '../model/serverModel/ServerModel';
+import { Course, Exercise } from '../../model/serverModel/ServerModel';
 import * as path from 'path';
 
 export class V4TItem extends vscode.TreeItem {

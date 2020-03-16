@@ -1,4 +1,4 @@
-import { ServerCommentThread } from "./commentServerModel";
+import { ServerCommentThread } from "./CommentServerModel";
 
 export interface User {
     id: number;

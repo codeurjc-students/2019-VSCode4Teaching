@@ -1,61 +1,85 @@
-import JSZip = require("jszip");
+import * as JSZip from 'jszip';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileIgnoreUtil } from "../fileIgnoreUtil";
-import { RestController } from "../restController";
+import { FileIgnoreUtil } from "./FileIgnoreUtil";
 import * as vscode from 'vscode';
 import { AxiosPromise } from "axios";
 import * as mkdirp from 'mkdirp';
-import { ModelUtils, Exercise } from "../model/serverModel";
-import { V4TExerciseFile } from "../model/v4texerciseFile";
-import { CurrentUser } from "../currentUser";
-
+import { ModelUtils, Exercise } from "../model/serverModel/ServerModel";
+import { V4TExerciseFile } from "../model/V4TExerciseFile";
+import { CurrentUser } from "../model/CurrentUser";
+export interface ZipInfo {
+    dir: string;
+    zipDir: string;
+    zipName: string;
+}
 export class FileZipService {
 
-    private restController = RestController.getController();
     private downloadDir = vscode.workspace.getConfiguration('vscode4teaching')['defaultExerciseDownloadDirectory'];
     static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, '..', 'v4t');
 
-    async getExerciseFiles (courseName: string, exercise: Exercise) {
+    exerciseZipInfo (courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.userinfo) {
             let dir = path.resolve(this.downloadDir, CurrentUser.userinfo.username, courseName, exercise.name);
             let zipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, CurrentUser.userinfo.username);
             let zipName = exercise.id + ".zip";
-            return this.getFiles(dir, zipDir, zipName, this.restController.getExerciseFiles(exercise.id));
+            return {
+                dir: dir,
+                zipDir: zipDir,
+                zipName: zipName
+            };
+        } else {
+            throw new Error('Not logged in');
         }
     }
 
-    async getStudentFiles (courseName: string, exercise: Exercise) {
+    studentZipInfo (courseName: string, exercise: Exercise, templateDir?: string): ZipInfo {
         if (CurrentUser.userinfo) {
             let dir = path.resolve(this.downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name);
             let zipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
             let studentZipName = exercise.id + ".zip";
-            let templateDir = path.resolve(this.downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name, "template");
-            let templateZipName = exercise.id + "-template.zip";
-            return Promise.all([
-                this.getFiles(templateDir, zipDir, templateZipName, this.restController.getTemplate(exercise.id)),
-                this.getFiles(dir, zipDir, studentZipName, this.restController.getAllStudentFiles(exercise.id), templateDir)
-            ]);
+            return {
+                dir: dir,
+                zipDir: zipDir,
+                zipName: studentZipName
+            };
+        } else {
+            throw new Error('Not logged in');
         }
     }
 
-    private async getFiles (dir: string, zipDir: string, zipName: string, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
-        if (!fs.existsSync(dir)) {
-            mkdirp.sync(dir);
+    templateZipInfo (courseName: string, exercise: Exercise): ZipInfo {
+        if (CurrentUser.userinfo) {
+            let templateDir = path.resolve(this.downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name, "template");
+            let templateZipDir = path.resolve(FileZipService.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
+            let templateZipName = exercise.id + "-template.zip";
+            return {
+                dir: templateDir,
+                zipDir: templateZipDir,
+                zipName: templateZipName
+            };
+        } else {
+            throw new Error('Not logged in');
+        }
+    }
+
+    async filesFromZip (zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
+        if (!fs.existsSync(zipInfo.dir)) {
+            mkdirp.sync(zipInfo.dir);
         }
         try {
             let response = await requestThenable;
             let zip = await JSZip.loadAsync(response.data);
             // Save ZIP for FSW operations
-            if (!fs.existsSync(zipDir)) {
-                mkdirp.sync(zipDir);
+            if (!fs.existsSync(zipInfo.zipDir)) {
+                mkdirp.sync(zipInfo.zipDir);
             }
-            let zipUri = path.resolve(zipDir, zipName);
+            let zipUri = path.resolve(zipInfo.zipDir, zipInfo.zipName);
             zip.generateAsync({ type: "nodebuffer" }).then(ab => {
                 fs.writeFileSync(zipUri, ab);
             });
             zip.forEach((relativePath, file) => {
-                let v4tpath = path.resolve(dir, relativePath);
+                let v4tpath = path.resolve(zipInfo.dir, relativePath);
                 if (CurrentUser.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
                     mkdirp.sync(path.dirname(v4tpath));
                 }
@@ -76,10 +100,10 @@ export class FileZipService {
                 teacher: isTeacher,
                 template: templateDir ? templateDir : undefined
             };
-            fs.writeFileSync(path.resolve(dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
-            return dir;
+            fs.writeFileSync(path.resolve(zipInfo.dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
+            return zipInfo.dir;
         } catch (error) {
-            this.restController.handleAxiosError(error);
+            vscode.window.showErrorMessage(error);
         }
     }
 
