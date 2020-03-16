@@ -5,7 +5,7 @@ import { ServerCommentThread } from '../model/serverModel/CommentServerModel';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { CoursesProvider } from '../components/coursesTreeProvider/CoursesTreeProvider';
+import { CoursesProvider } from '../components/courses/CoursesTreeProvider';
 import * as mkdirp from 'mkdirp';
 import { CurrentUser } from '../model/CurrentUser';
 

@@ -1,8 +1,8 @@
 import { APIClient } from "./client/APIClient";
 import * as vscode from 'vscode';
-import { CoursesProvider } from './components/coursesTreeProvider/CoursesTreeProvider';
-import { Exercise, FileInfo, ModelUtils } from './model/serverModel/ServerModel';
-import { V4TItem } from './components/coursesTreeProvider/V4TItem';
+import { CoursesProvider } from './components/courses/CoursesTreeProvider';
+import { Exercise, FileInfo, ModelUtils, User } from './model/serverModel/ServerModel';
+import { V4TItem } from './components/courses/V4TItem';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
@@ -18,6 +18,7 @@ import { FileZipUtil } from './utils/FileZipUtil';
 export let coursesProvider = new CoursesProvider();
 let templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
+let cwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
 export function activate (context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('vscode4teachingview', coursesProvider);
 	if (fs.existsSync(APIClient.sessionPath)) {
@@ -39,31 +40,11 @@ export function activate (context: vscode.ExtensionContext) {
 	});
 
 	let getFilesDisposable = vscode.commands.registerCommand('vscode4teaching.getexercisefiles', (courseName: string, exercise: Exercise) => {
-		coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
-			if (newWorkspaceURI) {
-				let uri = vscode.Uri.file(newWorkspaceURI);
-				// Get file info for id references
-				if (coursesProvider && CurrentUser.userinfo) {
-					let username = CurrentUser.userinfo.username;
-					let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
-					if (!fs.existsSync(fileInfoPath)) {
-						mkdirp.sync(fileInfoPath);
-					}
-					APIClient.getFilesInfo(username, exercise.id).then(
-						(filesInfo: AxiosResponse<FileInfo[]>) => {
-							fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
-						}
-					).catch(error => APIClient.handleAxiosError(error));
-				}
-				vscode.workspace.updateWorkspaceFolders(0,
-					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
-					{ uri: uri, name: exercise.name });
-				cwds = vscode.workspace.workspaceFolders;
-				if (cwds) {
-					initializeExtension(cwds);
-				}
-			}
-		});
+		getSingleStudentExerciseFiles(courseName, exercise);
+	});
+
+	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
+		getMultipleStudentExerciseFiles(courseName, exercise);
 	});
 
 	let addCourseDisposable = vscode.commands.registerCommand('vscode4teaching.addcourse', () => {
@@ -104,44 +85,6 @@ export function activate (context: vscode.ExtensionContext) {
 
 	let removeUsersFromCourse = vscode.commands.registerCommand('vscode4teaching.removeusersfromcourse', (item: V4TItem) => {
 		coursesProvider.removeUsersFromCourse(item);
-	});
-
-	let getStudentFiles = vscode.commands.registerCommand('vscode4teaching.getstudentfiles', (courseName: string, exercise: Exercise) => {
-		coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURI) => {
-			if (newWorkspaceURI && newWorkspaceURI[1]) {
-				let wsURI: string = newWorkspaceURI[1];
-				let directories = fs.readdirSync(newWorkspaceURI[1], { withFileTypes: true })
-					.filter(dirent => dirent.isDirectory());
-				// Get file info for id references
-				if (coursesProvider && CurrentUser.userinfo) {
-					let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username, ".fileInfo", exercise.name);
-					if (!fs.existsSync(fileInfoPath)) {
-						mkdirp.sync(fileInfoPath);
-					}
-					let directoriesWithoutTemplate = directories.filter(dirent => !dirent.name.includes("template"));
-					directoriesWithoutTemplate.forEach(dirent => {
-						APIClient.getFilesInfo(dirent.name, exercise.id).then(
-							filesInfo => {
-								fs.writeFileSync(path.resolve(fileInfoPath, dirent.name + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
-							}
-						).catch(error => APIClient.handleAxiosError(error));
-					});
-				}
-				let subdirectoriesURIs = directories.map(dirent => {
-					return {
-						uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
-					};
-				});
-				//open all student files and template
-				vscode.workspace.updateWorkspaceFolders(0,
-					vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
-					...subdirectoriesURIs);
-				cwds = vscode.workspace.workspaceFolders;
-				if (cwds) {
-					initializeExtension(cwds);
-				}
-			}
-		});
 	});
 
 	let diff = vscode.commands.registerCommand('vscode4teaching.diff', (file: vscode.Uri) => {
@@ -347,4 +290,67 @@ function checkCommentLineChanges (document: vscode.TextDocument) {
 			}
 		}
 	}
+}
+
+function getSingleStudentExerciseFiles (courseName: string, exercise: Exercise) {
+	coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
+		if (newWorkspaceURI) {
+			let uri = vscode.Uri.file(newWorkspaceURI);
+			// Get file info for id references
+			if (coursesProvider && CurrentUser.userinfo) {
+				let username = CurrentUser.userinfo.username;
+				let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
+				getFilesInfo(exercise, fileInfoPath, [username]);
+			}
+			vscode.workspace.updateWorkspaceFolders(0,
+				vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+				{ uri: uri, name: exercise.name });
+			cwds = vscode.workspace.workspaceFolders;
+			if (cwds) {
+				initializeExtension(cwds);
+			}
+		}
+	});
+}
+
+function getMultipleStudentExerciseFiles (courseName: string, exercise: Exercise) {
+	coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURIs) => {
+		if (newWorkspaceURIs && newWorkspaceURIs[1]) {
+			let wsURI: string = newWorkspaceURIs[1];
+			let directories = fs.readdirSync(newWorkspaceURIs[1], { withFileTypes: true })
+				.filter(dirent => dirent.isDirectory());
+			// Get file info for id references
+			if (coursesProvider && CurrentUser.userinfo) {
+				let usernames = directories.filter(dirent => !dirent.name.includes("template")).map(dirent => dirent.name);
+				let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username, ".fileInfo", exercise.name);
+				getFilesInfo(exercise, fileInfoPath, usernames);
+			}
+			let subdirectoriesURIs = directories.map(dirent => {
+				return {
+					uri: vscode.Uri.file(path.resolve(wsURI, dirent.name))
+				};
+			});
+			//open all student files and template
+			vscode.workspace.updateWorkspaceFolders(0,
+				vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+				...subdirectoriesURIs);
+			cwds = vscode.workspace.workspaceFolders;
+			if (cwds) {
+				initializeExtension(cwds);
+			}
+		}
+	});
+}
+
+function getFilesInfo (exercise: Exercise, fileInfoPath: string, usernames: string[]) {
+	if (!fs.existsSync(fileInfoPath)) {
+		mkdirp.sync(fileInfoPath);
+	}
+	usernames.forEach(username => {
+		APIClient.getFilesInfo(username, exercise.id).then(
+			filesInfo => {
+				fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
+			}
+		).catch(error => APIClient.handleAxiosError(error));
+	});
 }

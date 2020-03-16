@@ -14,9 +14,8 @@ export class CurrentUser {
     }
 
     static async updateUserInfo () {
-        let coursesThenable = APIClient.getServerUserInfo();
         // Errors have to be controlled in the caller function
-        let userResponse = await coursesThenable;
+        let userResponse = await APIClient.getServerUserInfo();
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
             userResponse.data.courses.forEach((course: Course) => {
                 if (!course.exercises) {
