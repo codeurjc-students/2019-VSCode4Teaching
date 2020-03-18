@@ -20,10 +20,16 @@ export namespace APIClient {
 
     // Session methods
 
+    /**
+     * Checks if user is logged in (User info exists in memory)
+     */
     export function isLoggedIn () {
         return CurrentUser.userinfo !== undefined;
     }
 
+    /**
+     * Initialize session variables with file created when logging in
+     */
     export function initializeSessionCredentials () {
         let readSession = fs.readFileSync(sessionPath).toString();
         let sessionParts = readSession.split('\n');
@@ -32,7 +38,10 @@ export namespace APIClient {
         baseUrl = sessionParts[2];
     }
 
-    export async function getXSRFToken () {
+    /**
+     * Gets XSRF Token from server
+     */
+    async function getXSRFToken () {
         let response = await axios(buildOptions("/api/csrf", "GET", false));
         let cookiesString: string | undefined = response.headers['set-cookie'][0];
         if (cookiesString) {
@@ -44,15 +53,19 @@ export namespace APIClient {
         }
     }
 
+    /**
+     * Helper method to handle errors provoked by calls to the server.
+     * If status code is 401 warns about incorrect log in and invalidates session
+     * If status code is 403 xsrf token expired so it gets it again
+     * Else or if a previous error repeated itself it will output it in an error prompt and invalidate session
+     * @param error Error
+     */
     export function handleAxiosError (error: any) {
         if (error.response) {
             if (error.response.status === 401 && !error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 error401thrown = true;
                 invalidateSession();
-                if (fs.existsSync(sessionPath)) {
-                    fs.unlinkSync(sessionPath);
-                }
                 CoursesProvider.triggerTreeReload();
             } else if (error.response.status === 403 && !error403thrown) {
                 vscode.window.showWarningMessage('Something went wrong, please try again.');
@@ -66,6 +79,7 @@ export namespace APIClient {
                 vscode.window.showErrorMessage('Error ' + error.response.status + '. ' + msg);
                 error401thrown = false;
                 error403thrown = false;
+                invalidateSession();
             }
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
@@ -76,8 +90,10 @@ export namespace APIClient {
         }
     }
 
+    /**
+     * Invalidates current session and deletes session file
+     */
     export function invalidateSession () {
-        let sessionPath = path.resolve(__dirname, 'v4t', 'v4tsession');
         if (fs.existsSync(sessionPath)) {
             fs.unlinkSync(sessionPath);
         }
@@ -87,7 +103,15 @@ export namespace APIClient {
         baseUrl = undefined;
     }
 
-    export async function callLogin (username: string, password: string, url?: string) {
+    /**
+     * Logs in to V4T, using the username, password and optionally the server URL.
+     * It will save the current session JWTToken, XSRF Token and server Url in a file
+     * so it can be used to log in at a future (close in time) time.
+     * @param username Username
+     * @param password Password
+     * @param url Server URL
+     */
+    export async function loginV4T (username: string, password: string, url?: string) {
         try {
             if (url) {
                 invalidateSession();
@@ -110,7 +134,13 @@ export namespace APIClient {
         }
     }
 
-    export async function callSignup (userCredentials: serverModel.UserSignup, url?: string, isTeacher?: boolean) {
+    /**
+     * Signs up in V4T server.
+     * @param userCredentials User to sign up
+     * @param url Server URL. Ignored if trying to sign up a teacher.
+     * @param isTeacher Sign up as teacher (or not)
+     */
+    export async function signUpV4T (userCredentials: serverModel.UserSignup, url?: string, isTeacher?: boolean) {
         try {
             if (url && !isTeacher) {
                 invalidateSession();
@@ -134,17 +164,9 @@ export namespace APIClient {
         }
     }
 
-    export function isBaseUrlInitialized () {
-        return baseUrl !== undefined;
-    }
-
-    export function setBaseUrl (url: string) {
-        baseUrl = url;
-    }
-
     // Server calling methods
 
-    export function login (username: string, password: string): AxiosPromise<{ jwtToken: string }> {
+    function login (username: string, password: string): AxiosPromise<{ jwtToken: string }> {
         const data = {
             "username": username,
             "password": password

@@ -177,7 +177,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (username) {
                 let password: string | undefined = await this.getInput('Password', Validators.validatePasswordLogin, { password: true });
                 if (password) {
-                    APIClient.callLogin(username, password, url).then(() => {
+                    APIClient.loginV4T(username, password, url).then(() => {
                         // Maybe do something?
                     });
                 }
@@ -236,7 +236,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }).then(lastName => {
             if (lastName) {
                 userCredentials = Object.assign(userCredentials, { lastName: lastName });
-                return APIClient.callSignup(userCredentials, url, isTeacher);
+                return APIClient.signUpV4T(userCredentials, url, isTeacher);
             }
         }).then(() => {
             // Maybe do something?

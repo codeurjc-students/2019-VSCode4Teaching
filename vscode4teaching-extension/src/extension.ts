@@ -11,7 +11,6 @@ import { FileIgnoreUtil } from './utils/FileIgnoreUtil';
 import { TeacherCommentService, NoteComment } from './services/TeacherCommentsService';
 import { Dictionary } from './model/Dictionary';
 import * as mkdirp from 'mkdirp';
-import { AxiosResponse } from 'axios';
 import { CurrentUser } from './model/CurrentUser';
 import { FileZipUtil } from './utils/FileZipUtil';
 
