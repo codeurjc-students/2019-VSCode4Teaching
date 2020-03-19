@@ -7,7 +7,7 @@ import { AxiosPromise } from "axios";
 import * as mkdirp from 'mkdirp';
 import { ModelUtils, Exercise } from "../model/serverModel/ServerModel";
 import { V4TExerciseFile } from "../model/V4TExerciseFile";
-import { CurrentUser } from "../model/CurrentUser";
+import { CurrentUser } from "../client/CurrentUser";
 export interface ZipInfo {
     dir: string;
     zipDir: string;
@@ -19,9 +19,10 @@ export namespace FileZipUtil {
     export const INTERNAL_FILES_DIR = path.resolve(__dirname, '..', 'v4t');
 
     export function exerciseZipInfo (courseName: string, exercise: Exercise): ZipInfo {
-        if (CurrentUser.userinfo) {
-            let dir = path.resolve(downloadDir, CurrentUser.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username);
+        if (CurrentUser.isLoggedIn()) {
+            let currentUser = CurrentUser.getUserInfo();
+            let dir = path.resolve(downloadDir, currentUser.username, courseName, exercise.name);
+            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, currentUser.username);
             let zipName = exercise.id + ".zip";
             return {
                 dir: dir,
@@ -34,9 +35,10 @@ export namespace FileZipUtil {
     }
 
     export function studentZipInfo (courseName: string, exercise: Exercise, templateDir?: string): ZipInfo {
-        if (CurrentUser.userinfo) {
-            let dir = path.resolve(downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name);
-            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
+        if (CurrentUser.isLoggedIn()) {
+            let currentUser = CurrentUser.getUserInfo();
+            let dir = path.resolve(downloadDir, "teacher", currentUser.username, courseName, exercise.name);
+            let zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
             let studentZipName = exercise.id + ".zip";
             return {
                 dir: dir,
@@ -49,9 +51,10 @@ export namespace FileZipUtil {
     }
 
     export function templateZipInfo (courseName: string, exercise: Exercise): ZipInfo {
-        if (CurrentUser.userinfo) {
-            let templateDir = path.resolve(downloadDir, "teacher", CurrentUser.userinfo.username, courseName, exercise.name, "template");
-            let templateZipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", CurrentUser.userinfo.username);
+        if (CurrentUser.isLoggedIn()) {
+            let currentUser = CurrentUser.getUserInfo();
+            let templateDir = path.resolve(downloadDir, "teacher", currentUser.username, courseName, exercise.name, "template");
+            let templateZipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
             let templateZipName = exercise.id + "-template.zip";
             return {
                 dir: templateDir,
@@ -80,7 +83,7 @@ export namespace FileZipUtil {
             });
             zip.forEach((relativePath, file) => {
                 let v4tpath = path.resolve(zipInfo.dir, relativePath);
-                if (CurrentUser.userinfo && !fs.existsSync(path.dirname(v4tpath))) {
+                if (CurrentUser.isLoggedIn() && !fs.existsSync(path.dirname(v4tpath))) {
                     mkdirp.sync(path.dirname(v4tpath));
                 }
                 if (file.dir && !fs.existsSync(v4tpath)) {
@@ -94,7 +97,7 @@ export namespace FileZipUtil {
                 }
             });
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
-            let isTeacher = CurrentUser.userinfo ? ModelUtils.isTeacher(CurrentUser.userinfo) : false;
+            let isTeacher = CurrentUser.isLoggedIn() ? ModelUtils.isTeacher(CurrentUser.getUserInfo()) : false;
             let fileContent: V4TExerciseFile = {
                 zipLocation: zipUri,
                 teacher: isTeacher,

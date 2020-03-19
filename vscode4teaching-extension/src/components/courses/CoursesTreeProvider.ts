@@ -6,14 +6,8 @@ import { V4TItem, V4TItemType } from './V4TItem';
 import { AxiosPromise } from 'axios';
 import { Validators } from '../../model/Validators';
 import { FileZipUtil } from '../../utils/FileZipUtil';
-import { CurrentUser } from '../../model/CurrentUser';
-
-export class UserPick implements vscode.QuickPickItem {
-    constructor(
-        readonly label: string,
-        readonly user: serverModel.User
-    ) { }
-}
+import { CurrentUser } from '../../client/CurrentUser';
+import { UserPick } from './UserPick';
 
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private static _onDidChangeTreeData: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
@@ -75,7 +69,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }
             }
         }
-        if (serverModel.ModelUtils.isStudent(CurrentUser.userinfo)) {
+        if (CurrentUser.isLoggedIn() && serverModel.ModelUtils.isStudent(CurrentUser.getUserInfo())) {
             treeElements.unshift(this.GET_WITH_CODE_ITEM);
         }
         return treeElements;
@@ -94,7 +88,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 // Map exercises to TreeItems
                 let type: V4TItemType;
                 let commandName: string;
-                if (CurrentUser.userinfo && serverModel.ModelUtils.isTeacher(CurrentUser.userinfo)) {
+                if (CurrentUser.isLoggedIn() && serverModel.ModelUtils.isTeacher(CurrentUser.getUserInfo())) {
                     type = V4TItemType.ExerciseTeacher;
                     commandName = 'vscode4teaching.getstudentfiles';
                 } else {
@@ -113,7 +107,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     private getCourseButtons (): V4TItem[] {
-        if (!CurrentUser.userinfo) {
+        if (!CurrentUser.isLoggedIn()) {
             this.loading = true;
             CurrentUser.updateUserInfo().then(() => {
                 // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
@@ -127,7 +121,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             });
             return [];
         } else {
-            return this.getCourseButtonsWithUserinfo(CurrentUser.userinfo);
+            return this.getCourseButtonsWithUserinfo(CurrentUser.getUserInfo());
         }
     }
 
@@ -280,7 +274,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "exercises" in item.item) {
             try {
                 let newCourseName = await this.getInput('Course name', Validators.validateCourseName);
-                if (newCourseName && CurrentUser.userinfo && CurrentUser.userinfo.courses) {
+                if (newCourseName && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
                     await APIClient.editCourse(item.item.id, { name: newCourseName });
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
@@ -296,7 +290,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "exercises" in item.item) {
             try {
                 let selectedOption = await vscode.window.showWarningMessage('Are you sure you want to delete ' + item.item.name + '?', { modal: true }, 'Accept');
-                if ((selectedOption === 'Accept') && CurrentUser.userinfo && CurrentUser.userinfo.courses) {
+                if ((selectedOption === 'Accept') && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
                     await APIClient.deleteCourse(item.item.id);
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
@@ -451,7 +445,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (code) {
                 APIClient.getCourseWithCode(code).then(response => {
                     let course: serverModel.Course = response.data;
-                    let userinfo = CurrentUser.userinfo;
+                    let userinfo = CurrentUser.getUserInfo();
                     if (userinfo && !userinfo.courses) {
                         userinfo.courses = [course];
                     } else if (userinfo && userinfo.courses) {

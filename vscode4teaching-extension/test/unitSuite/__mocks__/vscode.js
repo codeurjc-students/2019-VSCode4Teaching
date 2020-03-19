@@ -5,19 +5,9 @@ const WorkspaceFolder = {}
 
 const ExtensionContext = {}
 
-const TreeItem = jest.fn().mockImplementation(() => {
+const TreeItem = jest.fn().mockImplementation(() => { });
 
-});
-
-const EventEmitter = jest.fn().mockImplementation(() => {
-
-})
-
-const languages = {
-    createDiagnosticCollection: jest.fn()
-};
-
-const StatusBarAlignment = {};
+const EventEmitter = jest.fn().mockImplementation(() => { })
 
 const window = {
     registerTreeDataProvider: jest.fn(),
@@ -26,7 +16,8 @@ const window = {
     })),
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
-    createTextEditorDecorationType: jest.fn()
+    showInformationMessage: jest.fn(),
+    setStatusBarMessage: jest.fn()
 };
 
 const workspace = {
@@ -39,22 +30,11 @@ const workspace = {
     onDidSaveTextDocument: jest.fn()
 };
 
-const OverviewRulerLane = {
-    Left: null
-};
-
 const Uri = {
     file: f => f,
     parse: jest.fn()
 };
 const Range = jest.fn();
-const Diagnostic = jest.fn();
-const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
-
-const debug = {
-    onDidTerminateDebugSession: jest.fn(),
-    startDebugging: jest.fn()
-};
 
 const commands = {
     registerCommand: jest.fn(),
@@ -67,6 +47,7 @@ const vscode = {
     TreeItem,
     EventEmitter,
     Uri,
+    Range,
     window,
     workspace,
     commands

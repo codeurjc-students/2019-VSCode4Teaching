@@ -6,10 +6,10 @@ import { Course, Exercise, User } from '../../src/model/serverModel/ServerModel'
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import { UserPick } from '../../src/components/courses/CoursesTreeProvider';
+import { UserPick } from '../../src/components/courses/UserPick';
 import { APIClient } from "../../src/client/APIClient";
 import { Validators } from '../../src/model/Validators';
-import { CurrentUser } from '../../src/model/CurrentUser';
+import { CurrentUser } from '../../src/client/CurrentUser';
 import JSZip = require('jszip');
 
 
@@ -114,19 +114,19 @@ export async function run (): Promise<void> {
 	// 	assert.deepStrictEqual(mockLogin.lastCall.args, ["johndoe", "password", "http://test.com"], "apiClient should login with the credentials above");
 	// });
 
-	test('get login button (get children, not logged in)', () => {
-		let expectedButtonLogin = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-			"command": "vscode4teaching.login",
-			"title": "Log in to VS Code 4 Teaching"
-		});
+	// test('get login button (get children, not logged in)', () => {
+	// 	let expectedButtonLogin = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
+	// 		"command": "vscode4teaching.login",
+	// 		"title": "Log in to VS Code 4 Teaching"
+	// 	});
 
-		let loginButtons = extension.coursesProvider.getChildren();
-		if (loginButtons instanceof Array) {
-			assert.deepStrictEqual(loginButtons[0], expectedButtonLogin);
-		} else {
-			assert.fail("loginButton is not an array");
-		}
-	});
+	// 	let loginButtons = extension.coursesProvider.getChildren();
+	// 	if (loginButtons instanceof Array) {
+	// 		assert.deepStrictEqual(loginButtons[0], expectedButtonLogin);
+	// 	} else {
+	// 		assert.fail("loginButton is not an array");
+	// 	}
+	// });
 
 	// test('get courses (get children, logged in)', () => {
 

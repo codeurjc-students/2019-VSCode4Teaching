@@ -3,7 +3,7 @@ import { Validators } from '../../src/model/Validators';
 
 describe('Validators', () => {
     it('should validate URL', () => {
-        assert.deepStrictEqual(Validators.validateUrl("http://localhost:8080"), undefined, "http://localhost:8080");
+        expect(Validators.validateUrl("http://localhost:8080")).toBeUndefined();
         assert.deepStrictEqual(Validators.validateUrl("http://localhost:3000"), undefined, "http://localhost:3000");
         assert.deepStrictEqual(Validators.validateUrl("http://192.168.99.100:8080"), undefined, "http://192.168.99.100:8080");
         assert.deepStrictEqual(Validators.validateUrl("http://1.2.4.3"), undefined, "http://1.2.4.3");

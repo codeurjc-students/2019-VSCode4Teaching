@@ -11,7 +11,7 @@ import { FileIgnoreUtil } from './utils/FileIgnoreUtil';
 import { TeacherCommentService, NoteComment } from './services/TeacherCommentsService';
 import { Dictionary } from './model/Dictionary';
 import * as mkdirp from 'mkdirp';
-import { CurrentUser } from './model/CurrentUser';
+import { CurrentUser } from './client/CurrentUser';
 import { FileZipUtil } from './utils/FileZipUtil';
 
 export let coursesProvider = new CoursesProvider();
@@ -101,18 +101,19 @@ export function activate (context: vscode.ExtensionContext) {
 	});
 
 	let createComment = vscode.commands.registerCommand('vscode4teaching.createComment', (reply: vscode.CommentReply) => {
-		if (commentProvider && coursesProvider && CurrentUser.userinfo) {
+		if (commentProvider && coursesProvider && CurrentUser.isLoggedIn()) {
 			let filePath = reply.thread.uri.fsPath;
 			let separator = path.sep;
-			let currentUsername = CurrentUser.userinfo.username;
+			let currentUser = CurrentUser.getUserInfo();
+			let currentUsername = currentUser.username;
 			let teacherRelativePath = filePath.split(separator + currentUsername + separator)[1];
 			let teacherRelativePathSplit = teacherRelativePath.split(separator);
 			let exerciseName = teacherRelativePathSplit[1];
 			// If teacher use username from student, else use own
-			let currentUserIsTeacher = ModelUtils.isTeacher(CurrentUser.userinfo);
+			let currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
 			let username = currentUserIsTeacher ? teacherRelativePathSplit[2] : currentUsername;
 
-			let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username, ".fileInfo", exerciseName, username + ".json");
+			let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, currentUser.username, ".fileInfo", exerciseName, username + ".json");
 			let fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
 			let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
 			let fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
@@ -186,15 +187,16 @@ export function initializeExtension (cwds: ReadonlyArray<vscode.WorkspaceFolder>
 					// Exercise id is in the name of the zip file
 					let zipSplit = zipUri.split(path.sep);
 					let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-					if (!commentProvider && CurrentUser.userinfo) {
-						commentProvider = new TeacherCommentService(CurrentUser.userinfo.username);
+					if (!commentProvider && CurrentUser.isLoggedIn()) {
+						commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
 					}
-					if (commentProvider && CurrentUser.userinfo) {
+					if (commentProvider && CurrentUser.isLoggedIn()) {
 						commentProvider.addCwd(cwd);
 						// Download comments
 						if (cwd.name !== "template") {
-							let currentUserIsTeacher = ModelUtils.isTeacher(CurrentUser.userinfo);
-							let username: string = currentUserIsTeacher ? cwd.name : CurrentUser.userinfo.username;
+							let currentUser = CurrentUser.getUserInfo();
+							let currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
+							let username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
 							commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
 							setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
 						}
@@ -296,8 +298,8 @@ function getSingleStudentExerciseFiles (courseName: string, exercise: Exercise) 
 		if (newWorkspaceURI) {
 			let uri = vscode.Uri.file(newWorkspaceURI);
 			// Get file info for id references
-			if (coursesProvider && CurrentUser.userinfo) {
-				let username = CurrentUser.userinfo.username;
+			if (coursesProvider && CurrentUser.isLoggedIn()) {
+				let username = CurrentUser.getUserInfo().username;
 				let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
 				getFilesInfo(exercise, fileInfoPath, [username]);
 			}
@@ -319,9 +321,9 @@ function getMultipleStudentExerciseFiles (courseName: string, exercise: Exercise
 			let directories = fs.readdirSync(newWorkspaceURIs[1], { withFileTypes: true })
 				.filter(dirent => dirent.isDirectory());
 			// Get file info for id references
-			if (coursesProvider && CurrentUser.userinfo) {
+			if (coursesProvider && CurrentUser.isLoggedIn()) {
 				let usernames = directories.filter(dirent => !dirent.name.includes("template")).map(dirent => dirent.name);
-				let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.userinfo.username, ".fileInfo", exercise.name);
+				let fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.getUserInfo().username, ".fileInfo", exercise.name);
 				getFilesInfo(exercise, fileInfoPath, usernames);
 			}
 			let subdirectoriesURIs = directories.map(dirent => {

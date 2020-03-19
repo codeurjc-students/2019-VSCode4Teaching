@@ -57,14 +57,14 @@ export interface FileInfo {
 }
 
 export class ModelUtils {
-    static isStudent (user?: User) {
+    static isStudent (user: User) {
         if (user) {
             return user.roles.filter(role => role.roleName === "ROLE_STUDENT").length > 0 && user.roles.length === 1;
         } else {
             return false;
         }
     }
-    static isTeacher (user?: User) {
+    static isTeacher (user: User) {
         if (user) {
             return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
         } else {
