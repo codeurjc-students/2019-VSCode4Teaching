@@ -11,31 +11,28 @@ import { CurrentUser } from './CurrentUser';
 
 export namespace APIClient {
 
-    export var baseUrl: string | undefined;
-    export var jwtToken: string | undefined;
-    export var xsrfToken: string | undefined;
+    let baseUrl: string | undefined;
+    let jwtToken: string | undefined;
+    let xsrfToken: string | undefined;
     export const sessionPath = path.resolve(__dirname, '..', 'v4t', 'v4tsession');
-    var error401thrown = false;
-    var error403thrown = false;
+    let error401thrown = false;
+    let error403thrown = false;
 
     // Session methods
-
-    /**
-     * Checks if user is logged in (User info exists)
-     */
-    export function isLoggedIn () {
-        return CurrentUser.isLoggedIn();
-    }
 
     /**
      * Initialize session variables with file created when logging in
      */
     export function initializeSessionCredentials () {
-        let readSession = fs.readFileSync(sessionPath).toString();
-        let sessionParts = readSession.split('\n');
-        jwtToken = sessionParts[0];
-        xsrfToken = sessionParts[1];
-        baseUrl = sessionParts[2];
+        if (fs.existsSync(sessionPath)) {
+            let readSession = fs.readFileSync(sessionPath).toString();
+            let sessionParts = readSession.split('\n');
+            jwtToken = sessionParts[0];
+            xsrfToken = sessionParts[1];
+            baseUrl = sessionParts[2];
+        } else {
+            throw Error('No session saved');
+        }
     }
 
     /**
@@ -70,11 +67,10 @@ export namespace APIClient {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 error401thrown = true;
                 invalidateSession();
-                CoursesProvider.triggerTreeReload();
             } else if (error.response.status === 403 && !error403thrown) {
+                getXSRFToken();
                 vscode.window.showWarningMessage('Something went wrong, please try again.');
                 error403thrown = true;
-                getXSRFToken();
             } else {
                 let msg = error.response.data;
                 if (error.response.data instanceof Object) {
@@ -105,6 +101,7 @@ export namespace APIClient {
         xsrfToken = undefined;
         CurrentUser.resetUserInfo();
         baseUrl = undefined;
+        CoursesProvider.triggerTreeReload();
     }
 
     /**
@@ -167,7 +164,7 @@ export namespace APIClient {
         }
     }
 
-    // Server calling methods
+    // Server calling methods (actions)
 
     function login (username: string, password: string): AxiosPromise<{ jwtToken: string }> {
         const data = {

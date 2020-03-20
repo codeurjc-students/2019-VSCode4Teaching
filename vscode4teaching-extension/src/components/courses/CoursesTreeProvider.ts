@@ -53,7 +53,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 return this.getExerciseButtons(element);
             } else {
                 // If not logged add login button, else show courses
-                if (!APIClient.isLoggedIn()) {
+                if (!CurrentUser.isLoggedIn()) {
                     try {
                         if (fs.existsSync(APIClient.sessionPath)) {
                             APIClient.initializeSessionCredentials();
@@ -239,7 +239,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     logout () {
         APIClient.invalidateSession();
-        CoursesProvider._onDidChangeTreeData.fire();
     }
 
     private getExercises (item: V4TItem, course: serverModel.Course) {
@@ -303,7 +302,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     refreshCourses () {
-        if (APIClient.isLoggedIn()) {
+        if (CurrentUser.isLoggedIn()) {
             // If not logged refresh shouldn't do anything
             CurrentUser.updateUserInfo().then(() => {
                 CoursesProvider.triggerTreeReload();

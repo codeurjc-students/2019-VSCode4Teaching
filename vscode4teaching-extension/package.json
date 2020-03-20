@@ -283,6 +283,7 @@
 		"integrationTest": "",
 		"_integrationTest": "node ./out/test/runTest.js",
 		"unitTest": "jest",
+		"coverage": "jest --coverage",
 		"release": "vsce package --baseContentUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/ --baseImagesUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/"
 	},
 	"devDependencies": {
