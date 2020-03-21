@@ -29,8 +29,8 @@ export interface Course {
     exercises: Exercise[];
 }
 
-export function instanceOfCourse (object: any): object is Course {
-    return 'id' in object && 'name' in object && 'exercises' in object;
+export function instanceOfCourse(object: any): object is Course {
+    return "id" in object && "name" in object && "exercises" in object;
 }
 
 export interface CourseEdit {
@@ -57,16 +57,16 @@ export interface FileInfo {
 }
 
 export class ModelUtils {
-    static isStudent (user: User) {
+    public static isStudent(user: User) {
         if (user) {
-            return user.roles.filter(role => role.roleName === "ROLE_STUDENT").length > 0 && user.roles.length === 1;
+            return user.roles.filter((role) => role.roleName === "ROLE_STUDENT").length > 0 && user.roles.length === 1;
         } else {
             return false;
         }
     }
-    static isTeacher (user: User) {
+    public static isTeacher(user: User) {
         if (user) {
-            return user.roles.filter(role => role.roleName === "ROLE_TEACHER").length > 0;
+            return user.roles.filter((role) => role.roleName === "ROLE_TEACHER").length > 0;
         } else {
             return false;
         }

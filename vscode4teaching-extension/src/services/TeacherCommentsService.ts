@@ -1,65 +1,54 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { ServerComment, ServerCommentThread } from '../model/serverModel/CommentServerModel';
+import * as path from "path";
+import * as vscode from "vscode";
 import { APIClient } from "../client/APIClient";
-
-let commentId = 1;
+import { ServerComment, ServerCommentThread } from "../model/serverModel/CommentServerModel";
+import { NoteComment } from "./NoteComment";
 
 export class TeacherCommentService {
-    readonly commentController: vscode.CommentController;
+    public readonly commentController: vscode.CommentController;
     private cwds: vscode.WorkspaceFolder[] = [];
     // Key: server id, value: thread
     private threads: Map<number, vscode.CommentThread> = new Map();
+    private client = APIClient.getClient();
     constructor(private author: string) {
         this.commentController = vscode.comments.createCommentController("teacherComments", "Teacher comments");
         this.commentController.commentingRangeProvider = {
             provideCommentingRanges: (document: vscode.TextDocument, token: vscode.CancellationToken) => {
                 // If document isn't in workspace don't allow comments
                 return this.isValidDocument(document) ? [new vscode.Range(0, 0, document.lineCount - 1, 0)] : [];
-            }
+            },
         };
     }
 
-    private isValidDocument (document: vscode.TextDocument) {
-        let relPath: string = "";
-        for (let cwd of this.cwds) {
-            relPath = path.relative(cwd.uri.fsPath, document.fileName);
-            if (relPath.length !== 0 && cwd.name !== "template" && !document.fileName.includes("v4texercise.v4t")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    addCwd (cwd: vscode.WorkspaceFolder) {
+    public addCwd(cwd: vscode.WorkspaceFolder) {
         if (!this.cwds.includes(cwd)) {
             this.cwds.push(cwd);
         }
     }
 
-    dispose () {
+    public dispose() {
         this.commentController.dispose();
     }
 
-    replyNote (reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
-        let thread = reply.thread;
-        let markdownText = new vscode.MarkdownString(reply.text);
+    public replyNote(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
+        const thread = reply.thread;
+        const markdownText = new vscode.MarkdownString(reply.text);
         vscode.workspace.openTextDocument(reply.thread.uri).then((textDoc: vscode.TextDocument) => {
-            let lineText = textDoc.lineAt(thread.range.start.line).text;
-            let newComment = new NoteComment(markdownText, vscode.CommentMode.Preview, { name: this.author }, lineText);
+            const lineText = textDoc.lineAt(thread.range.start.line).text;
+            const newComment = new NoteComment(markdownText, vscode.CommentMode.Preview, { name: this.author }, lineText);
             thread.comments = [...thread.comments, newComment];
-            let serverCommentThread: ServerCommentThread = {
+            const serverCommentThread: ServerCommentThread = {
                 line: thread.range.start.line,
-                lineText: lineText,
-                comments: thread.comments.map(comment => {
-                    let serverComment: ServerComment = {
+                lineText,
+                comments: thread.comments.map((comment) => {
+                    const serverComment: ServerComment = {
                         author: this.author,
-                        body: comment.body instanceof vscode.MarkdownString ? comment.body.value : comment.body
+                        body: comment.body instanceof vscode.MarkdownString ? comment.body.value : comment.body,
                     };
                     return serverComment;
-                })
+                }),
             };
-            APIClient.saveComment(fileId, serverCommentThread).then(response => {
+            this.client.saveComment(fileId, serverCommentThread).then((response) => {
                 if (response.data.id) {
                     this.threads.set(response.data.id, thread);
                 }
@@ -69,14 +58,14 @@ export class TeacherCommentService {
         });
     }
 
-    getThreads (exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
-        APIClient.getAllComments(username, exerciseId).then((response => {
+    public getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
+        this.client.getAllComments(username, exerciseId).then(((response) => {
             if (response.data) {
-                let fileInfoArray = response.data;
-                for (let fileInfo of fileInfoArray) {
+                const fileInfoArray = response.data;
+                for (const fileInfo of fileInfoArray) {
                     if (fileInfo.comments) {
-                        for (let commentThread of fileInfo.comments) {
-                            let uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
+                        for (const commentThread of fileInfo.comments) {
+                            const uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
                             vscode.workspace.openTextDocument(uri).then((textDoc: vscode.TextDocument) => {
                                 this.createThreadFromServer(commentThread, textDoc);
                             });
@@ -89,26 +78,9 @@ export class TeacherCommentService {
         });
     }
 
-    private createThreadFromServer (commentThread: ServerCommentThread, textDoc: vscode.TextDocument) {
-        let lineText = textDoc.lineAt(commentThread.line).text;
-        if (commentThread.comments && lineText.trim() === commentThread.lineText.trim()) {
-            let comments = commentThread.comments.map(comment => new NoteComment(
-                new vscode.MarkdownString(comment.body), vscode.CommentMode.Preview, { name: comment.author }, lineText
-            ));
-            let newThread = this.commentController.createCommentThread(
-                textDoc.uri,
-                new vscode.Range(commentThread.line, 0, commentThread.line, 0),
-                comments
-            );
-            if (commentThread.id) {
-                this.threads.set(commentThread.id, newThread);
-            }
-        }
-    }
-
-    getFileCommentThreads (uri: vscode.Uri) {
-        let fileThreads: [number, vscode.CommentThread][] = [];
-        for (let thread of this.threads) {
+    public getFileCommentThreads(uri: vscode.Uri) {
+        const fileThreads: Array<[number, vscode.CommentThread]> = [];
+        for (const thread of this.threads) {
             if (uri.fsPath === thread[1].uri.fsPath) {
                 fileThreads.push(thread);
             }
@@ -116,28 +88,43 @@ export class TeacherCommentService {
         return fileThreads;
     }
 
-    updateThreadLine (threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
-        APIClient.updateCommentThreadLine(threadId, line, lineText).then(response => {
-            let commentThread = response.data;
-            let oldThread = this.threads.get(threadId);
+    public updateThreadLine(threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
+        this.client.updateCommentThreadLine(threadId, line, lineText).then((response) => {
+            const commentThread = response.data;
+            const oldThread = this.threads.get(threadId);
             if (oldThread) {
                 oldThread.range = new vscode.Range(commentThread.line, 0, commentThread.line, 0);
             }
-        }).catch(error => {
+        }).catch((error) => {
             errorCallback(error);
         });
     }
-}
 
-export class NoteComment implements vscode.Comment {
-    id: number;
-    label: string | undefined;
-    constructor(
-        public body: string | vscode.MarkdownString,
-        public mode: vscode.CommentMode,
-        public author: vscode.CommentAuthorInformation,
-        public lineText: string
-    ) {
-        this.id = ++commentId;
+    private isValidDocument(document: vscode.TextDocument) {
+        let relPath: string = "";
+        for (const cwd of this.cwds) {
+            relPath = path.relative(cwd.uri.fsPath, document.fileName);
+            if (relPath.length !== 0 && cwd.name !== "template" && !document.fileName.includes("v4texercise.v4t")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private createThreadFromServer(commentThread: ServerCommentThread, textDoc: vscode.TextDocument) {
+        const lineText = textDoc.lineAt(commentThread.line).text;
+        if (commentThread.comments && lineText.trim() === commentThread.lineText.trim()) {
+            const comments = commentThread.comments.map((comment) => new NoteComment(
+                new vscode.MarkdownString(comment.body), vscode.CommentMode.Preview, { name: comment.author }, lineText,
+            ));
+            const newThread = this.commentController.createCommentThread(
+                textDoc.uri,
+                new vscode.Range(commentThread.line, 0, commentThread.line, 0),
+                comments,
+            );
+            if (commentThread.id) {
+                this.threads.set(commentThread.id, newThread);
+            }
+        }
     }
 }

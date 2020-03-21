@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { Course, Exercise } from '../../model/serverModel/ServerModel';
-import * as path from 'path';
+import * as path from "path";
+import * as vscode from "vscode";
+import { Course, Exercise } from "../../model/serverModel/ServerModel";
 
 export class V4TItem extends vscode.TreeItem {
 
@@ -10,49 +10,49 @@ export class V4TItem extends vscode.TreeItem {
         readonly collapsibleState: vscode.TreeItemCollapsibleState,
         readonly parent?: V4TItem,
         readonly item?: Course | Exercise,
-        readonly command?: vscode.Command
+        readonly command?: vscode.Command,
     ) {
         super(label, collapsibleState);
     }
 
-    get iconPath () {
-        let resourcesPath = path.join(__filename, '..', '..', '..', 'resources');
+    get iconPath() {
+        const resourcesPath = path.join(__filename, "..", "..", "..", "resources");
         switch (this.type) {
             case V4TItemType.Login: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'login.svg'),
-                    dark: path.join(resourcesPath, 'dark', 'login.svg')
+                    light: path.join(resourcesPath, "light", "login.svg"),
+                    dark: path.join(resourcesPath, "dark", "login.svg"),
                 };
             }
             case V4TItemType.AddCourse: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'add.svg'),
-                    dark: path.join(resourcesPath, 'dark', 'add.svg')
+                    light: path.join(resourcesPath, "light", "add.svg"),
+                    dark: path.join(resourcesPath, "dark", "add.svg"),
                 };
             }
             case V4TItemType.GetWithCode: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'link.png'),
-                    dark: path.join(resourcesPath, 'dark', 'link.png')
+                    light: path.join(resourcesPath, "light", "link.png"),
+                    dark: path.join(resourcesPath, "dark", "link.png"),
                 };
             }
             case V4TItemType.Signup: // fall through case below
             case V4TItemType.SignupTeacher: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'add_user.svg'),
-                    dark: path.join(resourcesPath, 'dark', 'add_user.svg')
+                    light: path.join(resourcesPath, "light", "add_user.svg"),
+                    dark: path.join(resourcesPath, "dark", "add_user.svg"),
                 };
             }
             case V4TItemType.Logout: {
                 return {
-                    light: path.join(resourcesPath, 'light', 'logout.svg'),
-                    dark: path.join(resourcesPath, 'dark', 'logout.svg')
+                    light: path.join(resourcesPath, "light", "logout.svg"),
+                    dark: path.join(resourcesPath, "dark", "logout.svg"),
                 };
             }
         }
     }
 
-    get contextValue () {
+    get contextValue() {
         return this.type.toString();
     }
 }
@@ -69,5 +69,5 @@ export enum V4TItemType {
     NoCourses = "nocourses",
     NoExercises = "noexercises",
     Signup = "signup",
-    SignupTeacher = "signupteacher"
+    SignupTeacher = "signupteacher",
 }

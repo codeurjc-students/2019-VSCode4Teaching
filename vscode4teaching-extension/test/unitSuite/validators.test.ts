@@ -1,8 +1,8 @@
-import * as assert from 'assert';
-import { Validators } from '../../src/model/Validators';
+import * as assert from "assert";
+import { Validators } from "../../src/model/Validators";
 
-describe('Validators', () => {
-    it('should validate URL', () => {
+describe("Validators", () => {
+    it("should validate URL", () => {
         expect(Validators.validateUrl("http://localhost:8080")).toBeUndefined();
         assert.deepStrictEqual(Validators.validateUrl("http://localhost:3000"), undefined, "http://localhost:3000");
         assert.deepStrictEqual(Validators.validateUrl("http://192.168.99.100:8080"), undefined, "http://192.168.99.100:8080");

@@ -1,57 +1,57 @@
-import axios, { AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import * as serverModel from '../model/serverModel/ServerModel';
-import * as FormData from 'form-data';
-import { ServerCommentThread } from '../model/serverModel/CommentServerModel';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as vscode from 'vscode';
-import { CoursesProvider } from '../components/courses/CoursesTreeProvider';
-import * as mkdirp from 'mkdirp';
-import { CurrentUser } from './CurrentUser';
+import axios, { AxiosPromise, AxiosRequestConfig, Method } from "axios";
+import * as FormData from "form-data";
+import * as fs from "fs";
+import * as mkdirp from "mkdirp";
+import * as path from "path";
+import * as vscode from "vscode";
+import { CoursesProvider } from "../components/courses/CoursesTreeProvider";
+import { ServerCommentThread } from "../model/serverModel/CommentServerModel";
+import * as serverModel from "../model/serverModel/ServerModel";
+import { CurrentUser } from "./CurrentUser";
+interface BuildOptions {
+    url: string;
+    method: Method;
+    responseType: "arraybuffer" | "json";
+    data?: FormData | any;
+}
 
-export namespace APIClient {
+export class APIClient {
 
-    let baseUrl: string | undefined;
-    let jwtToken: string | undefined;
-    let xsrfToken: string | undefined;
-    export const sessionPath = path.resolve(__dirname, '..', 'v4t', 'v4tsession');
-    let error401thrown = false;
-    let error403thrown = false;
+    // APIClient is a singleton
+    public static getClient() {
+        if (!APIClient.instance) {
+            APIClient.instance = new APIClient();
+        }
+        return APIClient.instance;
+    }
 
+    private static instance: APIClient | undefined;
+    public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
+    private baseUrl: string | undefined;
+    private jwtToken: string | undefined;
+    private xsrfToken: string | undefined;
+    private error401thrown = false;
+    private error403thrown = false;
+
+    private constructor() { }
     // Session methods
+
+    /**
+     * Checks if user is logged in (User info exists)
+     */
+    public isLoggedIn() {
+        return CurrentUser.isLoggedIn();
+    }
 
     /**
      * Initialize session variables with file created when logging in
      */
-    export function initializeSessionCredentials () {
-        if (fs.existsSync(sessionPath)) {
-            let readSession = fs.readFileSync(sessionPath).toString();
-            let sessionParts = readSession.split('\n');
-            jwtToken = sessionParts[0];
-            xsrfToken = sessionParts[1];
-            baseUrl = sessionParts[2];
-        } else {
-            throw Error('No session saved');
-        }
-    }
-
-    /**
-     * Gets XSRF Token from server
-     */
-    async function getXSRFToken () {
-        let response = await createRequest('/api/csrf', 'GET', false, 'Fetching server info...');
-        let cookiesString: string | undefined = response.headers['set-cookie'][0];
-        if (cookiesString) {
-            let cookies = cookiesString.split(';');
-            let xsrfCookie = cookies.find(cookie => cookie.includes('XSRF-TOKEN'));
-            if (xsrfCookie) {
-                xsrfToken = xsrfCookie.split('=')[1];
-            } else {
-                throw Error('XSRF Token not received');
-            }
-        } else {
-            throw Error('XSRF Token not received');
-        }
+    public initializeSessionCredentials() {
+        const readSession = fs.readFileSync(this.sessionPath).toString();
+        const sessionParts = readSession.split("\n");
+        this.jwtToken = sessionParts[0];
+        this.xsrfToken = sessionParts[1];
+        this.baseUrl = sessionParts[2];
     }
 
     /**
@@ -61,47 +61,47 @@ export namespace APIClient {
      * Else or if a previous error repeated itself it will output it in an error prompt and invalidate session
      * @param error Error
      */
-    export function handleAxiosError (error: any) {
+    public handleAxiosError(error: any) {
         if (error.response) {
-            if (error.response.status === 401 && !error401thrown) {
+            if (error.response.status === 401 && !this.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
-                error401thrown = true;
-                invalidateSession();
-            } else if (error.response.status === 403 && !error403thrown) {
-                getXSRFToken();
-                vscode.window.showWarningMessage('Something went wrong, please try again.');
-                error403thrown = true;
+                this.error401thrown = true;
+                this.invalidateSession();
+                CoursesProvider.triggerTreeReload();
+            } else if (error.response.status === 403 && !this.error403thrown) {
+                vscode.window.showWarningMessage("Something went wrong, please try again.");
+                this.error403thrown = true;
+                this.getXSRFToken();
             } else {
                 let msg = error.response.data;
                 if (error.response.data instanceof Object) {
                     msg = JSON.stringify(error.response.data);
                 }
-                vscode.window.showErrorMessage('Error ' + error.response.status + '. ' + msg);
-                error401thrown = false;
-                error403thrown = false;
-                invalidateSession();
+                vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
+                this.error401thrown = false;
+                this.error403thrown = false;
+                this.invalidateSession();
             }
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
-            invalidateSession();
+            this.invalidateSession();
         } else {
             vscode.window.showErrorMessage(error.message);
-            invalidateSession();
+            this.invalidateSession();
         }
     }
 
     /**
      * Invalidates current session and deletes session file
      */
-    export function invalidateSession () {
-        if (fs.existsSync(sessionPath)) {
-            fs.unlinkSync(sessionPath);
+    public invalidateSession() {
+        if (fs.existsSync(this.sessionPath)) {
+            fs.unlinkSync(this.sessionPath);
         }
-        jwtToken = undefined;
-        xsrfToken = undefined;
+        this.jwtToken = undefined;
+        this.xsrfToken = undefined;
         CurrentUser.resetUserInfo();
-        baseUrl = undefined;
-        CoursesProvider.triggerTreeReload();
+        this.baseUrl = undefined;
     }
 
     /**
@@ -112,25 +112,25 @@ export namespace APIClient {
      * @param password Password
      * @param url Server URL
      */
-    export async function loginV4T (username: string, password: string, url?: string) {
+    public async loginV4T(username: string, password: string, url?: string) {
         try {
             if (url) {
-                invalidateSession();
-                baseUrl = url;
+                this.invalidateSession();
+                this.baseUrl = url;
             }
-            await getXSRFToken();
-            let response = await login(username, password);
-            vscode.window.showInformationMessage('Logged in');
-            jwtToken = response.data['jwtToken'];
-            let v4tPath = path.resolve(sessionPath, '..');
+            await this.getXSRFToken();
+            const response = await this.login(username, password);
+            vscode.window.showInformationMessage("Logged in");
+            this.jwtToken = response.data.jwtToken;
+            const v4tPath = path.resolve(this.sessionPath, "..");
             if (!fs.existsSync(v4tPath)) {
                 mkdirp.sync(v4tPath);
             }
-            fs.writeFileSync(sessionPath, jwtToken + '\n' + xsrfToken + '\n' + baseUrl);
+            fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken + "\n" + this.baseUrl);
             await CurrentUser.updateUserInfo();
             CoursesProvider.triggerTreeReload();
         } catch (error) {
-            handleAxiosError(error);
+            this.handleAxiosError(error);
         }
     }
 
@@ -140,185 +140,362 @@ export namespace APIClient {
      * @param url Server URL. Ignored if trying to sign up a teacher.
      * @param isTeacher Sign up as teacher (or not)
      */
-    export async function signUpV4T (userCredentials: serverModel.UserSignup, url?: string, isTeacher?: boolean) {
+    public async signUpV4T(userCredentials: serverModel.UserSignup, url?: string, isTeacher?: boolean) {
         try {
             if (url && !isTeacher) {
-                invalidateSession();
-                baseUrl = url;
-                await getXSRFToken();
+                this.invalidateSession();
+                this.baseUrl = url;
+                await this.getXSRFToken();
             }
             let signupThenable;
             if (isTeacher) {
-                signupThenable = signUpTeacher(userCredentials);
+                signupThenable = this.signUpTeacher(userCredentials);
             } else {
-                signupThenable = signUp(userCredentials);
+                signupThenable = this.signUp(userCredentials);
             }
             await signupThenable;
             if (isTeacher) {
-                vscode.window.showInformationMessage('Teacher signed up successfully.');
+                vscode.window.showInformationMessage("Teacher signed up successfully.");
             } else {
-                vscode.window.showInformationMessage('Signed up. Please log in.');
+                vscode.window.showInformationMessage("Signed up. Please log in.");
             }
         } catch (error) {
-            handleAxiosError(error);
+            this.handleAxiosError(error);
         }
     }
 
-    // Server calling methods (actions)
+    public getServerUserInfo(): AxiosPromise<serverModel.User> {
+        const options: BuildOptions = {
+            url: "/api/currentuser",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching user data...");
+    }
 
-    function login (username: string, password: string): AxiosPromise<{ jwtToken: string }> {
+    public getExercises(courseId: number): AxiosPromise<serverModel.Exercise[]> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + courseId + "/exercises",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching exercises...");
+    }
+
+    public getExerciseFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
+        const options: BuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/files",
+            method: "GET",
+            responseType: "arraybuffer",
+        };
+        return this.createRequest(options, "Downloading exercise files...");
+    }
+
+    public addCourse(data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
+        const options: BuildOptions = {
+            url: "/api/courses",
+            method: "POST",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Creating course...");
+    }
+
+    public editCourse(id: number, data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
+        const options: BuildOptions = {
+            url: "/api/courses" + id,
+            method: "PUT",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Editing course...");
+    }
+
+    public deleteCourse(id: number): AxiosPromise<void> {
+        const options: BuildOptions = {
+            url: "/api/courses" + id,
+            method: "DELETE",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Deleting course...");
+    }
+
+    public addExercise(id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + id + "/exercises",
+            method: "POST",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Adding exercise...");
+    }
+
+    public editExercise(id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
+        const options: BuildOptions = {
+            url: "/api/exercises/" + id,
+            method: "PUT",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Sending exercise info...");
+    }
+
+    public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
+        const dataForm = new FormData();
+        dataForm.append("file", data, { filename: "template.zip" });
+        const options: BuildOptions = {
+            url: "/api/exercises/" + id + "/files/template",
+            method: "POST",
+            responseType: "json",
+            data: dataForm,
+        };
+        return this.createRequest(options, "Uploading template...");
+    }
+
+    public deleteExercise(id: number): AxiosPromise<void> {
+        const options: BuildOptions = {
+            url: "/api/exercises/" + id,
+            method: "DELETE",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Deleting exercise...");
+    }
+
+    public getAllUsers(): AxiosPromise<serverModel.User[]> {
+        const options: BuildOptions = {
+            url: "/api/users",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching user data...");
+    }
+
+    public getUsersInCourse(courseId: number): AxiosPromise<serverModel.User[]> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + courseId + "/users",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching user data...");
+    }
+
+    public addUsersToCourse(courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + courseId + "/users",
+            method: "POST",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Adding users to course...");
+    }
+
+    public removeUsersFromCourse(courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + courseId + "/users",
+            method: "DELETE",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Removing users from course...");
+    }
+
+    public getCreator(courseId: number): AxiosPromise<serverModel.User> {
+        const options: BuildOptions = {
+            url: "/api/courses/" + courseId + "/creator",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Uploading files...");
+    }
+
+    public uploadFiles(exerciseId: number, data: Buffer): AxiosPromise<any> {
+        const dataForm = new FormData();
+        dataForm.append("file", data, { filename: "template.zip" });
+        const options: BuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/files",
+            method: "POST",
+            responseType: "json",
+            data: dataForm,
+        };
+        return this.createRequest(options, "Uploading files...");
+    }
+
+    public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
+        const options: BuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/teachers/files",
+            method: "GET",
+            responseType: "arraybuffer",
+        };
+        return this.createRequest(options, "Downloading student files...");
+    }
+
+    public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
+        const options: BuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/files/template",
+            method: "GET",
+            responseType: "arraybuffer",
+        };
+        return this.createRequest(options, "Downloading exercise template...");
+    }
+
+    public getFilesInfo(username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[]> {
+        const options: BuildOptions = {
+            url: "/api/users/" + username + "/exercises/" + exerciseId + "/files",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching file information...");
+    }
+
+    public saveComment(fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
+        const options: BuildOptions = {
+            url: "/api/files/" + fileId + "/comments",
+            method: "POST",
+            responseType: "json",
+            data: commentThread,
+        };
+        return this.createRequest(options, "Fetching comments...");
+    }
+
+    public getComments(fileId: number): AxiosPromise<ServerCommentThread[] | void> {
+        const options: BuildOptions = {
+            url: "/api/files/" + fileId + "/comments",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching comments...");
+    }
+
+    public getAllComments(username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[] | void> {
+        const options: BuildOptions = {
+            url: "/api/users/" + username + "/exercises/" + exerciseId + "/comments",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching comments...");
+    }
+
+    public getSharingCode(element: serverModel.Course | serverModel.Exercise): AxiosPromise<string> {
+        const typeOfUrl = serverModel.instanceOfCourse(element) ? "courses/" : "exercises/";
+        const options: BuildOptions = {
+            url: "/api/" + typeOfUrl + element.id + "/code",
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching sharing code...");
+    }
+
+    public updateCommentThreadLine(id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
         const data = {
-            'username': username,
-            'password': password
+            line,
+            lineText,
         };
-        return createRequest('/api/login', 'POST', false, 'Logging in to VS Code 4 Teaching...', data);
-    }
-
-    export function getServerUserInfo (): AxiosPromise<serverModel.User> {
-        return createRequest('/api/currentuser', 'GET', false, 'Fetching user data...');
-    }
-
-    export function getExercises (courseId: number): AxiosPromise<serverModel.Exercise[]> {
-        return createRequest('/api/courses/' + courseId + '/exercises', 'GET', false, 'Fetching exercises...');
-    }
-
-    export function getExerciseFiles (exerciseId: number): AxiosPromise<ArrayBuffer> {
-        return createRequest('/api/exercises/' + exerciseId + '/files', 'GET', true, 'Downloading exercise files...');
-    }
-
-    export function addCourse (data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
-        return createRequest('/api/courses', 'POST', false, 'Creating course...', data);
-    }
-
-    export function editCourse (id: number, data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
-        return createRequest('/api/courses/' + id, 'PUT', false, 'Editing course...', data);
-    }
-
-    export function deleteCourse (id: number): AxiosPromise<void> {
-        return createRequest('/api/courses/' + id, 'DELETE', false, 'Deleting course...');
-    }
-
-    export function addExercise (id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
-        return createRequest('/api/courses/' + id + '/exercises', 'POST', false, 'Adding exercise...', data);
-    }
-
-    export function editExercise (id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
-        return createRequest('/api/exercises/' + id, 'PUT', false, 'Sending exercise info...', data);
-    }
-
-    export function uploadExerciseTemplate (id: number, data: Buffer): AxiosPromise<any> {
-        let dataForm = new FormData();
-        dataForm.append('file', data, { filename: 'template.zip' });
-        return createRequest('/api/exercises/' + id + '/files/template', 'POST', false, 'Uploading template...', dataForm);
-    }
-
-    export function deleteExercise (id: number): AxiosPromise<void> {
-        return createRequest('/api/exercises/' + id, 'DELETE', false, 'Deleting exercise...');
-    }
-
-    export function getAllUsers (): AxiosPromise<serverModel.User[]> {
-        return createRequest('/api/users', 'GET', false, 'Fetching user data...');
-    }
-
-    export function getUsersInCourse (courseId: number): AxiosPromise<serverModel.User[]> {
-        return createRequest('/api/courses/' + courseId + '/users', 'GET', false, 'Fetching user data...');
-    }
-
-    export function addUsersToCourse (courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
-        return createRequest('/api/courses/' + courseId + '/users', 'POST', false, 'Adding users to course...', data);
-    }
-
-    export function removeUsersFromCourse (courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
-        return createRequest('/api/courses/' + courseId + '/users', 'DELETE', false, 'Removing users from course...', data);
-    }
-
-    export function getCreator (courseId: number): AxiosPromise<serverModel.User> {
-        return createRequest('/api/courses/' + courseId + '/creator', 'GET', false, 'Uploading files...');
-    }
-
-    export function uploadFiles (exerciseId: number, data: Buffer): AxiosPromise<any> {
-        let dataForm = new FormData();
-        dataForm.append('file', data, { filename: 'template.zip' });
-        return createRequest('/api/exercises/' + exerciseId + '/files', 'POST', false, 'Uploading files...', dataForm);
-    }
-
-    export function getAllStudentFiles (exerciseId: number): AxiosPromise<ArrayBuffer> {
-        return createRequest('/api/exercises/' + exerciseId + '/teachers/files', 'GET', true, 'Downloading student files...');
-    }
-
-    export function getTemplate (exerciseId: number): AxiosPromise<ArrayBuffer> {
-        return createRequest('/api/exercises/' + exerciseId + '/files/template', 'GET', true, 'Downloading exercise template...');
-    }
-
-    export function getFilesInfo (username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[]> {
-        return createRequest('/api/users/' + username + '/exercises/' + exerciseId + '/files', 'GET', false, 'Fetching file information...');
-    }
-
-    export function saveComment (fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
-        return createRequest('/api/files/' + fileId + '/comments', 'POST', false, 'Fetching comments...', commentThread);
-    }
-
-    export function getComments (fileId: number): AxiosPromise<ServerCommentThread[] | void> {
-        return createRequest('/api/files/' + fileId + '/comments', 'GET', false, 'Fetching comments...');
-    }
-
-    export function getAllComments (username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[] | void> {
-        return createRequest('/api/users/' + username + '/exercises/' + exerciseId + '/comments', 'GET', false, 'Fetching comments...');
-    }
-
-    export function getSharingCode (element: serverModel.Course | serverModel.Exercise): AxiosPromise<string> {
-        let typeOfUrl = serverModel.instanceOfCourse(element) ? 'courses/' : 'exercises/';
-        return createRequest('/api/' + typeOfUrl + element.id + '/code', 'GET', false, 'Fetching sharing code...');
-    }
-
-    export function updateCommentThreadLine (id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
-        let data = {
-            line: line,
-            lineText: lineText
+        const options: BuildOptions = {
+            url: "/api/comments/" + id + "/lines",
+            method: "PUT",
+            responseType: "json",
+            data,
         };
-        return createRequest('/api/comments/' + id + '/lines', 'PUT', false, 'Saving comments...', data);
+        return this.createRequest(options, "Saving comments...");
     }
 
-    export function getCourseWithCode (code: string): AxiosPromise<serverModel.Course> {
-        return createRequest('/api/courses/code/' + code, 'GET', false, 'Fetching course data...');
+    public getCourseWithCode(code: string): AxiosPromise<serverModel.Course> {
+        const options: BuildOptions = {
+            url: "/api/courses/code/" + code,
+            method: "GET",
+            responseType: "json",
+        };
+        return this.createRequest(options, "Fetching course data...");
     }
 
-    export function signUp (credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
-        return createRequest('/api/register', 'POST', false, 'Signing up to VS Code 4 Teaching...', credentials);
+    public signUp(credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
+        const options: BuildOptions = {
+            url: "/api/register",
+            method: "POST",
+            responseType: "json",
+            data: credentials,
+        };
+        return this.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
-    export function signUpTeacher (credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
-        return createRequest('/api/teachers/register', 'POST', false, 'Signing teacher up to VS Code 4 Teaching...', credentials);
+    public signUpTeacher(credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
+        const options: BuildOptions = {
+            url: "/api/teachers/register",
+            method: "POST",
+            responseType: "json",
+            data: credentials,
+        };
+        return this.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
     }
 
-    function createRequest (url: string, method: Method, expectArrayBuffer: boolean, statusMessage: string, data?: FormData | any): AxiosPromise<any> {
-        let thenable = axios(buildOptions(url, method, expectArrayBuffer, data));
+    /**
+     * Gets XSRF Token from server
+     */
+    private async getXSRFToken() {
+        const options: BuildOptions = {
+            url: "/api/csrf",
+            method: "GET",
+            responseType: "json",
+        };
+        const response = await this.createRequest(options, "Fetching server info...");
+        const cookiesString: string | undefined = response.headers["set-cookie"][0];
+        if (cookiesString) {
+            const cookies = cookiesString.split(";");
+            const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));
+            if (xsrfCookie) {
+                this.xsrfToken = xsrfCookie.split("=")[1];
+            } else {
+                throw Error("XSRF Token not received");
+            }
+        } else {
+            throw Error("XSRF Token not received");
+        }
+    }
+
+    // Server calling methods
+
+    private login(username: string, password: string): AxiosPromise<{ jwtToken: string }> {
+        const data = {
+            username,
+            password,
+        };
+        const options: BuildOptions = {
+            url: "/api/login",
+            method: "POST",
+            responseType: "json",
+            data,
+        };
+        return this.createRequest(options, "Logging in to VS Code 4 Teaching...");
+    }
+
+    private createRequest(options: BuildOptions, statusMessage: string): AxiosPromise<any> {
+        const thenable = axios(this.buildOptions(options));
         vscode.window.setStatusBarMessage(statusMessage, thenable);
         return thenable;
     }
 
-    function buildOptions (url: string, method: Method, responseIsArrayBuffer: boolean, data?: FormData | any): AxiosRequestConfig {
-        let options: AxiosRequestConfig = {
-            url: url,
-            baseURL: baseUrl,
-            method: method,
-            data: data,
+    private buildOptions(options: BuildOptions): AxiosRequestConfig {
+        const axiosConfig: AxiosRequestConfig = {
+            url: options.url,
+            baseURL: this.baseUrl,
+            method: options.method,
+            data: options.data,
             headers: {
             },
-            responseType: responseIsArrayBuffer ? 'arraybuffer' : 'json',
-            maxContentLength: Infinity
+            responseType: options.responseType,
+            maxContentLength: Infinity,
         };
-        if (jwtToken) {
-            Object.assign(options.headers, { 'Authorization': 'Bearer ' + jwtToken });
+        if (this.jwtToken) {
+            Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
         }
-        if (xsrfToken) {
-            Object.assign(options.headers, { 'X-XSRF-TOKEN': xsrfToken });
-            Object.assign(options.headers, { 'Cookie': 'XSRF-TOKEN=' + xsrfToken });
+        if (this.xsrfToken) {
+            Object.assign(axiosConfig.headers, { "X-XSRF-TOKEN": this.xsrfToken });
+            Object.assign(axiosConfig.headers, { Cookie: "XSRF-TOKEN=" + this.xsrfToken });
         }
-        if (data instanceof FormData) {
-            Object.assign(options.headers, data.getHeaders());
+        if (options.data instanceof FormData) {
+            Object.assign(axiosConfig.headers, options.data.getHeaders());
         }
-        return options;
+        return axiosConfig;
     }
 
 }
