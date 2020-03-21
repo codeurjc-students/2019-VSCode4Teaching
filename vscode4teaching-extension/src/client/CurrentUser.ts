@@ -1,4 +1,5 @@
-import { Course, User } from "../model/serverModel/ServerModel";
+
+import { User } from "../model/serverModel/user/User";
 import { APIClient } from "./APIClient";
 
 export class CurrentUser {
@@ -7,7 +8,7 @@ export class CurrentUser {
         // Errors have to be controlled in the caller function
         const userResponse = await CurrentUser.client.getServerUserInfo();
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
-            userResponse.data.courses.forEach((course: Course) => {
+            userResponse.data.courses.forEach((course) => {
                 if (!course.exercises) {
                     course.exercises = [];
                 }

@@ -9,7 +9,6 @@ import { CurrentUser } from "../../src/client/CurrentUser";
 import { UserPick } from "../../src/components/courses/UserPick";
 import { V4TItem, V4TItemType } from "../../src/components/courses/V4TItem";
 import * as extension from "../../src/extension";
-import { Course, Exercise, User } from "../../src/model/serverModel/ServerModel";
 import { Validators } from "../../src/model/Validators";
 
 export async function run(): Promise<void> {

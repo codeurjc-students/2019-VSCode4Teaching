@@ -5,9 +5,17 @@ import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
 import { CoursesProvider } from "../components/courses/CoursesTreeProvider";
-import { ServerCommentThread } from "../model/serverModel/CommentServerModel";
-import * as serverModel from "../model/serverModel/ServerModel";
+import { ServerCommentThread } from "../model/serverModel/comment/ServerCommentThread";
+import { Course, instanceOfCourse } from "../model/serverModel/course/Course";
+import { CourseEdit } from "../model/serverModel/course/CourseEdit";
+import { ManageCourseUsers } from "../model/serverModel/course/ManageCourseUsers";
+import { Exercise } from "../model/serverModel/exercise/Exercise";
+import { ExerciseEdit } from "../model/serverModel/exercise/ExerciseEdit";
+import { FileInfo } from "../model/serverModel/file/FileInfo";
+import { User } from "../model/serverModel/user/User";
+import { UserSignup } from "../model/serverModel/user/UserSignup";
 import { CurrentUser } from "./CurrentUser";
+
 interface BuildOptions {
     url: string;
     method: Method;
@@ -140,7 +148,7 @@ export class APIClient {
      * @param url Server URL. Ignored if trying to sign up a teacher.
      * @param isTeacher Sign up as teacher (or not)
      */
-    public async signUpV4T(userCredentials: serverModel.UserSignup, url?: string, isTeacher?: boolean) {
+    public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
         try {
             if (url && !isTeacher) {
                 this.invalidateSession();
@@ -164,7 +172,7 @@ export class APIClient {
         }
     }
 
-    public getServerUserInfo(): AxiosPromise<serverModel.User> {
+    public getServerUserInfo(): AxiosPromise<User> {
         const options: BuildOptions = {
             url: "/api/currentuser",
             method: "GET",
@@ -173,7 +181,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching user data...");
     }
 
-    public getExercises(courseId: number): AxiosPromise<serverModel.Exercise[]> {
+    public getExercises(courseId: number): AxiosPromise<Exercise[]> {
         const options: BuildOptions = {
             url: "/api/courses/" + courseId + "/exercises",
             method: "GET",
@@ -191,7 +199,7 @@ export class APIClient {
         return this.createRequest(options, "Downloading exercise files...");
     }
 
-    public addCourse(data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
+    public addCourse(data: CourseEdit): AxiosPromise<Course> {
         const options: BuildOptions = {
             url: "/api/courses",
             method: "POST",
@@ -201,7 +209,7 @@ export class APIClient {
         return this.createRequest(options, "Creating course...");
     }
 
-    public editCourse(id: number, data: serverModel.CourseEdit): AxiosPromise<serverModel.Course> {
+    public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
         const options: BuildOptions = {
             url: "/api/courses" + id,
             method: "PUT",
@@ -220,7 +228,7 @@ export class APIClient {
         return this.createRequest(options, "Deleting course...");
     }
 
-    public addExercise(id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
+    public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         const options: BuildOptions = {
             url: "/api/courses/" + id + "/exercises",
             method: "POST",
@@ -230,7 +238,7 @@ export class APIClient {
         return this.createRequest(options, "Adding exercise...");
     }
 
-    public editExercise(id: number, data: serverModel.ExerciseEdit): AxiosPromise<serverModel.Exercise> {
+    public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
         const options: BuildOptions = {
             url: "/api/exercises/" + id,
             method: "PUT",
@@ -261,7 +269,7 @@ export class APIClient {
         return this.createRequest(options, "Deleting exercise...");
     }
 
-    public getAllUsers(): AxiosPromise<serverModel.User[]> {
+    public getAllUsers(): AxiosPromise<User[]> {
         const options: BuildOptions = {
             url: "/api/users",
             method: "GET",
@@ -270,7 +278,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching user data...");
     }
 
-    public getUsersInCourse(courseId: number): AxiosPromise<serverModel.User[]> {
+    public getUsersInCourse(courseId: number): AxiosPromise<User[]> {
         const options: BuildOptions = {
             url: "/api/courses/" + courseId + "/users",
             method: "GET",
@@ -279,7 +287,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching user data...");
     }
 
-    public addUsersToCourse(courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
+    public addUsersToCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         const options: BuildOptions = {
             url: "/api/courses/" + courseId + "/users",
             method: "POST",
@@ -289,7 +297,7 @@ export class APIClient {
         return this.createRequest(options, "Adding users to course...");
     }
 
-    public removeUsersFromCourse(courseId: number, data: serverModel.ManageCourseUsers): AxiosPromise<serverModel.Course> {
+    public removeUsersFromCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
         const options: BuildOptions = {
             url: "/api/courses/" + courseId + "/users",
             method: "DELETE",
@@ -299,7 +307,7 @@ export class APIClient {
         return this.createRequest(options, "Removing users from course...");
     }
 
-    public getCreator(courseId: number): AxiosPromise<serverModel.User> {
+    public getCreator(courseId: number): AxiosPromise<User> {
         const options: BuildOptions = {
             url: "/api/courses/" + courseId + "/creator",
             method: "GET",
@@ -338,7 +346,7 @@ export class APIClient {
         return this.createRequest(options, "Downloading exercise template...");
     }
 
-    public getFilesInfo(username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[]> {
+    public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
         const options: BuildOptions = {
             url: "/api/users/" + username + "/exercises/" + exerciseId + "/files",
             method: "GET",
@@ -366,7 +374,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching comments...");
     }
 
-    public getAllComments(username: string, exerciseId: number): AxiosPromise<serverModel.FileInfo[] | void> {
+    public getAllComments(username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
         const options: BuildOptions = {
             url: "/api/users/" + username + "/exercises/" + exerciseId + "/comments",
             method: "GET",
@@ -375,8 +383,8 @@ export class APIClient {
         return this.createRequest(options, "Fetching comments...");
     }
 
-    public getSharingCode(element: serverModel.Course | serverModel.Exercise): AxiosPromise<string> {
-        const typeOfUrl = serverModel.instanceOfCourse(element) ? "courses/" : "exercises/";
+    public getSharingCode(element: Course | Exercise): AxiosPromise<string> {
+        const typeOfUrl = instanceOfCourse(element) ? "courses/" : "exercises/";
         const options: BuildOptions = {
             url: "/api/" + typeOfUrl + element.id + "/code",
             method: "GET",
@@ -399,7 +407,7 @@ export class APIClient {
         return this.createRequest(options, "Saving comments...");
     }
 
-    public getCourseWithCode(code: string): AxiosPromise<serverModel.Course> {
+    public getCourseWithCode(code: string): AxiosPromise<Course> {
         const options: BuildOptions = {
             url: "/api/courses/code/" + code,
             method: "GET",
@@ -408,7 +416,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching course data...");
     }
 
-    public signUp(credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
+    public signUp(credentials: UserSignup): AxiosPromise<User> {
         const options: BuildOptions = {
             url: "/api/register",
             method: "POST",
@@ -418,7 +426,7 @@ export class APIClient {
         return this.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
-    public signUpTeacher(credentials: serverModel.UserSignup): AxiosPromise<serverModel.User> {
+    public signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
         const options: BuildOptions = {
             url: "/api/teachers/register",
             method: "POST",

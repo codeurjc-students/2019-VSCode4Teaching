@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
 import { CurrentUser } from "../../src/client/CurrentUser";
 import { CoursesProvider } from "../../src/components/courses/CoursesTreeProvider";
-import { UserSignup } from "../../src/model/serverModel/ServerModel";
+import { UserSignup } from "../../src/model/serverModel/user/UserSignup";
 
 jest.mock("axios");
 const mockedAxios = mocked(axios, false);

@@ -1,7 +1,8 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../client/APIClient";
-import { ServerComment, ServerCommentThread } from "../model/serverModel/CommentServerModel";
+import { ServerComment } from "../model/serverModel/comment/ServerComment";
+import { ServerCommentThread } from "../model/serverModel/comment/ServerCommentThread";
 import { NoteComment } from "./NoteComment";
 
 export class TeacherCommentService {

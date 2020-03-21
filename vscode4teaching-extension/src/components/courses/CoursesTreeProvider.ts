@@ -3,7 +3,12 @@ import * as fs from "fs";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { CurrentUser } from "../../client/CurrentUser";
-import * as serverModel from "../../model/serverModel/ServerModel";
+import { Course, instanceOfCourse } from "../../model/serverModel/course/Course";
+import { ManageCourseUsers } from "../../model/serverModel/course/ManageCourseUsers";
+import { Exercise } from "../../model/serverModel/exercise/Exercise";
+import { ModelUtils } from "../../model/serverModel/ModelUtils";
+import { User } from "../../model/serverModel/user/User";
+import { UserSignup } from "../../model/serverModel/user/UserSignup";
 import { Validators } from "../../model/Validators";
 import { FileZipUtil } from "../../utils/FileZipUtil";
 import { UserPick } from "./UserPick";
@@ -74,7 +79,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 }
             }
         }
-        if (CurrentUser.isLoggedIn() && serverModel.ModelUtils.isStudent(CurrentUser.getUserInfo())) {
+        if (CurrentUser.isLoggedIn() && ModelUtils.isStudent(CurrentUser.getUserInfo())) {
             treeElements.unshift(this.GET_WITH_CODE_ITEM);
         }
         return treeElements;
@@ -102,7 +107,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         const serverInputOptions: vscode.InputBoxOptions = { prompt: "Server", value: defaultServer };
         serverInputOptions.validateInput = Validators.validateUrl;
         let url: string;
-        let userCredentials: serverModel.UserSignup = {
+        let userCredentials: UserSignup = {
             username: "",
             password: "",
             email: "",
@@ -218,13 +223,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     public refreshExercises(item: V4TItem) {
-        if (item.item && serverModel.instanceOfCourse(item.item)) {
+        if (item.item && instanceOfCourse(item.item)) {
             this.getExercises(item, item.item);
         }
     }
 
     public async addExercise(item: V4TItem) {
-        if (item.item && serverModel.instanceOfCourse(item.item)) {
+        if (item.item && instanceOfCourse(item.item)) {
             const name = await this.getInput("Exercise name", Validators.validateExerciseName);
             if (name) {
                 const fileUris = await vscode.window.showOpenDialog({
@@ -234,7 +239,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 });
                 if (fileUris) {
                     const zipContent = await FileZipUtil.getZipFromUris(fileUris);
-                    const course: serverModel.Course = item.item;
+                    const course: Course = item.item;
                     try {
                         const addExerciseData = await this.client.addExercise(course.id, { name });
                         try {
@@ -289,10 +294,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && "exercises" in item.item) {
             try {
                 const usersResponse = await this.client.getAllUsers();
-                const users: serverModel.User[] = usersResponse.data;
+                const users: User[] = usersResponse.data;
                 const courseUsersResponse = await this.client.getUsersInCourse(item.item.id);
                 const courseUsers = courseUsersResponse.data;
-                const showArray = users.filter((user) => courseUsers.filter((courseUser: serverModel.User) => courseUser.id === user.id).length === 0)
+                const showArray = users.filter((user) => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
                     .map((user) => {
                         return this.dontBelongToCourse(user);
                     });
@@ -308,9 +313,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 const courseUsersResponse = await this.client.getUsersInCourse(item.item.id);
                 const creatorResponse = await this.client.getCreator(item.item.id);
-                const creator: serverModel.User = creatorResponse.data;
+                const creator: User = creatorResponse.data;
                 const courseUsers = courseUsersResponse.data;
-                const showArray = courseUsers.filter((user: serverModel.User) => user.id !== creator.id).map((user: serverModel.User) => {
+                const showArray = courseUsers.filter((user: User) => user.id !== creator.id).map((user: User) => {
                     return this.dontBelongToCourse(user);
                 });
                 await this.manageUsersFromCourse(showArray, item, this.client.removeUsersFromCourse, "Removing users from course...");
@@ -324,7 +329,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         this.getInput("Introduce sharing code", Validators.validateSharingCode).then((code) => {
             if (code) {
                 this.client.getCourseWithCode(code).then((response) => {
-                    const course: serverModel.Course = response.data;
+                    const course: Course = response.data;
                     const userinfo = CurrentUser.getUserInfo();
                     if (userinfo && !userinfo.courses) {
                         userinfo.courses = [course];
@@ -346,12 +351,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         });
     }
 
-    public async getExerciseFiles(courseName: string, exercise: serverModel.Exercise) {
+    public async getExerciseFiles(courseName: string, exercise: Exercise) {
         const zipInfo = FileZipUtil.exerciseZipInfo(courseName, exercise);
         return FileZipUtil.filesFromZip(zipInfo, this.client.getExerciseFiles(exercise.id));
     }
 
-    public async getStudentFiles(courseName: string, exercise: serverModel.Exercise) {
+    public async getStudentFiles(courseName: string, exercise: Exercise) {
         const studentZipInfo = FileZipUtil.studentZipInfo(courseName, exercise);
         const templateZipInfo = FileZipUtil.templateZipInfo(courseName, exercise);
         return Promise.all([
@@ -362,14 +367,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private getExerciseButtons(element: V4TItem): V4TItem[] {
         const course = element.item;
-        if (course && serverModel.instanceOfCourse(course)) {
+        if (course && instanceOfCourse(course)) {
             this.getExercises(element, course);
             // If exercises were downloaded previously show them, else get them from server
             if (course.exercises.length > 0) {
                 // Map exercises to TreeItems
                 let type: V4TItemType;
                 let commandName: string;
-                if (CurrentUser.isLoggedIn() && serverModel.ModelUtils.isTeacher(CurrentUser.getUserInfo())) {
+                if (CurrentUser.isLoggedIn() && ModelUtils.isTeacher(CurrentUser.getUserInfo())) {
                     type = V4TItemType.ExerciseTeacher;
                     commandName = "vscode4teaching.getstudentfiles";
                 } else {
@@ -406,9 +411,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         }
     }
 
-    private getCourseButtonsWithUserinfo(userinfo: serverModel.User) {
+    private getCourseButtonsWithUserinfo(userinfo: User) {
         if (userinfo.courses) {
-            const isTeacher = serverModel.ModelUtils.isTeacher(userinfo);
+            const isTeacher = ModelUtils.isTeacher(userinfo);
             let type: V4TItemType;
             type = isTeacher ? V4TItemType.CourseTeacher : V4TItemType.CourseStudent;
             // From courses create buttons
@@ -420,7 +425,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     title: "Add Course",
                 }));
             }
-            if (serverModel.ModelUtils.isTeacher(userinfo)) {
+            if (ModelUtils.isTeacher(userinfo)) {
                 items.push(this.SIGNUP_TEACHER_ITEM);
             }
             items.push(this.LOGOUT_ITEM);
@@ -443,7 +448,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         return vscode.window.showInputBox(inputOptions);
     }
 
-    private getExercises(item: V4TItem, course: serverModel.Course) {
+    private getExercises(item: V4TItem, course: Course) {
         const exercisesThenable = this.client.getExercises(course.id);
         exercisesThenable.then((response) => {
             if (course) {
@@ -456,15 +461,15 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     }
 
-    private dontBelongToCourse(user: serverModel.User) {
+    private dontBelongToCourse(user: User) {
         let displayName = user.name && user.lastName ? user.name + " " + user.lastName : user.username;
-        if (serverModel.ModelUtils.isTeacher(user)) {
+        if (ModelUtils.isTeacher(user)) {
             displayName += " (Teacher)";
         }
         return new UserPick(displayName, user);
     }
 
-    private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem, thenableFunction: ((id: number, data: serverModel.ManageCourseUsers) => AxiosPromise), thenableMessage: string) {
+    private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem, thenableFunction: ((id: number, data: ManageCourseUsers) => AxiosPromise), thenableMessage: string) {
         if (item.item && "exercises" in item.item) {
             // Show users that don't belong to the course already
             if (showArray.length > 0) {

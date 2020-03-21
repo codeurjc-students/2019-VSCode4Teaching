@@ -5,7 +5,8 @@ import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
 import { CurrentUser } from "../client/CurrentUser";
-import { Exercise, ModelUtils } from "../model/serverModel/ServerModel";
+import { Exercise } from "../model/serverModel/exercise/Exercise";
+import { ModelUtils } from "../model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "../model/V4TExerciseFile";
 import { FileIgnoreUtil } from "./FileIgnoreUtil";
 export interface ZipInfo {
