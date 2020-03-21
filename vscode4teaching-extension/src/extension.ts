@@ -1,17 +1,21 @@
-import * as vscode from 'vscode';
-import { CoursesProvider } from './coursesTreeProvider/coursesTreeProvider';
-import { Exercise, FileInfo, ModelUtils } from './model/serverModel';
-import { V4TItem } from './coursesTreeProvider/v4titem';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as JSZip from 'jszip';
-import { V4TExerciseFile } from './model/v4texerciseFile';
-import { FileIgnoreUtil } from './fileIgnoreUtil';
-import { TeacherCommentProvider, NoteComment } from './teacherComments';
-import { Dictionary } from './model/dictionary';
-import { RestClient } from './restClient';
-import * as mkdirp from 'mkdirp';
-import { AxiosResponse } from 'axios';
+import * as fs from "fs";
+import * as JSZip from "jszip";
+import * as mkdirp from "mkdirp";
+import * as path from "path";
+import * as vscode from "vscode";
+import { APIClient } from "./client/APIClient";
+import { CurrentUser } from "./client/CurrentUser";
+import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
+import { V4TItem } from "./components/courses/V4TItem";
+import { Dictionary } from "./model/Dictionary";
+import { Exercise } from "./model/serverModel/exercise/Exercise";
+import { FileInfo } from "./model/serverModel/file/FileInfo";
+import { ModelUtils } from "./model/serverModel/ModelUtils";
+import { V4TExerciseFile } from "./model/V4TExerciseFile";
+import { NoteComment } from "./services/NoteComment";
+import { TeacherCommentService } from "./services/TeacherCommentsService";
+import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
+import { FileZipUtil } from "./utils/FileZipUtil";
 
 export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
@@ -173,29 +177,30 @@ export function createNewCoursesProvider() {
 }
 
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
-    let checkedUris: string[] = [];
+    const checkedUris: string[] = [];
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
-        let parentDir = path.resolve(cwd.uri.fsPath, '..');
+        const parentDir = path.resolve(cwd.uri.fsPath, "..");
         if (!checkedUris.includes(parentDir)) {
-            vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, '**/v4texercise.v4t'), null, 1).then(uris => {
+            vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, "**/v4texercise.v4t"), null, 1).then((uris) => {
                 checkedUris.push(parentDir);
                 if (uris.length > 0) {
-                    let v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
+                    const v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
                     // Zip Uri should be in the text file
-                    let zipUri = path.resolve(v4tjson.zipLocation);
+                    const zipUri = path.resolve(v4tjson.zipLocation);
                     // Exercise id is in the name of the zip file
-                    let zipSplit = zipUri.split(path.sep);
-                    let exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-                    if (!commentProvider && client.userinfo) {
-                        commentProvider = new TeacherCommentProvider(client.userinfo.username);
+                    const zipSplit = zipUri.split(path.sep);
+                    const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
+                    if (!commentProvider && CurrentUser.isLoggedIn()) {
+                        commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
                     }
-                    if (commentProvider && client.userinfo) {
+                    if (commentProvider && CurrentUser.isLoggedIn()) {
                         commentProvider.addCwd(cwd);
                         // Download comments
                         if (cwd.name !== "template") {
-                            let currentUserIsTeacher = ModelUtils.isTeacher(client.userinfo);
-                            let username: string = currentUserIsTeacher ? cwd.name : client.userinfo.username;
+                            const currentUser = CurrentUser.getUserInfo();
+                            const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
+                            const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
                             commentProvider.getThreads(exerciseId, username, cwd, client.handleAxiosError);
                             setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, client.handleAxiosError);
                         }
@@ -205,7 +210,7 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                         // Template should be the same in the workspace
                         templates[cwd.name] = v4tjson.template;
                     }
-                    let jszipFile = new JSZip();
+                    const jszipFile = new JSZip();
                     if (!v4tjson.teacher && fs.existsSync(zipUri)) {
                         setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
                     }
@@ -218,10 +223,10 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
 
 // Set File System Watcher and comment events
 function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri: string, exerciseId: number) {
-    let ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
+    const ignoredFiles: string[] = FileIgnoreUtil.recursiveReadGitIgnores(cwd.uri.fsPath);
     jszipFile.loadAsync(fs.readFileSync(zipUri));
-    let pattern = new vscode.RelativePattern(cwd, "**/*");
-    let fsw = vscode.workspace.createFileSystemWatcher(pattern);
+    const pattern = new vscode.RelativePattern(cwd, "**/*");
+    const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     fsw.onDidChange((e: vscode.Uri) => {
         updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
     });
@@ -233,17 +238,17 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
             let filePath = path.resolve(e.fsPath);
             filePath = path.relative(cwd.uri.fsPath, filePath);
             jszipFile.remove(filePath);
-            let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-            vscode.window.setStatusBarMessage("Uploading files...", thenable);
-            thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
-                .catch(err => client.handleAxiosError(err));
+            const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+            vscode.window.setStatusBarMessage("Compressing files...", thenable);
+            thenable.then((zipData) => client.uploadFiles(exerciseId, zipData))
+                .catch((err) => client.handleAxiosError(err));
         }
     });
 
     vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
         if (commentProvider && commentProvider.getFileCommentThreads(e.document.uri).length > 0) {
             vscode.window.showWarningMessage(
-                "If you write over a line with comments, the comments could be deleted next time you open VS Code."
+                "If you write over a line with comments, the comments could be deleted next time you open VS Code.",
             );
         }
     });
@@ -261,10 +266,10 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
             if (!filePath.includes("v4texercise.v4t")) {
                 if (err) { throw (err); }
                 jszipFile.file(filePath, data);
-                let thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-                vscode.window.setStatusBarMessage("Uploading files...", thenable);
-                thenable.then(zipData => client.uploadFiles(exerciseId, zipData))
-                    .catch(axiosError => client.handleAxiosError(axiosError));
+                const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+                vscode.window.setStatusBarMessage("Compressing files...", thenable);
+                thenable.then((zipData) => client.uploadFiles(exerciseId, zipData))
+                    .catch((axiosError) => client.handleAxiosError(axiosError));
             }
         });
     }
@@ -272,17 +277,17 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
 
 function checkCommentLineChanges(document: vscode.TextDocument) {
     if (commentProvider) {
-        let fileThreads = commentProvider.getFileCommentThreads(document.uri);
-        for (let thread of fileThreads) {
-            let docText = document.getText();
-            let docTextSeparatedByLines = docText.split(/\r?\n/);
-            let threadLine = thread[1].range.start.line;
-            let threadLineText = (<NoteComment>thread[1].comments[0]).lineText;
+        const fileThreads = commentProvider.getFileCommentThreads(document.uri);
+        for (const thread of fileThreads) {
+            const docText = document.getText();
+            const docTextSeparatedByLines = docText.split(/\r?\n/);
+            const threadLine = thread[1].range.start.line;
+            const threadLineText = (thread[1].comments[0] as NoteComment).lineText;
             if (docTextSeparatedByLines[threadLine].trim() !== threadLineText.trim()) {
                 for (let i = 0; i < docTextSeparatedByLines.length; i++) {
-                    let line = docTextSeparatedByLines[i];
+                    const line = docTextSeparatedByLines[i];
                     if (threadLineText.trim() === line.trim()) {
-                        let threadId = thread[0];
+                        const threadId = thread[0];
                         commentProvider.updateThreadLine(threadId, i, line, client.handleAxiosError);
                         break;
                     }
@@ -290,4 +295,67 @@ function checkCommentLineChanges(document: vscode.TextDocument) {
             }
         }
     }
+}
+
+function getSingleStudentExerciseFiles(courseName: string, exercise: Exercise) {
+    coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
+        if (newWorkspaceURI) {
+            const uri = vscode.Uri.file(newWorkspaceURI);
+            // Get file info for id references
+            if (coursesProvider && CurrentUser.isLoggedIn()) {
+                const username = CurrentUser.getUserInfo().username;
+                const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
+                getFilesInfo(exercise, fileInfoPath, [username]);
+            }
+            vscode.workspace.updateWorkspaceFolders(0,
+                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+                { uri, name: exercise.name });
+            currentCwds = vscode.workspace.workspaceFolders;
+            if (currentCwds) {
+                initializeExtension(currentCwds);
+            }
+        }
+    });
+}
+
+function getMultipleStudentExerciseFiles(courseName: string, exercise: Exercise) {
+    coursesProvider.getStudentFiles(courseName, exercise).then(async (newWorkspaceURIs) => {
+        if (newWorkspaceURIs && newWorkspaceURIs[1]) {
+            const wsURI: string = newWorkspaceURIs[1];
+            const directories = fs.readdirSync(newWorkspaceURIs[1], { withFileTypes: true })
+                .filter((dirent) => dirent.isDirectory());
+            // Get file info for id references
+            if (coursesProvider && CurrentUser.isLoggedIn()) {
+                const usernames = directories.filter((dirent) => !dirent.name.includes("template")).map((dirent) => dirent.name);
+                const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, CurrentUser.getUserInfo().username, ".fileInfo", exercise.name);
+                getFilesInfo(exercise, fileInfoPath, usernames);
+            }
+            const subdirectoriesURIs = directories.map((dirent) => {
+                return {
+                    uri: vscode.Uri.file(path.resolve(wsURI, dirent.name)),
+                };
+            });
+            // open all student files and template
+            vscode.workspace.updateWorkspaceFolders(0,
+                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+                ...subdirectoriesURIs);
+            currentCwds = vscode.workspace.workspaceFolders;
+            if (currentCwds) {
+                initializeExtension(currentCwds);
+            }
+        }
+    });
+}
+
+function getFilesInfo(exercise: Exercise, fileInfoPath: string, usernames: string[]) {
+    if (!fs.existsSync(fileInfoPath)) {
+        mkdirp.sync(fileInfoPath);
+    }
+    usernames.forEach((username) => {
+        client.getFilesInfo(username, exercise.id).then(
+            (filesInfo) => {
+                fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
+            },
+        ).catch((error) => client.handleAxiosError(error));
+    });
 }
