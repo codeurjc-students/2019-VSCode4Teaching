@@ -49,8 +49,12 @@ Open the vscode4teaching-extension folder with VS Code and press F5. This will c
 
 ### Running tests
 
-Use the following command to run the tests:  
-`npm run test`
+Use the following command to run all tests:  
+`npm test`  
+For running only unit tests:  
+`npm run unitTest`  
+For running only integration tests:  
+`npm run integrationTest`  
 
 ## Features
 
