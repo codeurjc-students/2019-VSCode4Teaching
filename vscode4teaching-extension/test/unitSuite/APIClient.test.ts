@@ -40,7 +40,7 @@ function expectSessionInvalidated() {
     expect(fs.existsSync(session.sessionPath)).toBeFalsy();
 }
 
-describe("API Client", () => {
+describe("API Client and Session", () => {
     afterEach(() => {
         client.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");

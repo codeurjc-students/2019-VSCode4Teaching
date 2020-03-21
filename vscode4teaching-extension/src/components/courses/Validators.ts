@@ -1,3 +1,6 @@
+/**
+ * Validators for input boxes.
+ */
 export class Validators {
 
     public static validateUrl(value: string): string | undefined {

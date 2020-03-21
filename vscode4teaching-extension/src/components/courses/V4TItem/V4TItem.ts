@@ -1,8 +1,12 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { Course } from "../../model/serverModel/course/Course";
-import { Exercise } from "../../model/serverModel/exercise/Exercise";
+import { Course } from "../../../model/serverModel/course/Course";
+import { Exercise } from "../../../model/serverModel/exercise/Exercise";
+import { V4TItemType } from "./V4TItemType";
 
+/**
+ * Extended vscode.TreeItem with context value and iconPath overrides
+ */
 export class V4TItem extends vscode.TreeItem {
 
     constructor(
@@ -56,19 +60,4 @@ export class V4TItem extends vscode.TreeItem {
     get contextValue() {
         return this.type.toString();
     }
-}
-
-export enum V4TItemType {
-    Login = "login",
-    Logout = "logout",
-    GetWithCode = "getwithcode",
-    CourseTeacher = "courseteacher",
-    CourseStudent = "coursestudent",
-    ExerciseTeacher = "exerciseteacher",
-    ExerciseStudent = "exercisestudent",
-    AddCourse = "addcourse",
-    NoCourses = "nocourses",
-    NoExercises = "noexercises",
-    Signup = "signup",
-    SignupTeacher = "signupteacher",
 }

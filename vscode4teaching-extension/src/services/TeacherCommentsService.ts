@@ -60,6 +60,10 @@ export class TeacherCommentService {
     }
 
     public getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: ((error: any) => void)) {
+        let currentCommentThread: ServerCommentThread;
+        const callCreateThreadServer = (textDoc: vscode.TextDocument) => {
+            this.createThreadFromServer(currentCommentThread, textDoc);
+        };
         this.client.getAllComments(username, exerciseId).then(((response) => {
             if (response.data) {
                 const fileInfoArray = response.data;
@@ -67,9 +71,8 @@ export class TeacherCommentService {
                     if (fileInfo.comments) {
                         for (const commentThread of fileInfo.comments) {
                             const uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
-                            vscode.workspace.openTextDocument(uri).then((textDoc: vscode.TextDocument) => {
-                                this.createThreadFromServer(commentThread, textDoc);
-                            });
+                            currentCommentThread = commentThread;
+                            vscode.workspace.openTextDocument(uri).then(callCreateThreadServer);
                         }
                     }
                 }

@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { Validators } from "../../src/model/Validators";
+import { Validators } from "../../src/components/courses/Validators";
 
 describe("Validators", () => {
     it("should validate URL", () => {

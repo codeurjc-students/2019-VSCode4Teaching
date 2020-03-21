@@ -4,7 +4,7 @@ export class MockFile {
         this.text = text;
     }
 
-    toString () {
+    public toString() {
         return this.text;
     }
 }

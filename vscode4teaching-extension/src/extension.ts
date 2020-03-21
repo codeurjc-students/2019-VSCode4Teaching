@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
-import { V4TItem } from "./components/courses/V4TItem";
+import { V4TItem } from "./components/courses/V4TItem/V4TItem";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
 import { FileInfo } from "./model/serverModel/file/FileInfo";

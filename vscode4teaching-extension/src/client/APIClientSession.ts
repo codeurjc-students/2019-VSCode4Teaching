@@ -1,4 +1,4 @@
-import axios, { AxiosPromise, AxiosRequestConfig, Method } from "axios";
+import { AxiosRequestConfig } from "axios";
 import * as FormData from "form-data";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -6,6 +6,10 @@ import * as path from "path";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
 
+/**
+ * Manages session information and files (tokens, url).
+ * Thought to be used only by APIClient.
+ */
 export class APIClientSession {
 
     // APIClientSession is a singleton
@@ -51,10 +55,13 @@ export class APIClientSession {
         }
         this.jwtToken = undefined;
         this.xsrfToken = undefined;
-        CurrentUser.resetUserInfo();
         this.baseUrl = undefined;
+        CurrentUser.resetUserInfo();
     }
 
+    /**
+     * Creates file with session credentials. Can be retrieved using initializeSessionCredentials()
+     */
     public createSessionFile() {
         const v4tPath = path.resolve(this.sessionPath, "..");
         if (!fs.existsSync(v4tPath)) {
@@ -63,6 +70,10 @@ export class APIClientSession {
         fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken + "\n" + this.baseUrl);
     }
 
+    /**
+     * Based on options creates an axios configuration with authorization.
+     * @param options Axios build options from which to build the AxiosRequestConfig
+     */
     public buildOptions(options: AxiosBuildOptions): AxiosRequestConfig {
         const axiosConfig: AxiosRequestConfig = {
             url: options.url,

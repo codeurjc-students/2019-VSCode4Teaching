@@ -17,6 +17,7 @@ import { CurrentUser } from "./CurrentUser";
 
 export class APIClient {
 
+    // API Client is a singleton
     public static getClient() {
         if (!APIClient.instance) {
             APIClient.instance = new APIClient();
@@ -30,13 +31,118 @@ export class APIClient {
 
     private constructor() { }
 
+    /**
+     * Initialize session from file.
+     */
     public initializeSessionFromFile(): boolean {
         return this.session.initializeSessionCredentials();
     }
 
+    /**
+     * Invalidates current session.
+     */
     public invalidateSession() {
         this.session.invalidateSession();
     }
+
+    /**
+     * Logs in to V4T, using the username, password and optionally the server URL.
+     * It will save the current session JWTToken, XSRF Token and server Url in a file
+     * so it can be used to log in at a future (close in time) time.
+     * @param username Username
+     * @param password Password
+     * @param url Server URL
+     */
+    public async loginV4T(username: string, password: string, url?: string) {
+        try {
+            if (url) {
+                this.session.invalidateSession();
+                this.session.baseUrl = url;
+            }
+            await this.getXSRFToken();
+            const response = await this.login(username, password);
+            vscode.window.showInformationMessage("Logged in");
+            this.session.jwtToken = response.data.jwtToken;
+            this.session.createSessionFile();
+            await CurrentUser.updateUserInfo();
+            CoursesProvider.triggerTreeReload();
+        } catch (error) {
+            this.handleAxiosError(error);
+        }
+    }
+
+    /**
+     * Signs up in V4T server.
+     * @param userCredentials User to sign up
+     * @param url Server URL. Ignored if trying to sign up a teacher.
+     * @param isTeacher Sign up as teacher (or not)
+     */
+    public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
+        try {
+            if (url && !isTeacher) {
+                this.session.invalidateSession();
+                this.session.baseUrl = url;
+                await this.getXSRFToken();
+            }
+            let signupThenable;
+            if (isTeacher) {
+                signupThenable = this.signUpTeacher(userCredentials);
+            } else {
+                signupThenable = this.signUp(userCredentials);
+            }
+            await signupThenable;
+            if (isTeacher) {
+                vscode.window.showInformationMessage("Teacher signed up successfully.");
+            } else {
+                vscode.window.showInformationMessage("Signed up. Please log in.");
+            }
+        } catch (error) {
+            this.handleAxiosError(error);
+        }
+    }
+
+    /**
+     * Helper method to handle errors provoked by calls to the server.
+     * If status code is 401 warns about incorrect log in and invalidates session
+     * If status code is 403 xsrf token expired so it gets it again
+     * Else or if a previous error repeated itself it will output it in an error prompt and invalidate session
+     * @param error Error
+     */
+    public handleAxiosError(error: any) {
+        if (error.response) {
+            if (error.response.status === 401 && !this.error401thrown) {
+                vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
+                this.error401thrown = true;
+                this.session.invalidateSession();
+                CoursesProvider.triggerTreeReload();
+            } else if (error.response.status === 403 && !this.error403thrown) {
+                vscode.window.showWarningMessage("Something went wrong, please try again.");
+                this.error403thrown = true;
+                this.getXSRFToken();
+            } else {
+                let msg = error.response.data;
+                if (error.response.data instanceof Object) {
+                    msg = JSON.stringify(error.response.data);
+                }
+                vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
+                this.error401thrown = false;
+                this.error403thrown = false;
+                this.session.invalidateSession();
+            }
+        } else if (error.request) {
+            vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
+            this.session.invalidateSession();
+        } else {
+            vscode.window.showErrorMessage(error.message);
+            this.session.invalidateSession();
+        }
+    }
+
+    /*
+     * The following methods query the public API of the V4T backend (actions).
+     * See specification at:
+     * https://github.com/codeurjc-students/2019-VSCode4Teaching/blob/master/vscode4teaching-server/API.md
+     */
 
     public getServerUserInfo(): AxiosPromise<User> {
         const options: AxiosBuildOptions = {
@@ -282,7 +388,7 @@ export class APIClient {
         return this.createRequest(options, "Fetching course data...");
     }
 
-    public signUp(credentials: UserSignup): AxiosPromise<User> {
+    private signUp(credentials: UserSignup): AxiosPromise<User> {
         const options: AxiosBuildOptions = {
             url: "/api/register",
             method: "POST",
@@ -292,7 +398,7 @@ export class APIClient {
         return this.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
-    public signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
+    private signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
         const options: AxiosBuildOptions = {
             url: "/api/teachers/register",
             method: "POST",
@@ -301,108 +407,19 @@ export class APIClient {
         };
         return this.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
     }
-
-    public createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
+    /**
+     * Sets vscode status bar and returns axios promise for given options.
+     * @param options Options from to build axios request
+     * @param statusMessage message to add to the vscode status bar
+     */
+    private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
         const thenable = axios(this.session.buildOptions(options));
         vscode.window.setStatusBarMessage(statusMessage, thenable);
         return thenable;
     }
 
     /**
-     * Logs in to V4T, using the username, password and optionally the server URL.
-     * It will save the current session JWTToken, XSRF Token and server Url in a file
-     * so it can be used to log in at a future (close in time) time.
-     * @param username Username
-     * @param password Password
-     * @param url Server URL
-     */
-    public async loginV4T(username: string, password: string, url?: string) {
-        try {
-            if (url) {
-                this.session.invalidateSession();
-                this.session.baseUrl = url;
-            }
-            await this.getXSRFToken();
-            const response = await this.login(username, password);
-            vscode.window.showInformationMessage("Logged in");
-            this.session.jwtToken = response.data.jwtToken;
-            this.session.createSessionFile();
-            await CurrentUser.updateUserInfo();
-            CoursesProvider.triggerTreeReload();
-        } catch (error) {
-            this.handleAxiosError(error);
-        }
-    }
-
-    /**
-     * Signs up in V4T server.
-     * @param userCredentials User to sign up
-     * @param url Server URL. Ignored if trying to sign up a teacher.
-     * @param isTeacher Sign up as teacher (or not)
-     */
-    public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
-        try {
-            if (url && !isTeacher) {
-                this.session.invalidateSession();
-                this.session.baseUrl = url;
-                await this.getXSRFToken();
-            }
-            let signupThenable;
-            if (isTeacher) {
-                signupThenable = this.signUpTeacher(userCredentials);
-            } else {
-                signupThenable = this.signUp(userCredentials);
-            }
-            await signupThenable;
-            if (isTeacher) {
-                vscode.window.showInformationMessage("Teacher signed up successfully.");
-            } else {
-                vscode.window.showInformationMessage("Signed up. Please log in.");
-            }
-        } catch (error) {
-            this.handleAxiosError(error);
-        }
-    }
-
-    /**
-     * Helper method to handle errors provoked by calls to the server.
-     * If status code is 401 warns about incorrect log in and invalidates session
-     * If status code is 403 xsrf token expired so it gets it again
-     * Else or if a previous error repeated itself it will output it in an error prompt and invalidate session
-     * @param error Error
-     */
-    public handleAxiosError(error: any) {
-        if (error.response) {
-            if (error.response.status === 401 && !this.error401thrown) {
-                vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
-                this.error401thrown = true;
-                this.session.invalidateSession();
-                CoursesProvider.triggerTreeReload();
-            } else if (error.response.status === 403 && !this.error403thrown) {
-                vscode.window.showWarningMessage("Something went wrong, please try again.");
-                this.error403thrown = true;
-                this.getXSRFToken();
-            } else {
-                let msg = error.response.data;
-                if (error.response.data instanceof Object) {
-                    msg = JSON.stringify(error.response.data);
-                }
-                vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
-                this.error401thrown = false;
-                this.error403thrown = false;
-                this.session.invalidateSession();
-            }
-        } else if (error.request) {
-            vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
-            this.session.invalidateSession();
-        } else {
-            vscode.window.showErrorMessage(error.message);
-            this.session.invalidateSession();
-        }
-    }
-
-    /**
-     * Gets XSRF Token from server
+     * Gets XSRF Token from server and sets session's xsrf token
      */
     private async getXSRFToken() {
         const options: AxiosBuildOptions = {

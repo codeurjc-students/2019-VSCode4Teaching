@@ -1,18 +1,13 @@
 import * as assert from "assert";
 import * as fs from "fs";
-import JSZip = require("jszip");
 import * as path from "path";
 import * as rimraf from "rimraf";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
-import { CurrentUser } from "../../src/client/CurrentUser";
-import { UserPick } from "../../src/components/courses/UserPick";
-import { V4TItem, V4TItemType } from "../../src/components/courses/V4TItem";
 import * as extension from "../../src/extension";
-import { Validators } from "../../src/model/Validators";
 
 export async function run(): Promise<void> {
-    describe("Integration Test Suite", () => {
+    describe("Extension", () => {
         const apiClient = APIClient.getClient();
         afterEach(() => {
             // simple.restore();
