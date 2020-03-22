@@ -8,9 +8,9 @@ async function main() {
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath = path.resolve(__dirname, "../../");
 
-        // The path to test runner
+        // The path to the extension test script
         // Passed to --extensionTestsPath
-        const extensionTestsPath = path.resolve(__dirname, "./integrationSuite/extension.test");
+        const extensionTestsPath = path.resolve(__dirname, "./integrationSuite/index");
 
         // Download VS Code, unzip it and run the integration test
         await runTests({ extensionDevelopmentPath, extensionTestsPath });
