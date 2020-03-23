@@ -41,11 +41,23 @@ const commands = {
     executeCommand: jest.fn()
 };
 
+const TreeItemCollapsibleState = {
+    None: 1,
+    Collapsed: 2,
+    Expanded: 3
+}
+
+const ProviderResult = {
+
+}
+
 const vscode = {
     WorkspaceFolder,
     ExtensionContext,
     TreeItem,
+    TreeItemCollapsibleState,
     EventEmitter,
+    ProviderResult,
     Uri,
     Range,
     window,

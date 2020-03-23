@@ -21,12 +21,11 @@ export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
 let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
-const client = APIClient.getClient();
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
-    const sessionInitialized = client.initializeSessionFromFile();
+    const sessionInitialized = APIClient.initializeSessionFromFile();
     if (sessionInitialized) {
-        CurrentUser.updateUserInfo().catch((error) => client.handleAxiosError(error));
+        CurrentUser.updateUserInfo().catch((error) => APIClient.handleAxiosError(error));
     }
     // If cwd is a v4t exercise run file system watcher
     currentCwds = vscode.workspace.workspaceFolders;
@@ -122,7 +121,7 @@ export function activate(context: vscode.ExtensionContext) {
             const fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
             const fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
             if (fileInfo) {
-                commentProvider.replyNote(reply, fileInfo.id, client.handleAxiosError);
+                commentProvider.replyNote(reply, fileInfo.id, APIClient.handleAxiosError);
             } else {
                 vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
             }
@@ -131,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const share = vscode.commands.registerCommand("vscode4teaching.share", (item: V4TItem) => {
         if (item.item) {
-            const codeThenable = client.getSharingCode(item.item);
+            const codeThenable = APIClient.getSharingCode(item.item);
             codeThenable.then((response) => {
                 const code = response.data;
                 vscode.window.showInformationMessage(
@@ -144,7 +143,7 @@ export function activate(context: vscode.ExtensionContext) {
                         });
                     }
                 });
-            }).catch((error) => client.handleAxiosError(error));
+            }).catch((error) => APIClient.handleAxiosError(error));
         }
     });
 
@@ -201,8 +200,8 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                             const currentUser = CurrentUser.getUserInfo();
                             const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
                             const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
-                            commentProvider.getThreads(exerciseId, username, cwd, client.handleAxiosError);
-                            setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, client.handleAxiosError);
+                            commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
+                            setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                         }
                     }
                     // Set template location if exists
@@ -240,8 +239,8 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
             jszipFile.remove(filePath);
             const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
             vscode.window.setStatusBarMessage("Compressing files...", thenable);
-            thenable.then((zipData) => client.uploadFiles(exerciseId, zipData))
-                .catch((err) => client.handleAxiosError(err));
+            thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
+                .catch((err) => APIClient.handleAxiosError(err));
         }
     });
 
@@ -268,8 +267,8 @@ function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, j
                 jszipFile.file(filePath, data);
                 const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                 vscode.window.setStatusBarMessage("Compressing files...", thenable);
-                thenable.then((zipData) => client.uploadFiles(exerciseId, zipData))
-                    .catch((axiosError) => client.handleAxiosError(axiosError));
+                thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
+                    .catch((axiosError) => APIClient.handleAxiosError(axiosError));
             }
         });
     }
@@ -288,7 +287,7 @@ function checkCommentLineChanges(document: vscode.TextDocument) {
                     const line = docTextSeparatedByLines[i];
                     if (threadLineText.trim() === line.trim()) {
                         const threadId = thread[0];
-                        commentProvider.updateThreadLine(threadId, i, line, client.handleAxiosError);
+                        commentProvider.updateThreadLine(threadId, i, line, APIClient.handleAxiosError);
                         break;
                     }
                 }
@@ -352,10 +351,10 @@ function getFilesInfo(exercise: Exercise, fileInfoPath: string, usernames: strin
         mkdirp.sync(fileInfoPath);
     }
     usernames.forEach((username) => {
-        client.getFilesInfo(username, exercise.id).then(
+        APIClient.getFilesInfo(username, exercise.id).then(
             (filesInfo) => {
                 fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
             },
-        ).catch((error) => client.handleAxiosError(error));
+        ).catch((error) => APIClient.handleAxiosError(error));
     });
 }

@@ -10,7 +10,6 @@ export class TeacherCommentService {
     private cwds: vscode.WorkspaceFolder[] = [];
     // Key: server id, value: thread
     private threads: Map<number, vscode.CommentThread> = new Map();
-    private client = APIClient.getClient();
     constructor(private author: string) {
         this.commentController = vscode.comments.createCommentController("teacherComments", "Teacher comments");
         this.commentController.commentingRangeProvider = {
@@ -49,7 +48,7 @@ export class TeacherCommentService {
                     return serverComment;
                 }),
             };
-            this.client.saveComment(fileId, serverCommentThread).then((response) => {
+            APIClient.saveComment(fileId, serverCommentThread).then((response) => {
                 if (response.data.id) {
                     this.threads.set(response.data.id, thread);
                 }
@@ -64,7 +63,7 @@ export class TeacherCommentService {
         const callCreateThreadServer = (textDoc: vscode.TextDocument) => {
             this.createThreadFromServer(currentCommentThread, textDoc);
         };
-        this.client.getAllComments(username, exerciseId).then(((response) => {
+        APIClient.getAllComments(username, exerciseId).then(((response) => {
             if (response.data) {
                 const fileInfoArray = response.data;
                 for (const fileInfo of fileInfoArray) {
@@ -93,7 +92,7 @@ export class TeacherCommentService {
     }
 
     public updateThreadLine(threadId: number, line: number, lineText: string, errorCallback: ((e: any) => void)) {
-        this.client.updateCommentThreadLine(threadId, line, lineText).then((response) => {
+        APIClient.updateCommentThreadLine(threadId, line, lineText).then((response) => {
             const commentThread = response.data;
             const oldThread = this.threads.get(threadId);
             if (oldThread) {
