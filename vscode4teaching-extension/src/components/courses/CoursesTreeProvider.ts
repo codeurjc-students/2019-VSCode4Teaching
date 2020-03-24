@@ -29,10 +29,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param item Item passed to getChildren()
      */
     public static triggerTreeReload(item?: V4TItem) {
-        CoursesProvider.onDidChangeTreeDataEventEmmiter.fire(item);
+        CoursesProvider.onDidChangeTreeDataEventEmitter.fire(item);
     }
-    private static onDidChangeTreeDataEventEmmiter: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
-    public readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = CoursesProvider.onDidChangeTreeDataEventEmmiter.event;
+
+    private static onDidChangeTreeDataEventEmitter: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
+    public readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = CoursesProvider.onDidChangeTreeDataEventEmitter.event;
     private loading = false;
     // Below are the buttons (items)
     private GET_WITH_CODE_ITEM = new V4TItem("Get with code", V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
@@ -100,15 +101,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                         }
                     } catch (error) {
+                        console.error(error);
                         return [this.LOGIN_ITEM, this.SIGNUP_ITEM];
                     }
                 } else {
                     treeElements = this.getCourseButtons();
                 }
             }
-        }
-        if (CurrentUser.isLoggedIn() && ModelUtils.isStudent(CurrentUser.getUserInfo())) {
-            treeElements.unshift(this.GET_WITH_CODE_ITEM);
+            if (CurrentUser.isLoggedIn() && ModelUtils.isStudent(CurrentUser.getUserInfo())) {
+                treeElements.unshift(this.GET_WITH_CODE_ITEM);
+            }
         }
         return treeElements;
     }

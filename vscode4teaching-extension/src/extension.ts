@@ -17,6 +17,10 @@ import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
 
+/**
+ * Entrypoiny of the extension.
+ * Activate is called at start.
+ */
 export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;

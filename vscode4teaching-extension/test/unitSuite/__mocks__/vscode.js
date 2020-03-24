@@ -6,8 +6,13 @@ const WorkspaceFolder = {}
 const ExtensionContext = {}
 
 const TreeItem = jest.fn().mockImplementation(() => { });
-
-const EventEmitter = jest.fn().mockImplementation(() => { })
+const EventEmitter = jest.fn().mockImplementation(() => {
+    return {
+        event: jest.fn(),
+        fire: jest.fn(),
+        dispose: jest.fn(),
+    }
+})
 
 const window = {
     registerTreeDataProvider: jest.fn(),
@@ -47,9 +52,9 @@ const TreeItemCollapsibleState = {
     Expanded: 3
 }
 
-const ProviderResult = {
+const ProviderResult = {}
 
-}
+const Event = {}
 
 const vscode = {
     WorkspaceFolder,
@@ -57,6 +62,7 @@ const vscode = {
     TreeItem,
     TreeItemCollapsibleState,
     EventEmitter,
+    Event,
     ProviderResult,
     Uri,
     Range,
