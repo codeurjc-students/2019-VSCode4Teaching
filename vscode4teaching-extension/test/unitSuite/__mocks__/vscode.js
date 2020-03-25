@@ -22,14 +22,26 @@ const window = {
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
     showInformationMessage: jest.fn(),
-    setStatusBarMessage: jest.fn()
+    setStatusBarMessage: jest.fn(),
+    showInputBox: jest.fn(),
 };
 
-const workspace = {
-    getConfiguration: jest.fn(extension => {
-        return {
-            'defaultExerciseDownloadDirectory': 'v4tdownloads'
+const WorkspaceConfiguration = {
+    get: jest.fn().mockImplementation(e => {
+        switch (e) {
+            case "defaultServer": {
+                return "http://test.com:12345"
+            }
+            case "defaultExerciseDownloadDirectory": {
+                return "v4tdownloads"
+            }
         }
+    }),
+}
+
+const workspace = {
+    getConfiguration: jest.fn().mockImplementation(extension => {
+        return WorkspaceConfiguration;
     }),
     workspaceFolders: [],
     onDidSaveTextDocument: jest.fn()
@@ -66,6 +78,7 @@ const vscode = {
     ProviderResult,
     Uri,
     Range,
+    WorkspaceConfiguration,
     window,
     workspace,
     commands

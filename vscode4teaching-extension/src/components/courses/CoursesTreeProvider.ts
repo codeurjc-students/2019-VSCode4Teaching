@@ -10,6 +10,7 @@ import { User } from "../../model/serverModel/user/User";
 import { UserSignup } from "../../model/serverModel/user/UserSignup";
 import { FileZipUtil } from "../../utils/FileZipUtil";
 import { UserPick } from "./UserPick";
+import { V4TBuildItems } from "./V4TItem/V4TBuiltItems";
 import { V4TItem } from "./V4TItem/V4TItem";
 import { V4TItemType } from "./V4TItem/V4TItemType";
 import { Validators } from "./Validators";
@@ -34,30 +35,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private static onDidChangeTreeDataEventEmitter: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
     public readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = CoursesProvider.onDidChangeTreeDataEventEmitter.event;
+    private defaultServer: string = vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "");
     private loading = false;
-    // Below are the buttons (items)
-    private GET_WITH_CODE_ITEM = new V4TItem("Get with code", V4TItemType.GetWithCode, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-        command: "vscode4teaching.getwithcode",
-        title: "Get course with sharing code",
-    });
-    private LOGIN_ITEM = new V4TItem("Login", V4TItemType.Login, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-        command: "vscode4teaching.login",
-        title: "Log in to VS Code 4 Teaching",
-    });
-    private SIGNUP_ITEM = new V4TItem("Sign up", V4TItemType.Signup, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-        command: "vscode4teaching.signup",
-        title: "Sign up in VS Code 4 Teaching",
-    });
-    private SIGNUP_TEACHER_ITEM = new V4TItem("Sign up a teacher", V4TItemType.SignupTeacher, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-        command: "vscode4teaching.signupteacher",
-        title: "Sign up in VS Code 4 Teaching",
-    });
-    private LOGOUT_ITEM = new V4TItem("Logout", V4TItemType.Logout, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-        command: "vscode4teaching.logout",
-        title: "Log out of VS Code 4 Teaching",
-    });
-    private NO_COURSES_ITEM = [new V4TItem("No courses available", V4TItemType.NoCourses, vscode.TreeItemCollapsibleState.None)];
-    private NO_EXERCISES_ITEM = [new V4TItem("No exercises available", V4TItemType.NoExercises, vscode.TreeItemCollapsibleState.None)];
 
     /**
      * Get parent of element
@@ -96,20 +75,17 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     try {
                         const sessionInitialized = APIClient.initializeSessionFromFile();
                         if (sessionInitialized) {
-                            treeElements = this.getCourseButtons();
+                            treeElements = this.updateUserInfo();
                         } else {
-                            treeElements = [this.LOGIN_ITEM, this.SIGNUP_ITEM];
+                            treeElements = [V4TBuildItems.LOGIN_ITEM, V4TBuildItems.SIGNUP_ITEM];
                         }
                     } catch (error) {
                         console.error(error);
-                        return [this.LOGIN_ITEM, this.SIGNUP_ITEM];
+                        return [V4TBuildItems.LOGIN_ITEM, V4TBuildItems.SIGNUP_ITEM];
                     }
                 } else {
-                    treeElements = this.getCourseButtons();
+                    treeElements = this.getCourseButtonsWithUserinfo();
                 }
-            }
-            if (CurrentUser.isLoggedIn() && ModelUtils.isStudent(CurrentUser.getUserInfo())) {
-                treeElements.unshift(this.GET_WITH_CODE_ITEM);
             }
         }
         return treeElements;
@@ -120,8 +96,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      */
     public async login() {
         // Ask for server url, then username, then password, and try to log in at the end
-        const defaultServer = vscode.workspace.getConfiguration("vscode4teaching").defaultServer;
-        const url: string | undefined = await this.getInput("Server", Validators.validateUrl, { value: defaultServer });
+        const url: string | undefined = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
         if (url) {
             const username: string | undefined = await this.getInput("Username", Validators.validateUsername);
             if (username) {
@@ -129,6 +104,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 if (password) {
                     APIClient.loginV4T(username, password, url).then(() => {
                         // Maybe do something?
+                    }).catch((error) => {
+                        APIClient.handleAxiosError(error);
                     });
                 }
             }
@@ -140,9 +117,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param isTeacher sign up as teacher if true, else sign up as student.
      */
     public signup(isTeacher?: boolean) {
-        const defaultServer = vscode.workspace.getConfiguration("vscode4teaching").defaultServer;
-        const serverInputOptions: vscode.InputBoxOptions = { prompt: "Server", value: defaultServer };
-        serverInputOptions.validateInput = Validators.validateUrl;
         let url: string;
         let userCredentials: UserSignup = {
             username: "",
@@ -151,7 +125,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             name: "",
             lastName: "",
         };
-        this.getInput("Server", Validators.validateUrl, { value: defaultServer }).then((userUrl) => {
+        this.getInput("Server", Validators.validateUrl, { value: this.defaultServer }).then((userUrl) => {
             if (userUrl) {
                 url = userUrl;
                 return this.getInput("Username", Validators.validateUsername);
@@ -479,35 +453,32 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     title: "Get exercise files",
                     arguments: [course ? course.name : null, exercise], // course condition is needed to avoid compilation error, shouldn't be false
                 }));
-                return exerciseItems.length > 0 ? exerciseItems : this.NO_EXERCISES_ITEM;
+                return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
             }
         }
-        return this.NO_EXERCISES_ITEM;
+        return [V4TBuildItems.NO_EXERCISES_ITEM];
     }
 
     /**
      * Create course buttons from courses.
      */
-    private getCourseButtons(): V4TItem[] {
-        if (!CurrentUser.isLoggedIn()) {
-            this.loading = true;
-            CurrentUser.updateUserInfo().then(() => {
-                // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
-                CoursesProvider.triggerTreeReload();
-            }).catch((error) => {
-                APIClient.handleAxiosError(error);
-                CoursesProvider.triggerTreeReload();
-            },
-            ).finally(() => {
-                this.loading = false;
-            });
-            return [];
-        } else {
-            return this.getCourseButtonsWithUserinfo(CurrentUser.getUserInfo());
-        }
+    private updateUserInfo(): V4TItem[] {
+        this.loading = true;
+        CurrentUser.updateUserInfo().then(() => {
+            // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
+            CoursesProvider.triggerTreeReload();
+        }).catch((error) => {
+            APIClient.handleAxiosError(error);
+            CoursesProvider.triggerTreeReload();
+        },
+        ).finally(() => {
+            this.loading = false;
+        });
+        return [];
     }
 
-    private getCourseButtonsWithUserinfo(userinfo: User) {
+    private getCourseButtonsWithUserinfo() {
+        const userinfo = CurrentUser.getUserInfo();
         if (userinfo.courses) {
             const isTeacher = ModelUtils.isTeacher(userinfo);
             let type: V4TItemType;
@@ -516,18 +487,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             const items = userinfo.courses.map((course) => new V4TItem(course.name, type, vscode.TreeItemCollapsibleState.Collapsed, undefined, course));
             // Add 'add course' button if user is teacher
             if (isTeacher) {
-                items.unshift(new V4TItem("Add Course", V4TItemType.AddCourse, vscode.TreeItemCollapsibleState.None, undefined, undefined, {
-                    command: "vscode4teaching.addcourse",
-                    title: "Add Course",
-                }));
+                items.unshift(V4TBuildItems.ADD_COURSES_ITEM);
+                items.push(V4TBuildItems.SIGNUP_TEACHER_ITEM);
             }
-            if (ModelUtils.isTeacher(userinfo)) {
-                items.push(this.SIGNUP_TEACHER_ITEM);
+            if (ModelUtils.isStudent(userinfo)) {
+                items.unshift(V4TBuildItems.GET_WITH_CODE_ITEM);
             }
-            items.push(this.LOGOUT_ITEM);
+            items.push(V4TBuildItems.LOGOUT_ITEM);
             return items;
         }
-        return this.NO_COURSES_ITEM;
+        return [V4TBuildItems.NO_COURSES_ITEM];
     }
 
     /**
