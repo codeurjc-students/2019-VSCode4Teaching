@@ -32,7 +32,7 @@ jobs:
           fi
       before_script:
         - cd ./vscode4teaching-extension
-        - npm install
+        - npm install --save-dev
       script:
         - npm test
       cache:
