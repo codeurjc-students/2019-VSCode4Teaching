@@ -22,27 +22,25 @@ const mockedVscode = mocked(vscode, true);
 const baseURL = "http://localhost:8080";
 const xsrfToken = "testToken";
 const jwtToken = "testToken";
-const client = APIClient.getClient();
-const session = APIClientSession.getClientSession();
 
 // Helper method to initialize a session file
 function createSessionFile(newBaseURL: string, newXsrfToken: string, newJwtToken: string) {
-    const v4tPath = path.resolve(session.sessionPath, "..");
+    const v4tPath = path.resolve(APIClientSession.sessionPath, "..");
     if (!fs.existsSync(v4tPath)) {
         mkdirp.sync(v4tPath);
     }
-    fs.writeFileSync(session.sessionPath, newJwtToken + "\n" + newXsrfToken + "\n" + newBaseURL);
+    fs.writeFileSync(APIClientSession.sessionPath, newJwtToken + "\n" + newXsrfToken + "\n" + newBaseURL);
 }
 
 function expectSessionInvalidated() {
     // Session is invalidated
     expect(mockedCurrentUser.resetUserInfo).toHaveBeenCalledTimes(1);
-    expect(fs.existsSync(session.sessionPath)).toBeFalsy();
+    expect(fs.existsSync(APIClientSession.sessionPath)).toBeFalsy();
 }
 
-describe("API Client and Session", () => {
+describe("Client", () => {
     afterEach(() => {
-        client.invalidateSession();
+        APIClient.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");
         if (fs.existsSync(v4tPath)) {
             rimraf(v4tPath, ((error) => {
@@ -64,7 +62,7 @@ describe("API Client and Session", () => {
 
     beforeEach(() => {
         createSessionFile(baseURL, xsrfToken, jwtToken);
-        session.initializeSessionCredentials();
+        APIClientSession.initializeSessionCredentials();
     });
 
     it("should log in", async () => {
@@ -120,7 +118,7 @@ describe("API Client and Session", () => {
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseXSRF)
             .mockResolvedValueOnce(expectedAxiosResponseLogin);
-        await client.loginV4T(username, password, newUrl);
+        await APIClient.loginV4T(username, password, newUrl);
 
         // Fail if errors are thrown or a promise is rejected (call handleAxiosError)
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);
@@ -139,8 +137,8 @@ describe("API Client and Session", () => {
         expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledWith("Logged in");
         // Save session file
-        expect(fs.existsSync(session.sessionPath)).toBeTruthy();
-        const sessionFileText = fs.readFileSync(session.sessionPath).toString();
+        expect(fs.existsSync(APIClientSession.sessionPath)).toBeTruthy();
+        const sessionFileText = fs.readFileSync(APIClientSession.sessionPath).toString();
         expect(sessionFileText).toBe(newJwtToken + "\n" + newXsrfToken + "\n" + newUrl);
         // Current user logged in should be updated
         expect(mockedCurrentUser.updateUserInfo).toHaveBeenCalled();
@@ -149,7 +147,7 @@ describe("API Client and Session", () => {
     });
 
     it("should invalidate session", () => {
-        client.invalidateSession();
+        APIClient.invalidateSession();
         expectSessionInvalidated();
     });
 
@@ -159,7 +157,7 @@ describe("API Client and Session", () => {
                 status: 401,
             },
         };
-        client.handleAxiosError(error);
+        APIClient.handleAxiosError(error);
         // Warning message showed
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledWith("It seems that we couldn't log in, please log in.");
@@ -198,7 +196,7 @@ describe("API Client and Session", () => {
                 status: 403,
             },
         };
-        client.handleAxiosError(error);
+        APIClient.handleAxiosError(error);
         // Warning message showed
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledWith("Something went wrong, please try again.");
@@ -220,7 +218,7 @@ describe("API Client and Session", () => {
                 data: dataError,
             },
         };
-        client.handleAxiosError(error);
+        APIClient.handleAxiosError(error);
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Error 400. " + JSON.stringify(dataError));
@@ -234,7 +232,7 @@ describe("API Client and Session", () => {
             },
             message: "Request error",
         };
-        client.handleAxiosError(error);
+        APIClient.handleAxiosError(error);
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Can't connect to the server. " + error.message);
@@ -245,7 +243,7 @@ describe("API Client and Session", () => {
         const error = {
             message: "Request error",
         };
-        client.handleAxiosError(error);
+        APIClient.handleAxiosError(error);
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith(error.message);
@@ -314,7 +312,7 @@ describe("API Client and Session", () => {
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseXSRF)
             .mockResolvedValueOnce(expectedAxiosResponseSignup);
-        await client.signUpV4T(userCredentials, baseURL, false);
+        await APIClient.signUpV4T(userCredentials, baseURL, false);
 
         // Fail if errors are thrown or a promise is rejected (call handleAxiosError)
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);
@@ -380,7 +378,7 @@ describe("API Client and Session", () => {
         mockedAxios
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseSignup);
-        await client.signUpV4T(userCredentials, baseURL, true);
+        await APIClient.signUpV4T(userCredentials, baseURL, true);
 
         // Fail if errors are thrown or a promise is rejected (call handleAxiosError)
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);

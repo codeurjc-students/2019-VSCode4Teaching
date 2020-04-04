@@ -10,23 +10,13 @@ import { CurrentUser } from "./CurrentUser";
  * Manages session information and files (tokens, url).
  * Thought to be used only by APIClient.
  */
-export class APIClientSession {
+class APIClientSessionSingleton {
 
     // APIClientSession is a singleton
-    public static getClientSession() {
-        if (!APIClientSession.instance) {
-            APIClientSession.instance = new APIClientSession();
-        }
-        return APIClientSession.instance;
-    }
-
-    private static instance: APIClientSession | undefined;
     public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
     public baseUrl: string | undefined;
     public jwtToken: string | undefined;
     public xsrfToken: string | undefined;
-
-    private constructor() { }
 
     /**
      * Initialize session variables with file created when logging in
@@ -98,3 +88,4 @@ export class APIClientSession {
         return axiosConfig;
     }
 }
+export let APIClientSession = new APIClientSessionSingleton();

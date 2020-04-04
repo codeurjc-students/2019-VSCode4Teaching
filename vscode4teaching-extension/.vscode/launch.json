@@ -20,21 +20,6 @@
 			"preLaunchTask": "npm: watch"
 		},
 		{
-			"name": "Extension Tests",
-			"type": "extensionHost",
-			"request": "launch",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--disable-extensions",
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/integrationSuite/index"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/test/integrationSuite/**/*.js"
-			],
-			"preLaunchTask": "npm: watch"
-		},
-		{
 			"name": "Unit Tests",
 			"type": "node",
 			"request": "launch",
