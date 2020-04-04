@@ -9,6 +9,7 @@ import { V4TItemType } from "./V4TItemType";
  */
 export class V4TItem extends vscode.TreeItem {
 
+    private resourcesPath = path.join(__filename, "..", "..", "..", "..", "..", "resources");
     constructor(
         readonly label: string,
         readonly type: V4TItemType,
@@ -21,42 +22,35 @@ export class V4TItem extends vscode.TreeItem {
     }
 
     get iconPath() {
-        const resourcesPath = path.join(__filename, "..", "..", "..", "resources");
         switch (this.type) {
             case V4TItemType.Login: {
-                return {
-                    light: path.join(resourcesPath, "light", "login.svg"),
-                    dark: path.join(resourcesPath, "dark", "login.svg"),
-                };
+                return this.iconPaths("login.svg");
             }
             case V4TItemType.AddCourse: {
-                return {
-                    light: path.join(resourcesPath, "light", "add.svg"),
-                    dark: path.join(resourcesPath, "dark", "add.svg"),
-                };
+                return this.iconPaths("add.svg");
             }
             case V4TItemType.GetWithCode: {
-                return {
-                    light: path.join(resourcesPath, "light", "link.png"),
-                    dark: path.join(resourcesPath, "dark", "link.png"),
-                };
+                return this.iconPaths("link.png");
             }
             case V4TItemType.Signup: // fall through case below
             case V4TItemType.SignupTeacher: {
-                return {
-                    light: path.join(resourcesPath, "light", "add_user.svg"),
-                    dark: path.join(resourcesPath, "dark", "add_user.svg"),
-                };
+                return this.iconPaths("add_user.svg");
             }
             case V4TItemType.Logout: {
-                return {
-                    light: path.join(resourcesPath, "light", "logout.svg"),
-                    dark: path.join(resourcesPath, "dark", "logout.svg"),
-                };
+                return this.iconPaths("logout.svg");
+            }
+            case V4TItemType.NoCourses: // fall through case below
+            case V4TItemType.NoExercises: {
+                return this.iconPaths("noicon.png");
             }
         }
     }
-
+    private iconPaths(iconPath: string) {
+        return {
+            light: path.join(this.resourcesPath, "light", iconPath),
+            dark: path.join(this.resourcesPath, "dark", iconPath),
+        };
+    }
     get contextValue() {
         return this.type.toString();
     }

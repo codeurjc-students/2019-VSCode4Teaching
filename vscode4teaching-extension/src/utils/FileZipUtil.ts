@@ -15,8 +15,7 @@ export interface ZipInfo {
     zipName: string;
 }
 export class FileZipUtil {
-
-    public static readonly downloadDir = vscode.workspace.getConfiguration("vscode4teaching").defaultExerciseDownloadDirectory;
+    public static readonly downloadDir = vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");
     public static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, "..", "v4t");
 
     public static exerciseZipInfo(courseName: string, exercise: Exercise): ZipInfo {

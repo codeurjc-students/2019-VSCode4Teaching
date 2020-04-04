@@ -13,9 +13,9 @@ export class CurrentUser {
      * Update current user info stored from server.
      * Also used for getting current available courses
      */
-    public static async updateUserInfo() {
+    public static async updateUserInfo(): Promise<User> {
         // Errors have to be controlled in the caller function
-        const userResponse = await CurrentUser.client.getServerUserInfo();
+        const userResponse = await APIClient.getServerUserInfo();
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
             userResponse.data.courses.forEach((course) => {
                 if (!course.exercises) {
@@ -24,6 +24,7 @@ export class CurrentUser {
             });
         }
         this.userinfo = userResponse.data;
+        return this.userinfo;
     }
 
     /**
@@ -72,5 +73,4 @@ export class CurrentUser {
     }
 
     private static userinfo: User | undefined;
-    private static client = APIClient.getClient();
 }

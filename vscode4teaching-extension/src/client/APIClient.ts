@@ -15,34 +15,23 @@ import { APIClientSession } from "./APIClientSession";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
 
-export class APIClient {
+class APIClientSingleton {
 
-    // API Client is a singleton
-    public static getClient() {
-        if (!APIClient.instance) {
-            APIClient.instance = new APIClient();
-        }
-        return APIClient.instance;
-    }
-    private static instance: APIClient | undefined;
-    private session = APIClientSession.getClientSession();
     private error401thrown = false;
     private error403thrown = false;
-
-    private constructor() { }
 
     /**
      * Initialize session from file.
      */
     public initializeSessionFromFile(): boolean {
-        return this.session.initializeSessionCredentials();
+        return APIClientSession.initializeSessionCredentials();
     }
 
     /**
      * Invalidates current session.
      */
     public invalidateSession() {
-        this.session.invalidateSession();
+        APIClientSession.invalidateSession();
     }
 
     /**
@@ -56,14 +45,14 @@ export class APIClient {
     public async loginV4T(username: string, password: string, url?: string) {
         try {
             if (url) {
-                this.session.invalidateSession();
-                this.session.baseUrl = url;
+                APIClientSession.invalidateSession();
+                APIClientSession.baseUrl = url;
             }
             await this.getXSRFToken();
             const response = await this.login(username, password);
             vscode.window.showInformationMessage("Logged in");
-            this.session.jwtToken = response.data.jwtToken;
-            this.session.createSessionFile();
+            APIClientSession.jwtToken = response.data.jwtToken;
+            APIClientSession.createSessionFile();
             await CurrentUser.updateUserInfo();
             CoursesProvider.triggerTreeReload();
         } catch (error) {
@@ -80,8 +69,8 @@ export class APIClient {
     public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
         try {
             if (url && !isTeacher) {
-                this.session.invalidateSession();
-                this.session.baseUrl = url;
+                APIClientSession.invalidateSession();
+                APIClientSession.baseUrl = url;
                 await this.getXSRFToken();
             }
             let signupThenable;
@@ -113,7 +102,7 @@ export class APIClient {
             if (error.response.status === 401 && !this.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 this.error401thrown = true;
-                this.session.invalidateSession();
+                APIClientSession.invalidateSession();
                 CoursesProvider.triggerTreeReload();
             } else if (error.response.status === 403 && !this.error403thrown) {
                 vscode.window.showWarningMessage("Something went wrong, please try again.");
@@ -127,14 +116,14 @@ export class APIClient {
                 vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
                 this.error401thrown = false;
                 this.error403thrown = false;
-                this.session.invalidateSession();
+                APIClientSession.invalidateSession();
             }
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
-            this.session.invalidateSession();
+            APIClientSession.invalidateSession();
         } else {
             vscode.window.showErrorMessage(error.message);
-            this.session.invalidateSession();
+            APIClientSession.invalidateSession();
         }
     }
 
@@ -413,7 +402,7 @@ export class APIClient {
      * @param statusMessage message to add to the vscode status bar
      */
     private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
-        const thenable = axios(this.session.buildOptions(options));
+        const thenable = axios(APIClientSession.buildOptions(options));
         vscode.window.setStatusBarMessage(statusMessage, thenable);
         return thenable;
     }
@@ -433,7 +422,7 @@ export class APIClient {
             const cookies = cookiesString.split(";");
             const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));
             if (xsrfCookie) {
-                this.session.xsrfToken = xsrfCookie.split("=")[1];
+                APIClientSession.xsrfToken = xsrfCookie.split("=")[1];
             } else {
                 throw Error("XSRF Token not received");
             }
@@ -456,3 +445,5 @@ export class APIClient {
         return this.createRequest(options, "Logging in to VS Code 4 Teaching...");
     }
 }
+// API Client is a singleton
+export let APIClient = new APIClientSingleton();

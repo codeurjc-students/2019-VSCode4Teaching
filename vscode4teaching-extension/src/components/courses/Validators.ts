@@ -30,13 +30,17 @@ export class Validators {
     }
 
     public static validateUsername(value: string): string | undefined {
+        const empty = this.validateNotEmpty(value, "Please enter your username");
+        if (empty) {
+            return empty;
+        }
         if (value.length < 4 || value.length > 50) {
             return "Username must have between 4 and 50 characters";
         }
         const regexp = /^(?:(?!template).)+$/;
         const pattern = new RegExp(regexp);
         if (!pattern.test(value)) {
-            return "Username is not valid";
+            return "Username is not valid (cannot contain the word template)";
         }
     }
 
@@ -50,12 +54,6 @@ export class Validators {
         return Validators.validateNotEmpty(value, "Please enter your password");
     }
 
-    public static validateNotEmpty(value: string, errorMessage: string): string | undefined {
-        if (value.length <= 0) {
-            return errorMessage;
-        }
-    }
-
     public static validateName(value: string): string | undefined {
         return Validators.validateNotEmpty(value, "Please enter your name");
     }
@@ -65,8 +63,12 @@ export class Validators {
     }
 
     public static validateCourseName(value: string): string | undefined {
+        const empty = this.validateNotEmpty(value, "Please enter a name");
+        if (empty) {
+            return empty;
+        }
         if (value.length < 10 || value.length > 100) {
-            return "Course name must be between 10 and 100 characters";
+            return "Name must be between 10 and 100 characters";
         }
     }
 
@@ -76,5 +78,11 @@ export class Validators {
 
     public static validateSharingCode(value: string): string | undefined {
         return Validators.validateNotEmpty(value, "Please introduce the sharing code");
+    }
+
+    private static validateNotEmpty(value: string, errorMessage: string): string | undefined {
+        if (value.length <= 0) {
+            return errorMessage;
+        }
     }
 }
