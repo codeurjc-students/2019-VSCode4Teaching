@@ -88,4 +88,4 @@ const vscode = {
     commands
 };
 
-export default vscode;
+module.exports = vscode;

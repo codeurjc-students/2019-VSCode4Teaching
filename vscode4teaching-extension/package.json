@@ -279,7 +279,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
-		"test": "npm run lint && npm run coverage",
+		"test": "npm run unitTest",
 		"unitTest": "jest",
 		"coverage": "jest --coverage",
 		"lint": "tslint --project . --out tslint_report.txt",
