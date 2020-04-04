@@ -174,11 +174,6 @@ export function deactivate() {
     }
 }
 
-// Meant to be used for tests
-export function createNewCoursesProvider() {
-    coursesProvider = new CoursesProvider();
-}
-
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
     const checkedUris: string[] = [];
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {

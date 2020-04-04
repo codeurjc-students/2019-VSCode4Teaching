@@ -40,7 +40,7 @@ export class Validators {
         const regexp = /^(?:(?!template).)+$/;
         const pattern = new RegExp(regexp);
         if (!pattern.test(value)) {
-            return "Username is not valid";
+            return "Username is not valid (cannot contain the word template)";
         }
     }
 

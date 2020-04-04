@@ -3,6 +3,7 @@ import { Validators } from "../../src/components/courses/Validators";
 describe("Validators", () => {
     it("should validate URL correctly", () => {
         const invalidURLError = "Invalid URL";
+        const emptyURLError = "Please enter the URL of the server that you want to connect to";
         expect(Validators.validateUrl("http://localhost:8080")).toBeUndefined();
         expect(Validators.validateUrl("http://192.168.99.100:8080")).toBeUndefined();
         expect(Validators.validateUrl("http://1.2.4.3")).toBeUndefined();
@@ -10,6 +11,7 @@ describe("Validators", () => {
         expect(Validators.validateUrl("http://api.test.com")).toBeUndefined();
         expect(Validators.validateUrl("http://test.com/api")).toBeUndefined();
         expect(Validators.validateUrl("asdasdasd")).toBe(invalidURLError);
+        expect(Validators.validateUrl("")).toBe(emptyURLError);
     });
 
     it("should validate email correctly", () => {
@@ -57,11 +59,16 @@ describe("Validators", () => {
     it("should validate username correctly", () => {
         const lengthError = "Username must have between 4 and 50 characters";
         const emptyError = "Please enter your username";
+        const templateInvalidError = "Username is not valid (cannot contain the word template)";
         expect(Validators.validateUsername("johndoe")).toBeUndefined();
         expect(Validators.validateUsername("jnd")).toBe(lengthError);
         const longName = "johndoe".repeat(10);
         expect(Validators.validateUsername(longName)).toBe(lengthError);
         expect(Validators.validateUsername("")).toBe(emptyError);
+        expect(Validators.validateUsername("template")).toBe(templateInvalidError);
+        expect(Validators.validateUsername("usertemplate")).toBe(templateInvalidError);
+        expect(Validators.validateUsername("templateuser")).toBe(templateInvalidError);
+        expect(Validators.validateUsername("ustemplateer")).toBe(templateInvalidError);
     });
 
     it("should validate name correctly", () => {
@@ -69,14 +76,7 @@ describe("Validators", () => {
         expect(Validators.validateName("John")).toBeUndefined();
         expect(Validators.validateName("")).toBe(emptyError);
     });
-
-    it("should validate name correctly", () => {
-        const emptyError = "Please enter your last name";
-        expect(Validators.validateLastName("Doe")).toBeUndefined();
-        expect(Validators.validateLastName("")).toBe(emptyError);
-    });
-
-    it("should validate name correctly", () => {
+    it("should validate last name correctly", () => {
         const emptyError = "Please enter your last name";
         expect(Validators.validateLastName("Doe")).toBeUndefined();
         expect(Validators.validateLastName("")).toBe(emptyError);

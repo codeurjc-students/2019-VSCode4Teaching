@@ -1,7 +1,8 @@
 // Jest manual mock for vscode
 // Based on: https://www.richardkotze.com/coding/unit-test-mock-vs-code-extension-api-jest
-
-const WorkspaceFolder = {}
+const WorkspaceFolder = {
+    path: jest.fn()
+}
 
 const ExtensionContext = {}
 
@@ -47,10 +48,13 @@ const workspace = {
     onDidSaveTextDocument: jest.fn()
 };
 
-const Uri = {
-    file: f => f,
-    parse: jest.fn()
-};
+const Uri = jest.fn().mockImplementation(() => {
+
+});
+const mockUriFile = f => f;
+Uri.file = mockUriFile.bind(Uri);
+Uri.parse = jest.fn().bind(Uri)
+
 const Range = jest.fn();
 
 const commands = {
@@ -84,4 +88,4 @@ const vscode = {
     commands
 };
 
-module.exports = vscode;
+export default vscode;
