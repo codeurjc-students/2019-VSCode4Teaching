@@ -23,7 +23,6 @@ jobs:
       os:
         - linux
         - osx
-      node_js: 8
       install:
         - |
           if [ $TRAVIS_OS_NAME == "linux" ]; then
