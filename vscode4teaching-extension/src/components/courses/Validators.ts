@@ -30,7 +30,7 @@ export class Validators {
     }
 
     public static validateUsername(value: string): string | undefined {
-        const empty = this.validateNotEmpty(value, "Please enter your username");
+        const empty = Validators.validateNotEmpty(value, "Please enter your username");
         if (empty) {
             return empty;
         }
@@ -63,7 +63,7 @@ export class Validators {
     }
 
     public static validateCourseName(value: string): string | undefined {
-        const empty = this.validateNotEmpty(value, "Please enter a name");
+        const empty = Validators.validateNotEmpty(value, "Please enter a name");
         if (empty) {
             return empty;
         }

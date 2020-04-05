@@ -434,7 +434,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      */
     private getExerciseButtons(element: V4TItem): V4TItem[] {
         const course = element.item;
-        this.getExercises(element);
         if (course && instanceOfCourse(course)) {
             // If exercises were downloaded previously show them, else get them from server
             if (course.exercises.length > 0) {
@@ -454,6 +453,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     arguments: [course ? course.name : null, exercise], // course condition is needed to avoid compilation error, shouldn't be false
                 }));
                 return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
+            } else {
+                this.getExercises(element);
             }
         }
         return [V4TBuildItems.NO_EXERCISES_ITEM];

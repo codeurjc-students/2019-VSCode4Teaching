@@ -9,7 +9,9 @@ import { V4TItemType } from "./V4TItemType";
  */
 export class V4TItem extends vscode.TreeItem {
 
-    private resourcesPath = path.join(__filename, "..", "..", "..", "..", "..", "resources");
+    private resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
+        path.join(__dirname, "..", "..", "..", "..", "..", "resources") :
+        path.join(__dirname, "..", "..", "..", "..", "resources");
     constructor(
         readonly label: string,
         readonly type: V4TItemType,
