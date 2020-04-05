@@ -53,6 +53,10 @@ export class CurrentUser {
         }
     }
 
+    /**
+     * Adds new course to the list if it doesn't exist
+     * @param course course to add
+     */
     public static addNewCourse(course: Course) {
         if (this.userinfo && !this.userinfo.courses) {
             this.userinfo.courses = [course];

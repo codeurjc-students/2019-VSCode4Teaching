@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
             const fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
             const fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
             if (fileInfo) {
-                commentProvider.replyNote(reply, fileInfo.id, APIClient.handleAxiosError);
+                commentProvider.addComment(reply, fileInfo.id, APIClient.handleAxiosError);
             } else {
                 vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
             }

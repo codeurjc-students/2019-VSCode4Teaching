@@ -477,6 +477,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         return [];
     }
 
+    /**
+     * Create buttons from courses
+     */
     private getCourseButtonsWithUserinfo() {
         const userinfo = CurrentUser.getUserInfo();
         if (userinfo.courses) {

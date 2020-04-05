@@ -3,7 +3,7 @@ import { V4TItem } from "./V4TItem";
 import { V4TItemType } from "./V4TItemType";
 
 export class V4TBuildItems {
-    // Below are the buttons (items)
+    // Below are the buttons (items) that do not change
     public static readonly GET_WITH_CODE_ITEM = new V4TItem("Get with code", V4TItemType.GetWithCode, TreeItemCollapsibleState.None, undefined, undefined, {
         command: "vscode4teaching.getwithcode",
         title: "Get course with sharing code",

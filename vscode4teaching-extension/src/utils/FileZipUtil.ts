@@ -9,15 +9,20 @@ import { Exercise } from "../model/serverModel/exercise/Exercise";
 import { ModelUtils } from "../model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "../model/V4TExerciseFile";
 import { FileIgnoreUtil } from "./FileIgnoreUtil";
-export interface ZipInfo {
-    dir: string;
-    zipDir: string;
-    zipName: string;
-}
+import { ZipInfo } from "./ZipInfo";
+
+/**
+ * Utility class used for zipping files
+ */
 export class FileZipUtil {
     public static readonly downloadDir = vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");
     public static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, "..", "v4t");
 
+    /**
+     * Returns zip info from an exercise
+     * @param courseName course name
+     * @param exercise exercise
+     */
     public static exerciseZipInfo(courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
             const currentUser = CurrentUser.getUserInfo();
@@ -34,7 +39,12 @@ export class FileZipUtil {
         }
     }
 
-    public static studentZipInfo(courseName: string, exercise: Exercise, templateDir?: string): ZipInfo {
+    /**
+     * Returns zip info from student files
+     * @param courseName course name
+     * @param exercise exercise
+     */
+    public static studentZipInfo(courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
             const currentUser = CurrentUser.getUserInfo();
             const dir = path.resolve(FileZipUtil.downloadDir, "teacher", currentUser.username, courseName, exercise.name);
@@ -50,6 +60,11 @@ export class FileZipUtil {
         }
     }
 
+    /**
+     * Returns zip info from a template of an exercise
+     * @param courseName course name
+     * @param exercise exercise
+     */
     public static templateZipInfo(courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
             const currentUser = CurrentUser.getUserInfo();
@@ -66,6 +81,12 @@ export class FileZipUtil {
         }
     }
 
+    /**
+     * Zip files and call a thenable with the zip
+     * @param zipInfo zip info (check previous functions)
+     * @param requestThenable thenable to call with zip
+     * @param templateDir Optional template dir (use only if zipping a template)
+     */
     public static async filesFromZip(zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
         if (!fs.existsSync(zipInfo.dir)) {
             mkdirp.sync(zipInfo.dir);
@@ -110,6 +131,10 @@ export class FileZipUtil {
         }
     }
 
+    /**
+     * Returns Buffer with zipped files
+     * @param fileUris files
+     */
     public static async getZipFromUris(fileUris: vscode.Uri[]) {
         const zip = new JSZip();
         fileUris.forEach((uri) => {
