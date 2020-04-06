@@ -163,9 +163,18 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.getCourseWithCode();
     });
 
+    const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", () => {
+        const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
+        vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept").then((selectedOption) => {
+            if (selectedOption === "Accept") {
+                // TODO: Mark exercise as finished
+            }
+        });
+    });
+
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise);
 }
 
 export function deactivate() {
@@ -189,18 +198,29 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                     // Exercise id is in the name of the zip file
                     const zipSplit = zipUri.split(path.sep);
                     const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-                    if (!commentProvider && CurrentUser.isLoggedIn()) {
-                        commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
-                    }
-                    if (commentProvider && CurrentUser.isLoggedIn()) {
+                    if (CurrentUser.isLoggedIn()) {
+                        if (!commentProvider) {
+                            commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
+                        }
                         commentProvider.addCwd(cwd);
+                        const currentUser = CurrentUser.getUserInfo();
+                        const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
                         // Download comments
                         if (cwd.name !== "template") {
-                            const currentUser = CurrentUser.getUserInfo();
-                            const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
                             const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
                             commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
                             setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
+                        }
+
+                        // If user is student and exercise is not finished add finish button
+                        // TODO: Add finished exercise check
+                        if (!currentUserIsTeacher) {
+                            const text = "Finish exercise";
+                            const finishedStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+                            finishedStatusBarItem.text = "$(checklist) " + text;
+                            finishedStatusBarItem.tooltip = text;
+                            finishedStatusBarItem.command = "vscode4teaching.finishexercise";
+                            finishedStatusBarItem.show();
                         }
                     }
                     // Set template location if exists
