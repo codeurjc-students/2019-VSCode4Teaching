@@ -25,8 +25,12 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
+import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
+import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +58,9 @@ public class ExerciseControllerTests {
 
     @MockBean
     private CourseService courseService;
+
+    @MockBean
+    private ExerciseInfoService exerciseInfoService;
 
     private JWTResponse jwtToken;
     private final Logger logger = LoggerFactory.getLogger(ExerciseControllerTests.class);
@@ -210,6 +217,27 @@ public class ExerciseControllerTests {
         verify(courseService, times(1)).getExerciseCode(1l, "johndoe");
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = code;
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void getExerciseInfo_valid() throws Exception {
+        Exercise ex = new Exercise("Spring Boot Exercise 1");
+        ex.setId(1l);
+        User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
+        user.setId(4l);
+        ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
+        when(exerciseInfoService.getExerciseUserInfo(1l, "johndoe")).thenReturn(eui);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/exercises/1/info").contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(exerciseInfoService, times(1)).getExerciseUserInfo(1l, "johndoe");
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
+                .writeValueAsString(eui);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

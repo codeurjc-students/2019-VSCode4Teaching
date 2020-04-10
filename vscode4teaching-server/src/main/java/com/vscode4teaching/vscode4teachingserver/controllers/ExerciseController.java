@@ -9,11 +9,15 @@ import javax.validation.constraints.Min;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
+import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
+import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 
@@ -37,11 +41,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExerciseController {
 
     private final CourseService courseService;
+    private final ExerciseInfoService exerciseInfoService;
     private final JWTTokenUtil jwtTokenUtil;
 
-    public ExerciseController(CourseService courseService, JWTTokenUtil jwtTokenUtil) {
+    public ExerciseController(CourseService courseService, ExerciseInfoService exerciseInfoService,
+            JWTTokenUtil jwtTokenUtil) {
         this.courseService = courseService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.exerciseInfoService = exerciseInfoService;
     }
 
     @GetMapping("/courses/{courseId}/exercises")
@@ -82,5 +89,13 @@ public class ExerciseController {
     public ResponseEntity<String> getCode(@PathVariable Long exerciseId, HttpServletRequest request)
             throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
         return ResponseEntity.ok(courseService.getExerciseCode(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
+    @GetMapping("/exercises/{exerciseId}/info")
+    @JsonView(ExerciseUserInfoViews.GeneralView.class)
+    public ResponseEntity<ExerciseUserInfo> getExerciseUserInfo(@PathVariable Long exerciseId,
+            HttpServletRequest request) throws NotFoundException {
+        return ResponseEntity
+                .ok(exerciseInfoService.getExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
 }

@@ -8,9 +8,11 @@ import javax.validation.constraints.Min;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
@@ -29,11 +31,14 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepo;
     private final ExerciseRepository exerciseRepo;
     private final UserRepository userRepo;
+    private final ExerciseUserInfoRepository exerciseUserInfoRepo;
 
-    public CourseServiceImpl(CourseRepository courseRepo, ExerciseRepository exerciseRepo, UserRepository userRepo) {
+    public CourseServiceImpl(CourseRepository courseRepo, ExerciseRepository exerciseRepo, UserRepository userRepo,
+            ExerciseUserInfoRepository exerciseUserInfoRepo) {
         this.courseRepo = courseRepo;
         this.exerciseRepo = exerciseRepo;
         this.userRepo = userRepo;
+        this.exerciseUserInfoRepo = exerciseUserInfoRepo;
     }
 
     @Override
@@ -68,6 +73,11 @@ public class CourseServiceImpl implements CourseService {
         course.addExercise(exercise);
         Exercise savedExercise = exerciseRepo.save(exercise);
         courseRepo.save(course);
+        // Set up exercise user info for all users in course
+        for (User user : course.getUsersInCourse()) {
+            ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
+            exerciseUserInfoRepo.save(eui);
+        }
         return savedExercise;
     }
 
@@ -144,6 +154,10 @@ public class CourseServiceImpl implements CourseService {
             User user = this.userRepo.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
             course.addUserInCourse(user);
+            for (Exercise ex : course.getExercises()) {
+                ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
+                exerciseUserInfoRepo.save(eui);
+            }
         }
         Course savedCourse = this.courseRepo.save(course);
         return savedCourse;

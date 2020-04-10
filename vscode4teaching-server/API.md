@@ -9,38 +9,46 @@ Needed header key: `X-XSRF-TOKEN`
 
 ## Table of Contents
 
-- [Login](API.md#login)
-- [Get CSRF Token](API.md#get-csrf-token)
-- [Register a new student](API.md#register-a-new-student)
-- [Register a new teacher](API.md#register-a-new-teacher)
-- [Get all users](API.md#get-all-users)
-- [Get current user info](API.md#get-current-user-info)
-- [Get all courses](API.md#get-all-courses)
-- [Get course creator](API.md#get-course-creator)
-- [Get users in course](API.md#get-users-in-course)
-- [Get user courses](API.md#get-user-courses)
-- [Add a course](API.md#add-a-course)
-- [Edit a course](API.md#edit-a-course)
-- [Delete a course](API.md#delete-a-course)
-- [Add user to course](API.md#add-user-to-course)
-- [Remove user from course](API.md#remove-user-from-course)
-- [Get exercises of a course](API.md#get-exercises-of-a-course)
-- [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
-- [Edit an exercise](API.md#edit-an-exercise)
-- [Delete an exercise](API.md#delete-an-exercise)
-- [Download exercise files](API.md#download-exercise-files)
-- [Download exercise template](API.md#download-exercise-template)
-- [Upload user files](API.md#upload-user-files)
-- [Upload exercise template](API.md#upload-exercise-template)
-- [Add comment thread](API.md#add-comment-thread)
-- [Get comment threads](API.md#get-comment-threads)
-- [Get comments by exercise and username](API.md#get-comments-by-exercise-and-username)
-- [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
-- [Get course unique code](API.md#get-course-unique-code)
-- [Get exercise unique code](API.md#get-exercise-unique-code)
-- [Get course and its exercises with sharing code](API.md#get-course-and-its-exercises-with-sharing-code)
+- [User management](API.md#user-management)
+  - [Login](API.md#login)
+  - [Get CSRF Token](API.md#get-csrf-token)
+  - [Register a new student](API.md#register-a-new-student)
+  - [Register a new teacher](API.md#register-a-new-teacher)
+  - [Get all users](API.md#get-all-users)
+  - [Get current user info](API.md#get-current-user-info)
+- [Courses](API.md#courses)
+  - [Get all courses](API.md#get-all-courses)
+  - [Get course creator](API.md#get-course-creator)
+  - [Get users in course](API.md#get-users-in-course)
+  - [Get user courses](API.md#get-user-courses)
+  - [Add a course](API.md#add-a-course)
+  - [Edit a course](API.md#edit-a-course)
+  - [Delete a course](API.md#delete-a-course)
+  - [Add user to course](API.md#add-user-to-course)
+  - [Remove user from course](API.md#remove-user-from-course)
+- [Exercises](API.md#exercises)
+  - [Get exercises of a course](API.md#get-exercises-of-a-course)
+  - [Get exercise user info for current user](API.md#get-exercise-user-info-for-current-user)
+  - [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
+  - [Edit an exercise](API.md#edit-an-exercise)
+  - [Delete an exercise](API.md#delete-an-exercise)
+  - [Download exercise files](API.md#download-exercise-files)
+  - [Download exercise template](API.md#download-exercise-template)
+  - [Upload user files](API.md#upload-user-files)
+  - [Upload exercise template](API.md#upload-exercise-template)
+  - [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
+- [Comments](API.md#comments)
+  - [Add comment thread](API.md#add-comment-thread)
+  - [Get comment threads](API.md#get-comment-threads)
+  - [Get comments by exercise and username](API.md#get-comments-by-exercise-and-username)
+- [Code sharing](API.md#code-sharing)
+  - [Get course unique code](API.md#get-course-unique-code)
+  - [Get exercise unique code](API.md#get-exercise-unique-code)
+  - [Get course and its exercises with sharing code](API.md#get-course-and-its-exercises-with-sharing-code)
 
-## Login
+## User management
+
+### Login
 
 ---
 
@@ -77,7 +85,7 @@ where `token` is the token received in this request.
   }
   ```
 
-## Get CSRF Token
+### Get CSRF Token
 
 ---
 
@@ -93,7 +101,7 @@ Empty method aimed to help getting the CSRF Cookie without getting any data. Not
   - **Code**: 200
   - **Content**: Empty
 
-## Register a new student
+### Register a new student
 
 ---
 
@@ -175,7 +183,7 @@ Register a new user as a student.
   Duplicate entry 'johndoe'.
   ```
 
-## Register a new teacher
+### Register a new teacher
 
 ---
 
@@ -259,7 +267,7 @@ Register a new user as a teacher.
   Duplicate entry 'johndoe'.
   ```
 
-## Get all users
+### Get all users
 
 ---
 
@@ -335,7 +343,7 @@ Get all available users.
   ]
   ```
 
-## Get current user info
+### Get current user info
 
 ---
 
@@ -390,7 +398,9 @@ Get currently logged in user information and his courses.
   }
   ```
 
-## Get all courses
+## Courses
+
+### Get all courses
 
 ---
 
@@ -481,7 +491,7 @@ Get all available courses.
   - **Code**: 204
   - **Content**: Empty
 
-## Get course creator
+### Get course creator
 
 ---
 
@@ -518,7 +528,7 @@ Get the creator of a course.
   }
   ```
 
-## Get users in course
+### Get users in course
 
 ---
 
@@ -599,7 +609,7 @@ Get all users in a course.
   ]
   ```
 
-## Get user courses
+### Get user courses
 
 ---
 
@@ -695,7 +705,7 @@ Get courses available to the user. User indicated has to be the same as the user
   - **Code**: 204
   - **Content**: Empty
 
-## Add a course
+### Add a course
 
 ---
 
@@ -770,7 +780,7 @@ Add a course to the system. Saves the course in the name of the current logged i
   }
   ```
 
-## Edit a course
+### Edit a course
 
 ---
 
@@ -854,7 +864,7 @@ Edit course fields. Currently you can edit with this method: name.
       Not found: Course not found: 15.
   ```
 
-## Delete a course
+### Delete a course
 
 ---
 
@@ -882,7 +892,7 @@ Remove a course. Logged user has to be the creator of this course.
   Not found: Course not found: 15
   ```
 
-## Add user to course
+### Add user to course
 
 ---
 
@@ -979,7 +989,7 @@ Add a user to a course.
       User is not in course or teacher is not in this course.
   ```
 
-## Remove user from course
+### Remove user from course
 
 ---
 
@@ -1063,7 +1073,9 @@ Add a user to a course. Can't remove creator of this course.
       User is not in course or teacher is not in this course.
   ```
 
-## Get exercises of a course
+## Exercises
+
+### Get exercises of a course
 
 ---
 
@@ -1240,7 +1252,66 @@ Get all exercise of a course. Logged user has to be a member of this course.
   Not found: Course not found: 15
   ```
 
-## Add an exercise to a course
+### Get exercise user info for current user
+
+---
+
+Get information about an exercise for a user. Current information recorded is:
+
+1. finished: If the student marked the exercise as finished
+
+- **Required role**:  
+   Student, Teacher
+- **URL**  
+   `/api/exercises/:id/info`
+- **Method**  
+   `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/info`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 14,
+      "exercise": {
+          "id": 11,
+          "name": "Exercise 1",
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "user": {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "finished": true,
+      "createDateTime": "2020-04-10T19:34:54",
+      "updateDateTime": "2020-04-10T19:34:54"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: Exercise user info not found for user: johndoe. Exercise: 11
+  ```
+
+### Add an exercise to a course
 
 ---
 
@@ -1331,7 +1402,7 @@ Adds a new exercise to an existing course.
       Not found: Course not found.
   ```
 
-## Edit an exercise
+### Edit an exercise
 
 ---
 
@@ -1421,7 +1492,7 @@ Edits an exercise fields.
       Not found: Course not found: 15.
   ```
 
-## Delete an exercise
+### Delete an exercise
 
 ---
 
@@ -1448,7 +1519,7 @@ Remove a course. Logged user has to be a teacher of this course.
   Not found: Exercise not found: 15
   ```
 
-## Download exercise files
+### Download exercise files
 
 ---
 
@@ -1487,7 +1558,7 @@ Name of the file if user files were downloaded: `exercise-{id}-{username}.zip` w
   No template found for exercise: 11
   ```
 
-## Download exercise template
+### Download exercise template
 
 ---
 
@@ -1524,7 +1595,7 @@ Name of the file if template was downloaded: `template-{id}.zip` where {id} is t
   No template found for exercise: 11
   ```
 
-## Upload user files
+### Upload user files
 
 Upload a ZIP file to the user files of an exercise.
 Body has to be multipart/form-data with key = `file` and value = the file.
@@ -1570,7 +1641,7 @@ Files with the same name will be overriden.
   Not found: Exercise not found: 11
   ```
 
-## Upload exercise template
+### Upload exercise template
 
 Upload a ZIP file to the template of an exercise.
 Body has to be multipart/form-data with key = `file` and value = the file.
@@ -1616,7 +1687,7 @@ Files with the same name will be overriden.
   Not found: Exercise not found: 11
   ```
 
-## Get all students' files
+### Get all students' files
 
 ---
 
@@ -1645,7 +1716,60 @@ Name of the file if template was downloaded: `exercise-{id}-files.zip` where {id
   Not found: Exercise not found: 11
   ```
 
-## Add comment thread
+### Get file info by exercise and owner
+
+---
+
+Get information of all of the files owned by a user in an exercise.
+
+- **Required role**:
+  Student or Teacher
+- **URL**
+  `/api/users/:userid/exercises/:exid/files`
+- **Method**
+  `GET`
+- **URL Params**
+  - **Required**
+    - `userid=[long]`
+    - `exid=[long]`
+  - **Example**
+    - `/api/users/4/exercises/3/files`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+    ```json
+    [
+        {
+            "id": 32,
+            "path": "images\\imagePlaceholder.png",
+            "createDateTime": "2020-02-16T12:39:48",
+            "updateDateTime": "2020-02-16T12:39:48"
+        },
+        {
+            "id": 35,
+            "path": "pom.xml",
+            "createDateTime": "2020-02-16T12:39:48",
+            "updateDateTime": "2020-02-16T12:39:48"
+        }
+    ]
+    ```
+
+    OR
+
+  - **Code**: 204
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: 322
+  ```
+
+## Comments
+
+### Add comment thread
 
 Adds or overwrites a comment thread to a file.
 
@@ -1726,7 +1850,7 @@ Adds or overwrites a comment thread to a file.
   Not found: 322
   ```
 
-## Get comment threads
+### Get comment threads
 
 ---
 
@@ -1787,7 +1911,7 @@ Get the posted comment threads of a file.
   Not found: 322
   ```
 
-## Get comments by exercise and username
+### Get comments by exercise and username
 
 ---
 
@@ -1864,7 +1988,7 @@ Get the posted comment threads of the files owned by the given username in the g
   Not found: 322
   ```
 
-## Update comment thread line
+### Update comment thread line
 
 Changes the line and line text of a comment thread line in the server.
 
@@ -1916,58 +2040,9 @@ Changes the line and line text of a comment thread line in the server.
   Not found: 322
   ```
 
-## Get file info by exercise and owner
+## Code sharing
 
----
-
-Get information of all of the files owned by a user in an exercise.
-
-- **Required role**:
-  Student or Teacher
-- **URL**
-  `/api/users/:userid/exercises/:exid/files`
-- **Method**
-  `GET`
-- **URL Params**
-  - **Required**
-    - `userid=[long]`
-    - `exid=[long]`
-  - **Example**
-    - `/api/users/4/exercises/3/files`
-- **Success Response**
-  - **Code**: 200
-  - **Content**:
-
-    ```json
-    [
-        {
-            "id": 32,
-            "path": "images\\imagePlaceholder.png",
-            "createDateTime": "2020-02-16T12:39:48",
-            "updateDateTime": "2020-02-16T12:39:48"
-        },
-        {
-            "id": 35,
-            "path": "pom.xml",
-            "createDateTime": "2020-02-16T12:39:48",
-            "updateDateTime": "2020-02-16T12:39:48"
-        }
-    ]
-    ```
-
-    OR
-
-  - **Code**: 204
-
-- **Error Response**
-  - **Code**: 404
-  - **Content**:
-
-  ```text
-  Not found: 322
-  ```
-
-## Get course unique code
+### Get course unique code
 
 ---
 
@@ -2000,7 +2075,7 @@ Get course unique code for sharing.
   Not found: 1
   ```
 
-## Get exercise unique code
+### Get exercise unique code
 
 ---
 
@@ -2033,7 +2108,7 @@ Get exercise unique code for sharing.
   Not found: 1
   ```
   
-## Get course and its exercises with sharing code
+### Get course and its exercises with sharing code
 
 ---
 
