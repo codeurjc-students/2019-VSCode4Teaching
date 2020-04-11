@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
@@ -7,8 +8,10 @@ import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
+import { FinishItem } from "./components/exercises/FinishItem";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
+import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "./model/V4TExerciseFile";
@@ -25,6 +28,8 @@ export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
 let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
+export let finishItem: FinishItem | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
@@ -43,6 +48,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     const logoutDisposable = vscode.commands.registerCommand("vscode4teaching.logout", () => {
         coursesProvider.logout();
+        currentCwds = vscode.workspace.workspaceFolders;
+        if (currentCwds) {
+            initializeExtension(currentCwds);
+        }
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", (courseName: string, exercise: Exercise) => {
@@ -181,9 +190,16 @@ export function deactivate() {
     if (commentProvider) {
         commentProvider.dispose();
     }
+    if (finishItem) {
+        finishItem.dispose();
+    }
 }
 
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+    if (finishItem) {
+        finishItem.dispose();
+        finishItem = undefined;
+    }
     const checkedUris: string[] = [];
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -213,14 +229,13 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                         }
 
                         // If user is student and exercise is not finished add finish button
-                        // TODO: Add finished exercise check
-                        if (!currentUserIsTeacher) {
-                            const text = "Finish exercise";
-                            const finishedStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-                            finishedStatusBarItem.text = "$(checklist) " + text;
-                            finishedStatusBarItem.tooltip = text;
-                            finishedStatusBarItem.command = "vscode4teaching.finishexercise";
-                            finishedStatusBarItem.show();
+                        if (!currentUserIsTeacher && !finishItem) {
+                            APIClient.getExerciseUserInfo(exerciseId).then((eui: AxiosResponse<ExerciseUserInfo>) => {
+                                if (!eui.data.finished) {
+                                    finishItem = new FinishItem();
+                                    finishItem.show();
+                                }
+                            }).catch((error) => APIClient.handleAxiosError(error));
                         }
                     }
                     // Set template location if exists

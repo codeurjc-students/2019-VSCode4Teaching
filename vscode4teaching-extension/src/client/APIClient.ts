@@ -8,6 +8,7 @@ import { CourseEdit } from "../model/serverModel/course/CourseEdit";
 import { ManageCourseUsers } from "../model/serverModel/course/ManageCourseUsers";
 import { Exercise } from "../model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../model/serverModel/exercise/ExerciseEdit";
+import { ExerciseUserInfo } from "../model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "../model/serverModel/file/FileInfo";
 import { User } from "../model/serverModel/user/User";
 import { UserSignup } from "../model/serverModel/user/UserSignup";
@@ -48,15 +49,15 @@ class APIClientSingleton {
                 APIClientSession.invalidateSession();
                 APIClientSession.baseUrl = url;
             }
-            await this.getXSRFToken();
-            const response = await this.login(username, password);
+            await APIClient.getXSRFToken();
+            const response = await APIClient.login(username, password);
             vscode.window.showInformationMessage("Logged in");
             APIClientSession.jwtToken = response.data.jwtToken;
             APIClientSession.createSessionFile();
             await CurrentUser.updateUserInfo();
             CoursesProvider.triggerTreeReload();
         } catch (error) {
-            this.handleAxiosError(error);
+            APIClient.handleAxiosError(error);
         }
     }
 
@@ -71,13 +72,13 @@ class APIClientSingleton {
             if (url && !isTeacher) {
                 APIClientSession.invalidateSession();
                 APIClientSession.baseUrl = url;
-                await this.getXSRFToken();
+                await APIClient.getXSRFToken();
             }
             let signupThenable;
             if (isTeacher) {
-                signupThenable = this.signUpTeacher(userCredentials);
+                signupThenable = APIClient.signUpTeacher(userCredentials);
             } else {
-                signupThenable = this.signUp(userCredentials);
+                signupThenable = APIClient.signUp(userCredentials);
             }
             await signupThenable;
             if (isTeacher) {
@@ -86,7 +87,7 @@ class APIClientSingleton {
                 vscode.window.showInformationMessage("Signed up. Please log in.");
             }
         } catch (error) {
-            this.handleAxiosError(error);
+            APIClient.handleAxiosError(error);
         }
     }
 
@@ -99,23 +100,23 @@ class APIClientSingleton {
      */
     public handleAxiosError(error: any) {
         if (error.response) {
-            if (error.response.status === 401 && !this.error401thrown) {
+            if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
-                this.error401thrown = true;
+                APIClient.error401thrown = true;
                 APIClientSession.invalidateSession();
                 CoursesProvider.triggerTreeReload();
-            } else if (error.response.status === 403 && !this.error403thrown) {
+            } else if (error.response.status === 403 && !APIClient.error403thrown) {
                 vscode.window.showWarningMessage("Something went wrong, please try again.");
-                this.error403thrown = true;
-                this.getXSRFToken();
+                APIClient.error403thrown = true;
+                APIClient.getXSRFToken();
             } else {
                 let msg = error.response.data;
                 if (error.response.data instanceof Object) {
                     msg = JSON.stringify(error.response.data);
                 }
                 vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
-                this.error401thrown = false;
-                this.error403thrown = false;
+                APIClient.error401thrown = false;
+                APIClient.error403thrown = false;
                 APIClientSession.invalidateSession();
             }
         } else if (error.request) {
@@ -139,7 +140,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching user data...");
+        return APIClient.createRequest(options, "Fetching user data...");
     }
 
     public getExercises(courseId: number): AxiosPromise<Exercise[]> {
@@ -148,7 +149,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching exercises...");
+        return APIClient.createRequest(options, "Fetching exercises...");
     }
 
     public getExerciseFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -157,7 +158,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return this.createRequest(options, "Downloading exercise files...");
+        return APIClient.createRequest(options, "Downloading exercise files...");
     }
 
     public addCourse(data: CourseEdit): AxiosPromise<Course> {
@@ -167,7 +168,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Creating course...");
+        return APIClient.createRequest(options, "Creating course...");
     }
 
     public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
@@ -177,7 +178,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Editing course...");
+        return APIClient.createRequest(options, "Editing course...");
     }
 
     public deleteCourse(id: number): AxiosPromise<void> {
@@ -186,7 +187,7 @@ class APIClientSingleton {
             method: "DELETE",
             responseType: "json",
         };
-        return this.createRequest(options, "Deleting course...");
+        return APIClient.createRequest(options, "Deleting course...");
     }
 
     public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
@@ -196,7 +197,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Adding exercise...");
+        return APIClient.createRequest(options, "Adding exercise...");
     }
 
     public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
@@ -206,7 +207,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Sending exercise info...");
+        return APIClient.createRequest(options, "Sending exercise info...");
     }
 
     public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
@@ -218,7 +219,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return this.createRequest(options, "Uploading template...");
+        return APIClient.createRequest(options, "Uploading template...");
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {
@@ -227,7 +228,7 @@ class APIClientSingleton {
             method: "DELETE",
             responseType: "json",
         };
-        return this.createRequest(options, "Deleting exercise...");
+        return APIClient.createRequest(options, "Deleting exercise...");
     }
 
     public getAllUsers(): AxiosPromise<User[]> {
@@ -236,7 +237,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching user data...");
+        return APIClient.createRequest(options, "Fetching user data...");
     }
 
     public getUsersInCourse(courseId: number): AxiosPromise<User[]> {
@@ -245,7 +246,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching user data...");
+        return APIClient.createRequest(options, "Fetching user data...");
     }
 
     public addUsersToCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
@@ -255,7 +256,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Adding users to course...");
+        return APIClient.createRequest(options, "Adding users to course...");
     }
 
     public removeUsersFromCourse(courseId: number, data: ManageCourseUsers): AxiosPromise<Course> {
@@ -265,7 +266,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Removing users from course...");
+        return APIClient.createRequest(options, "Removing users from course...");
     }
 
     public getCreator(courseId: number): AxiosPromise<User> {
@@ -274,7 +275,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Uploading files...");
+        return APIClient.createRequest(options, "Uploading files...");
     }
 
     public uploadFiles(exerciseId: number, data: Buffer): AxiosPromise<any> {
@@ -286,7 +287,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return this.createRequest(options, "Uploading files...");
+        return APIClient.createRequest(options, "Uploading files...");
     }
 
     public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -295,7 +296,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return this.createRequest(options, "Downloading student files...");
+        return APIClient.createRequest(options, "Downloading student files...");
     }
 
     public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -304,7 +305,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return this.createRequest(options, "Downloading exercise template...");
+        return APIClient.createRequest(options, "Downloading exercise template...");
     }
 
     public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
@@ -313,7 +314,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching file information...");
+        return APIClient.createRequest(options, "Fetching file information...");
     }
 
     public saveComment(fileId: number, commentThread: ServerCommentThread): AxiosPromise<ServerCommentThread> {
@@ -323,7 +324,7 @@ class APIClientSingleton {
             responseType: "json",
             data: commentThread,
         };
-        return this.createRequest(options, "Fetching comments...");
+        return APIClient.createRequest(options, "Fetching comments...");
     }
 
     public getComments(fileId: number): AxiosPromise<ServerCommentThread[] | void> {
@@ -332,7 +333,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching comments...");
+        return APIClient.createRequest(options, "Fetching comments...");
     }
 
     public getAllComments(username: string, exerciseId: number): AxiosPromise<FileInfo[] | void> {
@@ -341,7 +342,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching comments...");
+        return APIClient.createRequest(options, "Fetching comments...");
     }
 
     public getSharingCode(element: Course | Exercise): AxiosPromise<string> {
@@ -351,7 +352,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching sharing code...");
+        return APIClient.createRequest(options, "Fetching sharing code...");
     }
 
     public updateCommentThreadLine(id: number, line: number, lineText: string): AxiosPromise<ServerCommentThread> {
@@ -365,7 +366,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Saving comments...");
+        return APIClient.createRequest(options, "Saving comments...");
     }
 
     public getCourseWithCode(code: string): AxiosPromise<Course> {
@@ -374,7 +375,16 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return this.createRequest(options, "Fetching course data...");
+        return APIClient.createRequest(options, "Fetching course data...");
+    }
+
+    public getExerciseUserInfo(exerciseId: number): AxiosPromise<ExerciseUserInfo> {
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/info",
+            method: "GET",
+            responseType: "json",
+        };
+        return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
     private signUp(credentials: UserSignup): AxiosPromise<User> {
@@ -384,7 +394,7 @@ class APIClientSingleton {
             responseType: "json",
             data: credentials,
         };
-        return this.createRequest(options, "Signing up to VS Code 4 Teaching...");
+        return APIClient.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
     private signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
@@ -394,8 +404,9 @@ class APIClientSingleton {
             responseType: "json",
             data: credentials,
         };
-        return this.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
+        return APIClient.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
     }
+
     /**
      * Sets vscode status bar and returns axios promise for given options.
      * @param options Options from to build axios request
@@ -416,7 +427,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        const response = await this.createRequest(options, "Fetching server info...");
+        const response = await APIClient.createRequest(options, "Fetching server info...");
         const cookiesString: string | undefined = response.headers["set-cookie"][0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");
@@ -442,7 +453,7 @@ class APIClientSingleton {
             responseType: "json",
             data,
         };
-        return this.createRequest(options, "Logging in to VS Code 4 Teaching...");
+        return APIClient.createRequest(options, "Logging in to VS Code 4 Teaching...");
     }
 }
 // API Client is a singleton

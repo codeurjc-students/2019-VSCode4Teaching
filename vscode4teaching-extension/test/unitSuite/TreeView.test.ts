@@ -182,4 +182,9 @@ describe("Tree View", () => {
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(3, inputOptionsPassword);
         expect(mockedClient.loginV4T).toHaveBeenLastCalledWith(mockUsername, mockPassword, mockUrl);
     });
+
+    it("should logout correctly", () => {
+        coursesProvider.logout();
+        expect(mockedClient.invalidateSession).toHaveBeenCalledTimes(1);
+    });
 });
