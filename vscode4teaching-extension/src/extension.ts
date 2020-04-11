@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
@@ -7,8 +8,10 @@ import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
+import { FinishItem } from "./components/exercises/FinishItem";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
+import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "./model/V4TExerciseFile";
@@ -25,6 +28,11 @@ export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
 let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
+let finishItem: FinishItem | undefined;
+let changeEvent: vscode.Disposable;
+let createEvent: vscode.Disposable;
+let deleteEvent: vscode.Disposable;
+
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
@@ -43,6 +51,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     const logoutDisposable = vscode.commands.registerCommand("vscode4teaching.logout", () => {
         coursesProvider.logout();
+        currentCwds = vscode.workspace.workspaceFolders;
+        if (currentCwds) {
+            initializeExtension(currentCwds);
+        }
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", (courseName: string, exercise: Exercise) => {
@@ -163,18 +175,47 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.getCourseWithCode();
     });
 
+    const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", () => {
+        const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
+        vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept").then((selectedOption) => {
+            if (selectedOption === "Accept" && finishItem) {
+                APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), true).then((response: AxiosResponse<ExerciseUserInfo>) => {
+                    if (response.data.finished && finishItem) {
+                        finishItem.dispose();
+                        if (changeEvent) {
+                            changeEvent.dispose();
+                        }
+                        if (createEvent) {
+                            createEvent.dispose();
+                        }
+                        if (deleteEvent) {
+                            deleteEvent.dispose();
+                        }
+                    }
+                });
+            }
+        });
+    });
+
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise);
 }
 
 export function deactivate() {
     if (commentProvider) {
         commentProvider.dispose();
     }
+    if (finishItem) {
+        finishItem.dispose();
+    }
 }
 
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+    if (finishItem) {
+        finishItem.dispose();
+        finishItem = undefined;
+    }
     const checkedUris: string[] = [];
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -189,28 +230,38 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                     // Exercise id is in the name of the zip file
                     const zipSplit = zipUri.split(path.sep);
                     const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-                    if (!commentProvider && CurrentUser.isLoggedIn()) {
-                        commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
-                    }
-                    if (commentProvider && CurrentUser.isLoggedIn()) {
+                    if (CurrentUser.isLoggedIn()) {
+                        if (!commentProvider) {
+                            commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
+                        }
                         commentProvider.addCwd(cwd);
+                        const currentUser = CurrentUser.getUserInfo();
+                        const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
                         // Download comments
                         if (cwd.name !== "template") {
-                            const currentUser = CurrentUser.getUserInfo();
-                            const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
                             const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
                             commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
                             setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                         }
-                    }
-                    // Set template location if exists
-                    if (v4tjson.teacher && v4tjson.template) {
-                        // Template should be the same in the workspace
-                        templates[cwd.name] = v4tjson.template;
-                    }
-                    const jszipFile = new JSZip();
-                    if (!v4tjson.teacher && fs.existsSync(zipUri)) {
-                        setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
+
+                        // If user is student and exercise is not finished add finish button
+                        if (!currentUserIsTeacher && !finishItem) {
+                            APIClient.getExerciseUserInfo(exerciseId).then((eui: AxiosResponse<ExerciseUserInfo>) => {
+                                if (!eui.data.finished) {
+                                    const jszipFile = new JSZip();
+                                    if (!currentUserIsTeacher && fs.existsSync(zipUri)) {
+                                        setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
+                                    }
+                                    finishItem = new FinishItem(exerciseId);
+                                    finishItem.show();
+                                }
+                            }).catch((error) => APIClient.handleAxiosError(error));
+                        }
+                        // Set template location if exists
+                        if (currentUserIsTeacher && v4tjson.template) {
+                            // Template should be the same in the workspace
+                            templates[cwd.name] = v4tjson.template;
+                        }
                     }
                 }
             });
@@ -225,13 +276,13 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     jszipFile.loadAsync(fs.readFileSync(zipUri));
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
-    fsw.onDidChange((e: vscode.Uri) => {
+    changeEvent = fsw.onDidChange((e: vscode.Uri) => {
         updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
     });
-    fsw.onDidCreate((e: vscode.Uri) => {
+    createEvent = fsw.onDidCreate((e: vscode.Uri) => {
         updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
     });
-    fsw.onDidDelete((e: vscode.Uri) => {
+    deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
         if (!ignoredFiles.includes(e.fsPath)) {
             let filePath = path.resolve(e.fsPath);
             filePath = path.relative(cwd.uri.fsPath, filePath);

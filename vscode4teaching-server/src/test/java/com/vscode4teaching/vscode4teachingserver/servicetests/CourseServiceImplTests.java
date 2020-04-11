@@ -18,10 +18,12 @@ import java.util.Set;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
@@ -52,6 +54,9 @@ public class CourseServiceImplTests {
 
     @Mock
     private ExerciseRepository exerciseRepository;
+
+    @Mock
+    private ExerciseUserInfoRepository exerciseUserInfoRepository;
 
     @InjectMocks
     private CourseServiceImpl courseServiceImpl;
@@ -129,6 +134,7 @@ public class CourseServiceImplTests {
         when(courseRepository.findById(courseTestId)).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).then(returnsFirstArg());
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
+        when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
         Exercise exercise = new Exercise();
         exercise.setName("Unit testing in Spring Boot");
 
@@ -138,6 +144,7 @@ public class CourseServiceImplTests {
         verify(courseRepository, times(1)).findById(courseTestId);
         verify(courseRepository, times(1)).save(course);
         verify(exerciseRepository, times(1)).save(exercise);
+        verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
 
         logger.info("Test addExerciseToCourse_valid() ends.");
     }
@@ -363,6 +370,8 @@ public class CourseServiceImplTests {
         Course course = new Course("Spring Boot Course");
         course.setId(5l);
         course.addUserInCourse(teacher);
+        Exercise ex = new Exercise("Exercise 1", course);
+        course.addExercise(ex);
         Optional<User> userOpt1 = Optional.of(newUser1);
         Optional<User> userOpt2 = Optional.of(newUser2);
         Optional<Course> courseOpt = Optional.of(course);
@@ -372,6 +381,7 @@ public class CourseServiceImplTests {
         when(userRepository.findById(anyLong())).thenReturn(userOpt1).thenReturn(userOpt2);
         when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
+        when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
 
         long[] ids = { 1l, 5l };
         Course savedCourse = courseServiceImpl.addUsersToCourse(5l, ids, "johndoe");
@@ -382,6 +392,7 @@ public class CourseServiceImplTests {
         verify(userRepository, times(2)).findById(anyLong());
         verify(courseRepository, times(1)).findById(anyLong());
         verify(courseRepository, times(1)).save(any(Course.class));
+        verify(exerciseUserInfoRepository, times(2)).save(any(ExerciseUserInfo.class));
     }
 
     @Test

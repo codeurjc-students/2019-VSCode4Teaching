@@ -5,10 +5,12 @@ import java.util.List;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 
@@ -36,6 +38,9 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ExerciseUserInfoRepository exerciseUserInfoRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -97,7 +102,15 @@ public class DatabaseInitializer implements CommandLineRunner {
             for (int j = 1; j < 6; j++) {
                 Exercise exercise = new Exercise("Exercise " + j, course);
                 course.addExercise(exercise);
-                exerciseRepository.save(exercise);
+                Exercise savedExercise = exerciseRepository.save(exercise);
+                for (User user : users) {
+                    ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
+                    if (course.equals(courses.get(0)) && savedExercise.getName().equals("Exercise 1")
+                            && (user.equals(users.get(2)) || user.equals(users.get(3)))) {
+                        eui.setFinished(true);
+                    }
+                    exerciseUserInfoRepository.save(eui);
+                }
             }
             courseRepository.save(course);
         }

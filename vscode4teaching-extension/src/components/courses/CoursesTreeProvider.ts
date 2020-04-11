@@ -176,6 +176,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      */
     public logout() {
         APIClient.invalidateSession();
+        CoursesProvider.triggerTreeReload();
     }
 
     /**

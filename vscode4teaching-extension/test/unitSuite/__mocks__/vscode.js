@@ -15,11 +15,23 @@ const EventEmitter = jest.fn().mockImplementation(() => {
     }
 })
 
+const StatusBarItem = {
+    show: jest.fn(),
+    hide: jest.fn(),
+    dispose: jest.fn(),
+    text: undefined,
+    tooltip: undefined,
+    command: undefined
+}
+
+const StatusBarAlignment = {
+    Left: 1,
+    Right: 2
+}
+
 const window = {
     registerTreeDataProvider: jest.fn(),
-    createStatusBarItem: jest.fn(() => ({
-        show: jest.fn()
-    })),
+    createStatusBarItem: jest.fn(() => (StatusBarItem)),
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
     showInformationMessage: jest.fn(),
@@ -85,7 +97,9 @@ const vscode = {
     WorkspaceConfiguration,
     window,
     workspace,
-    commands
+    commands,
+    StatusBarItem,
+    StatusBarAlignment
 };
 
 module.exports = vscode;

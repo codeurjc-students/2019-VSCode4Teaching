@@ -20,13 +20,17 @@ import javax.validation.constraints.Min;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -38,15 +42,17 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     private final ExerciseRepository exerciseRepository;
     private final ExerciseFileRepository fileRepository;
+    private final ExerciseUserInfoRepository exerciseUserInfoRepository;
     private final UserRepository userRepository;
 
     @Value("${v4t.filedirectory}")
     private String rootPath;
 
     public ExerciseFilesServiceImpl(ExerciseRepository exerciseRepository, ExerciseFileRepository fileRepository,
-            UserRepository userRepository) {
+            ExerciseUserInfoRepository exerciseUserInfoRepository, UserRepository userRepository) {
         this.exerciseRepository = exerciseRepository;
         this.fileRepository = fileRepository;
+        this.exerciseUserInfoRepository = exerciseUserInfoRepository;
         this.userRepository = userRepository;
     }
 
@@ -76,7 +82,14 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     @Override
     public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file,
-            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
+            String requestUsername)
+            throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
+        ExerciseUserInfo eui = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, requestUsername)
+                .orElseThrow(() -> new NotFoundException(
+                        "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
+        if (eui.isFinished()) {
+            throw new ExerciseFinishedException(exerciseId);
+        }
         return saveFiles(exerciseId, file, requestUsername, false);
     }
 
@@ -188,12 +201,13 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
             throws ExerciseNotFoundException {
-        Exercise ex = exerciseRepository.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+        Exercise ex = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
         if (!files.isEmpty()) {
             String username = files.get(0).getOwner().getUsername();
             List<ExerciseFile> copyFiles = new ArrayList<>(files);
-    
+
             // Change paths to be relative to username
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
@@ -206,6 +220,6 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         } else {
             return files;
         }
-        
+
     }
 }

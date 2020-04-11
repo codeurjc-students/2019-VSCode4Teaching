@@ -4,7 +4,8 @@
         "interface-name": false,
         "object-literal-sort-keys": false,
         "max-line-length": false,
-        "no-console": false
+        "no-console": false,
+        "variable-name": false
     },
     "defaultSeverity": "warning"
 }

@@ -9,8 +9,10 @@ import javax.validation.constraints.Min;
 
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.springframework.stereotype.Service;
@@ -24,7 +26,8 @@ public interface ExerciseFilesService {
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 
     public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile zip,
-            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
+            String requestUsername)
+            throws NotInCourseException, IOException, ExerciseFinishedException, NotFoundException;
 
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip,
             String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
