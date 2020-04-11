@@ -29,6 +29,7 @@ Needed header key: `X-XSRF-TOKEN`
 - [Exercises](API.md#exercises)
   - [Get exercises of a course](API.md#get-exercises-of-a-course)
   - [Get exercise user info for current user](API.md#get-exercise-user-info-for-current-user)
+  - [Update exercise user info for current user](API.md#update-exercise-user-info-for-current-user)
   - [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
   - [Edit an exercise](API.md#edit-an-exercise)
   - [Delete an exercise](API.md#delete-an-exercise)
@@ -1271,6 +1272,76 @@ Get information about an exercise for a user. Current information recorded is:
     - `id=[long]`
   - **Example**
     - `/api/exercises/11/info`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 14,
+      "exercise": {
+          "id": 11,
+          "name": "Exercise 1",
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "user": {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "finished": true,
+      "createDateTime": "2020-04-10T19:34:54",
+      "updateDateTime": "2020-04-10T19:34:54"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: Exercise user info not found for user: johndoe. Exercise: 11
+  ```
+
+### Update exercise user info for current user
+
+---
+
+Updates information about an exercise for a user. Current information recorded is:
+
+1. finished: If the student marked the exercise as finished
+
+- **Required role**:  
+   Student, Teacher
+- **URL**  
+   `/api/exercises/:id/info`
+- **Method**  
+   `PUT`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/info`
+- **Data Params**
+  - **Required**:  
+    `"finished": [boolean]`
+  - **Example**:
+
+  ```json
+  {
+    "finisheed": true
+  }
+  ```
+
 - **Success Response**
   - **Code**: 200
   - **Content**:

@@ -8,6 +8,7 @@ import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseUserInfoDTO;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
@@ -97,5 +98,13 @@ public class ExerciseController {
             HttpServletRequest request) throws NotFoundException {
         return ResponseEntity
                 .ok(exerciseInfoService.getExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
+    @PutMapping("/exercises/{exerciseId}/info")
+    @JsonView(ExerciseUserInfoViews.GeneralView.class)
+    public ResponseEntity<ExerciseUserInfo> updateExerciseUserInfo(@PathVariable Long exerciseId,
+            @RequestBody ExerciseUserInfoDTO exerciseUserInfoDTO, HttpServletRequest request) throws NotFoundException {
+        return ResponseEntity.ok(exerciseInfoService.updateExerciseUserInfo(exerciseId,
+                jwtTokenUtil.getUsernameFromToken(request), exerciseUserInfoDTO.isFinished()));
     }
 }

@@ -24,6 +24,8 @@ import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -65,5 +67,28 @@ public class ExerciseInfoServiceImplTests {
 
         assertThrows(NotFoundException.class, () -> exerciseInfoService.getExerciseUserInfo(exerciseId, username));
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
+    }
+
+    @Test
+    public void updateExerciseUserInfo_valid() throws NotFoundException {
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1", course);
+        Long exerciseId = 2l;
+        exercise.setId(exerciseId);
+        String username = "johndoe";
+        Role studentRole = new Role("ROLE_STUDENT");
+        User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
+        eui.setFinished(false);
+        Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
+        when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
+        when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, true);
+
+        assertThat(savedEui.getExercise()).isEqualTo(exercise);
+        assertThat(savedEui.getUser()).isEqualTo(user);
+        assertThat(savedEui.isFinished()).isTrue();
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
+        verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }
 }

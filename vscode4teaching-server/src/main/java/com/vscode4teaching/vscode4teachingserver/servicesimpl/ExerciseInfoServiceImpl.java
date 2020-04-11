@@ -24,6 +24,20 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
+        return this.getAndCheckExerciseUserInfo(exerciseId, username);
+    }
+
+    @Override
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, boolean finished)
+            throws NotFoundException {
+        ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
+        eui.setFinished(true);
+        eui = exerciseUserInfoRepository.save(eui);
+        return eui;
+    }
+
+    private ExerciseUserInfo getAndCheckExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
+            throws NotFoundException {
         Optional<ExerciseUserInfo> euiOpt = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId,
                 username);
         if (!euiOpt.isPresent()) {
@@ -32,5 +46,4 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
         }
         return euiOpt.get();
     }
-
 }

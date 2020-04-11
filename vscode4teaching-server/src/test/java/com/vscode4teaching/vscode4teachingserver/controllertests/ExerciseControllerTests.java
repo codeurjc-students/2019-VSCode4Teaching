@@ -21,6 +21,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseUserInfoDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
@@ -238,6 +239,30 @@ public class ExerciseControllerTests {
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
                 .writeValueAsString(eui);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void updateExerciseUserInfo_valid() throws Exception {
+        Exercise ex = new Exercise("Spring Boot Exercise 1");
+        ex.setId(1l);
+        User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
+        user.setId(4l);
+        ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
+        euiDTO.setFinished(true);
+        ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
+        updatedEui.setFinished(true);
+        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", true)).thenReturn(updatedEui);
+
+        MvcResult mvcResult = mockMvc
+                .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())
+                        .content(objectMapper.writeValueAsString(euiDTO))
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
+                .writeValueAsString(updatedEui);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }
