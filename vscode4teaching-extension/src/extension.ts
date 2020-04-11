@@ -28,7 +28,10 @@ export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
 let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
-export let finishItem: FinishItem | undefined;
+let finishItem: FinishItem | undefined;
+let changeEvent: vscode.Disposable;
+let createEvent: vscode.Disposable;
+let deleteEvent: vscode.Disposable;
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -175,8 +178,21 @@ export function activate(context: vscode.ExtensionContext) {
     const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", () => {
         const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
         vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept").then((selectedOption) => {
-            if (selectedOption === "Accept") {
-                // TODO: Mark exercise as finished
+            if (selectedOption === "Accept" && finishItem) {
+                APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), true).then((response: AxiosResponse<ExerciseUserInfo>) => {
+                    if (response.data.finished && finishItem) {
+                        finishItem.dispose();
+                        if (changeEvent) {
+                            changeEvent.dispose();
+                        }
+                        if (createEvent) {
+                            createEvent.dispose();
+                        }
+                        if (deleteEvent) {
+                            deleteEvent.dispose();
+                        }
+                    }
+                });
             }
         });
     });
@@ -232,20 +248,20 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                         if (!currentUserIsTeacher && !finishItem) {
                             APIClient.getExerciseUserInfo(exerciseId).then((eui: AxiosResponse<ExerciseUserInfo>) => {
                                 if (!eui.data.finished) {
-                                    finishItem = new FinishItem();
+                                    const jszipFile = new JSZip();
+                                    if (!currentUserIsTeacher && fs.existsSync(zipUri)) {
+                                        setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
+                                    }
+                                    finishItem = new FinishItem(exerciseId);
                                     finishItem.show();
                                 }
                             }).catch((error) => APIClient.handleAxiosError(error));
                         }
-                    }
-                    // Set template location if exists
-                    if (v4tjson.teacher && v4tjson.template) {
-                        // Template should be the same in the workspace
-                        templates[cwd.name] = v4tjson.template;
-                    }
-                    const jszipFile = new JSZip();
-                    if (!v4tjson.teacher && fs.existsSync(zipUri)) {
-                        setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
+                        // Set template location if exists
+                        if (currentUserIsTeacher && v4tjson.template) {
+                            // Template should be the same in the workspace
+                            templates[cwd.name] = v4tjson.template;
+                        }
                     }
                 }
             });
@@ -260,13 +276,13 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     jszipFile.loadAsync(fs.readFileSync(zipUri));
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
-    fsw.onDidChange((e: vscode.Uri) => {
+    changeEvent = fsw.onDidChange((e: vscode.Uri) => {
         updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
     });
-    fsw.onDidCreate((e: vscode.Uri) => {
+    createEvent = fsw.onDidCreate((e: vscode.Uri) => {
         updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
     });
-    fsw.onDidDelete((e: vscode.Uri) => {
+    deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
         if (!ignoredFiles.includes(e.fsPath)) {
             let filePath = path.resolve(e.fsPath);
             filePath = path.relative(cwd.uri.fsPath, filePath);

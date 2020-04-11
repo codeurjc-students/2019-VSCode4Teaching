@@ -387,6 +387,18 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
+    public updateExerciseUserInfo(exerciseId: number, finished: boolean): AxiosPromise<ExerciseUserInfo> {
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + exerciseId + "/info",
+            method: "PUT",
+            responseType: "json",
+            data: {
+                finished,
+            },
+        };
+        return APIClient.createRequest(options, "Updating exercise user info...");
+    }
+
     private signUp(credentials: UserSignup): AxiosPromise<User> {
         const options: AxiosBuildOptions = {
             url: "/api/register",

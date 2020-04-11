@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 export class FinishItem {
     private _finishItem: vscode.StatusBarItem;
-    constructor() {
+    constructor(private exerciseId: number) {
         const text = "Finish exercise";
         this._finishItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
         this._finishItem.text = "$(checklist) " + text;
@@ -9,7 +9,7 @@ export class FinishItem {
         this._finishItem.command = "vscode4teaching.finishexercise";
     }
 
-    get finishItem() {
+    get finishItem(): vscode.StatusBarItem {
         return this._finishItem;
     }
 
@@ -19,6 +19,10 @@ export class FinishItem {
 
     public show() {
         this._finishItem.show();
+    }
+
+    public getExerciseId(): number {
+        return this.exerciseId;
     }
 
     public dispose() {
