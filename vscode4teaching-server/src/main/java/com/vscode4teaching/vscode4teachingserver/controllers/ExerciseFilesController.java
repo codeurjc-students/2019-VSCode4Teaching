@@ -21,8 +21,10 @@ import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -55,7 +57,7 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
-        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         String zipName = files.get(0).getParentFile().getName().equals("template") ? "template-" + id
                 : "exercise-" + id + "-" + username;
@@ -70,10 +72,10 @@ public class ExerciseFilesController {
     @PostMapping("/exercises/{id}/files")
     public ResponseEntity<List<UploadFileResponse>> uploadZip(@PathVariable Long id,
             @RequestParam("file") MultipartFile zip, HttpServletRequest request)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
+            throws NotInCourseException, IOException, ExerciseFinishedException, NotFoundException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
-        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
@@ -92,7 +94,7 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
-        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
@@ -110,7 +112,7 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(id, username);
-        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"template-" + id + ".zip\"");
@@ -122,13 +124,13 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
-        Optional<List<File>> optFiles= filesMap.values().stream().findFirst();
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Disposition", "attachment; filename=\"exercise-" + id + "-files.zip\"");
         Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
-        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ",
-                "_") + "_" + id : "";
+        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ", "_") + "_" + id
+                : "";
         exportToZip(response, files, exerciseDirectory);
     }
 

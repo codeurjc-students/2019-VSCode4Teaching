@@ -1,7 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.util.Optional;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 
@@ -38,12 +36,8 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
 
     private ExerciseUserInfo getAndCheckExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
-        Optional<ExerciseUserInfo> euiOpt = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId,
-                username);
-        if (!euiOpt.isPresent()) {
-            throw new NotFoundException(
-                    "Exercise user info not found for user: " + username + ". Exercise: " + exerciseId);
-        }
-        return euiOpt.get();
+        return exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)
+                .orElseThrow(() -> new NotFoundException(
+                        "Exercise user info not found for user: " + username + ". Exercise: " + exerciseId));
     }
 }
