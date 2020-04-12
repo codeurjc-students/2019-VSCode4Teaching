@@ -27,6 +27,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
+import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
@@ -263,6 +264,42 @@ public class ExerciseControllerTests {
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
                 .writeValueAsString(updatedEui);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void getAllStudentExerciseUserInfo_valid() throws Exception {
+        // Set up courses and exercises
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1", course);
+        exercise.setId(10l);
+        // Set up users
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        User student1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr 1");
+        student1.addRole(studentRole);
+        student1.addCourse(course);
+        course.addUserInCourse(student1);
+        User student2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
+        student2.addRole(studentRole);
+        student2.addCourse(course);
+        course.addUserInCourse(student2);
+        // Set up EUIs
+        ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
+        ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
+        euiStudent2.setFinished(true);
+        List<ExerciseUserInfo> expectedList = new ArrayList<>(2);
+        expectedList.add(euiStudent1);
+        expectedList.add(euiStudent2);
+        when(exerciseInfoService.getAllStudentExerciseUserInfo(10l, "johndoe")).thenReturn(expectedList);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/exercises/10/info/teacher").contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
+                .writeValueAsString(expectedList);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

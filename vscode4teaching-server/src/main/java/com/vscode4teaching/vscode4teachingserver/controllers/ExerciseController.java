@@ -56,7 +56,8 @@ public class ExerciseController {
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<List<Exercise>> getExercises(HttpServletRequest request, @PathVariable @Min(1) Long courseId)
             throws CourseNotFoundException, NotInCourseException {
-        return ResponseEntity.ok(courseService.getExercises(courseId, jwtTokenUtil.getUsernameFromToken(request)));
+        List<Exercise> exercises = courseService.getExercises(courseId, jwtTokenUtil.getUsernameFromToken(request));
+        return exercises.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(exercises);
     }
 
     @PostMapping("/courses/{courseId}/exercises")
@@ -106,5 +107,14 @@ public class ExerciseController {
             @RequestBody ExerciseUserInfoDTO exerciseUserInfoDTO, HttpServletRequest request) throws NotFoundException {
         return ResponseEntity.ok(exerciseInfoService.updateExerciseUserInfo(exerciseId,
                 jwtTokenUtil.getUsernameFromToken(request), exerciseUserInfoDTO.isFinished()));
+    }
+
+    @GetMapping("/exercises/{exerciseId}/info/teacher")
+    @JsonView(ExerciseUserInfoViews.GeneralView.class)
+    public ResponseEntity<List<ExerciseUserInfo>> getAllExerciseUserInfo(@PathVariable Long exerciseId,
+            HttpServletRequest request) throws NotInCourseException, ExerciseNotFoundException {
+        List<ExerciseUserInfo> euis = exerciseInfoService.getAllStudentExerciseUserInfo(exerciseId,
+                jwtTokenUtil.getUsernameFromToken(request));
+        return !euis.isEmpty() ? ResponseEntity.ok(euis) : ResponseEntity.noContent().build();
     }
 }

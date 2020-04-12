@@ -51,6 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasAnyRole("TEACHER")
                 .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole("TEACHER").antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
+                .hasAnyRole("TEACHER").antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
                 .hasAnyRole("TEACHER").anyRequest().hasAnyRole("STUDENT").and().csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()

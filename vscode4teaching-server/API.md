@@ -28,8 +28,6 @@ Needed header key: `X-XSRF-TOKEN`
   - [Remove user from course](API.md#remove-user-from-course)
 - [Exercises](API.md#exercises)
   - [Get exercises of a course](API.md#get-exercises-of-a-course)
-  - [Get exercise user info for current user](API.md#get-exercise-user-info-for-current-user)
-  - [Update exercise user info for current user](API.md#update-exercise-user-info-for-current-user)
   - [Add an exercise to a course](API.md#add-an-exercise-to-a-course)
   - [Edit an exercise](API.md#edit-an-exercise)
   - [Delete an exercise](API.md#delete-an-exercise)
@@ -38,6 +36,9 @@ Needed header key: `X-XSRF-TOKEN`
   - [Upload user files](API.md#upload-user-files)
   - [Upload exercise template](API.md#upload-exercise-template)
   - [Get file info by exercise and owner](API.md#get-file-info-by-exercise-and-owner)
+  - [Get exercise user info for current user](API.md#get-exercise-user-info-for-current-user)
+  - [Update exercise user info for current user](API.md#update-exercise-user-info-for-current-user)
+  - [Get all students' exercise info](API.md#get-all-students-exercise-info)
 - [Comments](API.md#comments)
   - [Add comment thread](API.md#add-comment-thread)
   - [Get comment threads](API.md#get-comment-threads)
@@ -1253,135 +1254,6 @@ Get all exercise of a course. Logged user has to be a member of this course.
   Not found: Course not found: 15
   ```
 
-### Get exercise user info for current user
-
----
-
-Get information about an exercise for a user. Current information recorded is:
-
-1. finished: If the student marked the exercise as finished
-
-- **Required role**:  
-   Student, Teacher
-- **URL**  
-   `/api/exercises/:id/info`
-- **Method**  
-   `GET`
-- **URL Params**
-  - **Required**
-    - `id=[long]`
-  - **Example**
-    - `/api/exercises/11/info`
-- **Success Response**
-  - **Code**: 200
-  - **Content**:
-
-  ```json
-  {
-      "id": 14,
-      "exercise": {
-          "id": 11,
-          "name": "Exercise 1",
-          "createDateTime": "2020-04-10T19:34:54",
-          "updateDateTime": "2020-04-10T19:34:54"
-      },
-      "user": {
-          "id": 5,
-          "username": "johndoejr2",
-          "name": "John",
-          "lastName": "Doe Jr 2",
-          "roles": [
-              {
-                  "roleName": "ROLE_STUDENT"
-              }
-          ],
-          "createDateTime": "2020-04-10T19:34:54",
-          "updateDateTime": "2020-04-10T19:34:54"
-      },
-      "finished": true,
-      "createDateTime": "2020-04-10T19:34:54",
-      "updateDateTime": "2020-04-10T19:34:54"
-  }
-  ```
-
-- **Error Response**
-  - **Code**: 404
-  - **Content**:
-
-  ```text
-  Not found: Exercise user info not found for user: johndoe. Exercise: 11
-  ```
-
-### Update exercise user info for current user
-
----
-
-Updates information about an exercise for a user. Current information recorded is:
-
-1. finished: If the student marked the exercise as finished
-
-- **Required role**:  
-   Student, Teacher
-- **URL**  
-   `/api/exercises/:id/info`
-- **Method**  
-   `PUT`
-- **URL Params**
-  - **Required**
-    - `id=[long]`
-  - **Example**
-    - `/api/exercises/11/info`
-- **Data Params**
-  - **Required**:  
-    `"finished": [boolean]`
-  - **Example**:
-
-  ```json
-  {
-    "finisheed": true
-  }
-  ```
-
-- **Success Response**
-  - **Code**: 200
-  - **Content**:
-
-  ```json
-  {
-      "id": 14,
-      "exercise": {
-          "id": 11,
-          "name": "Exercise 1",
-          "createDateTime": "2020-04-10T19:34:54",
-          "updateDateTime": "2020-04-10T19:34:54"
-      },
-      "user": {
-          "id": 5,
-          "username": "johndoejr2",
-          "name": "John",
-          "lastName": "Doe Jr 2",
-          "roles": [
-              {
-                  "roleName": "ROLE_STUDENT"
-              }
-          ],
-          "createDateTime": "2020-04-10T19:34:54",
-          "updateDateTime": "2020-04-10T19:34:54"
-      },
-      "finished": true,
-      "createDateTime": "2020-04-10T19:34:54",
-      "updateDateTime": "2020-04-10T19:34:54"
-  }
-  ```
-
-- **Error Response**
-  - **Code**: 404
-  - **Content**:
-
-  ```text
-  Not found: Exercise user info not found for user: johndoe. Exercise: 11
-  ```
-
 ### Add an exercise to a course
 
 ---
@@ -1836,6 +1708,260 @@ Get information of all of the files owned by a user in an exercise.
 
   ```text
   Not found: 322
+  ```
+
+### Get exercise user info for current user
+
+---
+
+Get information about an exercise for a user. Current information recorded is:
+
+1. finished: If the student marked the exercise as finished
+
+- **Required role**:  
+   Student, Teacher
+- **URL**  
+   `/api/exercises/:id/info`
+- **Method**  
+   `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/info`
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 14,
+      "exercise": {
+          "id": 11,
+          "name": "Exercise 1",
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "user": {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "finished": true,
+      "createDateTime": "2020-04-10T19:34:54",
+      "updateDateTime": "2020-04-10T19:34:54"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: Exercise user info not found for user: johndoe. Exercise: 11
+  ```
+
+### Update exercise user info for current user
+
+---
+
+Updates information about an exercise for a user. Current information recorded is:
+
+1. finished: If the student marked the exercise as finished
+
+- **Required role**:  
+   Student, Teacher
+- **URL**  
+   `/api/exercises/:id/info`
+- **Method**  
+   `PUT`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/info`
+- **Data Params**
+  - **Required**:  
+    `"finished": [boolean]`
+  - **Example**:
+
+  ```json
+  {
+    "finisheed": true
+  }
+  ```
+
+- **Success Response**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  {
+      "id": 14,
+      "exercise": {
+          "id": 11,
+          "name": "Exercise 1",
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "user": {
+          "id": 5,
+          "username": "johndoejr2",
+          "name": "John",
+          "lastName": "Doe Jr 2",
+          "roles": [
+              {
+                  "roleName": "ROLE_STUDENT"
+              }
+          ],
+          "createDateTime": "2020-04-10T19:34:54",
+          "updateDateTime": "2020-04-10T19:34:54"
+      },
+      "finished": true,
+      "createDateTime": "2020-04-10T19:34:54",
+      "updateDateTime": "2020-04-10T19:34:54"
+  }
+  ```
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+  Not found: Exercise user info not found for user: johndoe. Exercise: 11
+  ```
+
+### Get all students' exercise info
+
+---
+
+Get all students' exercise info. Request has to be made by a teacher in the course. Current information recorded is:
+
+1. finished: If the student marked the exercise as finished
+
+- **Required role**:  
+   Teacher
+- **URL**  
+   `/api/exercises/:id/info/teacher`
+- **Method**  
+   `GET`
+- **URL Params**
+  - **Required**
+    - `id=[long]`
+  - **Example**
+    - `/api/exercises/11/info/teacher`
+- **Success Response (Courses Found)**
+  - **Code**: 200
+  - **Content**:
+
+  ```json
+  [
+    {
+        "id": 13,
+        "exercise": {
+            "id": 11,
+            "name": "Exercise 1",
+            "createDateTime": "2020-04-12T15:14:04",
+            "updateDateTime": "2020-04-12T15:14:04"
+        },
+        "user": {
+            "id": 4,
+            "username": "johndoejr",
+            "name": "John",
+            "lastName": "Doe Jr 1",
+            "roles": [
+                {
+                    "roleName": "ROLE_STUDENT"
+                }
+            ],
+            "createDateTime": "2020-04-12T15:14:03",
+            "updateDateTime": "2020-04-12T15:14:03"
+        },
+        "finished": false,
+        "createDateTime": "2020-04-12T15:14:04",
+        "updateDateTime": "2020-04-12T15:14:04"
+    },
+    {
+        "id": 14,
+        "exercise": {
+            "id": 11,
+            "name": "Exercise 1",
+            "createDateTime": "2020-04-12T15:14:04",
+            "updateDateTime": "2020-04-12T15:14:04"
+        },
+        "user": {
+            "id": 5,
+            "username": "johndoejr2",
+            "name": "John",
+            "lastName": "Doe Jr 2",
+            "roles": [
+                {
+                    "roleName": "ROLE_STUDENT"
+                }
+            ],
+            "createDateTime": "2020-04-12T15:14:03",
+            "updateDateTime": "2020-04-12T15:14:03"
+        },
+        "finished": true,
+        "createDateTime": "2020-04-12T15:14:04",
+        "updateDateTime": "2020-04-12T15:14:04"
+    },
+    {
+        "id": 15,
+        "exercise": {
+            "id": 11,
+            "name": "Exercise 1",
+            "createDateTime": "2020-04-12T15:14:04",
+            "updateDateTime": "2020-04-12T15:14:04"
+        },
+        "user": {
+            "id": 6,
+            "username": "johndoejr3",
+            "name": "John",
+            "lastName": "Doe Jr 3",
+            "roles": [
+                {
+                    "roleName": "ROLE_STUDENT"
+                }
+            ],
+            "createDateTime": "2020-04-12T15:14:03",
+            "updateDateTime": "2020-04-12T15:14:03"
+        },
+        "finished": true,
+        "createDateTime": "2020-04-12T15:14:04",
+        "updateDateTime": "2020-04-12T15:14:04"
+    }
+
+  ]
+  ```
+
+- **Success Response (No courses found)**
+  - **Code**: 204
+  - **Content**: Empty
+
+- **Error Response**
+  - **Code**: 404
+  - **Content**:
+
+  ```text
+      Not found: Exercise not found: 11
+  ```
+
+  OR
+
+- **Code**: 401
+- **Content**:
+
+  ```text
+      User is not in course or teacher is not in this course.
   ```
 
 ## Comments

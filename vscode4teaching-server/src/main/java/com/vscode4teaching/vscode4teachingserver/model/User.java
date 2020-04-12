@@ -169,4 +169,12 @@ public class User {
         return updateDateTime;
     }
 
+    public boolean isTeacher() {
+        for (Role role : this.roles) {
+            if (role.getRoleName().equals("ROLE_TEACHER")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

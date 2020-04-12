@@ -1,7 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
@@ -15,10 +14,8 @@ public class ExceptionUtil {
         for (User user : course.getUsersInCourse()) {
             if (user.getUsername().equals(requestUsername)) {
                 if (hasToBeTeacher) {
-                    for (Role role : user.getRoles()) {
-                        if (role.getRoleName().equals("ROLE_TEACHER")) {
-                            return;
-                        }
+                    if (user.isTeacher()) {
+                        return;
                     }
                 } else {
                     return;
