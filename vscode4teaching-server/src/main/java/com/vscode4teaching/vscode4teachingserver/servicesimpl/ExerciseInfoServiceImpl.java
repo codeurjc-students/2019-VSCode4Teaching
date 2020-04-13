@@ -35,7 +35,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, boolean finished)
             throws NotFoundException {
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
-        eui.setFinished(true);
+        eui.setFinished(finished);
         eui = exerciseUserInfoRepository.save(eui);
         return eui;
     }

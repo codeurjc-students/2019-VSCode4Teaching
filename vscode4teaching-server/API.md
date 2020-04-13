@@ -1795,7 +1795,7 @@ Updates information about an exercise for a user. Current information recorded i
 
   ```json
   {
-    "finisheed": true
+    "finished": true
   }
   ```
 
