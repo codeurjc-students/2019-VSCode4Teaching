@@ -30,7 +30,9 @@ const StatusBarAlignment = {
 }
 
 const Webview = {
-    html: ""
+    html: "",
+    asWebviewUri: jest.fn(),
+    onDidReceiveMessage: jest.fn(),
 }
 
 const WebviewPanel = {
