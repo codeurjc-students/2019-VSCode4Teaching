@@ -53,8 +53,9 @@ The student sees the comment and responds.
 - [X] Teachers can see the differences between student files and the original templates.
 - [X] File uploads and downloads should account for .gitignore rules.  
 - [X] Teachers can comment on a student's exercise.  
-- [ ] Make easier for students to access exercises (No need to log in or have a user).
-- [ ] Students can mark exercises as finished.  
+- [X] Make easier for students to access exercises (No need to log in or have a user).
+- [X] Students can mark exercises as finished.  
+- [X] Teachers have a dashboard to check students progress
 
 Note: This roadmap is subject to changes as requirements change.  
 Check [Issues](https://github.com/codeurjc-students/2019-VSCode4Teaching/issues) and [Project](https://github.com/codeurjc-students/2019-VSCode4Teaching/projects) for more specific information about development of these milestones.
