@@ -29,14 +29,29 @@ const StatusBarAlignment = {
     Right: 2
 }
 
+const Webview = {
+    html: "",
+    asWebviewUri: jest.fn(),
+    onDidReceiveMessage: jest.fn(),
+}
+
+const WebviewPanel = {
+    onDidDispose: jest.fn(),
+    onDidChangeViewState: jest.fn(),
+    dispose: jest.fn(),
+    webview: Webview
+}
+
 const window = {
     registerTreeDataProvider: jest.fn(),
-    createStatusBarItem: jest.fn(() => (StatusBarItem)),
+    createStatusBarItem: jest.fn(() => StatusBarItem),
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
     showInformationMessage: jest.fn(),
     setStatusBarMessage: jest.fn(),
     showInputBox: jest.fn(),
+    createWebviewPanel: jest.fn(() => WebviewPanel),
+    activeTextEditor: undefined
 };
 
 const WorkspaceConfiguration = {
@@ -84,6 +99,20 @@ const ProviderResult = {}
 
 const Event = {}
 
+const ViewColumn = {
+    Active: -1,
+    Beside: -2,
+    One: 1,
+    Two: 2,
+    Three: 3,
+    Four: 4,
+    Five: 5,
+    Six: 6,
+    Seven: 7,
+    Eight: 8,
+    Nine: 9
+}
+
 const vscode = {
     WorkspaceFolder,
     ExtensionContext,
@@ -99,7 +128,10 @@ const vscode = {
     workspace,
     commands,
     StatusBarItem,
-    StatusBarAlignment
+    StatusBarAlignment,
+    ViewColumn,
+    WebviewPanel,
+    Webview
 };
 
 module.exports = vscode;

@@ -1,0 +1,14 @@
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+td, th {
+    border: 1px solid;
+    text-align: center;
+}
+.finished-cell {
+    background-color: #087f23;
+}
+.onprogress-cell {
+    background-color: #c66900;
+}

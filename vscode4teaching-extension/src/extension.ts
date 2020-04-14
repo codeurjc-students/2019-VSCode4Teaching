@@ -8,7 +8,9 @@ import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
-import { FinishItem } from "./components/exercises/FinishItem";
+import { DashboardWebview } from "./components/statusBarItems/dashboard/DashboardWebview";
+import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDashboardItem";
+import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
@@ -29,6 +31,7 @@ const templates: Dictionary<string> = {};
 let commentProvider: TeacherCommentService | undefined;
 let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
 let finishItem: FinishItem | undefined;
+let showDashboardItem: ShowDashboardItem | undefined;
 let changeEvent: vscode.Disposable;
 let createEvent: vscode.Disposable;
 let deleteEvent: vscode.Disposable;
@@ -197,9 +200,19 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
+    const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
+        if (showDashboardItem) {
+            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exerciseId).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+                if (showDashboardItem) {
+                    DashboardWebview.show(response.data, showDashboardItem.exerciseId);
+                }
+            }).catch((error) => APIClient.handleAxiosError(error));
+        }
+    });
+
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard);
 }
 
 export function deactivate() {
@@ -209,12 +222,19 @@ export function deactivate() {
     if (finishItem) {
         finishItem.dispose();
     }
+    if (showDashboardItem) {
+        showDashboardItem.dispose();
+    }
 }
 
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
     if (finishItem) {
         finishItem.dispose();
         finishItem = undefined;
+    }
+    if (showDashboardItem) {
+        showDashboardItem.dispose();
+        showDashboardItem = undefined;
     }
     const checkedUris: string[] = [];
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {
@@ -256,6 +276,11 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                                     finishItem.show();
                                 }
                             }).catch((error) => APIClient.handleAxiosError(error));
+                        }
+                        // If user is teacher add show dashboard button
+                        if (!showDashboardItem && currentUserIsTeacher) {
+                            showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
+                            showDashboardItem.show();
                         }
                         // Set template location if exists
                         if (currentUserIsTeacher && v4tjson.template) {

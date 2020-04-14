@@ -287,6 +287,7 @@
 	},
 	"devDependencies": {
 		"@babel/preset-env": "^7.8.7",
+		"@types/cheerio": "^0.22.17",
 		"@types/form-data": "^2.5.0",
 		"@types/glob": "^7.1.1",
 		"@types/jest": "^25.1.4",
@@ -296,6 +297,7 @@
 		"@types/node": "^10.17.17",
 		"@types/rimraf": "^2.0.3",
 		"@types/vscode": "^1.43.0",
+		"cheerio": "^1.0.0-rc.3",
 		"glob": "^7.1.6",
 		"jest": "^25.1.0",
 		"jest-sonar-reporter": "^2.0.0",

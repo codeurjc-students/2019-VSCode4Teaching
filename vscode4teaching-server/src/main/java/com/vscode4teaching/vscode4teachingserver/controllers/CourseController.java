@@ -105,7 +105,8 @@ public class CourseController {
     @GetMapping("/users/{id}/courses")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<List<Course>> getUserCourses(@PathVariable @Min(1) Long id) throws UserNotFoundException {
-        return ResponseEntity.ok(courseService.getUserCourses(id));
+        List<Course> courses = courseService.getUserCourses(id);
+        return courses.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(courses);
     }
 
     @GetMapping("/courses/{courseId}/users")

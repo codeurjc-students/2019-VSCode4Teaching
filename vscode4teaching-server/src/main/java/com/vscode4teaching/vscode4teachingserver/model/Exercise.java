@@ -152,9 +152,7 @@ public class Exercise {
     }
 
     public List<ExerciseFile> getStudentOnlyFiles() {
-        return userFiles.stream()
-                .filter(file -> file.getOwner() != null && file.getOwner().getRoles().size() == 1 && file.getOwner()
-                        .getRoles().stream().filter(role -> role.getRoleName().equals("ROLE_STUDENT")).count() == 1)
+        return userFiles.stream().filter(file -> file.getOwner() != null && !file.getOwner().isTeacher())
                 .collect(Collectors.toList());
     }
 
