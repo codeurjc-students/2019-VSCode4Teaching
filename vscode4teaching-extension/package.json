@@ -283,7 +283,7 @@
 		"unitTest": "jest",
 		"coverage": "jest --coverage",
 		"lint": "tslint --project . --out tslint_report.txt",
-		"release": "vsce package --baseContentUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/ --baseImagesUrl=https://raw.githubusercontent.com/codeurjc-students/2019-VSCode4Teaching/master/vscode4teaching-extension/"
+		"vsce": "vsce package"
 	},
 	"devDependencies": {
 		"@babel/preset-env": "^7.8.7",
