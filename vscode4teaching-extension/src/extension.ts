@@ -8,7 +8,7 @@ import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
-import { DashboardWebview } from "./components/statusBarItems/dashboard/DashboardWebview";
+import { DashboardWebview } from "./components/dashboard/DashboardWebview";
 import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDashboardItem";
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { Dictionary } from "./model/Dictionary";

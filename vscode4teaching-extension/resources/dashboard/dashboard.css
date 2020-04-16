@@ -2,13 +2,51 @@ table {
     border-collapse: collapse;
     width: 100%;
 }
-td, th {
+
+body.vscode-light td, body.vscode-light th, body.vscode-dark td, body.vscode-dark th {
     border: 1px solid;
     text-align: center;
 }
-.finished-cell {
-    background-color: #087f23;
+
+body.vscode-high-contrast td, th {
+    border: 1px solid;
+    text-align: center;
 }
+
+.finished-cell {
+    background-color: var(--vscode-diffEditor-insertedTextBackground);
+}
+
 .onprogress-cell {
-    background-color: #c66900;
+    background-color: var(--vscode-diffEditor-removedTextBackground);
+}
+
+button{
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+}
+
+button:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+body.vscode-high-contrast button {
+    border: 1px solid var(--vscode-contrastActiveBorder);
+}
+
+select {
+    background-color: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    color: var(--vscode-foreground);
+}
+
+option:hover {
+    background-color: var(--vscode-selection-background);
+}
+
+.reload-options {
+    border: 1px solid;
+    padding: 2px;
+    margin-top: 2px;
 }

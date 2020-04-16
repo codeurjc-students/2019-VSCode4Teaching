@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
-import { DashboardWebview } from "../../src/components/statusBarItems/dashboard/DashboardWebview";
+import { DashboardWebview } from "../../src/components/dashboard/DashboardWebview";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";

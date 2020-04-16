@@ -1,8 +1,8 @@
 import { AxiosResponse } from "axios";
 import * as path from "path";
 import * as vscode from "vscode";
-import { APIClient } from "../../../client/APIClient";
-import { ExerciseUserInfo } from "../../../model/serverModel/exercise/ExerciseUserInfo";
+import { APIClient } from "../../client/APIClient";
+import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
@@ -10,8 +10,8 @@ export class DashboardWebview {
     public static readonly viewType = "v4tdashboard";
 
     public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
-        path.join(__dirname, "..", "..", "..", "..", "..", "resources", "dashboard") :
-        path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard");
+        path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
+        path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
     public static show(euis: ExerciseUserInfo[], exerciseId: number) {
         const column = vscode.window.activeTextEditor
@@ -158,16 +158,18 @@ export class DashboardWebview {
                 <link rel="stylesheet" type="text/css" href="${cssUri}">
             </head>
             <body>
-                <label for="time-reload">Reload every: </label>
-                <select id="time-reload">
-                    <option value="0" selected>Never</option>
-                    <option value="5">5 seconds</option>
-                    <option value="30">30 seconds</option>
-                    <option value="60">1 minute</option>
-                    <option value="300">5 minutes</option>
-                </select>
-                <br/>
-                <button id="button-reload">Reload</button>
+                <div class="reload-options">
+                    <label for="time-reload">Reload every: </label>
+                    <br/>
+                    <select id="time-reload">
+                        <option value="0" selected>Never</option>
+                        <option value="5">5 seconds</option>
+                        <option value="30">30 seconds</option>
+                        <option value="60">1 minute</option>
+                        <option value="300">5 minutes</option>
+                    </select>
+                    <button id="button-reload">Reload</button>
+                </div>
                 <br/>
                 <table>
                     <tr>
