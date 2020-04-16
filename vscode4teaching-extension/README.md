@@ -15,6 +15,7 @@
     - [Commenting](README.md#commenting)
   - [Student features](README.md#student-features)
     - [Get course with code](README.md#get-course-with-code)
+    - [Finish exercise](README.md#finish-exercise)
   - [Teacher features](README.md#teacher-features)
     - [Add courses](README.md#add-course)
     - [Edit course](README.md#edit-course)
@@ -27,12 +28,13 @@
     - [Difference between template and student file](README.md#difference-between-template-and-student-file)
     - [Share course with code](README.md#share-course-with-code)
     - [Sign up teacher](README.md#sign-up-teacher)
+    - [Dashboard](README.md#dashboard)
 
 ## Installing
 
-Download the latest release from [Releases](https://github.com/codeurjc-students/2019-VSCode4Teaching/releases/latest) (vscode4teaching-0.1.0.vsix file).
+Download the latest release from [Releases](https://github.com/codeurjc-students/2019-VSCode4Teaching/releases/latest) (vscode4teaching-1.0.0.vsix file).
 Then run the following command in the download directory:
-`code --install-extension vscode4teaching-0.1.0.vsix`
+`code --install-extension vscode4teaching-1.0.0.vsix`
 Note that the file name could be different depending on version, etc.
 
 ## Development
@@ -51,10 +53,6 @@ Open the vscode4teaching-extension folder with VS Code and press F5. This will c
 
 Use the following command to run all tests:  
 `npm test`  
-For running only unit tests:  
-`npm run unitTest`  
-For running only integration tests:  
-`npm run integrationTest`  
 
 ## Features
 
@@ -90,6 +88,11 @@ Students and teachers can comment on files and respond to comments.
 
 Students can get access to a course if they have the sharing code given by a teacher.  
 ![Student gets course with code](doc_images/ShareCourseStudent.gif)
+
+#### Finish exercise
+
+Students can mark their exercises as finished to help the teacher check on their progress.
+![Student finishes exercise](../readme_resources/finishexercise.gif)
 
 ### Teacher features
 
@@ -155,3 +158,8 @@ Teachers can share their courses with a code that students can use to retrieve s
 
 Teachers can sign up another teacher in the application.  
 ![Teacher signs up teacher](doc_images/ShareCourseTeacher.gif)
+
+#### Dashboard
+
+Teachers have a dashboard per exercise to check on their students' progress.
+![Teacher dashboard](../readme_resources/dashboard.png)
