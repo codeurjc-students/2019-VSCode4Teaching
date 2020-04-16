@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.vscode4teaching</groupId>
 	<artifactId>vscode4teaching-server</artifactId>
-	<version>0.4.0</version>
+	<version>1.0.0</version>
 	<name>VSCode 4 Teaching</name>
 	<description>Server side of VSCode 4 Teaching extension.</description>
 
