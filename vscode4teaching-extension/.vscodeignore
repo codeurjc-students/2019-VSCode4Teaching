@@ -19,9 +19,17 @@ tslint_report.txt
 jest.config.js
 out/src/v4t/**
 test/**
-node_modules/**
-!node_modules/axios/**
-!node_modules/form-data/**
-!node_modules/ignore/**
-!node_modules/jszip/**
-!node_modules/mkdirp/**
+# node_modules/**
+# !node_modules/axios/**
+# !node_modules/form-data/**
+# !node_modules/ignore/**
+# !node_modules/jszip/**
+# !node_modules/mkdirp/**
+# !node_modules/follow-redirects/**
+# !node_modules/asynckit/**
+# !node_modules/combined-stream/**
+# !node_modules/mime-types/**
+# !node_modules/lie/**
+# !node_modules/pako/**
+# !node_modules/readable-stream/**
+# !node_modules/set-immediate-shim/**
