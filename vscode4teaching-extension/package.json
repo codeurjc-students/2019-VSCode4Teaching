@@ -45,72 +45,72 @@
 				"command": "vscode4teaching.editcourse",
 				"title": "Edit Course",
 				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
+					"light": "resources/light/edit.png",
+					"dark": "resources/dark/edit.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.deletecourse",
 				"title": "Delete Course",
 				"icon": {
-					"light": "resources/light/delete.svg",
-					"dark": "resources/dark/delete.svg"
+					"light": "resources/light/delete.png",
+					"dark": "resources/dark/delete.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.refreshcourses",
 				"title": "Refresh Courses",
 				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
+					"light": "resources/light/refresh.png",
+					"dark": "resources/dark/refresh.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.refreshexercises",
 				"title": "Refresh Exercises",
 				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
+					"light": "resources/light/refresh.png",
+					"dark": "resources/dark/refresh.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.addexercise",
 				"title": "Add Exercise",
 				"icon": {
-					"light": "resources/light/add.svg",
-					"dark": "resources/dark/add.svg"
+					"light": "resources/light/add.png",
+					"dark": "resources/dark/add.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.editexercise",
 				"title": "Edit Exercise",
 				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
+					"light": "resources/light/edit.png",
+					"dark": "resources/dark/edit.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.deleteexercise",
 				"title": "Delete Exercise",
 				"icon": {
-					"light": "resources/light/delete.svg",
-					"dark": "resources/dark/delete.svg"
+					"light": "resources/light/delete.png",
+					"dark": "resources/dark/delete.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.adduserstocourse",
 				"title": "Add users to course",
 				"icon": {
-					"light": "resources/light/add_user.svg",
-					"dark": "resources/dark/add_user.svg"
+					"light": "resources/light/add_user.png",
+					"dark": "resources/dark/add_user.png"
 				}
 			},
 			{
 				"command": "vscode4teaching.removeusersfromcourse",
 				"title": "Remove users from course",
 				"icon": {
-					"light": "resources/light/remove_user.svg",
-					"dark": "resources/dark/remove_user.svg"
+					"light": "resources/light/remove_user.png",
+					"dark": "resources/dark/remove_user.png"
 				}
 			},
 			{
@@ -137,7 +137,7 @@
 				{
 					"id": "vscode4teachingcontainer",
 					"title": "V4T",
-					"icon": "resources/v4t.svg"
+					"icon": "resources/v4t.png"
 				}
 			]
 		},

@@ -26,20 +26,20 @@ export class V4TItem extends vscode.TreeItem {
     get iconPath() {
         switch (this.type) {
             case V4TItemType.Login: {
-                return this.iconPaths("login.svg");
+                return this.iconPaths("login.png");
             }
             case V4TItemType.AddCourse: {
-                return this.iconPaths("add.svg");
+                return this.iconPaths("add.png");
             }
             case V4TItemType.GetWithCode: {
                 return this.iconPaths("link.png");
             }
             case V4TItemType.Signup: // fall through case below
             case V4TItemType.SignupTeacher: {
-                return this.iconPaths("add_user.svg");
+                return this.iconPaths("add_user.png");
             }
             case V4TItemType.Logout: {
-                return this.iconPaths("logout.svg");
+                return this.iconPaths("logout.png");
             }
             case V4TItemType.NoCourses: // fall through case below
             case V4TItemType.NoExercises: {
