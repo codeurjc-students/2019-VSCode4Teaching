@@ -1,6 +1,6 @@
 {
 	"name": "vscode4teaching",
-	"publisher": "codeurjc-students",
+	"publisher": "VSCode4Teaching",
 	"author": {
 		"name": "Iván Chicano Capelo",
 		"email": "ivchicano@gmail.com"
@@ -12,7 +12,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"license": "Apache-2.0",
 	"engines": {
 		"vscode": "^1.43.0"
@@ -20,6 +20,20 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"Teaching",
+		"Exercises",
+		"Comments",
+		"Dashboard"
+	],
+	"badges": [
+		{
+			"url": "https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching.svg?branch=master",
+			"href": "https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching",
+			"description": "V4T Travis build"
+		}
+	],
+	"icon": "resources/v4ticon.png",
 	"activationEvents": [
 		"*"
 	],
