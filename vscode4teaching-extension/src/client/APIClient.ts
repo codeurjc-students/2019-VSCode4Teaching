@@ -183,7 +183,7 @@ class APIClientSingleton {
 
     public deleteCourse(id: number): AxiosPromise<void> {
         const options: AxiosBuildOptions = {
-            url: "/api/courses" + id,
+            url: "/api/courses/" + id,
             method: "DELETE",
             responseType: "json",
         };
