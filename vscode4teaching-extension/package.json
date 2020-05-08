@@ -227,11 +227,6 @@
 					"command": "vscode4teaching.deleteexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@2"
-				},
-				{
-					"command": "vscode4teaching.share",
-					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
-					"group": "inline@3"
 				}
 			],
 			"comments/commentThread/context": [
