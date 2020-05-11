@@ -107,7 +107,7 @@ List of allowed arguments:
 - --data.initialization=[true|false]  
     Indicates whether to initialize demo database information or not.  
     Default: true  
-    Example: `java -jar vscode4teaching-server-1.0.0.jar --spring.datasource.initialization-mode=none`  
+    Example: `java -jar vscode4teaching-server-1.0.0.jar --data.initialization=false`  
 - --spring.jpa.hibernate.ddl-auto=[validate|update|create|create-drop|none]  
     Indicates what will the server do with the database. Recommended to change in production environments.  
   - validate: validate the schema, makes no changes to the database.  

@@ -157,7 +157,7 @@ Teachers can share their courses with a code that students can use to retrieve s
 #### Sign up teacher
 
 Teachers can sign up another teacher in the application.  
-![Teacher signs up teacher](doc_images/ShareCourseTeacher.gif)
+![Teacher signs up teacher](doc_images/SignupTeacher.gif)
 
 #### Dashboard
 
