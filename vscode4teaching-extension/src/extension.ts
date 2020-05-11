@@ -242,6 +242,7 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
         const parentDir = path.resolve(cwd.uri.fsPath, "..");
         if (!checkedUris.includes(parentDir)) {
             vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, "**/v4texercise.v4t"), null, 1).then((uris) => {
+                console.log(uris);
                 checkedUris.push(parentDir);
                 if (uris.length > 0) {
                     const v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
