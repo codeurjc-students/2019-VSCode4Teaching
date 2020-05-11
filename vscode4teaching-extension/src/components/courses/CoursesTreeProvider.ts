@@ -256,7 +256,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param item course
      */
     public refreshExercises(item: V4TItem) {
-        this.getExercises(item);
+        CoursesProvider.triggerTreeReload(item);
     }
 
     /**
@@ -283,7 +283,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             // When exercise is createdupload template
                             const zipContent = await FileZipUtil.getZipFromUris(fileUris);
                             await APIClient.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
-                            this.refreshExercises(item);
+                            CoursesProvider.triggerTreeReload(item);
                         } catch (uploadError) {
                             try {
                                 // If upload fails delete the exercise and show error
@@ -433,8 +433,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Create exercise buttons from exercises.
      * @param element course
      */
-    private getExerciseButtons(element: V4TItem): V4TItem[] {
+    private async getExerciseButtons(element: V4TItem): Promise<V4TItem[]> {
         const course = element.item;
+        await this.getExercises(element);
         if (course && instanceOfCourse(course)) {
             // If exercises were downloaded previously show them, else get them from server
             if (course.exercises.length > 0) {
@@ -451,11 +452,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 const exerciseItems = course.exercises.map((exercise) => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
                     command: commandName,
                     title: "Get exercise files",
-                    arguments: [course ? course.name : null, exercise], // course condition is needed to avoid compilation error, shouldn't be false
+                    arguments: [course ? course.name : null, exercise],
                 }));
                 return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
-            } else {
-                this.getExercises(element);
             }
         }
         return [V4TBuildItems.NO_EXERCISES_ITEM];
@@ -528,18 +527,16 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Gets exercise from server and add them to course
      * @param item course
      */
-    private getExercises(item: V4TItem) {
+    private async getExercises(item: V4TItem) {
         const course = item.item;
         if (instanceOfCourse(course)) {
             const exercisesThenable = APIClient.getExercises(course.id);
-            exercisesThenable.then((response) => {
-                if (course) {
-                    course.exercises = response.data;
-                    CoursesProvider.triggerTreeReload(item);
-                }
-            }).catch((error) => {
+            try {
+                const response = await exercisesThenable;
+                course.exercises = response.data;
+            } catch (error) {
                 APIClient.handleAxiosError(error);
-            });
+            }
         }
     }
 
