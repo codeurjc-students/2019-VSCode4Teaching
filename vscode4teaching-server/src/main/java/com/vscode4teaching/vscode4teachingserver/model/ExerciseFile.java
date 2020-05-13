@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,6 +28,7 @@ public class ExerciseFile {
     private Long id;
 
     @JsonView(FileViews.GeneralView.class)
+    @Column(unique = true)
     private String path;
 
     // If null the file is a template
@@ -55,7 +57,8 @@ public class ExerciseFile {
         this.owner = owner;
     }
 
-    public ExerciseFile() {}
+    public ExerciseFile() {
+    }
 
     public Long getId() {
         return id;
@@ -99,11 +102,11 @@ public class ExerciseFile {
 
     public void addCommentThread(CommentThread commentThread) {
         for (CommentThread fileCommentThread : this.getComments()) {
-			if (fileCommentThread.getLine().equals(commentThread.getLine())) {
+            if (fileCommentThread.getLine().equals(commentThread.getLine())) {
                 this.getComments().remove(fileCommentThread);
                 break;
-			}
-		}
+            }
+        }
         this.comments.add(commentThread);
     }
 }
