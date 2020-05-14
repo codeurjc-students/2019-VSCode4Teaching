@@ -15,9 +15,9 @@ jobs:
         - "./mvnw clean package -B -q"
       after_script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker build -t ivchicano/vscode4teaching-server:0.4.0 .
+        - docker build -t ivchicano/vscode4teaching-server:1.0.15 .
         - docker build -t ivchicano/vscode4teaching-server:latest .
-        - docker push ivchicano/vscode4teaching-server:0.4.0
+        - docker push ivchicano/vscode4teaching-server:1.0.15
         - docker push ivchicano/vscode4teaching-server:latest
     - language: node_js
       os:

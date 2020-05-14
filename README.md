@@ -27,7 +27,7 @@ Visit this [Medium blog](https://medium.com/@ivchicano) for updates on the devel
     ![Teacher gets sharing code for course](readme_resources/teacher_sharing_code.gif)
 6. Students install the extension and sign up:  
     ![Student signs up](readme_resources/student_signs_up.gif)
-7. Students use the code from the teacher to access the course:
+7. Students use the code from the teacher to access the course:  
     ![Student downloads course and exercise](readme_resources/student_gets_course.gif)  
 8. Students start solving the exercise:  
     ![Students solving exercise](readme_resources/student_solving_exercise.gif)
