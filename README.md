@@ -1,20 +1,44 @@
 # 2019-VSCode4Teaching
 
-[![Build Status](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching.svg?branch=master)](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching)  
+[![Build Status](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching.svg?branch=master)](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching)
+[![Extension version](https://vsmarketplacebadge.apphb.com/version-short/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
+[![Extension installs](https://vsmarketplacebadge.apphb.com/installs/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)  
 VSCode extension for teaching.  
 Bring the programming exercises of a course directly to the student’s editor, so that the teacher of that course can check the progress of the students and help them.  
 Visit this [Medium blog](https://medium.com/@ivchicano) for updates on the development of this project.  
 
 ## Table of Contents
 
-- [Running, installing and development](README.md#running-installing-and-development)
+- [Common use case](README.md#common-use-case)
 - [Introduction](README.md#introduction)
+- [Running, installing and development](README.md#running-installing-and-development)
 - [General Roadmap](README.md#general-roadmap)
 
-## Running, installing and development
+## Common use case
 
-For information about the server click [HERE](/vscode4teaching-server/README.md).  
-For information about the extension click [HERE](/vscode4teaching-extension/README.md).
+1. Teacher runs the server, learning how to do it from [this link](/vscode4teaching-server/README.md)
+2. Teacher installs the VSCode 4 Teaching extension from the [marketplace](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching):  
+    ![Teacher downloads extension from Marketplace](readme_resources/marketplace_v4t.png)
+3. Teacher signs up from superuser account and logs in:  
+    ![Teacher signs up using superuser account](readme_resources/superuser_teacher_signup.gif)
+4. Teacher creates a course and an exercise in that course:  
+    ![Teacher creates course and exercise](readme_resources/teacher_creates_exercise.gif)
+5. Teachers gets the code for sharing that course to his/her students:  
+    ![Teacher gets sharing code for course](readme_resources/teacher_sharing_code.gif)
+6. Students install the extension and sign up:  
+    ![Student signs up](readme_resources/student_signs_up.gif)
+7. Students use the code from the teacher to access the course:
+    ![Student downloads course and exercise](readme_resources/student_gets_course.gif)  
+8. Students start solving the exercise:  
+    ![Students solving exercise](readme_resources/student_solving_exercise.gif)
+9. Meanwhile the teacher checks the students' progress:  
+    ![Teacher checks progress](readme_resources/teacher_checks_progress.gif)
+10. When they finish the exercise, they mark it as finished:  
+    ![Student marks exercise as finished](readme_resources/student_finish_exercise.gif)
+11. Teacher starts checking on the students' solutions and adding comments:  
+    ![Teacher checks student solution and adds comment](readme_resources/teacher_creates_comment.gif)
+12. Student checks the comments and responds to them:  
+    ![Student replies to comment](readme_resources/student_replies_comment.gif)
 
 ## Introduction
 
@@ -50,9 +74,14 @@ A teacher puts a comment in a student file:
 The student sees the comment and responds:  
 ![Student sees comment and responds](readme_resources/studentcomment.gif)
 Student finishes his exercise:
-![Student finishes exercise](readme_readme_resources/finishexercise.gif)
+![Student finishes exercise](readme_resources/finishexercise.gif)
 Teacher checks progress of all students in his dashboard:
 ![Teacher checks his dashboard](readme_resources/dashboard.png)
+
+## Running, installing and development
+
+For information about the server click [HERE](/vscode4teaching-server/README.md).  
+For information about the extension click [HERE](/vscode4teaching-extension/README.md).
 
 ## General Roadmap
 
