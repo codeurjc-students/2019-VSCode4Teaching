@@ -46,10 +46,11 @@ const window = {
     registerTreeDataProvider: jest.fn(),
     createStatusBarItem: jest.fn(() => StatusBarItem),
     showErrorMessage: jest.fn(),
-    showWarningMessage: jest.fn(),
+    showWarningMessage: jest.fn((x, y, z) => z), // TODO: Better implementation
     showInformationMessage: jest.fn(),
     setStatusBarMessage: jest.fn(),
     showInputBox: jest.fn(),
+    showOpenDialog: jest.fn(),
     createWebviewPanel: jest.fn(() => WebviewPanel),
     activeTextEditor: undefined
 };

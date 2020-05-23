@@ -173,7 +173,7 @@ class APIClientSingleton {
 
     public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
         const options: AxiosBuildOptions = {
-            url: "/api/courses" + id,
+            url: "/api/courses/" + id,
             method: "PUT",
             responseType: "json",
             data,
