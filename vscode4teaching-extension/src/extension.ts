@@ -35,7 +35,7 @@ let showDashboardItem: ShowDashboardItem | undefined;
 let changeEvent: vscode.Disposable;
 let createEvent: vscode.Disposable;
 let deleteEvent: vscode.Disposable;
-let commentInterval: number;
+let commentInterval: NodeJS.Timeout;
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -237,7 +237,7 @@ export function disableFeatures() {
         showDashboardItem.dispose();
         showDashboardItem = undefined;
     }
-    clearInterval(commentInterval);
+    global.clearInterval(commentInterval);
 }
 
 export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
@@ -270,7 +270,7 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                         if (cwd.name !== "template") {
                             const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
                             commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
-                            commentInterval = setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
+                            commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                         }
 
                         // If user is student and exercise is not finished add finish button

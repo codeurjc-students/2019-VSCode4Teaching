@@ -84,11 +84,11 @@ export class DashboardWebview {
                     // reloadTime comes in seconds
                     const reloadTime = message.reloadTime;
                     if (this._reloadInterval) {
-                        clearInterval(this._reloadInterval);
+                        global.clearInterval(this._reloadInterval);
                         this._reloadInterval = undefined;
                     }
                     if (reloadTime > 0) {
-                        this._reloadInterval = setInterval(() => {
+                        this._reloadInterval = global.setInterval(() => {
                             this.reloadData();
                         }, reloadTime * 1000);
                     }
