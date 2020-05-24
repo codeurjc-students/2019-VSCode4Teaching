@@ -278,7 +278,7 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                             APIClient.getExerciseUserInfo(exerciseId).then((eui: AxiosResponse<ExerciseUserInfo>) => {
                                 if (!eui.data.finished) {
                                     const jszipFile = new JSZip();
-                                    if (!currentUserIsTeacher && fs.existsSync(zipUri)) {
+                                    if (fs.existsSync(zipUri)) {
                                         setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
                                     }
                                     finishItem = new FinishItem(exerciseId);
