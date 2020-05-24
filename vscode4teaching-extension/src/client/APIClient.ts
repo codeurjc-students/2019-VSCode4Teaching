@@ -275,7 +275,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return APIClient.createRequest(options, "Uploading files...");
+        return APIClient.createRequest(options, "Getting course info...");
     }
 
     public uploadFiles(exerciseId: number, data: Buffer): AxiosPromise<any> {
@@ -324,7 +324,7 @@ class APIClientSingleton {
             responseType: "json",
             data: commentThread,
         };
-        return APIClient.createRequest(options, "Fetching comments...");
+        return APIClient.createRequest(options, "Saving comments...");
     }
 
     public getComments(fileId: number): AxiosPromise<ServerCommentThread[] | void> {
