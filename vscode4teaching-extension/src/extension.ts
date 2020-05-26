@@ -40,13 +40,11 @@ let commentInterval: NodeJS.Timeout;
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
-    console.log("V4t session initialized " + sessionInitialized);
     if (sessionInitialized) {
         CurrentUser.updateUserInfo().catch((error) => {
             APIClient.handleAxiosError(error);
         }).finally(() => {
             currentCwds = vscode.workspace.workspaceFolders;
-            console.log(currentCwds);
             if (currentCwds) {
                 initializeExtension(currentCwds);
             }
@@ -145,7 +143,7 @@ export function activate(context: vscode.ExtensionContext) {
             const fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
             const fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
             if (fileInfo) {
-                commentProvider.addComment(reply, fileInfo.id, APIClient.handleAxiosError);
+                commentProvider.addComment(reply, fileInfo.id).catch((e) => APIClient.handleAxiosError(e));
             } else {
                 vscode.window.showErrorMessage("Error retrieving file id, please download the exercise again.");
             }
@@ -246,10 +244,8 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
     cwds.forEach((cwd: vscode.WorkspaceFolder) => {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
         const parentDir = path.resolve(cwd.uri.fsPath, "..");
-        console.log(parentDir);
         if (!checkedUris.includes(parentDir)) {
             vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, "**/v4texercise.v4t"), null, 1).then((uris) => {
-                console.log(uris);
                 checkedUris.push(parentDir);
                 if (uris.length > 0) {
                     const v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
@@ -258,7 +254,6 @@ export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>)
                     // Exercise id is in the name of the zip file
                     const zipSplit = zipUri.split(path.sep);
                     const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-                    console.log(CurrentUser.isLoggedIn());
                     if (CurrentUser.isLoggedIn()) {
                         if (!commentProvider) {
                             commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
@@ -383,11 +378,8 @@ function checkCommentLineChanges(document: vscode.TextDocument) {
 function getSingleStudentExerciseFiles(courseName: string, exercise: Exercise) {
     coursesProvider.getExerciseFiles(courseName, exercise).then(async (newWorkspaceURI) => {
         if (newWorkspaceURI) {
-            console.log(newWorkspaceURI);
             const uri = vscode.Uri.file(newWorkspaceURI);
             // Get file info for id references
-            console.log(coursesProvider);
-            console.log(CurrentUser.getUserInfo());
             if (coursesProvider && CurrentUser.isLoggedIn()) {
                 const username = CurrentUser.getUserInfo().username;
                 const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);

@@ -73,7 +73,8 @@ const workspace = {
         return WorkspaceConfiguration;
     }),
     workspaceFolders: [],
-    onDidSaveTextDocument: jest.fn()
+    onDidSaveTextDocument: jest.fn(),
+    openTextDocument: jest.fn(),
 };
 
 const Uri = jest.fn().mockImplementation(() => {
@@ -114,6 +115,44 @@ const ViewColumn = {
     Nine: 9
 }
 
+const comments = {
+    createCommentController: jest.fn(() => {
+        return CommentController
+    }),
+}
+
+const CommentController = {
+    commentingRangeProvider: undefined,
+    dispose: jest.fn(),
+    createCommentThread: jest.fn(),
+}
+
+const CommentReply = {}
+
+const CommentMode = {
+    Editing: 0,
+    Preview: 1
+}
+
+const CommentThreadCollapsibleState = {
+    Collapsed: 0,
+    Expanded: 1
+}
+
+const EndOfLine = {
+    LF: 1,
+    CRLF: 2,
+}
+
+const MarkdownString = jest.fn().mockImplementation((text) => {
+    return {
+        value: text,
+        appendText: jest.fn(),
+        appendMarkdown: jest.fn(),
+        appendCodeblock: jest.fn(),
+    }
+});
+
 const vscode = {
     WorkspaceFolder,
     ExtensionContext,
@@ -132,7 +171,14 @@ const vscode = {
     StatusBarAlignment,
     ViewColumn,
     WebviewPanel,
-    Webview
+    Webview,
+    comments,
+    CommentController,
+    CommentReply,
+    CommentMode,
+    CommentThreadCollapsibleState,
+    EndOfLine,
+    MarkdownString
 };
 
 module.exports = vscode;

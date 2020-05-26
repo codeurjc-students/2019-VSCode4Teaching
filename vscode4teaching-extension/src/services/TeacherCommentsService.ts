@@ -46,36 +46,39 @@ export class TeacherCommentService {
      * @param fileId file to add comment to
      * @param errorCallback callback to call in case of backend API error
      */
-    public addComment(reply: vscode.CommentReply, fileId: number, errorCallback: ((error: any) => void)) {
+    public async addComment(reply: vscode.CommentReply, fileId: number) {
         const thread = reply.thread;
         const markdownText = new vscode.MarkdownString(reply.text);
-        vscode.workspace.openTextDocument(reply.thread.uri).then((textDoc: vscode.TextDocument) => {
-            // Get text line that is being commented on
-            const lineText = textDoc.lineAt(thread.range.start.line).text;
-            // Create the new comment and add it to the thread
-            const newComment = new NoteComment(markdownText, vscode.CommentMode.Preview, { name: this.author }, lineText);
-            thread.comments = [...thread.comments, newComment];
-            // Setup for sending the comment to the backend
-            const serverCommentThread: ServerCommentThread = {
-                line: thread.range.start.line,
-                lineText,
-                comments: thread.comments.map((comment) => {
-                    const serverComment: ServerComment = {
-                        author: this.author,
-                        body: comment.body instanceof vscode.MarkdownString ? comment.body.value : comment.body,
-                    };
-                    return serverComment;
-                }),
-            };
-            APIClient.saveComment(fileId, serverCommentThread).then((response) => {
-                // If saved correctly then add thread to the map
-                if (response.data.id) {
-                    this.threads.set(response.data.id, thread);
+        const textDoc = await vscode.workspace.openTextDocument(reply.thread.uri);
+        // Get text line that is being commented on
+        const lineText = textDoc.lineAt(thread.range.start.line).text;
+        // Create the new comment and add it to the thread
+        const newComment = new NoteComment(markdownText, vscode.CommentMode.Preview, { name: this.author }, lineText);
+        thread.comments = [...thread.comments, newComment];
+        // Setup for sending the comment to the backend
+        const serverCommentThread: ServerCommentThread = {
+            line: thread.range.start.line,
+            lineText,
+            comments: thread.comments.map((comment) => {
+                const body = comment.body;
+                let bodyText = "";
+                if (typeof body === "string") {
+                    bodyText = body;
+                } else {
+                    bodyText = body.value;
                 }
-            }).catch((error: any) => {
-                errorCallback(error);
-            });
-        });
+                const serverComment: ServerComment = {
+                    author: comment.author.name,
+                    body: bodyText,
+                };
+                return serverComment;
+            }),
+        };
+        const response = await APIClient.saveComment(fileId, serverCommentThread);
+        // If saved correctly then add thread to the map
+        if (response.data.id) {
+            this.threads.set(response.data.id, thread);
+        }
     }
 
     /**
