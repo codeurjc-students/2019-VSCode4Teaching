@@ -75,14 +75,23 @@ const workspace = {
     workspaceFolders: [],
     onDidSaveTextDocument: jest.fn(),
     openTextDocument: jest.fn(),
+    findFiles: jest.fn(),
+    createFileSystemWatcher: jest.fn(),
+    onWillSaveTextDocument: jest.fn(),
 };
 
-const Uri = jest.fn().mockImplementation(() => {
-
+const Uri = jest.fn().mockImplementation((x) => {
+    let file = "";
+    if (x) {
+        file = x.toString();
+    }
+    return {
+        fsPath: file,
+    }
 });
 const mockUriFile = f => f;
 Uri.file = mockUriFile.bind(Uri);
-Uri.parse = jest.fn().bind(Uri)
+Uri.parse = mockUriFile.bind(Uri)
 
 const Range = jest.fn();
 
@@ -153,6 +162,8 @@ const MarkdownString = jest.fn().mockImplementation((text) => {
     }
 });
 
+const RelativePattern = jest.fn();
+
 const vscode = {
     WorkspaceFolder,
     ExtensionContext,
@@ -178,7 +189,8 @@ const vscode = {
     CommentMode,
     CommentThreadCollapsibleState,
     EndOfLine,
-    MarkdownString
+    MarkdownString,
+    RelativePattern,
 };
 
 module.exports = vscode;

@@ -28,14 +28,14 @@ import { FileZipUtil } from "./utils/FileZipUtil";
  */
 export let coursesProvider = new CoursesProvider();
 const templates: Dictionary<string> = {};
-let commentProvider: TeacherCommentService | undefined;
-let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
-let finishItem: FinishItem | undefined;
-let showDashboardItem: ShowDashboardItem | undefined;
-let changeEvent: vscode.Disposable;
-let createEvent: vscode.Disposable;
-let deleteEvent: vscode.Disposable;
-let commentInterval: NodeJS.Timeout;
+export let commentProvider: TeacherCommentService | undefined;
+export let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
+export let finishItem: FinishItem | undefined;
+export let showDashboardItem: ShowDashboardItem | undefined;
+export let changeEvent: vscode.Disposable;
+export let createEvent: vscode.Disposable;
+export let deleteEvent: vscode.Disposable;
+export let commentInterval: NodeJS.Timeout;
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
         }).finally(() => {
             currentCwds = vscode.workspace.workspaceFolders;
             if (currentCwds) {
-                initializeExtension(currentCwds);
+                initializeExtension(currentCwds).then();
             }
         });
     }
@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.logout();
         currentCwds = vscode.workspace.workspaceFolders;
         if (currentCwds) {
-            initializeExtension(currentCwds);
+            initializeExtension(currentCwds).then();
         }
     });
 
@@ -238,65 +238,66 @@ export function disableFeatures() {
     global.clearInterval(commentInterval);
 }
 
-export function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
     disableFeatures();
     const checkedUris: string[] = [];
-    cwds.forEach((cwd: vscode.WorkspaceFolder) => {
+    for (const cwd of cwds) {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
         const parentDir = path.resolve(cwd.uri.fsPath, "..");
         if (!checkedUris.includes(parentDir)) {
-            vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, "**/v4texercise.v4t"), null, 1).then((uris) => {
-                checkedUris.push(parentDir);
-                if (uris.length > 0) {
-                    const v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
-                    // Zip Uri should be in the text file
-                    const zipUri = path.resolve(v4tjson.zipLocation);
-                    // Exercise id is in the name of the zip file
-                    const zipSplit = zipUri.split(path.sep);
-                    const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
-                    if (CurrentUser.isLoggedIn()) {
-                        if (!commentProvider) {
-                            commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
-                        }
-                        commentProvider.addCwd(cwd);
-                        const currentUser = CurrentUser.getUserInfo();
-                        const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
-                        // Download comments
-                        if (cwd.name !== "template") {
-                            const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
-                            commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
-                            commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
-                        }
+            const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(parentDir, "**/v4texercise.v4t"), null, 1);
+            checkedUris.push(parentDir);
+            if (uris.length > 0) {
+                const v4tjson: V4TExerciseFile = JSON.parse(fs.readFileSync(path.resolve(uris[0].fsPath), { encoding: "utf8" }));
+                // Zip Uri should be in the text file
+                const zipUri = path.resolve(v4tjson.zipLocation);
+                // Exercise id is in the name of the zip file
+                const zipSplit = zipUri.split(path.sep);
+                const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
+                if (CurrentUser.isLoggedIn()) {
+                    if (!commentProvider) {
+                        commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
+                    }
+                    commentProvider.addCwd(cwd);
+                    const currentUser = CurrentUser.getUserInfo();
+                    const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
+                    // Download comments
+                    if (cwd.name !== "template") {
+                        const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
+                        commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
+                        commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
+                    }
 
-                        // If user is student and exercise is not finished add finish button
-                        if (!currentUserIsTeacher && !finishItem) {
-                            APIClient.getExerciseUserInfo(exerciseId).then((eui: AxiosResponse<ExerciseUserInfo>) => {
-                                if (!eui.data.finished) {
-                                    const jszipFile = new JSZip();
-                                    if (fs.existsSync(zipUri)) {
-                                        setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
-                                    }
-                                    finishItem = new FinishItem(exerciseId);
-                                    finishItem.show();
+                    // If user is student and exercise is not finished add finish button
+                    if (!currentUserIsTeacher && !finishItem) {
+                        try {
+                            const eui = await APIClient.getExerciseUserInfo(exerciseId);
+                            if (!eui.data.finished) {
+                                const jszipFile = new JSZip();
+                                if (fs.existsSync(zipUri)) {
+                                    setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
                                 }
-                            }).catch((error) => APIClient.handleAxiosError(error));
-                        }
-                        // If user is teacher add show dashboard button
-                        if (!showDashboardItem && currentUserIsTeacher) {
-                            showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
-                            showDashboardItem.show();
-                        }
-                        // Set template location if exists
-                        if (currentUserIsTeacher && v4tjson.template) {
-                            // Template should be the same in the workspace
-                            templates[cwd.name] = v4tjson.template;
+                                finishItem = new FinishItem(exerciseId);
+                                finishItem.show();
+                            }
+                        } catch (error) {
+                            APIClient.handleAxiosError(error);
                         }
                     }
+                    // If user is teacher add show dashboard button
+                    if (!showDashboardItem && currentUserIsTeacher) {
+                        showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
+                        showDashboardItem.show();
+                    }
+                    // Set template location if exists
+                    if (currentUserIsTeacher && v4tjson.template) {
+                        // Template should be the same in the workspace
+                        templates[cwd.name] = v4tjson.template;
+                    }
                 }
-            });
+            }
         }
-    });
-
+    }
 }
 
 // Set File System Watcher and comment events
@@ -389,7 +390,7 @@ function getSingleStudentExerciseFiles(courseName: string, exercise: Exercise) {
                         { uri, name: exercise.name });
                     currentCwds = vscode.workspace.workspaceFolders;
                     if (currentCwds && !newWorkspace) {
-                        initializeExtension(currentCwds);
+                        initializeExtension(currentCwds).then();
                     }
                 });
             }
@@ -419,7 +420,7 @@ function getMultipleStudentExerciseFiles(courseName: string, exercise: Exercise)
                         ...subdirectoriesURIs);
                     currentCwds = vscode.workspace.workspaceFolders;
                     if (currentCwds && !newWorkspaces) {
-                        initializeExtension(currentCwds);
+                        initializeExtension(currentCwds).then();
                     }
                 });
             }
