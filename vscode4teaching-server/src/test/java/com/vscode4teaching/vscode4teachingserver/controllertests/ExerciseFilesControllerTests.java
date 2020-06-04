@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipInputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
@@ -112,6 +114,10 @@ public class ExerciseFilesControllerTests {
 
         assertThat(result.getResponse().getHeader("Content-Disposition"))
                 .isEqualTo("attachment; filename=\"exercise-1-johndoe.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej2.txt");
         verify(filesService, times(1)).getExerciseFiles(anyLong(), anyString());
     }
 
@@ -138,6 +144,10 @@ public class ExerciseFilesControllerTests {
 
         assertThat(result.getResponse().getHeader("Content-Disposition"))
                 .isEqualTo("attachment; filename=\"template-1.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej2.txt");
         verify(filesService, times(1)).getExerciseFiles(anyLong(), anyString());
     }
 
@@ -259,6 +269,10 @@ public class ExerciseFilesControllerTests {
 
         assertThat(result.getResponse().getHeader("Content-Disposition"))
                 .isEqualTo("attachment; filename=\"template-1.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej2.txt");
         verify(filesService, times(1)).getExerciseTemplate(anyLong(), anyString());
     }
 
@@ -289,6 +303,52 @@ public class ExerciseFilesControllerTests {
 
         assertThat(result.getResponse().getHeader("Content-Disposition"))
                 .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej2.txt");
+        verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
+    }
+
+    @Test
+    public void getAllStudentFilesWindows() throws Exception {
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(1l);
+        List<File> files = new ArrayList<>();
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr\\ej2.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr2\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr2\\ej2.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr3\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr3\\ej2.txt"));
+        for (File file : files) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+        Map<Exercise, List<File>> returnMap = new HashMap<>();
+        returnMap.put(exercise, files);
+        when(filesService.getAllStudentsFiles(1l, "johndoe")).thenReturn(returnMap);
+
+        MvcResult result = mockMvc
+                .perform(get("/api/exercises/1/teachers/files").contentType("application/zip").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+        logger.info(result.toString());
+
+        assertThat(result.getResponse().getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej2.txt");
         verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
     }
 
@@ -306,7 +366,8 @@ public class ExerciseFilesControllerTests {
 
         verify(filesService, times(1)).getFileIdsByExerciseAndOwner(anyLong(), any(String.class));
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(FileViews.GeneralView.class).writeValueAsString(exFiles);
+        String expectedResponseBody = objectMapper.writerWithView(FileViews.GeneralView.class)
+                .writeValueAsString(exFiles);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

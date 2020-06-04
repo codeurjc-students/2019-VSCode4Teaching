@@ -143,7 +143,8 @@ public class ExerciseFilesController {
             String[] filePath = null;
             pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
             filePath = file.getCanonicalPath().split(pattern);
-            zipOutputStream.putNextEntry(new ZipEntry(filePath[filePath.length - 1]));
+            String zipFilePath = filePath[filePath.length - 1].replace('\\', '/');
+            zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
             FileInputStream fileInputStream = new FileInputStream(file);
 
             IOUtils.copy(fileInputStream, zipOutputStream);
