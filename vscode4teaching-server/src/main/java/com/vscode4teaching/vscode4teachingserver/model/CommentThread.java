@@ -15,10 +15,10 @@ import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentThreadViews;
-import com.vscode4teaching.vscode4teachingserver.model.views.CommentViews;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 @Entity
 public class CommentThread {
     @Id
@@ -42,11 +42,11 @@ public class CommentThread {
     private String lineText;
 
     @CreationTimestamp
-    @JsonView(CommentViews.GeneralView.class)
+    @JsonView(CommentThreadViews.GeneralView.class)
     private LocalDateTime createDateTime;
 
     @UpdateTimestamp
-    @JsonView(CommentViews.GeneralView.class)
+    @JsonView(CommentThreadViews.GeneralView.class)
     private LocalDateTime updateDateTime;
 
     public CommentThread(ExerciseFile file, Long line, String lineText) {
@@ -63,7 +63,7 @@ public class CommentThread {
     public CommentThread() {
 
     }
-    
+
     public Long getId() {
         return id;
     }
@@ -116,13 +116,12 @@ public class CommentThread {
         this.updateDateTime = updateDateTime;
     }
 
-	public String getLineText() {
-		return lineText;
-	}
+    public String getLineText() {
+        return lineText;
+    }
 
-	public void setLineText(String lineText) {
-		this.lineText = lineText;
-	}
-    
-    
+    public void setLineText(String lineText) {
+        this.lineText = lineText;
+    }
+
 }
