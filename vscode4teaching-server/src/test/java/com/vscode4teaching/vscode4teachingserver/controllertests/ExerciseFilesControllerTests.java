@@ -40,6 +40,8 @@ import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -315,6 +317,7 @@ public class ExerciseFilesControllerTests {
     }
 
     @Test
+    @EnabledOnOs({ OS.WINDOWS })
     public void getAllStudentFilesWindows() throws Exception {
         Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(1l);
