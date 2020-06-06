@@ -99,9 +99,10 @@ export class FileZipUtil {
                 mkdirp.sync(zipInfo.zipDir);
             }
             const zipUri = path.resolve(zipInfo.zipDir, zipInfo.zipName);
-            zip.generateAsync({ type: "nodebuffer" }).then((ab) => {
-                fs.writeFileSync(zipUri, ab);
-            });
+            const ab = await zip.generateAsync({ type: "nodebuffer" });
+            fs.writeFileSync(zipUri, ab);
+            const v4tpathArray: string[] = [];
+            const promises: Array<Promise<Buffer>> = [];
             zip.forEach((relativePath, file) => {
                 const v4tpath = path.resolve(zipInfo.dir, relativePath);
                 if (CurrentUser.isLoggedIn() && !fs.existsSync(path.dirname(v4tpath))) {
@@ -110,13 +111,20 @@ export class FileZipUtil {
                 if (file.dir && !fs.existsSync(v4tpath)) {
                     mkdirp.sync(v4tpath);
                 } else {
-                    file.async("nodebuffer").then((fileData) => {
-                        fs.writeFileSync(v4tpath, fileData);
-                    }).catch((error) => {
-                        vscode.window.showErrorMessage(error);
-                    });
+                    v4tpathArray.push(v4tpath);
+                    promises.push(file.async("nodebuffer"));
                 }
             });
+            const fileDataArray = await Promise.all(promises);
+            for (let i = 0; i < promises.length; i++) {
+                try {
+                    const fileData = fileDataArray[i];
+                    const v4tpath = v4tpathArray[i];
+                    fs.writeFileSync(v4tpath, fileData);
+                } catch (error) {
+                    vscode.window.showErrorMessage(error);
+                }
+            }
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
             const isTeacher = CurrentUser.isLoggedIn() ? ModelUtils.isTeacher(CurrentUser.getUserInfo()) : false;
             const fileContent: V4TExerciseFile = {

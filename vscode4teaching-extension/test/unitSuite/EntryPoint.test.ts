@@ -35,6 +35,24 @@ const mockedJSZip = mocked(JSZip, true);
 
 jest.useFakeTimers();
 
+const ec: vscode.ExtensionContext = {
+    subscriptions: [],
+    workspaceState: {
+        get: jest.fn(),
+        update: jest.fn(),
+    },
+    globalState: {
+        get: jest.fn(),
+        update: jest.fn(),
+    },
+    extensionUri: mockedVscode.Uri.parse("test"),
+    extensionPath: "test",
+    asAbsolutePath: jest.fn(),
+    storagePath: "test",
+    globalStoragePath: "test",
+    logPath: "test",
+};
+
 describe("Extension entry point", () => {
     const commandIds: string[] = [
         "vscode4teaching.login",
@@ -68,23 +86,6 @@ describe("Extension entry point", () => {
         }
     }
     it("should activate correctly", () => {
-        const ec: vscode.ExtensionContext = {
-            subscriptions: [],
-            workspaceState: {
-                get: jest.fn(),
-                update: jest.fn(),
-            },
-            globalState: {
-                get: jest.fn(),
-                update: jest.fn(),
-            },
-            extensionUri: mockedVscode.Uri.parse("test"),
-            extensionPath: "test",
-            asAbsolutePath: jest.fn(),
-            storagePath: "test",
-            globalStoragePath: "test",
-            logPath: "test",
-        };
 
         mockedClient.initializeSessionFromFile.mockReturnValueOnce(false); // Initialization will be covered in another test
 
@@ -183,4 +184,5 @@ describe("Extension entry point", () => {
         expect(mockedVscode.workspace.onDidSaveTextDocument).toHaveBeenCalledTimes(1);
         expect(extension.finishItem).toBeTruthy();
     });
+
 });

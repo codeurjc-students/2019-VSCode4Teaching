@@ -16,4 +16,21 @@ describe("FinishItem", () => {
         expect(finishItem.getExerciseId()).toBe(1);
     });
 
+    it("should show correctly", () => {
+        const item = new FinishItem(1);
+        item.show();
+        expect(item.item.show).toHaveBeenCalledTimes(1);
+    });
+
+    it("should hide correctly", () => {
+        const item = new FinishItem(1);
+        item.hide();
+        expect(item.item.hide).toHaveBeenCalledTimes(1);
+    });
+
+    it("should dispose correctly", () => {
+        const item = new FinishItem(1);
+        item.dispose();
+        expect(item.item.dispose).toHaveBeenCalledTimes(1);
+    });
 });

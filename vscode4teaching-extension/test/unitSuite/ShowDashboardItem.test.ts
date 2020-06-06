@@ -17,4 +17,21 @@ describe("ShowDashboardItem", () => {
         expect(dashboardItem.exerciseId).toBe(2);
     });
 
+    it("should show correctly", () => {
+        const item = new ShowDashboardItem("Test name", 1);
+        item.show();
+        expect(item.item.show).toHaveBeenCalledTimes(1);
+    });
+
+    it("should hide correctly", () => {
+        const item = new ShowDashboardItem("Test name", 1);
+        item.hide();
+        expect(item.item.hide).toHaveBeenCalledTimes(1);
+    });
+
+    it("should dispose correctly", () => {
+        const item = new ShowDashboardItem("Test name", 1);
+        item.dispose();
+        expect(item.item.dispose).toHaveBeenCalledTimes(1);
+    });
 });

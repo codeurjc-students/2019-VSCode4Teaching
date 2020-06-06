@@ -107,4 +107,12 @@ describe("Validators", () => {
         expect(Validators.validateSharingCode("testCode")).toBeUndefined();
         expect(Validators.validateSharingCode("")).toBe(emptyError);
     });
+
+    it("should validate equal passwords", () => {
+        const error = "Passwords don't match";
+        Validators.valueToCompare = "password";
+        expect(Validators.validateEqualPassword("password")).toBeUndefined();
+        expect(Validators.validateEqualPassword("")).toBe(error);
+        expect(Validators.validateEqualPassword("differentPasswords")).toBe(error);
+    });
 });

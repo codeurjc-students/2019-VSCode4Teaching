@@ -3,5 +3,5 @@ export interface Exercise {
     name: string;
 }
 export function instanceOfExercise(object: any): object is Exercise {
-    return "id" in object && "name" in object && "exercises" in object;
+    return "id" in object && "name" in object;
 }

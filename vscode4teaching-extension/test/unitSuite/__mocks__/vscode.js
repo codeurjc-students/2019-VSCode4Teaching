@@ -52,7 +52,10 @@ const window = {
     showInputBox: jest.fn(),
     showOpenDialog: jest.fn(),
     createWebviewPanel: jest.fn(() => WebviewPanel),
-    activeTextEditor: undefined
+    activeTextEditor: undefined,
+    showQuickPick: jest.fn((array, options) => {
+        return Promise.resolve([...array]);
+    }),
 };
 
 const WorkspaceConfiguration = {
@@ -78,6 +81,8 @@ const workspace = {
     findFiles: jest.fn(),
     createFileSystemWatcher: jest.fn(),
     onWillSaveTextDocument: jest.fn(),
+    updateWorkspaceFolders: jest.fn(),
+    getWorkspaceFolder: jest.fn(),
 };
 
 const Uri = jest.fn().mockImplementation((x) => {
@@ -89,11 +94,49 @@ const Uri = jest.fn().mockImplementation((x) => {
         fsPath: file,
     }
 });
-const mockUriFile = f => f;
+const mockUriFile = f => {
+    return { fsPath: f }
+};
 Uri.file = mockUriFile.bind(Uri);
 Uri.parse = mockUriFile.bind(Uri)
 
-const Range = jest.fn();
+const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, endCharacter) => {
+    const positionMockStart = {
+        line: startLine,
+        character: startCharacter,
+        compareTo: jest.fn(),
+        isAfter: jest.fn(),
+        isAfterOrEqual: jest.fn(),
+        isBefore: jest.fn(),
+        isBeforeOrEqual: jest.fn(),
+        isEqual: jest.fn(),
+        translate: jest.fn(),
+        with: jest.fn(),
+    };
+    const positionMockEnd = {
+        line: endLine,
+        character: endCharacter,
+        compareTo: jest.fn(),
+        isAfter: jest.fn(),
+        isAfterOrEqual: jest.fn(),
+        isBefore: jest.fn(),
+        isBeforeOrEqual: jest.fn(),
+        isEqual: jest.fn(),
+        translate: jest.fn(),
+        with: jest.fn(),
+    };
+    return {
+        start: positionMockStart,
+        end: positionMockEnd,
+        contains: jest.fn(),
+        intersection: jest.fn(),
+        isEmpty: true,
+        isEqual: jest.fn(),
+        isSingleLine: true,
+        union: jest.fn(),
+        with: jest.fn(),
+    }
+});
 
 const commands = {
     registerCommand: jest.fn(),

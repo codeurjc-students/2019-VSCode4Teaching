@@ -1,10 +1,8 @@
-import { AxiosPromise } from "axios";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { CurrentUser } from "../../client/CurrentUser";
 import { Course, instanceOfCourse } from "../../model/serverModel/course/Course";
-import { ManageCourseUsers } from "../../model/serverModel/course/ManageCourseUsers";
-import { Exercise, instanceOfExercise } from "../../model/serverModel/exercise/Exercise";
+import { instanceOfExercise } from "../../model/serverModel/exercise/Exercise";
 import { ModelUtils } from "../../model/serverModel/ModelUtils";
 import { User } from "../../model/serverModel/user/User";
 import { UserSignup } from "../../model/serverModel/user/UserSignup";
@@ -80,7 +78,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             treeElements = [V4TBuildItems.LOGIN_ITEM, V4TBuildItems.SIGNUP_ITEM];
                         }
                     } catch (error) {
-                        console.error(error);
                         return [V4TBuildItems.LOGIN_ITEM, V4TBuildItems.SIGNUP_ITEM];
                     }
                 } else {
@@ -116,7 +113,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Show form for signing up then call client.
      * @param isTeacher sign up as teacher if true, else sign up as student.
      */
-    public signup(isTeacher?: boolean) {
+    public async signup(isTeacher?: boolean) {
         let url: string;
         let userCredentials: UserSignup = {
             username: "",
@@ -125,52 +122,36 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             name: "",
             lastName: "",
         };
-        this.getInput("Server", Validators.validateUrl, { value: this.defaultServer }).then((userUrl) => {
-            if (userUrl) {
-                url = userUrl;
-                return this.getInput("Username", Validators.validateUsername);
-            }
-        }).then((username) => {
+        const userUrl = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
+        if (userUrl) {
+            url = userUrl;
+            const username = await this.getInput("Username", Validators.validateUsername);
             if (username) {
                 userCredentials = Object.assign(userCredentials, { username });
-                return this.getInput("Password", Validators.validatePasswordSignup, { password: true });
-            }
-        }).then((password) => {
-            if (password) {
-                userCredentials = Object.assign(userCredentials, { password });
-                const validator = ((value: string) => {
-                    if (value === password) {
-                        return null;
-                    } else {
-                        return "Passwords don't match";
+                const password = await this.getInput("Password", Validators.validatePasswordSignup, { password: true });
+                if (password) {
+                    userCredentials = Object.assign(userCredentials, { password });
+                    Validators.valueToCompare = password;
+                    const confirmPassword = await this.getInput("Confirm password", Validators.validateEqualPassword, { password: true });
+                    if (confirmPassword) {
+                        const email = await this.getInput("Email", Validators.validateEmail);
+                        if (email) {
+                            userCredentials = Object.assign(userCredentials, { email });
+                            const name = await this.getInput("Name", Validators.validateName);
+                            if (name) {
+                                userCredentials = Object.assign(userCredentials, { name });
+                                const lastName = await this.getInput("Last name", Validators.validateLastName);
+                                if (lastName) {
+                                    userCredentials = Object.assign(userCredentials, { lastName });
+                                    await APIClient.signUpV4T(userCredentials, url, isTeacher);
+                                }
+                            }
+                        }
                     }
-                });
-                return this.getInput("Confirm password", validator, { password: true });
+                }
             }
-        }).then((confirmPassword) => {
-            if (confirmPassword) {
-                return this.getInput("Email", Validators.validateEmail);
-            }
-        }).then((email) => {
-            if (email) {
-                userCredentials = Object.assign(userCredentials, { email });
-                return this.getInput("Name", Validators.validateName);
-            }
-        }).then((name) => {
-            if (name) {
-                userCredentials = Object.assign(userCredentials, { name });
-                return this.getInput("Last name", Validators.validateLastName);
-            }
-        }).then((lastName) => {
-            if (lastName) {
-                userCredentials = Object.assign(userCredentials, { lastName });
-                return APIClient.signUpV4T(userCredentials, url, isTeacher);
-            }
-        }).then(() => {
-            // Maybe do something?
-        });
+        }
     }
-
     /**
      * Log out current user.
      */
@@ -359,7 +340,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         // Get pickable items from users
                         return this.userPickFromUser(user);
                     });
-                await this.manageUsersFromCourse(showArray, item, APIClient.addUsersToCourse);
+                const ids = await this.manageUsersFromCourse(showArray, item);
+                if (ids) {
+                    await APIClient.addUsersToCourse(item.item.id, { ids });
+                }
             } catch (error) {
                 APIClient.handleAxiosError(error);
             }
@@ -383,7 +367,10 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     // Get pickable items from users
                     return this.userPickFromUser(user);
                 });
-                await this.manageUsersFromCourse(showArray, item, APIClient.removeUsersFromCourse);
+                const ids = await this.manageUsersFromCourse(showArray, item);
+                if (ids) {
+                    await APIClient.removeUsersFromCourse(item.item.id, { ids });
+                }
             } catch (error) {
                 APIClient.handleAxiosError(error);
             }
@@ -393,42 +380,19 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     /**
      * Shows code input box, calls client and adds new course to the list
      */
-    public getCourseWithCode() {
-        this.getInput("Introduce sharing code", Validators.validateSharingCode).then((code) => {
-            if (code) {
-                APIClient.getCourseWithCode(code).then((response) => {
-                    const course: Course = response.data;
-                    CurrentUser.addNewCourse(course);
-                    CoursesProvider.triggerTreeReload();
-                }).catch((error) => APIClient.handleAxiosError(error));
+    public async getCourseWithCode() {
+        const code = await this.getInput("Introduce sharing code", Validators.validateSharingCode);
+        if (code) {
+            try {
+                const response = await APIClient.getCourseWithCode(code);
+                const course: Course = response.data;
+                CurrentUser.addNewCourse(course);
+                CoursesProvider.triggerTreeReload();
+            } catch (error) {
+                APIClient.handleAxiosError(error);
             }
-        });
+        }
     }
-
-    /**
-     * Download exercise's files from server
-     * @param courseName course name
-     * @param exercise exercise
-     */
-    public async getExerciseFiles(courseName: string, exercise: Exercise) {
-        const zipInfo = FileZipUtil.exerciseZipInfo(courseName, exercise);
-        return FileZipUtil.filesFromZip(zipInfo, APIClient.getExerciseFiles(exercise.id));
-    }
-
-    /**
-     * Download exercise's student's files and template from the server
-     * @param courseName course name
-     * @param exercise exercise
-     */
-    public async getStudentFiles(courseName: string, exercise: Exercise) {
-        const studentZipInfo = FileZipUtil.studentZipInfo(courseName, exercise);
-        const templateZipInfo = FileZipUtil.templateZipInfo(courseName, exercise);
-        return Promise.all([
-            FileZipUtil.filesFromZip(templateZipInfo, APIClient.getTemplate(exercise.id)),
-            FileZipUtil.filesFromZip(studentZipInfo, APIClient.getAllStudentFiles(exercise.id), templateZipInfo.dir),
-        ]);
-    }
-
     /**
      * Create exercise buttons from exercises.
      * @param element course
@@ -558,7 +522,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param item course
      * @param thenableFunction thenable to call
      */
-    private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem, thenableFunction: ((id: number, data: ManageCourseUsers) => AxiosPromise)) {
+    private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem) {
         if (item.item && instanceOfCourse(item.item)) {
             // Show users that don't belong to the course already
             if (showArray.length > 0) {
@@ -566,7 +530,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 if (picks) {
                     const ids: number[] = [];
                     picks.forEach((pick) => ids.push(pick.user.id));
-                    await thenableFunction(item.item.id, { ids });
+                    return ids;
                 }
             } else {
                 vscode.window.showInformationMessage("There are no users available.");

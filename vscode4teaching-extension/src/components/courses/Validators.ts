@@ -3,6 +3,9 @@
  */
 export class Validators {
 
+    // Validators can only have 1 argument so this is needed to be set for the validateEqualPasswords function
+    public static valueToCompare: string;
+
     public static validateUrl(value: string): string | undefined {
         const empty = Validators.validateNotEmpty(value, "Please enter the URL of the server that you want to connect to");
         if (empty) {
@@ -78,6 +81,12 @@ export class Validators {
 
     public static validateSharingCode(value: string): string | undefined {
         return Validators.validateNotEmpty(value, "Please introduce the sharing code");
+    }
+
+    public static validateEqualPassword(value: string): string | undefined {
+        if (value !== Validators.valueToCompare) {
+            return "Passwords don't match";
+        }
     }
 
     private static validateNotEmpty(value: string, errorMessage: string): string | undefined {
