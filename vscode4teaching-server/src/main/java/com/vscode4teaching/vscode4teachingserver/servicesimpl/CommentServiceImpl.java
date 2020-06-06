@@ -49,8 +49,7 @@ public class CommentServiceImpl implements CommentService {
 			commentRepository.save(comment);
 		}
 		ExerciseFile savedFile = exerciseFileRepository.save(file);
-		CommentThread savedThread = savedFile.getComments().get(savedFile.getComments().size() - 1);
-		return savedThread;
+		return savedFile.getComments().get(savedFile.getComments().size() - 1);
 	}
 
 	@Override

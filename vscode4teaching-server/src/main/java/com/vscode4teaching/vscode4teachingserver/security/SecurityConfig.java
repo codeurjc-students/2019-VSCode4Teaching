@@ -41,18 +41,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        final String teacherRole = "TEACHER";
+        final String studentRole = "STUDENT";
         http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator")
                 .permitAll().antMatchers(HttpMethod.POST, "/api/login", "/api/register").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/teachers/register", "/api/exercises/*/teachers/**")
-                .hasAnyRole("TEACHER")
+                .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users")
-                .hasAnyRole("TEACHER")
+                .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.PUT, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
-                .hasAnyRole("TEACHER")
+                .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
-                .hasAnyRole("TEACHER").antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
-                .hasAnyRole("TEACHER").antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
-                .hasAnyRole("TEACHER").anyRequest().hasAnyRole("STUDENT").and().csrf()
+                .hasAnyRole(teacherRole).antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
+                .hasAnyRole(teacherRole).antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
+                .hasAnyRole(teacherRole).anyRequest().hasAnyRole(studentRole).and().csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -49,8 +49,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Course registerNewCourse(Course course, String requestUsername) throws TeacherNotFoundException {
         Optional<User> teacherOpt = userRepo.findByUsername(requestUsername);
-        User teacher = teacherOpt
-                .orElseThrow(() -> new TeacherNotFoundException("Teacher not found: " + requestUsername));
+        User teacher = teacherOpt.orElseThrow(() -> new TeacherNotFoundException(requestUsername));
         course.addUserInCourse(teacher);
         course.setCreator(teacher);
         return this.courseRepo.save(course);
@@ -113,14 +112,13 @@ public class CourseServiceImpl implements CourseService {
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
         Course course = this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
         User user = userRepo.findByUsername(requestUsername)
-                .orElseThrow(() -> new UserNotFoundException("User not found:" + requestUsername));
+                .orElseThrow(() -> new UserNotFoundException(requestUsername));
         course.addUserInCourse(user);
         for (Exercise ex : course.getExercises()) {
             ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
             exerciseUserInfoRepo.save(eui);
         }
-        Course savedCourse = courseRepo.save(course);
-        return savedCourse;
+        return courseRepo.save(course);
     }
 
     @Override
@@ -145,8 +143,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<Course> getUserCourses(Long userId) throws UserNotFoundException {
-        User user = this.userRepo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        User user = this.userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException(Long.toString(userId)));
         return user.getCourses();
     }
 
@@ -157,15 +154,14 @@ public class CourseServiceImpl implements CourseService {
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         for (Long userId : userIds) {
             User user = this.userRepo.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+                    .orElseThrow(() -> new UserNotFoundException(Long.toString(userId)));
             course.addUserInCourse(user);
             for (Exercise ex : course.getExercises()) {
                 ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
                 exerciseUserInfoRepo.save(eui);
             }
         }
-        Course savedCourse = this.courseRepo.save(course);
-        return savedCourse;
+        return this.courseRepo.save(course);
     }
 
     @Override
@@ -184,14 +180,13 @@ public class CourseServiceImpl implements CourseService {
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         for (Long userId : userIds) {
             User user = this.userRepo.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+                    .orElseThrow(() -> new UserNotFoundException(Long.toString(userId)));
             if (course.getCreator().equals(user)) {
                 throw new CantRemoveCreatorException();
             }
             course.removeUserFromCourse(user);
         }
-        Course savedCourse = this.courseRepo.save(course);
-        return savedCourse;
+        return this.courseRepo.save(course);
     }
 
     @Override

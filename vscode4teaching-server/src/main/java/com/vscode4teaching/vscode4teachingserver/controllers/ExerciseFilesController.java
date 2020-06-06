@@ -44,6 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 @RequestMapping("/api")
 public class ExerciseFilesController {
+    private static final String templateFolderName = "template";
     private final ExerciseFilesService filesService;
     private final JWTTokenUtil jwtTokenUtil;
 
@@ -59,13 +60,17 @@ public class ExerciseFilesController {
         Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
-        String zipName = files.get(0).getParentFile().getName().equals("template") ? "template-" + id
+        String zipName = files.get(0).getParentFile().getName().equals(ExerciseFilesController.templateFolderName)
+                ? "template-" + id
                 : "exercise-" + id + "-" + username;
         response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
+        String[] header = headerFilename(zipName + ".zip");
+        response.addHeader(header[0], header[1]);
         String fileSeparatorPattern = Pattern.quote(File.separator);
-        String separator = files.get(0).getAbsolutePath()
-                .split(fileSeparatorPattern + "template" + fileSeparatorPattern).length > 1 ? "template" : username;
+        String separator = files.get(0).getAbsolutePath().split(
+                fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern).length > 1
+                        ? ExerciseFilesController.templateFolderName
+                        : username;
         exportToZip(response, files, separator);
     }
 
@@ -98,7 +103,7 @@ public class ExerciseFilesController {
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
-        String pattern = fileSeparatorPattern + "template" + fileSeparatorPattern;
+        String pattern = fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern;
         for (File file : files) {
             String[] filePath = file.getCanonicalPath().split(pattern);
             uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
@@ -115,8 +120,9 @@ public class ExerciseFilesController {
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Disposition", "attachment; filename=\"template-" + id + ".zip\"");
-        exportToZip(response, files, "template");
+        String[] header = headerFilename("template-" + id + ".zip");
+        response.addHeader(header[0], header[1]);
+        exportToZip(response, files, ExerciseFilesController.templateFolderName);
     }
 
     @GetMapping("/exercises/{id}/teachers/files")
@@ -127,11 +133,19 @@ public class ExerciseFilesController {
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Disposition", "attachment; filename=\"exercise-" + id + "-files.zip\"");
+        String[] header = headerFilename("exercise-" + id + "-files.zip");
+        response.addHeader(header[0], header[1]);
         Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
         String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ", "_") + "_" + id
                 : "";
         exportToZip(response, files, exerciseDirectory);
+    }
+
+    private String[] headerFilename(String filename) {
+        String[] headerElements = new String[2];
+        headerElements[0] = "Content-Disposition";
+        headerElements[1] = "attachment; filename=\"" + filename + "\"";
+        return headerElements;
     }
 
     private void exportToZip(HttpServletResponse response, List<File> files, String parentDirectory)
