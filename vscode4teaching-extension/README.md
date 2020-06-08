@@ -32,10 +32,8 @@
 
 ## Installing
 
-Download the latest release from [Releases](https://github.com/codeurjc-students/2019-VSCode4Teaching/releases/latest) (vscode4teaching-1.0.0.vsix file).
-Then run the following command in the download directory:
-`code --install-extension vscode4teaching-1.0.0.vsix`
-Note that the file name could be different depending on version, etc.
+The best way to install the extension is through the Marketplace in Visual Studio Code.
+Go to the Extensions on the left (Ctrl + Shift + X) and search for "VS Code 4 Teaching". It should appear the first on the list, from there you can just click Install to install it.
 
 ## Development
 
