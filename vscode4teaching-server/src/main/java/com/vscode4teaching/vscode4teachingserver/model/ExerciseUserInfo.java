@@ -31,7 +31,7 @@ public class ExerciseUserInfo {
     private User user;
 
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
-    private boolean finished = false;
+    private int status = 0;
 
     @CreationTimestamp
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
@@ -66,12 +66,12 @@ public class ExerciseUserInfo {
         this.user = user;
     }
 
-    public boolean isFinished() {
-        return finished;
+    public int getStatus() {
+        return status;
     }
 
-    public void setFinished(boolean finished) {
-        this.finished = finished;
+    public void setStatus(int status) {
+        this.status = status;
     }
 
 }

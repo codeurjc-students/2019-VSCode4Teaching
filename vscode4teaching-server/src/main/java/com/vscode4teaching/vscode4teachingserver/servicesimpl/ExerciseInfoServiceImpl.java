@@ -32,10 +32,10 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     }
 
     @Override
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, boolean finished)
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status)
             throws NotFoundException {
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
-        eui.setFinished(finished);
+        eui.setStatus(status);
         eui = exerciseUserInfoRepository.save(eui);
         return eui;
     }

@@ -49,7 +49,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     private String rootPath;
 
     public ExerciseFilesServiceImpl(ExerciseRepository exerciseRepository, ExerciseFileRepository fileRepository,
-            ExerciseUserInfoRepository exerciseUserInfoRepository, UserRepository userRepository) {
+                                    ExerciseUserInfoRepository exerciseUserInfoRepository, UserRepository userRepository) {
         this.exerciseRepository = exerciseRepository;
         this.fileRepository = fileRepository;
         this.exerciseUserInfoRepository = exerciseUserInfoRepository;
@@ -82,12 +82,12 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     @Override
     public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file,
-            String requestUsername)
+                                                       String requestUsername)
             throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
         ExerciseUserInfo eui = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, requestUsername)
                 .orElseThrow(() -> new NotFoundException(
                         "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
-        if (eui.isFinished()) {
+        if (eui.getStatus() == 0) {
             throw new ExerciseFinishedException(exerciseId);
         }
         return saveFiles(exerciseId, file, requestUsername, false);
@@ -95,12 +95,12 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     @Override
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file,
-            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
+                                                          String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
         return saveFiles(exerciseId, file, requestUsername, true);
     }
 
     private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
-            boolean isTemplate) throws ExerciseNotFoundException, NotInCourseException, IOException {
+                                                boolean isTemplate) throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
@@ -212,7 +212,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
                 if (File.separator.contains("\\")) {
-                    separator = "\\" + File.separator;
+                    separator = "\\\\" + File.separator;
                 }
                 file.setPath(file.getPath().split(username + separator)[1]);
             });

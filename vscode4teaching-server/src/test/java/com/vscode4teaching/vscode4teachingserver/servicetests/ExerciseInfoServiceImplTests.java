@@ -50,7 +50,7 @@ public class ExerciseInfoServiceImplTests {
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setFinished(true);
+        eui.setStatus(1);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
 
@@ -58,7 +58,7 @@ public class ExerciseInfoServiceImplTests {
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.isFinished()).isTrue();
+        assertThat(savedEui.getStatus() == 0).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
     }
 
@@ -83,15 +83,15 @@ public class ExerciseInfoServiceImplTests {
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setFinished(false);
+        eui.setStatus(0);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, true);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.isFinished()).isTrue();
+        assertThat(savedEui.getStatus() == 0).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }
@@ -124,7 +124,7 @@ public class ExerciseInfoServiceImplTests {
         ExerciseUserInfo euiTeacher = new ExerciseUserInfo(exercise, teacher);
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setFinished(true);
+        euiStudent2.setStatus(1);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(3);
         expectedList.add(euiTeacher);
         expectedList.add(euiStudent1);
@@ -138,7 +138,7 @@ public class ExerciseInfoServiceImplTests {
         assertThat(returnedEuis.contains(euiTeacher)).isFalse();
         assertThat(returnedEuis.get(0)).isEqualTo(euiStudent1);
         assertThat(returnedEuis.get(1)).isEqualTo(euiStudent2);
-        assertThat(returnedEuis.get(0).isFinished()).isFalse();
-        assertThat(returnedEuis.get(1).isFinished()).isTrue();
+        assertThat(returnedEuis.get(0).getStatus() == 0).isFalse();
+        assertThat(returnedEuis.get(1).getStatus() == 0).isTrue();
     }
 }
