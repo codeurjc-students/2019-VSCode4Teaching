@@ -189,8 +189,8 @@ export function activate(context: vscode.ExtensionContext) {
         const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
         if (selectedOption === "Accept" && finishItem) {
-            const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), true);
-            if (response.data.finished && finishItem) {
+            const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
+            if (response.data.status == 1 && finishItem) {
                 finishItem.dispose();
                 if (changeEvent) {
                     changeEvent.dispose();
@@ -278,7 +278,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     if (!currentUserIsTeacher && !finishItem) {
                         try {
                             const eui = await APIClient.getExerciseUserInfo(exerciseId);
-                            if (!eui.data.finished) {
+                            if (eui.data.status != 1) {
                                 const jszipFile = new JSZip();
                                 if (fs.existsSync(zipUri)) {
                                     setStudentEvents(jszipFile, cwd, zipUri, exerciseId);
@@ -391,6 +391,7 @@ async function checkCommentLineChanges(document: vscode.TextDocument) {
  * @param exercise exercise
  */
 async function getExerciseFiles(courseName: string, exercise: Exercise) {
+    console.log(`Nos descargamos el ejercicio ${exercise.name} del curso ${courseName}`)
     const zipInfo = FileZipUtil.exerciseZipInfo(courseName, exercise);
     return FileZipUtil.filesFromZip(zipInfo, APIClient.getExerciseFiles(exercise.id));
 }

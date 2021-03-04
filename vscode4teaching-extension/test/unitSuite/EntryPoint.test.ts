@@ -122,7 +122,7 @@ describe("Extension entry point", () => {
         const eui: ExerciseUserInfo = {
             exercise,
             user,
-            finished: false,
+            status: 0,
         };
         const euiResponse: AxiosResponse<ExerciseUserInfo> = {
             data: eui,

@@ -667,11 +667,11 @@ describe("client API calls", () => {
 
     it("should request update exercise user info for exercise correctly", () => {
         const exerciseId = 1;
-        const finished = true;
+        const status = 1;
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
             data: {
-                finished,
+                status,
             },
             headers: {
                 "Authorization": "Bearer " + jwtToken,
@@ -684,7 +684,7 @@ describe("client API calls", () => {
             url: "/api/exercises/" + exerciseId + "/info",
         };
 
-        const thenable = APIClient.updateExerciseUserInfo(exerciseId, finished);
+        const thenable = APIClient.updateExerciseUserInfo(exerciseId, status);
 
         expectCorrectRequest(expectedOptions, "Updating exercise user info...", thenable);
     });

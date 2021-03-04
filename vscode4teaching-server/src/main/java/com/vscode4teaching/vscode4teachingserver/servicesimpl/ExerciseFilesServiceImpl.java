@@ -212,7 +212,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
                 if (File.separator.contains("\\")) {
-                    separator = "\\\\" + File.separator;
+                    separator = "\\" + File.separator;
                 }
                 file.setPath(file.getPath().split(username + separator)[1]);
             });

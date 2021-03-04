@@ -28,7 +28,13 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
-        return this.getAndCheckExerciseUserInfo(exerciseId, username);
+        ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
+        //Changing status from not accessed to accessed but not finished
+        if (eui.getStatus() == 0) {
+            eui.setStatus(2);
+            eui = exerciseUserInfoRepository.save(eui);
+        }
+        return eui;
     }
 
     @Override
