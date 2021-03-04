@@ -250,10 +250,10 @@ public class ExerciseControllerTests {
         User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
         user.setId(4l);
         ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
-        euiDTO.setFinished(true);
+        euiDTO.setStatus(1);
         ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
-        updatedEui.setFinished(true);
-        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", true)).thenReturn(updatedEui);
+        updatedEui.setStatus(1);
+        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", 1)).thenReturn(updatedEui);
 
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())
@@ -287,7 +287,7 @@ public class ExerciseControllerTests {
         // Set up EUIs
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setFinished(true);
+        euiStudent2.setStatus(1);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(2);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);

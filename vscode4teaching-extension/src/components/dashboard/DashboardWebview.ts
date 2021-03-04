@@ -138,10 +138,35 @@ export class DashboardWebview {
                 rows = rows + "<td></td>";
             }
             rows = rows + "<td>" + eui.user.username + "</td>\n";
-            if (eui.finished) {
-                rows = rows + '<td class="finished-cell">Finished</td>\n';
+            // if (eui.status == 1) {
+            //     rows = rows + '<td class="finished-cell">Finished</td>\n';
+            // } else {
+            //     rows = rows + '<td class="onprogress-cell">On progress</td>\n';
+            // }
+
+            switch (eui.status) {
+                case 0: {
+                    //not started
+                    rows = rows + '<td class="not-started-cell">Not started</td>\n';
+                    break;
+                }
+                case 1: {
+                    //finished
+                    rows = rows + '<td class="finished-cell">Finished</td>\n';
+                    break;
+                }
+                case 2: {
+                    //started but not finished
+                    rows = rows + '<td class="onprogress-cell">On progress</td>\n';
+                    break;
+                }
+            }
+
+
+            if (eui.status == 0) {
+
             } else {
-                rows = rows + '<td class="onprogress-cell">On progress</td>\n';
+                
             }
             rows = rows + "</tr>\n";
         }

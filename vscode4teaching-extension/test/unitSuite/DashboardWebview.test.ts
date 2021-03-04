@@ -37,12 +37,12 @@ describe("Dashboard webview", () => {
         euis.push({
             exercise,
             user: student1,
-            finished: false,
+            status: 0,
         });
         euis.push({
             exercise,
             user: student2,
-            finished: true,
+            status: 1,
         });
         DashboardWebview.show(euis, exercise.id);
         if (DashboardWebview.currentPanel) {

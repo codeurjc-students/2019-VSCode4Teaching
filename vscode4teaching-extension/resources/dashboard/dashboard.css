@@ -13,12 +13,15 @@ body.vscode-high-contrast td, th {
     text-align: center;
 }
 
+.not-started-cell {
+    background-color: var(--vscode-diffEditor-removedTextBackground);
+}
 .finished-cell {
     background-color: var(--vscode-diffEditor-insertedTextBackground);
 }
 
 .onprogress-cell {
-    background-color: var(--vscode-diffEditor-removedTextBackground);
+    background-color: rgba(76, 149, 218, 0.644);;
 }
 
 button{

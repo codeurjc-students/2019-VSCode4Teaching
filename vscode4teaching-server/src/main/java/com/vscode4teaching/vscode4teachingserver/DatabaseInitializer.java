@@ -107,7 +107,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                     ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
                     if (course.equals(courses.get(0)) && savedExercise.getName().equals("Exercise 1")
                             && (user.equals(users.get(2)) || user.equals(users.get(3)))) {
-                        eui.setFinished(true);
+                        eui.setStatus(1);
                     }
                     exerciseUserInfoRepository.save(eui);
                 }

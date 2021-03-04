@@ -183,7 +183,7 @@ describe("Command implementations", () => {
             name: "Test exercise",
         };
         const eui: ExerciseUserInfo = {
-            finished: true,
+            status: 1,
             user,
             exercise,
         };
