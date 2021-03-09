@@ -52,12 +52,14 @@ export class DashboardWebview {
     private _euis: ExerciseUserInfo[];
     private _reloadInterval: NodeJS.Timeout | undefined;
     private _exerciseId: number;
+    private sortAsc: boolean;
 
     private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], exerciseId: number) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._euis = euis;
         this._exerciseId = exerciseId;
+        this.sortAsc = false;
 
         // Set the webview's initial html content
         this.panel.webview.html = this.getHtmlForWebview();
@@ -92,6 +94,48 @@ export class DashboardWebview {
                             this.reloadData();
                         }, reloadTime * 1000);
                     }
+                    break;
+                }
+                case "sort": {
+                    this.sortAsc = message.desc;
+                    let weight = this.sortAsc ? 1 : -1;
+                    switch (message.column) {
+                        case 0: {
+                            this._euis.sort(function (a, b) {
+
+                                const aname = ((a.user.name) ? a.user.name : '') + ' ' + ((a.user.lastName) ? a.user.lastName : '');
+                                const bname = ((b.user.name) ? b.user.name : '') + ' ' + ((b.user.lastName) ? b.user.lastName : '');
+
+                                if (aname > bname)
+                                    return -1 * weight;
+                                else if (a.user.username < b.user.username)
+                                    return 1 * weight;
+                                else return 0;
+                            })
+                            break;
+                        }
+                        case 1: {
+                            this._euis.sort(function (a, b) {
+                                if (a.user.username > b.user.username)
+                                    return -1 * weight;
+                                else if (a.user.username < b.user.username)
+                                    return 1 * weight;
+                                else return 0;
+                            })
+                            break;
+                        }
+                        case 2: {
+                            this._euis.sort(function (a, b) {
+                                if (a.status > b.status)
+                                    return -1 * weight;
+                                else if (a.user.username < b.user.username)
+                                    return 1 * weight;
+                                else return 0
+                            })
+                            break;
+                        }
+                    }
+                    this.panel.webview.html = this.getHtmlForWebview();
                     break;
                 }
             }
@@ -138,11 +182,6 @@ export class DashboardWebview {
                 rows = rows + "<td></td>";
             }
             rows = rows + "<td>" + eui.user.username + "</td>\n";
-            // if (eui.status == 1) {
-            //     rows = rows + '<td class="finished-cell">Finished</td>\n';
-            // } else {
-            //     rows = rows + '<td class="onprogress-cell">On progress</td>\n';
-            // }
 
             switch (eui.status) {
                 case 0: {
@@ -166,7 +205,7 @@ export class DashboardWebview {
             if (eui.status == 0) {
 
             } else {
-                
+
             }
             rows = rows + "</tr>\n";
         }
@@ -198,9 +237,24 @@ export class DashboardWebview {
                 <br/>
                 <table>
                     <tr>
-                        <th>Full name</th>
-                        <th>Username</th>
-                        <th>Exercise status</th>
+                        <th>Full name 
+                            <span class="sorter ${this.sortAsc ? 'active' : ''}">
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </th>
+                        <th>Username 
+                            <span class="sorter ${this.sortAsc ? 'active' : ''}">
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </th>
+                        <th>Exercise status 
+                            <span class="sorter ${this.sortAsc ? 'active' : ''}">
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </th>
                     </tr>
                     ${rows}
                 </table>
