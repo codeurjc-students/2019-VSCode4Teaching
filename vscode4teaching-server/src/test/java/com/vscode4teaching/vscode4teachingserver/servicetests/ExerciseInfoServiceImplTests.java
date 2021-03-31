@@ -58,7 +58,7 @@ public class ExerciseInfoServiceImplTests {
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getStatus() == 1).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
     }
 
@@ -91,7 +91,7 @@ public class ExerciseInfoServiceImplTests {
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getStatus() == 1).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }
@@ -138,7 +138,7 @@ public class ExerciseInfoServiceImplTests {
         assertThat(returnedEuis.contains(euiTeacher)).isFalse();
         assertThat(returnedEuis.get(0)).isEqualTo(euiStudent1);
         assertThat(returnedEuis.get(1)).isEqualTo(euiStudent2);
-        assertThat(returnedEuis.get(0).getStatus() == 0).isFalse();
-        assertThat(returnedEuis.get(1).getStatus() == 0).isTrue();
+        assertThat(returnedEuis.get(0).getStatus() == 1).isFalse();
+        assertThat(returnedEuis.get(1).getStatus() == 1).isTrue();
     }
 }

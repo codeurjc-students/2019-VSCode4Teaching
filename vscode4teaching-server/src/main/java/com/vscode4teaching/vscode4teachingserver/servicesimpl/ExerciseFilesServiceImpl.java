@@ -87,7 +87,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         ExerciseUserInfo eui = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, requestUsername)
                 .orElseThrow(() -> new NotFoundException(
                         "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
-        if (eui.getStatus() == 0) {
+        if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
         }
         return saveFiles(exerciseId, file, requestUsername, false);
