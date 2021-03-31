@@ -15,4 +15,18 @@
             reload: true
         });
     });
+
+    document.querySelectorAll(".sorter").forEach(
+        (header, i) => {
+            header.addEventListener("click", () => {
+                let order = header.classList.toggle('active');
+                vscode.postMessage({
+                    type: "sort",
+                    column: i,
+                    desc: order,
+                });
+            });
+        }
+    );
 }());
+
