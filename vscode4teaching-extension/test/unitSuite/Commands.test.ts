@@ -201,7 +201,7 @@ describe("Command implementations", () => {
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showWarningMessage).toHaveBeenNthCalledWith(1, warnMessage, { modal: true }, acceptOption);
         expect(mockedClient.updateExerciseUserInfo).toHaveBeenCalledTimes(1);
-        expect(mockedClient.updateExerciseUserInfo).toHaveBeenNthCalledWith(1, 2, true);
+        expect(mockedClient.updateExerciseUserInfo).toHaveBeenNthCalledWith(1, 2, 1);
     });
 
     it("should download single student exercise files", async () => {

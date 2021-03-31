@@ -33,6 +33,15 @@ describe("Dashboard webview", () => {
                 { roleName: "ROLE_STUDENT" },
             ],
         };
+        const student3: User = {
+            id: 4,
+            username: "student3",
+            name: "Student",
+            lastName: "3",
+            roles: [
+                { roleName: "ROLE_STUDENT" },
+            ],
+        };
         const euis: ExerciseUserInfo[] = [];
         euis.push({
             exercise,
@@ -43,6 +52,11 @@ describe("Dashboard webview", () => {
             exercise,
             user: student2,
             status: 1,
+        });
+        euis.push({
+            exercise,
+            user: student3,
+            status: 2,
         });
         DashboardWebview.show(euis, exercise.id);
         if (DashboardWebview.currentPanel) {
@@ -83,19 +97,23 @@ describe("Dashboard webview", () => {
             expect(options[4].firstChild.data).toBe("5 minutes");
             // Table headers are correct
             const tableHeaders = $("th").toArray();
-            expect(tableHeaders[0].firstChild.data).toBe("Full name");
-            expect(tableHeaders[1].firstChild.data).toBe("Username");
-            expect(tableHeaders[2].firstChild.data).toBe("Exercise status");
+            expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
+            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
+            expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
             // Table data is correct
             const tableData = $("td").toArray();
             expect(tableData[0].firstChild.data).toBe("Student 1");
             expect(tableData[1].firstChild.data).toBe("student1");
-            expect(tableData[2].firstChild.data).toBe("On progress");
-            expect(tableData[2].attribs.class).toBe("onprogress-cell");
+            expect(tableData[2].firstChild.data).toBe("Not started");
+            expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].firstChild.data).toBe("Student 2");
             expect(tableData[4].firstChild.data).toBe("student2");
             expect(tableData[5].firstChild.data).toBe("Finished");
             expect(tableData[5].attribs.class).toBe("finished-cell");
+            expect(tableData[6].firstChild.data).toBe("Student 3");
+            expect(tableData[7].firstChild.data).toBe("student3");
+            expect(tableData[8].firstChild.data).toBe("On progress");
+            expect(tableData[8].attribs.class).toBe("onprogress-cell");
         } else {
             fail("Current panel wasn't created");
         }
