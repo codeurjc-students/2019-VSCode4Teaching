@@ -74,7 +74,7 @@ export class DashboardWebview {
                 }
             },
         );
-        this.panel.webview.onDidReceiveMessage((message) => {
+        this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
                     this.reloadData();
@@ -91,6 +91,18 @@ export class DashboardWebview {
                         this._reloadInterval = global.setInterval(() => {
                             this.reloadData();
                         }, reloadTime * 1000);
+                    }
+                    break;
+                }
+                case "goToWorkspace": {
+                    let e = message.index;
+
+                    let workspaces = vscode.workspace.workspaceFolders;
+                    if (workspaces) {
+                        let workspace = workspaces[0];
+                        let uri = workspace.uri;
+                        let success = await vscode.commands.executeCommand('vscode.openFolder', uri);
+                        // await vscode.commands.executeCommand('_workbench.enterWorkspace', vscode.Uri.file(uri.fsPath)); //doesnt exists yet
                     }
                     break;
                 }
@@ -130,7 +142,9 @@ export class DashboardWebview {
 
         // Transform EUIs to html table data
         let rows: string = "";
-        for (const eui of this._euis) {
+        // for (const eui of this._euis) {
+        for (let i = 0; i < this._euis.length; i++) {
+            let eui = this._euis[i];
             rows = rows + "<tr>\n";
             if (eui.user.name && eui.user.lastName) {
                 rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
@@ -138,11 +152,6 @@ export class DashboardWebview {
                 rows = rows + "<td></td>";
             }
             rows = rows + "<td>" + eui.user.username + "</td>\n";
-            // if (eui.status == 1) {
-            //     rows = rows + '<td class="finished-cell">Finished</td>\n';
-            // } else {
-            //     rows = rows + '<td class="onprogress-cell">On progress</td>\n';
-            // }
 
             switch (eui.status) {
                 case 0: {
@@ -162,12 +171,8 @@ export class DashboardWebview {
                 }
             }
 
+            rows = rows + `<td><button class='workspace-link' data-index='${i}' >Open</button>    </td>\n`;
 
-            if (eui.status == 0) {
-
-            } else {
-                
-            }
             rows = rows + "</tr>\n";
         }
 

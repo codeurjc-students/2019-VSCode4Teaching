@@ -15,4 +15,16 @@
             reload: true
         });
     });
+
+    document.querySelectorAll(".workspace-link").forEach((link, i) => {
+        link.addEventListener("click", () => {
+            vscode.postMessage({
+                type: "goToWorkspace",
+                index: JSON.stringify(link),
+            });
+        });
+    });
+
+
 }());
+
