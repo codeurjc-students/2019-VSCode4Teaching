@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
+import { visitParameterList } from "typescript";
 import * as vscode from "vscode";
 import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
@@ -11,6 +12,7 @@ import { V4TItem } from "./components/courses/V4TItem/V4TItem";
 import { DashboardWebview } from "./components/dashboard/DashboardWebview";
 import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDashboardItem";
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
+import { Liveshare } from "./components/statusBarItems/liveshare/liveshare";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
@@ -21,6 +23,7 @@ import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
+import * as vsls from 'vsls';
 
 /**
  * Entrypoiny of the extension.
@@ -31,6 +34,7 @@ const templates: Dictionary<string> = {};
 export let commentProvider: TeacherCommentService | undefined;
 export let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
 export let finishItem: FinishItem | undefined;
+export let liveshare: Liveshare | undefined;
 export let showDashboardItem: ShowDashboardItem | undefined;
 export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
@@ -205,6 +209,13 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    const startLiveshare = vscode.commands.registerCommand("vscode4teaching.startliveshare", async () => {
+        console.log("Listos para hacer liveshare");
+        const liveshareAPI = await vsls.getApi();
+        let share = await liveshareAPI?.share();
+        //TODO: enviar el enlace mediante WS al profesor
+    });
+
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
         if (showDashboardItem) {
             APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exerciseId).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
@@ -217,7 +228,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, startLiveshare, showDashboard);
 }
 
 export function deactivate() {
@@ -242,6 +253,7 @@ export function disableFeatures() {
 
 export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
     disableFeatures();
+
     const checkedUris: string[] = [];
     for (const cwd of cwds) {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -273,7 +285,8 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         }
                         commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                     }
-
+                    liveshare = new Liveshare();
+                    liveshare.show();
                     // If user is student and exercise is not finished add finish button
                     if (!currentUserIsTeacher && !finishItem) {
                         try {

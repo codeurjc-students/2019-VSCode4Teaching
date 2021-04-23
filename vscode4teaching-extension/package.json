@@ -326,7 +326,8 @@
 		"form-data": "^3.0.0",
 		"ignore": "^5.1.6",
 		"jszip": "^3.4.0",
-		"mkdirp": "^1.0.4"
+		"mkdirp": "^1.0.4",
+		"vsls": "^1.0.3015"
 	},
 	"jestSonar": {
 		"reportPath": "coverage",
