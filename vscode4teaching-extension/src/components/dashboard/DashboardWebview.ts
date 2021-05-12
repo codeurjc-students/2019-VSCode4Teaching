@@ -76,7 +76,7 @@ export class DashboardWebview {
                 }
             },
         );
-        this.panel.webview.onDidReceiveMessage((message) => {
+        this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
                     this.reloadData();
@@ -96,6 +96,17 @@ export class DashboardWebview {
                     }
                     break;
                 }
+                case "goToWorkspace": {
+                    let workspaces = vscode.workspace.workspaceFolders;
+                    if (workspaces) {
+                        let wsF = vscode.workspace.workspaceFolders?.find(e => e.name === message.username);
+                        if (wsF) {
+                            let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
+                            await vscode.window.showTextDocument(doc1);
+                        }
+                    }
+                }
+                
                 case "sort": {
                     this.sortAsc = message.desc;
                     let weight = this.sortAsc ? 1 : -1;
@@ -142,6 +153,19 @@ export class DashboardWebview {
         });
     }
 
+    private async findMainFile(folder: vscode.WorkspaceFolder) {
+        const patterns = ['readme.*', 'readme', 'Main.*', 'main.*', 'index.html', '*']
+        let matches: vscode.Uri[] = [];
+        let i = 0;
+        while (matches.length <= 0 && i < patterns.length) {
+            let file = new vscode.RelativePattern(folder, patterns[i++]);
+            matches = (await vscode.workspace.findFiles(file));
+        }
+        // if (matches.length <= 0)
+        //     matches = (await vscode.workspace.findFiles(folder, '*'))
+        return matches[0];
+    }
+
     public dispose() {
         DashboardWebview.currentPanel = undefined;
 
@@ -174,14 +198,16 @@ export class DashboardWebview {
 
         // Transform EUIs to html table data
         let rows: string = "";
-        for (const eui of this._euis) {
+        // for (const eui of this._euis) {
+        for (let i = 0; i < this._euis.length; i++) {
+            let eui = this._euis[i];
             rows = rows + "<tr>\n";
             if (eui.user.name && eui.user.lastName) {
                 rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
             } else {
                 rows = rows + "<td></td>";
             }
-            rows = rows + "<td>" + eui.user.username + "</td>\n";
+            rows = rows + "<td class='username'>" + eui.user.username + "</td>\n";
 
             switch (eui.status) {
                 case 0: {
@@ -200,13 +226,10 @@ export class DashboardWebview {
                     break;
                 }
             }
-
-
-            if (eui.status == 0) {
-
-            } else {
-
-            }
+            rows = rows + `<td>`
+            let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
+            rows += f ? `<button class='workspace-link'>Open</button>` : `Not found`;
+            rows = rows + `</td>\n`
             rows = rows + "</tr>\n";
         }
 
@@ -255,6 +278,7 @@ export class DashboardWebview {
                                 <span></span>
                             </span>
                         </th>
+                        <th>Open in Worspace</th>
                     </tr>
                     ${rows}
                 </table>
