@@ -16,15 +16,17 @@ body.vscode-high-contrast td, th {
 .not-started-cell {
     background-color: var(--vscode-diffEditor-removedTextBackground);
 }
+
 .finished-cell {
     background-color: var(--vscode-diffEditor-insertedTextBackground);
 }
 
 .onprogress-cell {
-    background-color: rgba(76, 149, 218, 0.644);;
+    background-color: rgba(76, 149, 218, 0.644);
+    ;
 }
 
-button{
+button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
@@ -52,4 +54,46 @@ option:hover {
     border: 1px solid;
     padding: 2px;
     margin-top: 2px;
+}
+
+table th {
+    line-height: 30px;
+}
+
+.sorter {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: inline-block;
+    position: relative;
+    margin: 0 1rem;
+    top: 5px;
+    transform: scale(0.75);
+}
+
+.sorter span {
+    top: 0.5rem;
+    position: absolute;
+    width: 0.75rem;
+    height: 0.1rem;
+    background-color: #efefef;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.sorter span:first-of-type {
+    left: 0;
+    transform: rotate(45deg);
+}
+
+.sorter span:last-of-type {
+    right: 0;
+    transform: rotate(-45deg);
+}
+
+.sorter.active span:first-of-type {
+    transform: rotate(-45deg);
+}
+
+.sorter.active span:last-of-type {
+    transform: rotate(45deg);
 }

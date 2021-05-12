@@ -18,7 +18,7 @@
 
     document.querySelectorAll(".workspace-link").forEach((row) => {
         row.addEventListener("click", () => {
-            const username = Array.from(row.parentElement.parentElement.children).find(e=>e.classList.contains('username')).innerHTML;
+            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
             vscode.postMessage({
                 type: "goToWorkspace",
                 username: username
@@ -26,6 +26,17 @@
         });
     });
 
-
+    document.querySelectorAll(".sorter").forEach(
+        (header, i) => {
+            header.addEventListener("click", () => {
+                let order = header.classList.toggle('active');
+                vscode.postMessage({
+                    type: "sort",
+                    column: i,
+                    desc: order,
+                });
+            });
+        }
+    );
 }());
 
