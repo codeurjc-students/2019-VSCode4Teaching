@@ -105,6 +105,8 @@ export class DashboardWebview {
                             await vscode.window.showTextDocument(doc1);
                         }
                     }
+                }
+                
                 case "sort": {
                     this.sortAsc = message.desc;
                     let weight = this.sortAsc ? 1 : -1;
