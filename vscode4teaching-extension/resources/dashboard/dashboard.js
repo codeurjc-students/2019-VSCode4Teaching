@@ -16,11 +16,12 @@
         });
     });
 
-    document.querySelectorAll(".workspace-link").forEach((link, i) => {
-        link.addEventListener("click", () => {
+    document.querySelectorAll(".workspace-link").forEach((row) => {
+        row.addEventListener("click", () => {
+            const username = Array.from(row.parentElement.parentElement.children).find(e=>e.classList.contains('username')).innerHTML;
             vscode.postMessage({
                 type: "goToWorkspace",
-                index: JSON.stringify(link),
+                username: username
             });
         });
     });

@@ -95,19 +95,31 @@ export class DashboardWebview {
                     break;
                 }
                 case "goToWorkspace": {
-                    let e = message.index;
-
                     let workspaces = vscode.workspace.workspaceFolders;
                     if (workspaces) {
-                        let workspace = workspaces[0];
-                        let uri = workspace.uri;
-                        let success = await vscode.commands.executeCommand('vscode.openFolder', uri);
-                        // await vscode.commands.executeCommand('_workbench.enterWorkspace', vscode.Uri.file(uri.fsPath)); //doesnt exists yet
+                        let wsF = vscode.workspace.workspaceFolders?.find(e => e.name === message.username);
+                        if (wsF) {
+                            let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
+                            await vscode.window.showTextDocument(doc1);
+                        }
                     }
                     break;
                 }
             }
         });
+    }
+
+    private async findMainFile(folder: vscode.WorkspaceFolder) {
+        const patterns = ['readme.*', 'readme', 'Main.*', 'main.*', 'index.html', '*']
+        let matches: vscode.Uri[] = [];
+        let i = 0;
+        while (matches.length <= 0 && i < patterns.length) {
+            let file = new vscode.RelativePattern(folder, patterns[i++]);
+            matches = (await vscode.workspace.findFiles(file));
+        }
+        // if (matches.length <= 0)
+        //     matches = (await vscode.workspace.findFiles(folder, '*'))
+        return matches[0];
     }
 
     public dispose() {
@@ -151,7 +163,7 @@ export class DashboardWebview {
             } else {
                 rows = rows + "<td></td>";
             }
-            rows = rows + "<td>" + eui.user.username + "</td>\n";
+            rows = rows + "<td class='username'>" + eui.user.username + "</td>\n";
 
             switch (eui.status) {
                 case 0: {
@@ -170,9 +182,10 @@ export class DashboardWebview {
                     break;
                 }
             }
-
-            rows = rows + `<td><button class='workspace-link' data-index='${i}' >Open</button>    </td>\n`;
-
+            rows = rows + `<td>`
+            let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
+            rows += f ? `<button class='workspace-link'>Open</button>` : `Not found`;
+            rows = rows + `</td>\n`
             rows = rows + "</tr>\n";
         }
 
@@ -206,6 +219,7 @@ export class DashboardWebview {
                         <th>Full name</th>
                         <th>Username</th>
                         <th>Exercise status</th>
+                        <th>Open in Worspace</th>
                     </tr>
                     ${rows}
                 </table>
