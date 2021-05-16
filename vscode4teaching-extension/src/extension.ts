@@ -21,6 +21,7 @@ import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
+import { FileService } from "./services/FileService";
 
 /**
  * Entrypoiny of the extension.
@@ -218,6 +219,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard);
+
+    FileService.initializeExerciseChecking();
 }
 
 export function deactivate() {
@@ -458,7 +461,7 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
     }
 }
 
-export async function goToWorkspace(){
+export async function goToWorkspace() {
 
 }
 
