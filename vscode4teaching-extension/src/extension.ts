@@ -49,6 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (currentCwds) {
                 initializeExtension(currentCwds).then();
             }
+            FileService.initializeExerciseChecking();
         });
     }
 
@@ -219,8 +220,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard);
-
-    FileService.initializeExerciseChecking();
 }
 
 export function deactivate() {

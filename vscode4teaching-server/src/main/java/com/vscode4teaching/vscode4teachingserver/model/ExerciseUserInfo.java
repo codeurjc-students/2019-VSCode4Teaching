@@ -56,6 +56,7 @@ public class ExerciseUserInfo {
 
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;
+        this.updateDateTime = LocalDateTime.now();
     }
 
     public User getUser() {
@@ -64,6 +65,7 @@ public class ExerciseUserInfo {
 
     public void setUser(User user) {
         this.user = user;
+        this.updateDateTime = LocalDateTime.now();
     }
 
     public int getStatus() {
@@ -72,6 +74,7 @@ public class ExerciseUserInfo {
 
     public void setStatus(int status) {
         this.status = status;
+        this.updateDateTime = LocalDateTime.now();
     }
 
 }
