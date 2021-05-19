@@ -307,7 +307,7 @@ export class DashboardWebview {
 
     private getElapsedTime(pastDate: Date) {
         let elapsedTime = (new Date().getTime() - pastDate.getTime()) / 1000;
-        let unit = 's';
+        let unit = ' s';
         if (elapsedTime > 60) {
             elapsedTime /= 60   //convert to minutes
             if (elapsedTime > 60) {
@@ -316,11 +316,11 @@ export class DashboardWebview {
                     elapsedTime /= 24;  //convert to days
                     if (elapsedTime > 365) {
                         elapsedTime /= 365;  //convert to years
-                        unit = 'y'
+                        unit =  ' yr'
                     }
-                    else unit = 'd'
-                } else unit = 'h';
-            } else unit = 'm';
+                    else unit = ' d'
+                } else unit = ' h';
+            } else unit = ' min';
         };
 
         return `${Math.floor(elapsedTime)}${unit}`

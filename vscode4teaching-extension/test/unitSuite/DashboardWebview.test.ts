@@ -43,23 +43,26 @@ describe("Dashboard webview", () => {
             ],
         };
         const euis: ExerciseUserInfo[] = [];
+        let now = new Date();
         euis.push({
             exercise,
             user: student1,
             status: 0,
-            updateDateTime: new Date(),
+            updateDateTime: new Date(now.setDate(now.getDate() - 1)),
         });
+        now = new Date();
         euis.push({
             exercise,
             user: student2,
             status: 1,
-            updateDateTime: new Date(),
+            updateDateTime: new Date(now.setMinutes(now.getMinutes() - 13)),
         });
+        now = new Date();
         euis.push({
             exercise,
             user: student3,
             status: 2,
-            updateDateTime: new Date(),
+            updateDateTime: new Date(now.setSeconds(now.getSeconds() - 35)),
         });
         DashboardWebview.show(euis, exercise.id);
         if (DashboardWebview.currentPanel) {
@@ -112,19 +115,19 @@ describe("Dashboard webview", () => {
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].firstChild.data).toBe("Not found");
-            expect(tableData[4].firstChild.data).toBe("0s");
+            expect(tableData[4].firstChild.data).toBe("1 d");
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
             expect(tableData[7].firstChild.data).toBe("Finished");
             expect(tableData[7].attribs.class).toBe("finished-cell");
             expect(tableData[8].firstChild.data).toBe("Not found");
-            expect(tableData[9].firstChild.data).toBe("0s");
+            expect(tableData[9].firstChild.data).toBe("13 min");
             expect(tableData[10].firstChild.data).toBe("Student 3");
             expect(tableData[11].firstChild.data).toBe("student3");
             expect(tableData[12].firstChild.data).toBe("On progress");
             expect(tableData[12].attribs.class).toBe("onprogress-cell");
             expect(tableData[13].firstChild.data).toBe("Not found");
-            expect(tableData[14].firstChild.data).toBe("0s");
+            expect(tableData[14].firstChild.data).toBe("35 s");
         } else {
             fail("Current panel wasn't created");
         }
