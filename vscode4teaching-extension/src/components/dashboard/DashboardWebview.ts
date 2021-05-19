@@ -106,7 +106,7 @@ export class DashboardWebview {
                         }
                     }
                 }
-                
+
                 case "sort": {
                     this.sortAsc = message.desc;
                     let weight = this.sortAsc ? 1 : -1;
@@ -201,6 +201,7 @@ export class DashboardWebview {
         // for (const eui of this._euis) {
         for (let i = 0; i < this._euis.length; i++) {
             let eui = this._euis[i];
+
             rows = rows + "<tr>\n";
             if (eui.user.name && eui.user.lastName) {
                 rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
@@ -230,7 +231,9 @@ export class DashboardWebview {
             let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
             rows += f ? `<button class='workspace-link'>Open</button>` : `Not found`;
             rows = rows + `</td>\n`
+            rows = rows + `<td class='last-modification'>${this.getElapsedTime(new Date(eui.updateDateTime))}</td>\n`;
             rows = rows + "</tr>\n";
+
         }
 
         // Use a nonce to whitelist which scripts can be run
@@ -278,7 +281,13 @@ export class DashboardWebview {
                                 <span></span>
                             </span>
                         </th>
-                        <th>Open in Worspace</th>
+                        <th>Open in Workspace</th>
+                        <th>Last modification 
+                            <span class="sorter ${this.sortAsc ? 'active' : ''}">
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </th>
                     </tr>
                     ${rows}
                 </table>
@@ -294,6 +303,27 @@ export class DashboardWebview {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
+    }
+
+    private getElapsedTime(pastDate: Date) {
+        let elapsedTime = (new Date().getTime() - pastDate.getTime()) / 1000;
+        let unit = 's';
+        if (elapsedTime > 60) {
+            elapsedTime /= 60   //convert to minutes
+            if (elapsedTime > 60) {
+                elapsedTime /= 60;  //convert to hours
+                if (elapsedTime > 24) {
+                    elapsedTime /= 24;  //convert to days
+                    if (elapsedTime > 365) {
+                        elapsedTime /= 365;  //convert to years
+                        unit = 'y'
+                    }
+                    else unit = 'd'
+                } else unit = 'h';
+            } else unit = 'm';
+        };
+
+        return `${Math.floor(elapsedTime)}${unit}`
     }
 
 }

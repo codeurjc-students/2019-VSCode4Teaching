@@ -47,16 +47,19 @@ describe("Dashboard webview", () => {
             exercise,
             user: student1,
             status: 0,
+            updateDateTime: new Date(),
         });
         euis.push({
             exercise,
             user: student2,
             status: 1,
+            updateDateTime: new Date(),
         });
         euis.push({
             exercise,
             user: student3,
             status: 2,
+            updateDateTime: new Date(),
         });
         DashboardWebview.show(euis, exercise.id);
         if (DashboardWebview.currentPanel) {
@@ -100,23 +103,28 @@ describe("Dashboard webview", () => {
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
             expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
             expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
+            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Open in Workspace");
+            expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
             // Table data is correct
-            const tableData = $("td").toArray();           
+            const tableData = $("td").toArray();
             expect(tableData[0].firstChild.data).toBe("Student 1");
             expect(tableData[1].firstChild.data).toBe("student1");
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].firstChild.data).toBe("Not found");
-            expect(tableData[4].firstChild.data).toBe("Student 2");
-            expect(tableData[5].firstChild.data).toBe("student2");
-            expect(tableData[6].firstChild.data).toBe("Finished");
-            expect(tableData[6].attribs.class).toBe("finished-cell");
-            expect(tableData[7].firstChild.data).toBe("Not found");
-            expect(tableData[8].firstChild.data).toBe("Student 3");
-            expect(tableData[9].firstChild.data).toBe("student3");
-            expect(tableData[10].firstChild.data).toBe("On progress");
-            expect(tableData[10].attribs.class).toBe("onprogress-cell");
-            expect(tableData[11].firstChild.data).toBe("Not found");
+            expect(tableData[4].firstChild.data).toBe("0s");
+            expect(tableData[5].firstChild.data).toBe("Student 2");
+            expect(tableData[6].firstChild.data).toBe("student2");
+            expect(tableData[7].firstChild.data).toBe("Finished");
+            expect(tableData[7].attribs.class).toBe("finished-cell");
+            expect(tableData[8].firstChild.data).toBe("Not found");
+            expect(tableData[9].firstChild.data).toBe("0s");
+            expect(tableData[10].firstChild.data).toBe("Student 3");
+            expect(tableData[11].firstChild.data).toBe("student3");
+            expect(tableData[12].firstChild.data).toBe("On progress");
+            expect(tableData[12].attribs.class).toBe("onprogress-cell");
+            expect(tableData[13].firstChild.data).toBe("Not found");
+            expect(tableData[14].firstChild.data).toBe("0s");
         } else {
             fail("Current panel wasn't created");
         }

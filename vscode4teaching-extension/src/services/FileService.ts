@@ -1,4 +1,3 @@
-import * as CryptoJS from 'crypto-js';
 import * as vscode from 'vscode';
 import { Course, instanceOfCourse } from "../model/serverModel/course/Course";
 import { CurrentUser } from '../client/CurrentUser';
@@ -7,15 +6,14 @@ import { Exercise } from '../model/serverModel/exercise/Exercise';
 
 export class FileService {
 
-    private static readonly TIME_LAPSE = 5000;
     private static readonly URI_REGEX: RegExp = /\/v4tdownloads\/(.+)\/(.+)\/(.+)\/(.+\/)*(.+)$$/;
 
     private static exercises: Exercise[] = [];
 
     public static async initializeExerciseChecking() {
         this.exercises = await this.getUserExercises();
-        
-        vscode.workspace.onDidSaveTextDocument((e) => FileService.updateExercise(e.uri))
+
+        vscode.workspace.onDidSaveTextDocument((e) => FileService.updateExercise(e.uri));
     }
 
     public static getExerciseInfoFromUri(uri: vscode.Uri) {

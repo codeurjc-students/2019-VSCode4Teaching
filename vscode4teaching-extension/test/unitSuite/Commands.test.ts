@@ -186,6 +186,7 @@ describe("Command implementations", () => {
             status: 1,
             user,
             exercise,
+            updateDateTime: new Date(),
         };
         const response: AxiosResponse<ExerciseUserInfo> = {
             data: eui,

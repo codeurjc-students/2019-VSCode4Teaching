@@ -5,4 +5,5 @@ export interface ExerciseUserInfo {
     exercise: Exercise;
     user: User;
     status: number;
+    updateDateTime: Date;
 }
