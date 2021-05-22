@@ -2,6 +2,7 @@ package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
 public class ExerciseUserInfoDTO {
     private int status;
+    private String lastModifiedFile;
 
     public boolean isFinished() {
         return status == 1;
@@ -19,4 +20,11 @@ public class ExerciseUserInfoDTO {
         this.status = status;
     }
 
+    public String getLastModifiedFile() {
+        return lastModifiedFile;
+    }
+
+    public void setLastModifiedFile(String lastModifiedFile) {
+        this.lastModifiedFile = lastModifiedFile;
+    }
 }

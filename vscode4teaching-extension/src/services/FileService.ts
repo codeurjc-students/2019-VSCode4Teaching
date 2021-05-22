@@ -6,21 +6,23 @@ import { Exercise } from '../model/serverModel/exercise/Exercise';
 
 export class FileService {
 
-    private static readonly URI_REGEX: RegExp = /\/v4tdownloads\/(.+)\/(.+)\/(.+)\/(.+\/)*(.+)$$/;
+    private static readonly URI_REGEX: RegExp = /\/v4tdownloads\/((.+)\/(.+)\/(.+)\/(.+\/)*(.+))$$/;
 
     private static exercises: Exercise[] = [];
 
     public static async initializeExerciseChecking() {
         this.exercises = await this.getUserExercises();
 
-        vscode.workspace.onDidSaveTextDocument((e) => FileService.updateExercise(e.uri));
+        vscode.workspace.onDidSaveTextDocument((e) => { FileService.updateExercise(e.uri) });
     }
 
     public static getExerciseInfoFromUri(uri: vscode.Uri) {
-        const matches = this.URI_REGEX.exec(uri.path);
+        const matches = (this.URI_REGEX.exec(uri.path));
         if (!matches) return null;
+        matches.shift();
         return {
             uri: uri.path,
+            path: matches[0],
             username: matches[1],
             courseName: matches[2],
             exerciseName: matches[3],
@@ -35,9 +37,7 @@ export class FileService {
         );
         //TODO puede que haya repetidos
         const originalStatus = (await APIClient.getExerciseUserInfo(filtered[0].id)).data.status;
-        console.log(originalStatus, filtered[0].id);
-        APIClient.updateExerciseUserInfo(filtered[0].id, originalStatus);
-
+        APIClient.updateExerciseUserInfo(filtered[0].id, originalStatus, info?.path || '');
     }
 
     private static async getUserExercises() {

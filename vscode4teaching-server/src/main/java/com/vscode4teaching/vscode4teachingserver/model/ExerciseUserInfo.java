@@ -13,6 +13,7 @@ import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoVie
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.lang.Nullable;
 
 @Entity
 public class ExerciseUserInfo {
@@ -40,6 +41,9 @@ public class ExerciseUserInfo {
     @UpdateTimestamp
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     private LocalDateTime updateDateTime;
+
+    @JsonView(ExerciseUserInfoViews.GeneralView.class)
+    private String lastModifiedFile;
 
     public ExerciseUserInfo() {
 
@@ -77,4 +81,11 @@ public class ExerciseUserInfo {
         this.updateDateTime = LocalDateTime.now();
     }
 
+    public String getLastModifiedFile() {
+        return lastModifiedFile;
+    }
+
+    public void setLastModifiedFile(String lastModifiedFile) {
+        this.lastModifiedFile = lastModifiedFile;
+    }
 }

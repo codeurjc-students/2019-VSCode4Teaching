@@ -49,6 +49,7 @@ describe("Dashboard webview", () => {
             user: student1,
             status: 0,
             updateDateTime: new Date(now.setDate(now.getDate() - 1)),
+            lastModifiedFile: "/index.html",
         });
         now = new Date();
         euis.push({
@@ -56,6 +57,7 @@ describe("Dashboard webview", () => {
             user: student2,
             status: 1,
             updateDateTime: new Date(now.setMinutes(now.getMinutes() - 13)),
+            lastModifiedFile: "/readme.md",
         });
         now = new Date();
         euis.push({
@@ -63,6 +65,7 @@ describe("Dashboard webview", () => {
             user: student3,
             status: 2,
             updateDateTime: new Date(now.setSeconds(now.getSeconds() - 35)),
+            lastModifiedFile: "",
         });
         DashboardWebview.show(euis, exercise.id);
         if (DashboardWebview.currentPanel) {

@@ -124,6 +124,7 @@ describe("Extension entry point", () => {
             user,
             status: 0,
             updateDateTime: new Date(),
+            lastModifiedFile: "",
         };
         const euiResponse: AxiosResponse<ExerciseUserInfo> = {
             data: eui,
