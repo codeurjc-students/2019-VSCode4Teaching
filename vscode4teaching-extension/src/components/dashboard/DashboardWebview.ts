@@ -4,12 +4,15 @@ import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 import * as WebSocket from 'ws';
+import { APIClientSession } from "../../client/APIClientSession";
 
 
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
 
     public static readonly viewType = "v4tdashboard";
+
+    private static ws: WebSocket | undefined;
 
     public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
         path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
@@ -46,7 +49,7 @@ export class DashboardWebview {
         );
 
         DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, exerciseId);
-        connect();
+        this.connectWS();
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -82,9 +85,8 @@ export class DashboardWebview {
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
+                    DashboardWebview.ws?.send(JSON.stringify({ "name": "Juan" }));
                     // this.reloadData();
-                    // connect();
-                    sendName();
                     break;
                 }
                 case "changeReloadTime": {
@@ -301,28 +303,18 @@ export class DashboardWebview {
         return text;
     }
 
-}
+    private static connectWS() {
+        var authToken = APIClientSession.jwtToken;
+        this.ws = new WebSocket(`ws://localhost:8080/dbRefresh?bearer=${authToken}`);
+        this.ws.onmessage = function (data) {
+            console.log("Mensaje recibido", data);
+        }
+    }
 
-var ws: WebSocket | undefined;
-function connect() {
-    var authToken = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqb2huZG9lanIyIiwiZXhwIjoxNjIzMDIxNDE0LCJpYXQiOjE2MjMwMDM0MTR9.9y-A0wwblsCTD309a8lD3o2OsdnvXT4ajSbZ9_NI91cu4Bx1kNPs6DuOJHHq4x6VCbFR5ZMCny4sSjYSc8IKCQ';
-    ws = new WebSocket(`ws://localhost:8080/name?bearer=${authToken}&channel=dbRefresh`);
-    ws.onmessage = function (data) {
-        showGreeting(data.data);
+    private static disconnectWS() {
+        if (this.ws != null) {
+            this.ws.close();
+        }
     }
 }
 
-function disconnect() {
-    if (ws != null) {
-        ws.close();
-    }
-    console.log("Disconnected");
-}
-
-function sendName() {
-    ws?.send(JSON.stringify({ "name": "VSCode" }));
-}
-
-function showGreeting(message: any) {
-    console.log("Mensaje recibido", message);
-}
