@@ -45,17 +45,20 @@ public class SocketHandler extends TextWebSocketHandler {
     private void assignChannelFromSession(WebSocketSession session) {
         URI uri = session.getUri();
         if (uri == null) return;
-//        String[] params = uri.getQuery().split("&");
-//        for (String param : params) {
-//            int separator = param.indexOf("=");
-//            if (separator > 0) {
-//                String key = param.substring(0, separator);
-//                if (key.equals("channel")) {
-//                    String value = param.substring(separator + 1);
-//                    channels.putIfAbsent(value, session);
-//                }
-//            }
-//        }
+
+
+        String key;
+        String value;
+        String[] params = uri.getQuery().split("&");
+        for (String param : params) {
+            int separator = param.indexOf("=");
+            if (separator > 0) {
+                key = param.substring(0, separator);
+                value = param.substring(separator + 1);
+            }
+        }
+
+
         synchronized (channels) {
             if (channels.containsKey(uri.getPath()))
                 channels.get(uri.getPath()).addIfAbsent(session);
@@ -66,4 +69,5 @@ public class SocketHandler extends TextWebSocketHandler {
             }
         }
     }
+
 }

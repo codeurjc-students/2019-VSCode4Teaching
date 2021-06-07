@@ -12,7 +12,7 @@ export class DashboardWebview {
 
     public static readonly viewType = "v4tdashboard";
 
-    private static ws: WebSocket | undefined;
+    private ws: WebSocket | undefined;
 
     public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
         path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
@@ -49,7 +49,6 @@ export class DashboardWebview {
         );
 
         DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, exerciseId);
-        this.connectWS();
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -85,7 +84,7 @@ export class DashboardWebview {
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
-                    DashboardWebview.ws?.send(JSON.stringify({ "name": "Juan" }));
+                    this.ws?.send(JSON.stringify({ "name": "Juan" }));
                     // this.reloadData();
                     break;
                 }
@@ -158,6 +157,7 @@ export class DashboardWebview {
                 }
             }
         });
+        this.connectWS();
     }
 
     private async findMainFile(folder: vscode.WorkspaceFolder) {
@@ -303,15 +303,15 @@ export class DashboardWebview {
         return text;
     }
 
-    private static connectWS() {
+    private connectWS() {
         var authToken = APIClientSession.jwtToken;
-        this.ws = new WebSocket(`ws://localhost:8080/dbRefresh?bearer=${authToken}`);
-        this.ws.onmessage = function (data) {
-            console.log("Mensaje recibido", data);
+        this.ws = new WebSocket(`ws://localhost:8080/dashboard-refresh?bearer=${authToken}`);
+        this.ws.onmessage = (data) => {
+            this.reloadData();
         }
     }
 
-    private static disconnectWS() {
+    private disconnectWS() {
         if (this.ws != null) {
             this.ws.close();
         }
