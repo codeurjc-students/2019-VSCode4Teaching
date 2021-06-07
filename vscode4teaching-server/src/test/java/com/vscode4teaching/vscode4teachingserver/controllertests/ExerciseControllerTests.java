@@ -253,7 +253,7 @@ public class ExerciseControllerTests {
         euiDTO.setStatus(1);
         ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
         updatedEui.setStatus(1);
-        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", 1)).thenReturn(updatedEui);
+        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", 1, "")).thenReturn(updatedEui);
 
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())
