@@ -315,10 +315,13 @@ export class DashboardWebview {
     private connectWS() {
         var authToken = APIClientSession.jwtToken;
         const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
-        this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
-        this.ws.onmessage = (data) => {
-            this.reloadData();
+        if (authToken && wsURL) {
+            this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
+            this.ws.onmessage = (data) => {
+                this.reloadData();
+            }
         }
+        else console.error("Could not connect with websockets");
     }
 
     private disconnectWS() {
