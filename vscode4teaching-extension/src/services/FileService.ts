@@ -80,7 +80,8 @@ export class FileService {
 
     private static connectWS() {
         var authToken = APIClientSession.jwtToken;
-        this.ws = new WebSocket(`ws://localhost:8080/dashboard-refresh?bearer=${authToken}`);
+        const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
+        this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
     }
 
     private static disconnectWS() {

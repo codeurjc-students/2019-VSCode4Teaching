@@ -314,7 +314,8 @@ export class DashboardWebview {
 
     private connectWS() {
         var authToken = APIClientSession.jwtToken;
-        this.ws = new WebSocket(`ws://localhost:8080/dashboard-refresh?bearer=${authToken}`);
+        const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
+        this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
         this.ws.onmessage = (data) => {
             this.reloadData();
         }

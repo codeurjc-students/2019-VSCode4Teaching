@@ -40,7 +40,6 @@ public class SocketHandler extends TextWebSocketHandler {
             }
         }
 
-
 //        for (WebSocketSession webSocketSession : sessions) {
 //            var value = new Gson().fromJson(message.getPayload(), Map.class);
 //            webSocketSession.sendMessage(new TextMessage("Hello " + value.get("name") + " !"));
