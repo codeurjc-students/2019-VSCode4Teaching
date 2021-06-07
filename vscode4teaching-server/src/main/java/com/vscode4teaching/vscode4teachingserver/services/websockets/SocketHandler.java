@@ -26,7 +26,7 @@ public class SocketHandler extends TextWebSocketHandler {
         String path = uri.getPath();
         switch (path) {
             case "/dashboard-refresh": {
-                handleRefresh(session, message);
+                handleRefresh(message);
                 break;
             }
             case "/liveshare": {
@@ -52,7 +52,7 @@ public class SocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleRefresh(WebSocketSession session, TextMessage message) {
+    private void handleRefresh(TextMessage message) {
         Map<String, String> value;
         try {
             value = new Gson().fromJson(message.getPayload(), Map.class);
