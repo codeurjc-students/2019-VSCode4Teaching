@@ -3,11 +3,16 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
+import * as WebSocket from 'ws';
+import { APIClientSession } from "../../client/APIClientSession";
+
 
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
 
     public static readonly viewType = "v4tdashboard";
+
+    private ws: WebSocket | undefined;
 
     public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
         path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
@@ -79,7 +84,8 @@ export class DashboardWebview {
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
-                    this.reloadData();
+                    this.ws?.send(JSON.stringify({ "name": "Juan" }));
+                    // this.reloadData();
                     break;
                 }
                 case "changeReloadTime": {
@@ -106,7 +112,7 @@ export class DashboardWebview {
                         }
                     }
                 }
-                
+
                 case "sort": {
                     this.sortAsc = message.desc;
                     let weight = this.sortAsc ? 1 : -1;
@@ -151,6 +157,7 @@ export class DashboardWebview {
                 }
             }
         });
+        this.connectWS();
     }
 
     private async findMainFile(folder: vscode.WorkspaceFolder) {
@@ -201,6 +208,7 @@ export class DashboardWebview {
         // for (const eui of this._euis) {
         for (let i = 0; i < this._euis.length; i++) {
             let eui = this._euis[i];
+
             rows = rows + "<tr>\n";
             if (eui.user.name && eui.user.lastName) {
                 rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
@@ -230,7 +238,9 @@ export class DashboardWebview {
             let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
             rows += f ? `<button class='workspace-link'>Open</button>` : `Not found`;
             rows = rows + `</td>\n`
+            rows = rows + `<td class='last-modification'>${this.getElapsedTime(new Date(eui.updateDateTime))}</td>\n`;
             rows = rows + "</tr>\n";
+
         }
 
         // Use a nonce to whitelist which scripts can be run
@@ -278,7 +288,13 @@ export class DashboardWebview {
                                 <span></span>
                             </span>
                         </th>
-                        <th>Open in Worspace</th>
+                        <th>Open in Workspace</th>
+                        <th>Last modification 
+                            <span class="sorter ${this.sortAsc ? 'active' : ''}">
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </th>
                     </tr>
                     ${rows}
                 </table>
@@ -296,4 +312,44 @@ export class DashboardWebview {
         return text;
     }
 
+    private connectWS() {
+        var authToken = APIClientSession.jwtToken;
+        const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
+        if (authToken && wsURL) {
+            this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
+            this.ws.onmessage = (data) => {
+                this.reloadData();
+            }
+        }
+        else console.error("Could not connect with websockets");
+    }
+
+    private disconnectWS() {
+        if (this.ws != null) {
+            this.ws.close();
+        }
+    }
+
+    private getElapsedTime(pastDate: Date) {
+        let elapsedTime = (new Date().getTime() - pastDate.getTime()) / 1000;
+        let unit = ' s';
+        if (elapsedTime > 60) {
+            elapsedTime /= 60   //convert to minutes
+            if (elapsedTime > 60) {
+                elapsedTime /= 60;  //convert to hours
+                if (elapsedTime > 24) {
+                    elapsedTime /= 24;  //convert to days
+                    if (elapsedTime > 365) {
+                        elapsedTime /= 365;  //convert to years
+                        unit = ' yr'
+                    }
+                    else unit = ' d'
+                } else unit = ' h';
+            } else unit = ' min';
+        };
+
+        return `${Math.floor(elapsedTime)}${unit}`
+    }
+
 }
+

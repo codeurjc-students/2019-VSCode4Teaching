@@ -160,8 +160,8 @@ describe("Command implementations", () => {
         await commandFunctions["vscode4teaching.createComment"](replyMock);
 
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(4);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(4, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
         expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
         expect(mockedFs.readFileSync).toHaveBeenNthCalledWith(1, "/v4t/johndoe/.fileInfo/exercise/johndoejr.json", { encoding: "utf8" });
         expect(extension.commentProvider?.addComment).toHaveBeenCalledTimes(1);
@@ -186,6 +186,8 @@ describe("Command implementations", () => {
             status: 1,
             user,
             exercise,
+            updateDateTime: new Date(),
+            lastModifiedFile: "",
         };
         const response: AxiosResponse<ExerciseUserInfo> = {
             data: eui,
