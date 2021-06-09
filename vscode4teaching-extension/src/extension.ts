@@ -24,7 +24,6 @@ import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
-import * as vsls from 'vsls';
 
 /**
  * Entrypoiny of the extension.

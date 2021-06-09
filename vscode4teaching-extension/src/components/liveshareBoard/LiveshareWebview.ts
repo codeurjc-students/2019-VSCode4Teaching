@@ -1,10 +1,8 @@
-import { AxiosResponse } from "axios";
 import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { Course } from "../../model/serverModel/course/Course";
-import { User } from "../../model/serverModel/user/User";
-import { Role } from "../../model/serverModel/user/Role";
+import * as vsls from 'vsls';
 
 export class LiveshareWebview {
     public static currentPanel: LiveshareWebview | undefined;
@@ -51,12 +49,17 @@ export class LiveshareWebview {
     private _courses: Course[];
     private _reloadInterval: NodeJS.Timeout | undefined;
     private sortAsc: boolean;
+    private liveshareAPI: vsls.LiveShare | undefined;
 
     private constructor(panel: vscode.WebviewPanel, dashboardName: string, courses: Course[]) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._courses = courses;
         this.sortAsc = false;
+        vsls.getApi().then(res => {
+            if (res)
+                this.liveshareAPI = res;
+        });
 
         // Set the webview's initial html content
         this.getHtmlForWebview().then(
@@ -85,8 +88,25 @@ export class LiveshareWebview {
         );
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
+                case 'start-liveshare': {
+                    if (this.liveshareAPI) {
+                        this.sendLiveshareCode(message.username);
+                    } else {
+                        setTimeout(this.sendLiveshareCode, 1000, message.username);
+                    }
+                }
             }
         });
+    }
+
+    private sendLiveshareCode(username: string) {
+        if (this.liveshareAPI) {
+            this.liveshareAPI.share().then(
+                code => {
+                    //send code via ws
+                }
+            )
+        }
     }
 
     public dispose() {
