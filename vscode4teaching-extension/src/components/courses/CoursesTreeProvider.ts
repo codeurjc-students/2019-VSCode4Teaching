@@ -99,11 +99,11 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             if (username) {
                 const password: string | undefined = await this.getInput("Password", Validators.validatePasswordLogin, { password: true });
                 if (password) {
-                    APIClient.loginV4T(username, password, url).then(() => {
-                        // Maybe do something?
-                    }).catch((error) => {
+                    try {
+                        await APIClient.loginV4T(username, password, url);
+                    } catch (error) {
                         APIClient.handleAxiosError(error);
-                    });
+                    }
                 }
             }
         }

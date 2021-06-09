@@ -137,7 +137,7 @@ export class LiveshareWebview {
                 <link rel="stylesheet" type="text/css" href="${cssUri}">
             </head>
             <body>
-                <h1>Users in courses</h1>
+                <h1>Liveshare - Users in courses</h1>
                 <hr/>
                 ${tables}
                 <script nonce="${nonce}" src="${scriptUri}"></script>
@@ -156,20 +156,10 @@ export class LiveshareWebview {
 
     private async generateHTMLTableFromCourse(course: Course): Promise<string> {
         let rows = "";
-        // (await APIClient.getUsersInCourse(course.id).then(
-        //     data => {
-        //         data.data.forEach(user => {
-        //             rows = rows + "<tr>\n";
-        //             rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
-        //             rows = rows + "<td>" + (user.username ? (user.username) : "") + "</td>\n";
-        //             rows = rows + "<td>" + (user.roles ? user.roles.reduce((ac, r) => ac + r.roleName.replace("ROLE_", "") + " | ", "").replace(/\s\|\s$/, "") : "") + "</td>\n";
-        //             rows = rows + "<td><button class='liveshare-send'>Send</button></td>\n";
-        //             rows = rows + "</tr>\n";
-        //         });
-        //     }
-        // ).catch(e => console.error(e));
 
-        (await APIClient.getUsersInCourse(course.id)).data.forEach(user => {
+        const users = await APIClient.getUsersInCourse(course.id);
+        if (!users?.data) return "";
+        users.data.forEach(user => {
             rows = rows + "<tr>\n";
             rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
             rows = rows + "<td>" + (user.username ? (user.username) : "") + "</td>\n";

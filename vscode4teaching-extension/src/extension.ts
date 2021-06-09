@@ -51,6 +51,11 @@ export function activate(context: vscode.ExtensionContext) {
         CurrentUser.updateUserInfo().then().catch((error) => {
             APIClient.handleAxiosError(error);
         }).finally(() => {
+            const courses = CurrentUser.getUserInfo().courses;
+            if (courses) {
+                showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                showLiveshareBoardItem.show();
+            }
             currentCwds = vscode.workspace.workspaceFolders;
             if (currentCwds) {
                 initializeExtension(currentCwds).then();
@@ -59,11 +64,21 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const loginDisposable = vscode.commands.registerCommand("vscode4teaching.login", () => {
-        coursesProvider.login();
+        coursesProvider.login().then(() => {
+            const courses = CurrentUser.getUserInfo().courses;
+            if (courses) {
+                showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                showLiveshareBoardItem.show();
+            }
+        });
     });
 
     const logoutDisposable = vscode.commands.registerCommand("vscode4teaching.logout", async () => {
         coursesProvider.logout();
+        if (showLiveshareBoardItem) {
+            showLiveshareBoardItem.dispose();
+            showDashboardItem = undefined;
+        }
         currentCwds = vscode.workspace.workspaceFolders;
         if (currentCwds) {
             await initializeExtension(currentCwds);
@@ -212,13 +227,13 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const startLiveshare = vscode.commands.registerCommand("vscode4teaching.startliveshare", async () => {
-        console.log("Listos para hacer liveshare");
-        const share = await liveshareAPI.share();
-        console.log(share);
+    // const startLiveshare = vscode.commands.registerCommand("vscode4teaching.startliveshare", async () => {
+    //     console.log("Listos para hacer liveshare");
+    //     const share = await liveshareAPI.share();
+    //     console.log(share);
 
-        //TODO: enviar el enlace mediante WS al profesor
-    });
+    //     //TODO: enviar el enlace mediante WS al profesor
+    // });
 
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
         if (showDashboardItem) {
@@ -232,20 +247,22 @@ export function activate(context: vscode.ExtensionContext) {
 
     const showLiveshareBoard = vscode.commands.registerCommand("vscode4teaching.showliveshareboard", () => {
         if (CurrentUser.isLoggedIn()) {
-            const courses = CurrentUser.getUserInfo().courses;
-            if (courses) {
-                if (!showLiveshareBoardItem) {
-                    showLiveshareBoardItem = showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
-                    showLiveshareBoardItem.show();
+            try {
+                const courses = CurrentUser.getUserInfo().courses;
+                if (courses) {
+                    if (!showLiveshareBoardItem) {
+                        showLiveshareBoardItem = showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                        showLiveshareBoardItem.show();
+                    }
+                    LiveshareWebview.show(courses)
                 }
-                LiveshareWebview.show(courses)
-            }
+            } catch (err) { console.error(err) }
         }
     });
 
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, startLiveshare, showDashboard, showLiveshareBoard);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 }
 
 export function deactivate() {
@@ -332,11 +349,6 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     if (currentUserIsTeacher && v4tjson.template) {
                         // Template should be the same in the workspace
                         templates[cwd.name] = v4tjson.template;
-                    }
-                    const courses = CurrentUser.getUserInfo().courses;
-                    if (courses) {
-                        showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
-                        showLiveshareBoardItem.show();
                     }
                 }
             }
