@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { Course } from "../../model/serverModel/course/Course";
 import * as vsls from 'vsls';
+import { CurrentUser } from "../../client/CurrentUser";
+import { liveshareAPI, ws, setLiveshareAPI } from "../../extension";
 
 export class LiveshareWebview {
     public static currentPanel: LiveshareWebview | undefined;
@@ -49,17 +51,15 @@ export class LiveshareWebview {
     private _courses: Course[];
     private _reloadInterval: NodeJS.Timeout | undefined;
     private sortAsc: boolean;
-    private liveshareAPI: vsls.LiveShare | undefined;
+    private shareCode: vscode.Uri | null;
+
 
     private constructor(panel: vscode.WebviewPanel, dashboardName: string, courses: Course[]) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._courses = courses;
         this.sortAsc = false;
-        vsls.getApi().then(res => {
-            if (res)
-                this.liveshareAPI = res;
-        });
+        this.shareCode = null;
 
         // Set the webview's initial html content
         this.getHtmlForWebview().then(
@@ -89,23 +89,33 @@ export class LiveshareWebview {
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case 'start-liveshare': {
-                    if (this.liveshareAPI) {
+                    if (!liveshareAPI) {
+                        const api = await vsls.getApi();
+                        if (api != null)
+                            setLiveshareAPI(api);
+                    }
+                    if (liveshareAPI) {
                         this.sendLiveshareCode(message.username);
-                    } else {
-                        setTimeout(this.sendLiveshareCode, 1000, message.username);
                     }
                 }
             }
         });
     }
 
-    private sendLiveshareCode(username: string) {
-        if (this.liveshareAPI) {
-            this.liveshareAPI.share().then(
-                code => {
-                    //send code via ws
-                }
-            )
+    private async sendLiveshareCode(username: string) {
+        if (liveshareAPI) {
+            if (!this.shareCode) {
+                const optionalCode = await liveshareAPI.share();
+                if (optionalCode) this.shareCode = optionalCode;
+            }
+            if (!this.shareCode) return;
+            let from: string;
+            try {
+                from = CurrentUser.getUserInfo().username;
+            } catch (error) {
+                from = "undefined";
+            }
+            ws?.send(JSON.stringify({ "target": username, "from": from, "code": this.shareCode?.toString() }))
         }
     }
 
@@ -126,7 +136,7 @@ export class LiveshareWebview {
     private async getHtmlForWebview() {
         // Local path to main script run in the webview
         const scriptPath = vscode.Uri.file(
-            path.join(LiveshareWebview.resourcesPath, "dashboard.js"),
+            path.join(LiveshareWebview.resourcesPath, "liveshareBoard.js"),
         );
         // And the uri we use to load this script in the webview
         const scriptUri = this.panel.webview.asWebviewUri(scriptPath);
@@ -182,7 +192,7 @@ export class LiveshareWebview {
         users.data.forEach(user => {
             rows = rows + "<tr>\n";
             rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
-            rows = rows + "<td>" + (user.username ? (user.username) : "") + "</td>\n";
+            rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
             rows = rows + "<td>" + (user.roles ? user.roles.reduce((ac, r) => ac + r.roleName.replace("ROLE_", "") + " | ", "").replace(/\s\|\s$/, "") : "") + "</td>\n";
             rows = rows + "<td><button class='liveshare-send'>Send</button></td>\n";
             rows = rows + "</tr>\n";
@@ -217,5 +227,4 @@ export class LiveshareWebview {
 
         return text;
     }
-
 }

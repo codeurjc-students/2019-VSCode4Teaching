@@ -25,6 +25,9 @@ import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
 import { FileService } from "./services/FileService";
+import * as WebSocket from 'ws';
+import { APIClientSession } from "./client/APIClientSession";
+import * as vsls from 'vsls';
 
 /**
  * Entrypoiny of the extension.
@@ -41,8 +44,9 @@ export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
 export let commentInterval: NodeJS.Timeout;
+export let ws: WebSocket | undefined;
+export let liveshareAPI: vsls.LiveShare | undefined | null;
 
-var liveshareAPI: any;
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -264,6 +268,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
+
+    connectWS("liveshare", () => coursesProvider.logout);
+
+    vsls.getApi().then(res => {
+        if (res)
+            liveshareAPI = res;
+    });
+
 }
 
 export function deactivate() {
@@ -537,4 +549,20 @@ export function setFinishItem(exerciseId: number) {
 
 export function setTemplate(cwdName: string, templatePath: string) {
     templates[cwdName] = templatePath;
+}
+
+export function connectWS(channel: string, callback: Function) {
+    var authToken = APIClientSession.jwtToken;
+    const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
+    if (authToken && wsURL) {
+        ws = new WebSocket(`${wsURL}/${channel}?bearer=${authToken}`);
+        ws.onmessage = (data) => {
+            callback(data);
+        }
+    }
+    else console.info("Could not connect with websockets");
+}
+
+export function setLiveshareAPI(data: vsls.LiveShare) {
+    liveshareAPI = data;
 }
