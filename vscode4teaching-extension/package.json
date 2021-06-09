@@ -310,7 +310,9 @@
 		"@types/node": "^10.15.1",
 		"@types/rimraf": "^3.0.0",
 		"@types/vscode": "^1.45.1",
-		"cheerio": "^1.0.0-rc.3",
+		"@types/websocket": "^1.0.2",
+		"@types/ws": "^7.4.4",
+		"cheerio": "^1.0.0-rc.10",
 		"glob": "^7.1.6",
 		"jest": "^26.0.1",
 		"jest-sonar-reporter": "^2.0.0",
@@ -327,7 +329,9 @@
 		"ignore": "^5.1.6",
 		"jszip": "^3.4.0",
 		"mkdirp": "^1.0.4",
-		"vsls": "^1.0.3015"
+		"vsls": "^1.0.3015",
+		"websocket": "^1.0.34",
+		"ws": "^7.4.6"
 	},
 	"jestSonar": {
 		"reportPath": "coverage",

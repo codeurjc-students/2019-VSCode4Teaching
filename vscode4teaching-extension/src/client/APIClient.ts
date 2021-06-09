@@ -171,6 +171,15 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Creating course...");
     }
 
+    public getCourses(): AxiosPromise<Course[]> {
+        const options: AxiosBuildOptions = {
+            url: "/api/courses",
+            method: "GET",
+            responseType: "json",
+        };
+        return APIClient.createRequest(options, "Getting courses...");
+    }
+
     public editCourse(id: number, data: CourseEdit): AxiosPromise<Course> {
         const options: AxiosBuildOptions = {
             url: "/api/courses/" + id,
@@ -387,13 +396,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: String): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
             responseType: "json",
             data: {
                 status,
+                lastModifiedFile,
             },
         };
         return APIClient.createRequest(options, "Updating exercise user info...");

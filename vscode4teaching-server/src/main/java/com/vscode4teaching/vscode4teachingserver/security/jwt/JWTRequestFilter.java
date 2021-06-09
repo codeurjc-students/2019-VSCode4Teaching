@@ -1,14 +1,13 @@
 package com.vscode4teaching.vscode4teachingserver.security.jwt;
 
 import java.io.IOException;
-
+import java.util.Arrays;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,10 +31,13 @@ public class JWTRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        final String requestTokenHeader = request.getHeader("Authorization");
 
+        String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
+        String query = request.getQueryString();
+        if (requestTokenHeader == null && query != null)
+            requestTokenHeader = getBearerFromQuery(query);
 
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7); // remove Bearer
@@ -61,4 +63,12 @@ public class JWTRequestFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+
+    private String getBearerFromQuery(String queryString) {
+        return Arrays.stream(queryString.split("&"))
+                .filter(q -> q.startsWith("bearer="))
+                .map(q -> "Bearer " + q.substring(q.indexOf("=") + 1))
+                .findFirst().orElse(null);
+    }
+
 }

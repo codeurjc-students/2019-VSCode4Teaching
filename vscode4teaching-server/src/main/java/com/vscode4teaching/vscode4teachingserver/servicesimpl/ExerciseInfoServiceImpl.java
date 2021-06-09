@@ -38,10 +38,11 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     }
 
     @Override
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status)
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, String lastModifiedFile)
             throws NotFoundException {
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         eui.setStatus(status);
+        eui.setLastModifiedFile(lastModifiedFile);
         eui = exerciseUserInfoRepository.save(eui);
         return eui;
     }

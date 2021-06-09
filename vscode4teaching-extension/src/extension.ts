@@ -24,6 +24,7 @@ import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
+import { FileService } from "./services/FileService";
 
 /**
  * Entrypoiny of the extension.
@@ -59,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (currentCwds) {
                 initializeExtension(currentCwds).then();
             }
+            FileService.initializeExerciseChecking();
         });
     }
 
