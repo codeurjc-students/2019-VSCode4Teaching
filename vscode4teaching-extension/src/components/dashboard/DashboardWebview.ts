@@ -84,8 +84,7 @@ export class DashboardWebview {
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
-                    this.ws?.send(JSON.stringify({ "name": "Juan" }));
-                    // this.reloadData();
+                    this.reloadData();
                     break;
                 }
                 case "changeReloadTime": {
@@ -317,7 +316,7 @@ export class DashboardWebview {
         const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
         if (authToken && wsURL) {
             this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
-            this.ws.onmessage = (data) => {
+            this.ws.onmessage = () => {
                 this.reloadData();
             }
         }
