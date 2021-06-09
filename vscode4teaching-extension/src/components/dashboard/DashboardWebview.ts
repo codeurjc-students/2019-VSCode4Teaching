@@ -320,7 +320,7 @@ export class DashboardWebview {
                 this.reloadData();
             }
         }
-        else console.error("Could not connect with websockets");
+        else console.info("Could not connect with websockets");
     }
 
     private disconnectWS() {
