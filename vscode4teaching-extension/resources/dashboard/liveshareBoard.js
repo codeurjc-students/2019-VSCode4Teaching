@@ -12,5 +12,17 @@
             });
         });
     });
+
+    document.querySelectorAll("#search-send").forEach(button => {
+        button.addEventListener("click", () => {
+            const username = Array.from(button.parentElement.children).find(e => e.id == "username-search").value;
+            if (username)
+                vscode.postMessage({
+                    type: "start-liveshare",
+                    username: username
+                });
+        });
+    })
+
 }());
 

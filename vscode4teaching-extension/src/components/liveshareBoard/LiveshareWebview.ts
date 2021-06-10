@@ -151,9 +151,19 @@ export class LiveshareWebview {
 
         // Transform EUIs to html table data
         let tables: string = "";
+        let usersSet = new Set();
         for (let i = 0; i < this._courses.length; i++) {
-            tables += await this.generateHTMLTableFromCourse(this._courses[i]);
+            // tables += await this.generateHTMLTableFromCourse(this._courses[i]);
+            const { text, users } = await this.generateHTMLTableFromCourse(this._courses[i]);
+            tables += text;
+            usersSet = new Set([...usersSet, ...users]);
         }
+
+        let searchbar: string = "<datalist id='usernames'>\n";
+        usersSet.forEach(username => {
+            searchbar = searchbar + `<option value='${username}'>`;
+        })
+        searchbar = searchbar + "</datalist>";
 
         // Use a nonce to whitelist which scripts can be run
         const nonce = this.getNonce();
@@ -169,6 +179,10 @@ export class LiveshareWebview {
             <body>
                 <h1>Liveshare - Users in courses</h1>
                 <hr/>
+                <label for="username-search">Quick search: </label>
+                <input id="username-search" list="usernames" type="text">
+                ${searchbar}
+                <button id="search-send" type="button">Send</button>
                 ${tables}
                 <script nonce="${nonce}" src="${scriptUri}"></script>
             </body>
@@ -184,7 +198,11 @@ export class LiveshareWebview {
         return text;
     }
 
-    private async generateHTMLTableFromCourse(course: Course): Promise<string> {
+    private async generateHTMLTableFromCourse(course: Course): Promise<any> {
+        let data = {
+            text: "",
+            users: new Set(),
+        }
         let rows = "";
 
         const users = await APIClient.getUsersInCourse(course.id);
@@ -196,6 +214,7 @@ export class LiveshareWebview {
         } catch (_) { }
         users.data.forEach(user => {
             if (!currentUsername || currentUsername === user.username) return;
+            data.users.add(user.username);
             rows = rows + "<tr>\n";
             rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
             rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
@@ -205,7 +224,7 @@ export class LiveshareWebview {
 
         });
 
-        const text = `<br/>
+        data.text = `<br/>
         <h3>Users in ${course.name}</h3>
         <table>
             <tr>
@@ -232,6 +251,6 @@ export class LiveshareWebview {
             ${rows}
         </table>`
 
-        return text;
+        return data;
     }
 }
