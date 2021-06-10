@@ -212,7 +212,11 @@ export class LiveshareWebview {
         try {
             currentUsername = CurrentUser.getUserInfo().username;
         } catch (_) { }
-        users.data.forEach(user => {
+        users.data.sort((user1, user2) => {
+            if (user1.roles.some(r => r.roleName == "ROLE_TEACHER")) return -1;
+            if (user2.roles.some(r => r.roleName == "ROLE_TEACHER")) return 1;
+            else return 0;
+        }).forEach(user => {
             if (!currentUsername || currentUsername === user.username) return;
             data.users.add(user.username);
             rows = rows + "<tr>\n";
@@ -228,24 +232,9 @@ export class LiveshareWebview {
         <h3>Users in ${course.name}</h3>
         <table>
             <tr>
-                <th>Full name 
-                    <span class="sorter ${this.sortAsc ? 'active' : ''}">
-                        <span></span>
-                        <span></span>
-                    </span>
-                </th>
-                <th>Username 
-                    <span class="sorter ${this.sortAsc ? 'active' : ''}">
-                        <span></span>
-                        <span></span>
-                    </span>
-                </th>
-                <th>Role 
-                    <span class="sorter ${this.sortAsc ? 'active' : ''}">
-                        <span></span>
-                        <span></span>
-                    </span>
-                </th>
+                <th>Full name</th>
+                <th>Username</th>
+                <th>Role</th>
                 <th>Liveshare</th>
             </tr>
             ${rows}

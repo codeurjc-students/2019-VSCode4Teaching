@@ -236,14 +236,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // const startLiveshare = vscode.commands.registerCommand("vscode4teaching.startliveshare", async () => {
-    //     console.log("Listos para hacer liveshare");
-    //     const share = await liveshareAPI.share();
-    //     console.log(share);
-
-    //     //TODO: enviar el enlace mediante WS al profesor
-    // });
-
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
         if (showDashboardItem) {
             APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exerciseId).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
@@ -325,7 +317,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
                 if (CurrentUser.isLoggedIn()) {
-                    
+
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
                         if (courses) {
