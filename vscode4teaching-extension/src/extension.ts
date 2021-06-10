@@ -269,7 +269,7 @@ export function activate(context: vscode.ExtensionContext) {
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 
-    connectWS("liveshare", () => coursesProvider.logout);
+    connectWS("liveshare", (data: string) => handleLiveshareMessage(data));
 
     vsls.getApi().then(res => {
         if (res)
@@ -565,4 +565,9 @@ export function connectWS(channel: string, callback: Function) {
 
 export function setLiveshareAPI(data: vsls.LiveShare) {
     liveshareAPI = data;
+}
+
+function handleLiveshareMessage(dataStringified: string) {
+    const { from, code } = JSON.parse(dataStringified);
+    vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline");
 }
