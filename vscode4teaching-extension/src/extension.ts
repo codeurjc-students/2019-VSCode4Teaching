@@ -55,14 +55,18 @@ export function activate(context: vscode.ExtensionContext) {
         CurrentUser.updateUserInfo().then().catch((error) => {
             APIClient.handleAxiosError(error);
         }).finally(() => {
-            const courses = CurrentUser.getUserInfo().courses;
-            if (courses) {
-                showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
-                showLiveshareBoardItem.show();
-            }
             currentCwds = vscode.workspace.workspaceFolders;
             if (currentCwds) {
                 initializeExtension(currentCwds).then();
+            }
+            else {
+                try {
+                    const courses = CurrentUser.getUserInfo().courses;
+                    if (courses) {
+                        showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                        showLiveshareBoardItem.show();
+                    }
+                } catch (err) { console.error(err) }
             }
             FileService.initializeExerciseChecking();
         });
@@ -321,6 +325,15 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
                 if (CurrentUser.isLoggedIn()) {
+                    
+                    try {
+                        const courses = CurrentUser.getUserInfo().courses;
+                        if (courses) {
+                            showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                            showLiveshareBoardItem.show();
+                        }
+                    } catch (err) { console.error(err) }
+
                     if (!commentProvider) {
                         commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
                     }
