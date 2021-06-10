@@ -31,7 +31,7 @@ public class SocketHandler extends TextWebSocketHandler {
                 break;
             }
             case "/liveshare": {
-                handleLiveshare(session, message);
+                handleLiveshare(message);
                 break;
             }
         }
@@ -71,7 +71,7 @@ public class SocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void handleLiveshare(WebSocketSession session, TextMessage message) {
+    private void handleLiveshare(TextMessage message) {
         Map<String, String> objects = getMessageObjects(message);
         if (objects == null) return;
         String code = objects.get("code");
