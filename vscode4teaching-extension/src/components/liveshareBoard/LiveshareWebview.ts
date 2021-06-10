@@ -189,13 +189,20 @@ export class LiveshareWebview {
 
         const users = await APIClient.getUsersInCourse(course.id);
         if (!users?.data) return "";
+
+        let currentUsername: string;
+        try {
+            currentUsername = CurrentUser.getUserInfo().username;
+        } catch (_) { }
         users.data.forEach(user => {
+            if (!currentUsername || currentUsername === user.username) return;
             rows = rows + "<tr>\n";
             rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
             rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
             rows = rows + "<td>" + (user.roles ? user.roles.reduce((ac, r) => ac + r.roleName.replace("ROLE_", "") + " | ", "").replace(/\s\|\s$/, "") : "") + "</td>\n";
             rows = rows + "<td><button class='liveshare-send'>Send</button></td>\n";
             rows = rows + "</tr>\n";
+
         });
 
         const text = `<br/>
