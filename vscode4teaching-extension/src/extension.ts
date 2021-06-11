@@ -267,10 +267,29 @@ export function activate(context: vscode.ExtensionContext) {
 
     connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
 
-    vsls.getApi().then(res => {
-        if (res)
-            liveshareAPI = res;
-    });
+    vsls.getApi().then(
+        res => {
+            if (res) liveshareAPI = res;
+            else {
+                vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
+                    res => {
+                        if (res === "Install") {
+                            vscode.commands.executeCommand("workbench.extensions.installExtension", "vscode:extension/MS-vsliveshare.vsliveshare-pack");
+                        }
+                    }
+                );
+            }
+        },
+        _ => {
+            vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
+                res => {
+                    if (res === "Install") {
+                        vscode.commands.executeCommand("workbench.extensions.installExtension", "vscode:extension/MS-vsliveshare.vsliveshare-pack");
+                    }
+                }
+            );
+        }
+    );
 
 }
 

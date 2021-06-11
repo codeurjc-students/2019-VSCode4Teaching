@@ -91,8 +91,16 @@ export class LiveshareWebview {
                 case 'start-liveshare': {
                     if (!liveshareAPI) {
                         const api = await vsls.getApi();
-                        if (api != null)
-                            setLiveshareAPI(api);
+                        if (api == null) {
+                            vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
+                                res => {
+                                    if (res === "Install") {
+                                        vscode.commands.executeCommand("workbench.extensions.installExtension", "vscode:extension/MS-vsliveshare.vsliveshare-pack");
+                                    }
+                                }
+                            );
+                        }
+                        else setLiveshareAPI(api);
                     }
                     if (liveshareAPI) {
                         this.sendLiveshareCode(message.username);
