@@ -274,7 +274,7 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
                     res => {
                         if (res === "Install") {
-                            vscode.commands.executeCommand("workbench.extensions.installExtension", "vscode:extension/MS-vsliveshare.vsliveshare-pack");
+                            vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
                         }
                     }
                 );
@@ -284,7 +284,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
                 res => {
                     if (res === "Install") {
-                        vscode.commands.executeCommand("workbench.extensions.installExtension", "vscode:extension/MS-vsliveshare.vsliveshare-pack");
+                        vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
                     }
                 }
             );
