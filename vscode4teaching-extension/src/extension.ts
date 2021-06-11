@@ -574,12 +574,19 @@ export function setLiveshareAPI(data: vsls.LiveShare) {
 
 function handleLiveshareMessage(dataStringified: string) {
     if (!dataStringified) return;
-    const { from, codeStr } = JSON.parse(dataStringified);
+    const { from, code } = JSON.parse(dataStringified);
     vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline").then(
         res => {
             if (res === "Accept") {
-                const code: vscode.Uri = vscode.Uri.parse(codeStr);
-                liveshareAPI?.join(code);
+                const codeParsed: vscode.Uri = vscode.Uri.parse(code);
+                vscode.env.clipboard.writeText(code).then(
+                    () => {
+                        vscode.window.showInformationMessage(`Code already set on clipboard: ${code}`);
+                        liveshareAPI?.join(codeParsed);
+                    },
+                    (err) => vscode.window.showErrorMessage(`Could not use clipboard: ${err}`)
+
+                );
             }
         });
 }

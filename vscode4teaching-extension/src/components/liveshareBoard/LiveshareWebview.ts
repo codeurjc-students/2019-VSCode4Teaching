@@ -212,21 +212,24 @@ export class LiveshareWebview {
         try {
             currentUsername = CurrentUser.getUserInfo().username;
         } catch (_) { }
-        users.data.sort((user1, user2) => {
-            if (user1.roles.some(r => r.roleName == "ROLE_TEACHER")) return -1;
-            if (user2.roles.some(r => r.roleName == "ROLE_TEACHER")) return 1;
-            else return 0;
-        }).forEach(user => {
-            if (!currentUsername || currentUsername === user.username) return;
-            data.users.add(user.username);
-            rows = rows + "<tr>\n";
-            rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
-            rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
-            rows = rows + "<td>" + (user.roles ? user.roles.reduce((ac, r) => ac + r.roleName.replace("ROLE_", "") + " | ", "").replace(/\s\|\s$/, "") : "") + "</td>\n";
-            rows = rows + "<td><button class='liveshare-send'>Send</button></td>\n";
-            rows = rows + "</tr>\n";
+        users.data
+            .filter(user => currentUsername && currentUsername !== user.username)
+            .sort((user1, user2) => {
+                if (user1.roles.some(r => r.roleName == "ROLE_TEACHER")) return -1;
+                if (user2.roles.some(r => r.roleName == "ROLE_TEACHER")) return 1;
+                if (user1.username < user2.username) return -1;
+                if (user1.username > user2.username) return 1;
+                else return 0;
+            }).forEach(user => {
+                data.users.add(user.username);
+                rows = rows + "<tr>\n";
+                rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
+                rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
+                rows = rows + "<td>" + (user.roles ? user.roles.reduce((ac, r) => ac + r.roleName.replace("ROLE_", "") + " | ", "").replace(/\s\|\s$/, "") : "") + "</td>\n";
+                rows = rows + "<td><button class='liveshare-send'>Send</button></td>\n";
+                rows = rows + "</tr>\n";
 
-        });
+            });
 
         data.text = `<br/>
         <h3>Users in ${course.name}</h3>
