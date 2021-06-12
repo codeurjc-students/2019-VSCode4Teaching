@@ -43,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         final String teacherRole = "TEACHER";
         final String studentRole = "STUDENT";
-        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator")
+        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator", "/", "/img/**", "/js/**", "/css/**", "/fonts/**")
                 .permitAll().antMatchers(HttpMethod.POST, "/api/login", "/api/register").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/teachers/register", "/api/exercises/*/teachers/**")
                 .hasAnyRole(teacherRole)

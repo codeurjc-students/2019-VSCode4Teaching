@@ -1,0 +1,50 @@
+body {
+}
+
+header {
+    background-color: white;
+    grid-area: header;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px;
+}
+
+header > img.logo {
+    height: 100%;
+    margin-left: 10px;
+}
+
+section {
+    border: 2px solid black;
+    border-radius: 10px;
+    grid-area: section;
+    text-align: center;
+}
+
+section > h1.title {
+    text-align: center;
+    font-family: moon-get-heavy, serif;
+}
+
+.text-body {
+    margin: 1rem;
+    font-family: louis-george-cafe, serif;
+    font-size: 25px;
+}
+
+.demo-gif {
+    width: 950px;
+    max-width: 85vw;
+}
+
+@font-face {
+    font-family: louis-george-cafe;
+    src: url("../fonts/Louis George Cafe.ttf");
+}
+
+@font-face {
+    font-family: moon-get-heavy;
+    src: url("../fonts/moon_get-Heavy.otf");
+}
