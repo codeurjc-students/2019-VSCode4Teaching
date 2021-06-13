@@ -77,6 +77,7 @@ describe("Extension entry point", () => {
         "vscode4teaching.getwithcode",
         "vscode4teaching.finishexercise",
         "vscode4teaching.showdashboard",
+        "vscode4teaching.showliveshareboard",
     ];
     function expectAllCommandsToBeRegistered(subscriptions: any[]) {
         expect(subscriptions).toHaveLength(commandIds.length);

@@ -159,9 +159,9 @@ describe("Command implementations", () => {
         extension.setCommentProvider("johndoe");
         await commandFunctions["vscode4teaching.createComment"](replyMock);
 
-        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(4);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(4, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
+        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
         expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
         expect(mockedFs.readFileSync).toHaveBeenNthCalledWith(1, "/v4t/johndoe/.fileInfo/exercise/johndoejr.json", { encoding: "utf8" });
         expect(extension.commentProvider?.addComment).toHaveBeenCalledTimes(1);
@@ -415,7 +415,7 @@ describe("Command implementations", () => {
 
         await commandFunctions["vscode4teaching.diff"](file);
 
-        expect(vscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
+        expect(vscode.window.showErrorMessage).toHaveBeenCalledTimes(5);
         expect(mockedVscode.workspace.getWorkspaceFolder).toHaveBeenCalledTimes(1);
         expect(mockedVscode.workspace.getWorkspaceFolder).toHaveBeenNthCalledWith(1, file);
         expect(mockedPath.relative).toHaveBeenCalledTimes(1);

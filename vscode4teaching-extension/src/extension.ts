@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
+import { visitParameterList } from "typescript";
 import * as vscode from "vscode";
 import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
@@ -10,6 +11,8 @@ import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
 import { DashboardWebview } from "./components/dashboard/DashboardWebview";
 import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDashboardItem";
+import { LiveshareWebview } from "./components/liveshareBoard/LiveshareWebview";
+import { ShowLiveshareBoardItem } from "./components/statusBarItems/liveshare/ShowLiveshareBoardItem";
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { Dictionary } from "./model/Dictionary";
 import { Exercise } from "./model/serverModel/exercise/Exercise";
@@ -22,6 +25,9 @@ import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
 import { FileService } from "./services/FileService";
+import * as WebSocket from 'ws';
+import { APIClientSession } from "./client/APIClientSession";
+import * as vsls from 'vsls';
 
 /**
  * Entrypoiny of the extension.
@@ -33,32 +39,55 @@ export let commentProvider: TeacherCommentService | undefined;
 export let currentCwds: ReadonlyArray<vscode.WorkspaceFolder> | undefined;
 export let finishItem: FinishItem | undefined;
 export let showDashboardItem: ShowDashboardItem | undefined;
+export let showLiveshareBoardItem: ShowLiveshareBoardItem | undefined;
 export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
 export let commentInterval: NodeJS.Timeout;
+export let ws: WebSocket | undefined;
+export let liveshareAPI: vsls.LiveShare | undefined | null;
+
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
     if (sessionInitialized) {
-        CurrentUser.updateUserInfo().catch((error) => {
+        CurrentUser.updateUserInfo().then().catch((error) => {
             APIClient.handleAxiosError(error);
         }).finally(() => {
             currentCwds = vscode.workspace.workspaceFolders;
             if (currentCwds) {
                 initializeExtension(currentCwds).then();
             }
+            else {
+                try {
+                    const courses = CurrentUser.getUserInfo().courses;
+                    if (courses) {
+                        showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                        showLiveshareBoardItem.show();
+                    }
+                } catch (err) { console.error(err) }
+            }
             FileService.initializeExerciseChecking();
         });
     }
 
     const loginDisposable = vscode.commands.registerCommand("vscode4teaching.login", () => {
-        coursesProvider.login();
+        coursesProvider.login().then(() => {
+            const courses = CurrentUser.getUserInfo().courses;
+            if (courses) {
+                showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                showLiveshareBoardItem.show();
+            }
+        });
     });
 
     const logoutDisposable = vscode.commands.registerCommand("vscode4teaching.logout", async () => {
         coursesProvider.logout();
+        if (showLiveshareBoardItem) {
+            showLiveshareBoardItem.dispose();
+            showDashboardItem = undefined;
+        }
         currentCwds = vscode.workspace.workspaceFolders;
         if (currentCwds) {
             await initializeExtension(currentCwds);
@@ -217,9 +246,51 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    const showLiveshareBoard = vscode.commands.registerCommand("vscode4teaching.showliveshareboard", () => {
+        if (CurrentUser.isLoggedIn()) {
+            try {
+                const courses = CurrentUser.getUserInfo().courses;
+                if (courses) {
+                    if (!showLiveshareBoardItem) {
+                        showLiveshareBoardItem = showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                        showLiveshareBoardItem.show();
+                    }
+                    LiveshareWebview.show(courses)
+                }
+            } catch (err) { console.error(err) }
+        }
+    });
+
     context.subscriptions.push(loginDisposable, logoutDisposable, getFilesDisposable, addCourseDisposable, editCourseDisposable,
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
-        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard);
+        removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
+
+    connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
+
+    vsls.getApi().then(
+        res => {
+            if (res) liveshareAPI = res;
+            else {
+                vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
+                    res => {
+                        if (res === "Install") {
+                            vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
+                        }
+                    }
+                );
+            }
+        },
+        _ => {
+            vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
+                res => {
+                    if (res === "Install") {
+                        vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
+                    }
+                }
+            );
+        }
+    );
+
 }
 
 export function deactivate() {
@@ -239,11 +310,17 @@ export function disableFeatures() {
         showDashboardItem.dispose();
         showDashboardItem = undefined;
     }
+    if (showLiveshareBoardItem) {
+        showLiveshareBoardItem.dispose();
+        showDashboardItem = undefined;
+    }
     global.clearInterval(commentInterval);
 }
 
 export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+
     disableFeatures();
+
     const checkedUris: string[] = [];
     for (const cwd of cwds) {
         // Checks recursively from parent directory of cwd for v4texercise.v4t
@@ -259,6 +336,15 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
                 if (CurrentUser.isLoggedIn()) {
+
+                    try {
+                        const courses = CurrentUser.getUserInfo().courses;
+                        if (courses) {
+                            showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                            showLiveshareBoardItem.show();
+                        }
+                    } catch (err) { console.error(err) }
+
                     if (!commentProvider) {
                         commentProvider = new TeacherCommentService(CurrentUser.getUserInfo().username);
                     }
@@ -275,7 +361,6 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         }
                         commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                     }
-
                     // If user is student and exercise is not finished add finish button
                     if (!currentUserIsTeacher && !finishItem) {
                         try {
@@ -488,4 +573,39 @@ export function setFinishItem(exerciseId: number) {
 
 export function setTemplate(cwdName: string, templatePath: string) {
     templates[cwdName] = templatePath;
+}
+
+export function connectWS(channel: string, callback: Function) {
+    var authToken = APIClientSession.jwtToken;
+    const wsURL = APIClientSession.baseUrl?.replace('http', 'ws');
+    if (authToken && wsURL) {
+        ws = new WebSocket(`${wsURL}/${channel}?bearer=${authToken}`);
+        ws.onmessage = (data) => {
+            callback(data);
+        }
+    }
+    else console.info("Could not connect with websockets");
+}
+
+export function setLiveshareAPI(data: vsls.LiveShare) {
+    liveshareAPI = data;
+}
+
+function handleLiveshareMessage(dataStringified: string) {
+    if (!dataStringified) return;
+    const { from, code } = JSON.parse(dataStringified);
+    vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline").then(
+        res => {
+            if (res === "Accept") {
+                const codeParsed: vscode.Uri = vscode.Uri.parse(code);
+                vscode.env.clipboard.writeText(code).then(
+                    () => {
+                        vscode.window.showInformationMessage(`Code already set on clipboard: ${code}`);
+                        liveshareAPI?.join(codeParsed);
+                    },
+                    (err) => vscode.window.showErrorMessage(`Could not use clipboard: ${err}`)
+
+                );
+            }
+        });
 }

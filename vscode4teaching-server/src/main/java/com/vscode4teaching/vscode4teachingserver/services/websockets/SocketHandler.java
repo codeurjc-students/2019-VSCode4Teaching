@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class SocketHandler extends TextWebSocketHandler {
-    private final List<WebSocketSession> refreshSession = new CopyOnWriteArrayList<>();
+    private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
@@ -31,10 +31,11 @@ public class SocketHandler extends TextWebSocketHandler {
                 break;
             }
             case "/liveshare": {
-                handleLiveshare(session, message);
+                handleLiveshare(message);
                 break;
             }
         }
+        deleteClosedSessions();
     }
 
     @Override
@@ -43,41 +44,64 @@ public class SocketHandler extends TextWebSocketHandler {
         if (uri == null) return;
         String path = uri.getPath();
         switch (path) {
-            case "/dashboard-refresh": {
-                refreshSession.add(session);
-                break;
-            }
+            case "/dashboard-refresh":
             case "/liveshare": {
+                sessions.add(session);
                 break;
             }
         }
+        deleteClosedSessions();
     }
 
     private void handleRefresh(TextMessage message) {
-        Map<String, String> value;
-        try {
-            value = new Gson().fromJson(message.getPayload(), Map.class);
-        } catch (Exception e) {
-            System.out.println("Error parsing websocket message: " + e.getMessage());
-            return;
-        }
-        String teacherUsername = value.get("teacher");
-        if (teacherUsername != null) {
-            refreshSession.stream()
-                    .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacherUsername))
-                    .forEach(t -> {
-                        try {
-                            t.sendMessage(new TextMessage("refresh"));
-                        } catch (IOException e) {
-                            System.out.println("Error sending websocket message: " + e.getMessage());
-                        }
-                    });
-        }
-        refreshSession.removeIf(t -> !t.isOpen());
+        Map<String, String> objects = getMessageObjects(message);
+        if (objects == null) return;
+        String teacherUsername = objects.get("teacher");
+        if (teacherUsername == null) return;
+        sessions.stream()
+                .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacherUsername))
+                .forEach(t -> {
+                    try {
+                        t.sendMessage(new TextMessage("refresh"));
+                    } catch (IOException e) {
+                        System.out.println("Error sending websocket message: " + e.getMessage());
+                    }
+                });
+
+
     }
 
-    private void handleLiveshare(WebSocketSession session, TextMessage message) {
+    private void handleLiveshare(TextMessage message) {
+        Map<String, String> objects = getMessageObjects(message);
+        if (objects == null) return;
+        String code = objects.get("code");
+        String from = objects.get("from");
+        String target = objects.get("target");
+        if (code == null || target == null) return;
+        sessions.stream()
+                .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(target))
+                .forEach(t -> {
+                    try {
+                        t.sendMessage(new TextMessage("{\"from\":\"" + from + "\",\"code\":\"" + code + "\"}"));
+                    } catch (IOException e) {
+                        System.out.println("Error sending websocket message: " + e.getMessage());
+                    }
+                });
 
+
+    }
+
+    private Map<String, String> getMessageObjects(TextMessage message) {
+        try {
+            return new Gson().fromJson(message.getPayload(), Map.class);
+        } catch (Exception e) {
+            System.out.println("Error parsing websocket message: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void deleteClosedSessions() {
+        sessions.removeIf(t -> !t.isOpen());
     }
 
 }
