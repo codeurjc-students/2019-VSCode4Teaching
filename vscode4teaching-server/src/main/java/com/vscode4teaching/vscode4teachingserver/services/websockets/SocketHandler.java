@@ -2,6 +2,7 @@ package com.vscode4teaching.vscode4teachingserver.services.websockets;
 
 import com.google.gson.Gson;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -53,6 +54,11 @@ public class SocketHandler extends TextWebSocketHandler {
         deleteClosedSessions();
     }
 
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        sessions.remove(session);
+    }
+
     private void handleRefresh(TextMessage message) {
         Map<String, String> objects = getMessageObjects(message);
         if (objects == null) return;
@@ -67,8 +73,6 @@ public class SocketHandler extends TextWebSocketHandler {
                         System.out.println("Error sending websocket message: " + e.getMessage());
                     }
                 });
-
-
     }
 
     private void handleLiveshare(TextMessage message) {
