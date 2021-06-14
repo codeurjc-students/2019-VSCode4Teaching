@@ -9,9 +9,8 @@ import { ModelUtils } from '../model/serverModel/ModelUtils';
 
 export class FileService {
 
-    private static readonly URI_REGEX: RegExp = /\/v4tdownloads\/((.+)\/(.+)\/(.+)\/(.+\/)*(.+))$$/;
+    private static readonly URI_REGEX: RegExp = /\/v4tdownloads(\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+))$/;
     private static ws: WebSocket | undefined;
-
     private static exercises: Exercise[] = [];
 
     public static async initializeExerciseChecking() {
