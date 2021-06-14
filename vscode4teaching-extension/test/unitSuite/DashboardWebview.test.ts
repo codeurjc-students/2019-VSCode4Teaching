@@ -118,7 +118,7 @@ describe("Dashboard webview", () => {
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].firstChild.data).toBe("Not found");
-            expect(tableData[4].firstChild.data).toBe("1 d");
+            expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);            
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
             expect(tableData[7].firstChild.data).toBe("Finished");
