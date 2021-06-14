@@ -21,7 +21,8 @@
             const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
             vscode.postMessage({
                 type: "goToWorkspace",
-                username: username
+                username: username,
+                lastMod:row.attributes.getNamedItem("data-lastMod").value,
             });
         });
     });

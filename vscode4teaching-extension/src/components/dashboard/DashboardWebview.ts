@@ -106,7 +106,8 @@ export class DashboardWebview {
                     if (workspaces) {
                         let wsF = vscode.workspace.workspaceFolders?.find(e => e.name === message.username);
                         if (wsF) {
-                            let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
+                            let doc1 = await vscode.workspace.openTextDocument(await this.findLastModifiedFile(wsF, message.lastMod));
+                            // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
                             await vscode.window.showTextDocument(doc1);
                         }
                     }
@@ -159,6 +160,20 @@ export class DashboardWebview {
         this.connectWS();
     }
 
+    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string) {
+        if (fileRoute === 'null') return this.findMainFile(folder);
+
+        const fileRegex = /^\/[^\/]+\/[^\/]+\/[^\/]+\/(.+)$/;
+        let regexResults = fileRegex.exec(fileRoute);
+        if (regexResults && regexResults.length > 1) {
+            let match: vscode.Uri[] = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, regexResults[1]));
+            if (match.length == 1) {
+                return match[0];
+            }
+        }
+        return this.findMainFile(folder);
+    }
+
     private async findMainFile(folder: vscode.WorkspaceFolder) {
         const patterns = ['readme.*', 'readme', 'Main.*', 'main.*', 'index.html', '*']
         let matches: vscode.Uri[] = [];
@@ -167,8 +182,8 @@ export class DashboardWebview {
             let file = new vscode.RelativePattern(folder, patterns[i++]);
             matches = (await vscode.workspace.findFiles(file));
         }
-        // if (matches.length <= 0)
-        //     matches = (await vscode.workspace.findFiles(folder, '*'))
+        if (matches.length <= 0)
+            matches = (await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '*')));
         return matches[0];
     }
 
@@ -235,7 +250,7 @@ export class DashboardWebview {
             }
             rows = rows + `<td>`
             let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
-            rows += f ? `<button class='workspace-link'>Open</button>` : `Not found`;
+            rows += f ? `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button>` : `Not found`;
             rows = rows + `</td>\n`
             rows = rows + `<td class='last-modification'>${this.getElapsedTime(new Date(eui.updateDateTime))}</td>\n`;
             rows = rows + "</tr>\n";
