@@ -74,6 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const loginDisposable = vscode.commands.registerCommand("vscode4teaching.login", () => {
         coursesProvider.login().then(() => {
+            connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
             const courses = CurrentUser.getUserInfo().courses;
             if (courses) {
                 showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
@@ -584,7 +585,7 @@ export function connectWS(channel: string, callback: Function) {
             callback(data);
         }
     }
-    else console.info("Could not connect with websockets");
+    else console.error("Could not connect with websockets");
 }
 
 export function setLiveshareAPI(data: vsls.LiveShare) {
