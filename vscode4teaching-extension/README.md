@@ -60,7 +60,7 @@ VS Code 4 Teaching extension features a new view accessible from the V4T icon in
 
 #### Log in
 
-You will need to log in to the server first to do anything.  
+You will need to log in to the server first to do anything. Session is stored until it expires or user logs out. 
 ![Login](doc_images/Login.gif)
 
 ### Sign up
@@ -159,5 +159,10 @@ Teachers can sign up another teacher in the application.
 
 #### Dashboard
 
-Teachers have a dashboard per exercise to check on their students' progress.
+Teachers have a dashboard per exercise to check on their students' progress. They can also open the last modified file by a student as a quick access from dashboard. Dashboard will be reloaded automatically every time a change is made by a student via WebSockets.
 ![Teacher dashboard](../readme_resources/dashboard.png)
+
+#### Liveshare
+
+Users can start a liveshare session from a dashboard
+![Liveshare](../readme_resources/liveshare.gif)

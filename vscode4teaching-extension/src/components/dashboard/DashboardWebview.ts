@@ -151,6 +151,15 @@ export class DashboardWebview {
                             })
                             break;
                         }
+                        case 3: {
+                            this._euis.sort((a, b) => {
+                                if (a.updateDateTime > b.updateDateTime)
+                                    return -1 * weight;
+                                else if (a.updateDateTime < b.updateDateTime)
+                                    return 1 * weight;
+                                else return 0
+                            })
+                        }
                     }
                     this.panel.webview.html = this.getHtmlForWebview();
                     break;

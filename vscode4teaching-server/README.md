@@ -147,7 +147,7 @@ List of allowed arguments:
 
 ### Prerequisites
 
-- JDK (Version 8 or higher): <https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html>
+- JDK (Version 11 or higher): <https://www.oracle.com/es/java/technologies/javase-jdk11-downloads.html>
 - Recommended: Maven: <https://maven.apache.org/download.cgi>
 - Recommended: Spring Tools: <https://spring.io/tools>
 - Recommended: Docker: <https://www.docker.com/>
