@@ -55,7 +55,7 @@ export class DashboardWebview {
 
     private readonly _dashboardName: string;
     private _euis: ExerciseUserInfo[];
-    private _reloadInterval: NodeJS.Timeout | undefined;
+    // private _reloadInterval: NodeJS.Timeout | undefined;
     private _exerciseId: number;
     private sortAsc: boolean;
 
@@ -87,20 +87,20 @@ export class DashboardWebview {
                     this.reloadData();
                     break;
                 }
-                case "changeReloadTime": {
-                    // reloadTime comes in seconds
-                    const reloadTime = message.reloadTime;
-                    if (this._reloadInterval) {
-                        global.clearInterval(this._reloadInterval);
-                        this._reloadInterval = undefined;
-                    }
-                    if (reloadTime > 0) {
-                        this._reloadInterval = global.setInterval(() => {
-                            this.reloadData();
-                        }, reloadTime * 1000);
-                    }
-                    break;
-                }
+                // case "changeReloadTime": {
+                //     // reloadTime comes in seconds
+                //     const reloadTime = message.reloadTime;
+                //     if (this._reloadInterval) {
+                //         global.clearInterval(this._reloadInterval);
+                //         this._reloadInterval = undefined;
+                //     }
+                //     if (reloadTime > 0) {
+                //         this._reloadInterval = global.setInterval(() => {
+                //             this.reloadData();
+                //         }, reloadTime * 1000);
+                //     }
+                //     break;
+                // }
                 case "goToWorkspace": {
                     let workspaces = vscode.workspace.workspaceFolders;
                     if (workspaces) {
@@ -278,7 +278,9 @@ export class DashboardWebview {
                 <link rel="stylesheet" type="text/css" href="${cssUri}">
             </head>
             <body>
-                <div class="reload-options">
+            <h1>Exercise dashboard</h1>
+            <hr/>
+            <!--<div class="reload-options">
                     <label for="time-reload">Reload every: </label>
                     <br/>
                     <select id="time-reload">
@@ -290,6 +292,7 @@ export class DashboardWebview {
                     </select>
                     <button id="button-reload">Reload</button>
                 </div>
+                -->
                 <br/>
                 <table>
                     <tr>

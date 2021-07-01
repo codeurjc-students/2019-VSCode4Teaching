@@ -84,26 +84,26 @@ describe("Dashboard webview", () => {
             // Title is correct
             const title = $("title");
             expect(title.text()).toBe("V4T Dashboard: Exercise 1");
-            // Reload button exists
-            const reloadButton = $("#button-reload");
-            expect(reloadButton).toBeTruthy();
-            // Select and its options are correct
-            const select = $("#time-reload");
-            expect(select).toBeTruthy();
-            const options = $("#time-reload option").toArray();
-            expect(options.length).toBe(5);
-            expect(options[0].attribs.value).toBe("0");
-            expect(options[0].firstChild.data).toBe("Never");
-            // Selected default is Never
-            expect(options[0].attribs.selected).toBe("");
-            expect(options[1].attribs.value).toBe("5");
-            expect(options[1].firstChild.data).toBe("5 seconds");
-            expect(options[2].attribs.value).toBe("30");
-            expect(options[2].firstChild.data).toBe("30 seconds");
-            expect(options[3].attribs.value).toBe("60");
-            expect(options[3].firstChild.data).toBe("1 minute");
-            expect(options[4].attribs.value).toBe("300");
-            expect(options[4].firstChild.data).toBe("5 minutes");
+            // // Reload button exists
+            // const reloadButton = $("#button-reload");
+            // expect(reloadButton).toBeTruthy();
+            // // Select and its options are correct
+            // const select = $("#time-reload");
+            // expect(select).toBeTruthy();
+            // const options = $("#time-reload option").toArray();
+            // expect(options.length).toBe(5);
+            // expect(options[0].attribs.value).toBe("0");
+            // expect(options[0].firstChild.data).toBe("Never");
+            // // Selected default is Never
+            // expect(options[0].attribs.selected).toBe("");
+            // expect(options[1].attribs.value).toBe("5");
+            // expect(options[1].firstChild.data).toBe("5 seconds");
+            // expect(options[2].attribs.value).toBe("30");
+            // expect(options[2].firstChild.data).toBe("30 seconds");
+            // expect(options[3].attribs.value).toBe("60");
+            // expect(options[3].firstChild.data).toBe("1 minute");
+            // expect(options[4].attribs.value).toBe("300");
+            // expect(options[4].firstChild.data).toBe("5 minutes");
             // Table headers are correct
             const tableHeaders = $("th").toArray();
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");

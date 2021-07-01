@@ -25,5 +25,21 @@
             })
     }
 
+    document.querySelectorAll(".sorter-ls").forEach(
+        (header, i) => {
+            header.addEventListener("click", () => {
+                let order = header.classList.toggle('active');
+                const courseIndex = header.parentElement.parentElement.parentElement.parentElement.getAttribute("data-courseIndex");
+                if (courseIndex)
+                    vscode.postMessage({
+                        type: "sort-ls",
+                        column: i,
+                        desc: order,
+                        courseIndex: courseIndex,
+                    });
+            });
+        }
+    );
+
 }());
 
