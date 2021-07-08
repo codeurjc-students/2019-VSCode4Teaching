@@ -261,7 +261,7 @@ export class DashboardWebview {
             let f = vscode.workspace.workspaceFolders?.find(folder => folder.name === eui.user.username)
             rows += f ? `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button>` : `Not found`;
             rows = rows + `</td>\n`
-            rows = rows + `<td class='last-modification'>${this.getElapsedTime(new Date(eui.updateDateTime))}</td>\n`;
+            rows = rows + `<td class='last-modification'>${this.getElapsedTime(eui.updateDateTime+"")}</td>\n`;
             rows = rows + "</tr>\n";
 
         }
@@ -356,7 +356,14 @@ export class DashboardWebview {
         }
     }
 
-    private getElapsedTime(pastDate: Date) {
+    private getElapsedTime(pastDateStr: string) {
+        if (!pastDateStr) return '-';
+        let pastDate;
+        try {
+            pastDate = new Date(`${pastDateStr}Z`);
+        } catch (_) {
+            return '-';
+        }
         let elapsedTime = (new Date().getTime() - pastDate.getTime()) / 1000;
         let unit = ' s';
         if (elapsedTime > 60) {

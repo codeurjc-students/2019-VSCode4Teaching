@@ -10,7 +10,7 @@ services:
             MYSQL_USER: vscode4teach
             MYSQL_PASSWORD: AvScnGQp5e4GHnd
     app:
-        image: vscode4teaching/vscode4teaching
+        image: vscode4teaching/vscode4teaching:1.1.0
         links:
             - db
         depends_on:

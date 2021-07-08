@@ -512,7 +512,7 @@ async function getSingleStudentExerciseFiles(courseName: string, exercise: Exerc
 async function getStudentExerciseFiles(courseName: string, exercise: Exercise) {
     const studentZipInfo = FileZipUtil.studentZipInfo(courseName, exercise);
     const templateZipInfo = FileZipUtil.templateZipInfo(courseName, exercise);
-    return Promise.all([
+    return await Promise.all([
         FileZipUtil.filesFromZip(templateZipInfo, APIClient.getTemplate(exercise.id)),
         FileZipUtil.filesFromZip(studentZipInfo, APIClient.getAllStudentFiles(exercise.id), templateZipInfo.dir),
     ]);
