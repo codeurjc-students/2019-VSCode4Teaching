@@ -357,28 +357,34 @@ export class DashboardWebview {
     }
 
     private getElapsedTime(pastDateStr: Date) {
+        
         if (!pastDateStr) return '-';
-
-        let pastDate = new Date(pastDateStr.toLocaleString('en-US', { timeZone: 'UTC' }));
+        let pastDate: Date;
+        try {
+            pastDate = (pastDateStr + "").endsWith("Z") ? pastDateStr : new Date(`${pastDateStr}Z`)
+        } catch (_) {
+            return '-';
+        }
         let elapsedTime = (new Date().getTime() - pastDate.getTime()) / 1000;
         if (elapsedTime < 0) elapsedTime = 0;
-        let unit = ' s';
+        let unit = 's';
         if (elapsedTime > 60) {
             elapsedTime /= 60   //convert to minutes
             if (elapsedTime > 60) {
                 elapsedTime /= 60;  //convert to hours
+
                 if (elapsedTime > 24) {
                     elapsedTime /= 24;  //convert to days
                     if (elapsedTime > 365) {
                         elapsedTime /= 365;  //convert to years
-                        unit = ' yr'
+                        unit = 'yr'
                     }
-                    else unit = ' d'
-                } else unit = ' h';
-            } else unit = ' min';
+                    else unit = 'd'
+                } else unit = 'h';
+            } else unit = 'min';
         };
 
-        return `${Math.floor(elapsedTime)}${unit}`
+        return `${Math.floor(elapsedTime)} ${unit}`
     }
 
 }
