@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -60,7 +61,7 @@ public class ExerciseUserInfo {
 
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;
-        this.updateDateTime = LocalDateTime.now();
+        this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public User getUser() {
@@ -69,7 +70,7 @@ public class ExerciseUserInfo {
 
     public void setUser(User user) {
         this.user = user;
-        this.updateDateTime = LocalDateTime.now();
+        this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public int getStatus() {
@@ -78,7 +79,7 @@ public class ExerciseUserInfo {
 
     public void setStatus(int status) {
         this.status = status;
-        this.updateDateTime = LocalDateTime.now();
+        this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public String getLastModifiedFile() {
