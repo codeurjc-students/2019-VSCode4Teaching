@@ -89,6 +89,10 @@ export function activate(context: vscode.ExtensionContext) {
             showLiveshareBoardItem.dispose();
             showDashboardItem = undefined;
         }
+        if (showDashboardItem) {
+            showDashboardItem.dispose();
+            showDashboardItem = undefined;
+        }
         currentCwds = vscode.workspace.workspaceFolders;
         if (currentCwds) {
             await initializeExtension(currentCwds);
@@ -335,7 +339,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipUri = path.resolve(v4tjson.zipLocation);
                 // Exercise id is in the name of the zip file
                 const zipSplit = zipUri.split(path.sep);
-                const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0];
+                const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0] || +zipSplit[zipSplit.length - 1].split("-")[0];
                 if (CurrentUser.isLoggedIn()) {
 
                     try {
@@ -380,8 +384,13 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     }
                     // If user is teacher add show dashboard button
                     if (!showDashboardItem && currentUserIsTeacher) {
-                        showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
-                        showDashboardItem.show();
+                        if (!exerciseId) {
+                            vscode.window.showInformationMessage("Wrong exercise ID format");
+                        }
+                        else {
+                            showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
+                            showDashboardItem.show();
+                        }
                     }
                     // Set template location if exists
                     if (currentUserIsTeacher && v4tjson.template) {
