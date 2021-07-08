@@ -43,28 +43,28 @@ describe("Dashboard webview", () => {
             ],
         };
         const euis: ExerciseUserInfo[] = [];
-        let now = new Date();
+        let now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
         euis.push({
             exercise,
             user: student1,
             status: 0,
-            updateDateTime: new Date(now.setDate(now.getDate() - 1)),
+            updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()),
             lastModifiedFile: "/index.html",
         });
-        now = new Date();
+        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
         euis.push({
             exercise,
             user: student2,
             status: 1,
-            updateDateTime: new Date(now.setMinutes(now.getMinutes() - 13)),
+            updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()),
             lastModifiedFile: "/readme.md",
         });
-        now = new Date();
+        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
         euis.push({
             exercise,
             user: student3,
             status: 2,
-            updateDateTime: new Date(now.setSeconds(now.getSeconds() - 35)),
+            updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
             lastModifiedFile: "",
         });
         DashboardWebview.show(euis, exercise.id);
@@ -118,7 +118,7 @@ describe("Dashboard webview", () => {
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].firstChild.data).toBe("Not found");
-            expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);            
+            expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
             expect(tableData[7].firstChild.data).toBe("Finished");

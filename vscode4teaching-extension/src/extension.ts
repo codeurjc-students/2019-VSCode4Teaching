@@ -546,10 +546,6 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
     }
 }
 
-export async function goToWorkspace() {
-
-}
-
 async function getFilesInfo(exercise: Exercise, fileInfoPath: string, usernames: string[]) {
     if (!fs.existsSync(fileInfoPath)) {
         mkdirp.sync(fileInfoPath);
