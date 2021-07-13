@@ -356,15 +356,15 @@ export class DashboardWebview {
         }
     }
 
-    private getElapsedTime(pastDate: Date) {
+    private getElapsedTime(pastDateStr: Date) {
         
-        if (!pastDate) return '-';
-        // let pastDate: Date;
-        // try {
-        //     pastDate = (pastDateStr + "").endsWith("Z") ? pastDateStr : new Date(`${pastDateStr}Z`)
-        // } catch (_) {
-        //     return '-';
-        // }
+        if (!pastDateStr) return '-';
+        let pastDate: Date;
+        try {
+            pastDate = (pastDateStr + "").endsWith("Z") ? pastDateStr : new Date(`${pastDateStr}Z`)
+        } catch (_) {
+            return '-';
+        }
         let elapsedTime = (new Date().getTime() - new Date(pastDate).getTime()) / 1000;
         if (elapsedTime < 0) elapsedTime = 0;
         let unit = 's';
