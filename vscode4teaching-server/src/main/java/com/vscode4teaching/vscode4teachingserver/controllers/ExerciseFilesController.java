@@ -69,14 +69,14 @@ public class ExerciseFilesController {
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String separator = files.get(0).getAbsolutePath().split(
                 fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern).length > 1
-                        ? ExerciseFilesController.templateFolderName
-                        : username;
+                ? ExerciseFilesController.templateFolderName
+                : username;
         exportToZip(response, files, separator);
     }
 
     @PostMapping("/exercises/{id}/files")
     public ResponseEntity<List<UploadFileResponse>> uploadZip(@PathVariable Long id,
-            @RequestParam("file") MultipartFile zip, HttpServletRequest request)
+                                                              @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws NotInCourseException, IOException, ExerciseFinishedException, NotFoundException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
@@ -95,7 +95,7 @@ public class ExerciseFilesController {
 
     @PostMapping("/exercises/{id}/files/template")
     public ResponseEntity<List<UploadFileResponse>> uploadTemplate(@PathVariable Long id,
-            @RequestParam("file") MultipartFile zip, HttpServletRequest request)
+                                                                   @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
@@ -152,19 +152,25 @@ public class ExerciseFilesController {
             throws IOException {
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {
-            String fileSeparatorPattern = Pattern.quote(File.separator);
-            String pattern = null;
-            String[] filePath = null;
-            pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
-            filePath = file.getCanonicalPath().split(pattern);
-            String zipFilePath = filePath[filePath.length - 1].replace('\\', '/');
-            zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
-            FileInputStream fileInputStream = new FileInputStream(file);
+            try {
+                String fileSeparatorPattern = Pattern.quote(File.separator);
+                String pattern = null;
+                String[] filePath = null;
+                pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
+                filePath = file.getCanonicalPath().split(pattern);
+                String zipFilePath = filePath[filePath.length - 1].replace('\\', '/');
+                zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
+                FileInputStream fileInputStream = new FileInputStream(file);
 
-            IOUtils.copy(fileInputStream, zipOutputStream);
+                IOUtils.copy(fileInputStream, zipOutputStream);
+                fileInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                zipOutputStream.closeEntry();
+            }
 
-            fileInputStream.close();
-            zipOutputStream.closeEntry();
+
         }
         zipOutputStream.close();
     }
@@ -172,7 +178,7 @@ public class ExerciseFilesController {
     @JsonView(FileViews.GeneralView.class)
     @GetMapping("/users/{username}/exercises/{exerciseId}/files")
     public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
-            @PathVariable Long exerciseId) throws ExerciseNotFoundException {
+                                                                            @PathVariable Long exerciseId) throws ExerciseNotFoundException {
         List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, username);
         return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
