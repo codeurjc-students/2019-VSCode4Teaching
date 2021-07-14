@@ -92,7 +92,15 @@ For information about the extension click [HERE](/vscode4teaching-extension/READ
 - [X] Teachers can comment on a student's exercise.  
 - [X] Make easier for students to access exercises (No need to log in or have a user).
 - [X] Students can mark exercises as finished.  
-- [X] Teachers have a dashboard to check students progress
+- [X] Teachers have a dashboard to check students progress.
+- [X] Remembers user session.
+- [X] New exercises states.
+- [X] Order dashboard columns.
+- [X] Teachers can monitor exercises time.
+- [X] Teacher's dashboard information updated in real time via websockets.
+- [X] Quick access to user files via dashboard.
+- [X] Live Share integration.
+- [X] Help page created.
 
 Note: This roadmap is subject to changes as requirements change.  
 Check [Issues](https://github.com/codeurjc-students/2019-VSCode4Teaching/issues) and [Project](https://github.com/codeurjc-students/2019-VSCode4Teaching/projects) for more specific information about development of these milestones.
