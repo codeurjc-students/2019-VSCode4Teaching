@@ -357,7 +357,7 @@ export class DashboardWebview {
     }
 
     private getElapsedTime(pastDateStr: Date) {
-        
+
         if (!pastDateStr) return '-';
         let pastDate: Date;
         try {
