@@ -146,7 +146,7 @@ export class FileZipUtil {
     public static async getZipFromUris(fileUris: vscode.Uri[]) {
         const zip = new JSZip();
         fileUris.forEach((uri) => {
-            const uriPath = path.resolve(uri.fsPath);
+            let uriPath = path.resolve(uri.fsPath)?.replace(/\\/g, '/');
             const stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
                 FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
@@ -169,14 +169,14 @@ export class FileZipUtil {
             }
         });
         for (let file of list) {
-            file = path.resolve(dir, file);
+            file = path.resolve(dir, file)?.replace(/\\/g, '/');
             if (!ignoredFiles.includes(file)) {
                 const stat = fs.statSync(file);
                 if (stat && stat.isDirectory()) {
                     FileZipUtil.buildZipFromDirectory(file, zip, root, ignoredFiles);
                 } else {
                     const filedata = fs.readFileSync(file);
-                    zip.file(path.relative(root, file), filedata);
+                    zip.file(path.relative(root, file)?.replace(/\\/g, '/'), filedata);
                 }
             }
 
