@@ -597,7 +597,7 @@ export function setLiveshareAPI(data: vsls.LiveShare) {
     liveshareAPI = data;
 }
 
-function handleLiveshareMessage(dataStringified: string) {
+export function handleLiveshareMessage(dataStringified: string) {
     if (!dataStringified) return;
     const { from, code } = JSON.parse(dataStringified);
     if (from && code)

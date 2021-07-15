@@ -4,7 +4,7 @@ import { APIClient } from "../../client/APIClient";
 import { Course } from "../../model/serverModel/course/Course";
 import * as vsls from 'vsls';
 import { CurrentUser } from "../../client/CurrentUser";
-import { liveshareAPI, ws, setLiveshareAPI } from "../../extension";
+import { liveshareAPI, ws, setLiveshareAPI, connectWS, handleLiveshareMessage } from "../../extension";
 import { User } from "../../model/serverModel/user/User";
 
 export class LiveshareWebview {
@@ -201,19 +201,36 @@ export class LiveshareWebview {
     }
 
     private async sendLiveshareCode(username: string) {
+        if (!username) {
+            vscode.window.showErrorMessage("Error sending Live Share code: username is null");
+            return;
+        }
         if (liveshareAPI) {
             if (!this.shareCode) {
                 const optionalCode = await liveshareAPI.share();
                 if (optionalCode) this.shareCode = optionalCode;
             }
-            if (!this.shareCode) return;
+            if (!this.shareCode) {
+                vscode.window.showErrorMessage("Error generating Live Share Code");
+                return;
+            }
+            if (!ws) {
+                vscode.window.showInformationMessage("Reconnecting websocket session...");
+                connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
+            }
             let from: string;
             try {
                 from = CurrentUser.getUserInfo().username;
             } catch (error) {
+                vscode.window.showInformationMessage("Error getting sender username: sending undefined");
                 from = "undefined";
             }
-            ws?.send(JSON.stringify({ "target": username, "from": from, "code": this.shareCode?.toString() }))
+            ws?.send(JSON.stringify({ "target": username, "from": from, "code": this.shareCode?.toString() }),
+                err => {
+                    if (err)
+                        vscode.window.showErrorMessage("Error sending code. Please, try opening another view to refresh the context.");
+                    //TODO: Se podría incluir un botón que llame a initializeExtension, y que así se recargue todo
+                })
         }
     }
 
