@@ -25,6 +25,11 @@ services:
         volumes:
             - v4t-course:/app/${v4t-course}
         restart: always
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - "9000:8080"
 volumes:
     db_data: {}
     v4t-course: {}
