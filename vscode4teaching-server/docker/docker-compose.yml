@@ -23,7 +23,7 @@ services:
         ports:
             - "${SERVER_PORT}:${SERVER_PORT}"
         volumes:
-            - v4t-course:/app/${v4t-course}
+            - v4t_courses:${V4T_FILEDIRECTORY}
         restart: always
     adminer:
         image: adminer
@@ -32,4 +32,4 @@ services:
             - "9000:8080"
 volumes:
     db_data: {}
-    v4t-course: {}
+    v4t_courses: {}
