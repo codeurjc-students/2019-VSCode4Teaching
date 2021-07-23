@@ -34,7 +34,7 @@ export class FileService {
         const filtered = this.exercises.filter((e) =>
             (e as any).course?.name === info?.courseName && e.name === info?.exerciseName,
         );
-        // TODO puede que haya repetidos
+        // TODO: puede que haya repetidos
         const response = await APIClient.getExerciseUserInfo(filtered[0].id);
         console.debug(response);
         const originalStatus = response.data.status;
@@ -45,6 +45,7 @@ export class FileService {
         }
     }
 
+    // TODO: v4tdownloads is a configurable route, it shouldn't be hardcoded here
     private static readonly URI_REGEX: RegExp = /\/v4tdownloads(\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+))$/;
     private static ws: WebSocket | undefined;
     private static exercises: Exercise[] = [];

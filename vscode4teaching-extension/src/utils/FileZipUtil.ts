@@ -3,7 +3,9 @@ import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
+import { promisify } from "util";
 import * as vscode from "vscode";
+import { APIClient } from "../client/APIClient";
 import { CurrentUser } from "../client/CurrentUser";
 import { Exercise } from "../model/serverModel/exercise/Exercise";
 import { ModelUtils } from "../model/serverModel/ModelUtils";
@@ -13,6 +15,7 @@ import { ZipInfo } from "./ZipInfo";
 
 /**
  * Utility class used for zipping files
+ * TODO: Comprobar funcionamiento correcto tanto en linux como windows
  */
 export class FileZipUtil {
     public static readonly downloadDir = vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");
@@ -95,6 +98,7 @@ export class FileZipUtil {
             const response = await requestThenable;
             console.debug(response);
             const zip = await JSZip.loadAsync(response.data);
+            console.debug(zip);
             // Save ZIP for FSW operations
             if (!fs.existsSync(zipInfo.zipDir)) {
                 mkdirp.sync(zipInfo.zipDir);
@@ -156,9 +160,63 @@ export class FileZipUtil {
                 zip.file(path.relative(path.dirname(uriPath), uriPath), filedata);
             }
         });
+        console.debug(zip);
         return await zip.generateAsync({
             type: "nodebuffer",
         });
+    }
+
+    /**
+     * Updates or adds a single file in zip and uploads it
+     * @param ignoredFiles List of ignored files
+     * @param filePath Path of the file
+     * @param exerciseId Exercise id
+     * @param jszipFile JSZip instance
+     * @param cwd Current Working Directory
+     */
+    public static async updateFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
+        if (!ignoredFiles.includes(filePath)) {
+            let absFilePath = path.resolve(filePath);
+            const readFilePromise = promisify(fs.readFile);
+            try {
+                const data = await readFilePromise(absFilePath);
+                absFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
+                if (!filePath.includes("v4texercise.v4t")) {
+                    jszipFile.file(filePath, data);
+                    const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+                    vscode.window.setStatusBarMessage("Compressing files...", thenable);
+                    console.debug(jszipFile);
+                    return thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
+                        .then((response) => console.debug(response))
+                        .catch((axiosError) => APIClient.handleAxiosError(axiosError));
+                }
+            } catch (err) {
+                if (filePath.includes("v4texercise.v4t")) {
+                    throw err;
+                }
+            }
+        }
+    }
+
+    /**
+     * Deletes a single file in zip and uploads it
+     * @param ignoredFiles List of ignored files
+     * @param filePath Path of the file
+     * @param exerciseId Exercise id
+     * @param jszipFile JSZip instance
+     * @param cwd Current Working Directory
+     */
+    public static async deleteFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
+        if (!ignoredFiles.includes(filePath)) {
+            let absFilePath = path.resolve(filePath);
+            absFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
+            jszipFile.remove(absFilePath);
+            const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
+            vscode.window.setStatusBarMessage("Compressing files...", thenable);
+            return thenable.then((zipData) => { APIClient.uploadFiles(exerciseId, zipData); })
+                .then((response) => console.debug(response))
+                .catch((err) => APIClient.handleAxiosError(err));
+        }
     }
 
     private static async buildZipFromDirectory(dir: string, zip: JSZip, root: string, ignoredFiles: string[] = []) {

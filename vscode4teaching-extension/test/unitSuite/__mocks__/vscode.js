@@ -98,7 +98,7 @@ const mockUriFile = f => {
     return { fsPath: f }
 };
 Uri.file = mockUriFile.bind(Uri);
-Uri.parse = mockUriFile.bind(Uri)
+Uri.parse = mockUriFile.bind(Uri);
 
 const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, endCharacter) => {
     const positionMockStart = {

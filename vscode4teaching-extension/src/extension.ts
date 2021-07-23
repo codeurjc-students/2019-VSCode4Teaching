@@ -410,22 +410,19 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     changeEvent = fsw.onDidChange((e: vscode.Uri) => {
-        updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+            console.debug("File edited: " + e.fsPath);
+        });
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
-        updateFile(ignoredFiles, e, exerciseId, jszipFile, cwd);
+        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+            console.debug("File added: " + e.fsPath);
+        });
     });
     deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
-        if (!ignoredFiles.includes(e.fsPath)) {
-            let filePath = path.resolve(e.fsPath);
-            filePath = path.relative(cwd.uri.fsPath, filePath);
-            jszipFile.remove(filePath);
-            const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-            vscode.window.setStatusBarMessage("Compressing files...", thenable);
-            thenable.then((zipData) => {APIClient.uploadFiles(exerciseId, zipData); })
-                .then((response) => console.debug(response))
-                .catch((err) => APIClient.handleAxiosError(err));
-        }
+        FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+            console.debug("File deleted: " + e.fsPath);
+        });
     });
 
     vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
@@ -439,24 +436,6 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
         checkCommentLineChanges(e);
     });
-}
-
-function updateFile(ignoredFiles: string[], e: vscode.Uri, exerciseId: number, jszipFile: JSZip, cwd: vscode.WorkspaceFolder) {
-    if (!ignoredFiles.includes(e.fsPath)) {
-        let filePath = path.resolve(e.fsPath);
-        fs.readFile(filePath, (err, data) => {
-            filePath = path.relative(cwd.uri.fsPath, filePath);
-            if (!filePath.includes("v4texercise.v4t")) {
-                if (err) { throw (err); }
-                jszipFile.file(filePath, data);
-                const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
-                vscode.window.setStatusBarMessage("Compressing files...", thenable);
-                thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
-                    .then((response) => console.debug(response))
-                    .catch((axiosError) => APIClient.handleAxiosError(axiosError));
-            }
-        });
-    }
 }
 
 async function checkCommentLineChanges(document: vscode.TextDocument) {
