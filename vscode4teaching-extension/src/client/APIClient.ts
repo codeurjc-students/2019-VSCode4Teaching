@@ -51,6 +51,7 @@ class APIClientSingleton {
             }
             await APIClient.getXSRFToken();
             const response = await APIClient.login(username, password);
+            console.debug(response);
             vscode.window.showInformationMessage("Logged in");
             APIClientSession.jwtToken = response.data.jwtToken;
             APIClientSession.createSessionFile();
@@ -80,7 +81,8 @@ class APIClientSingleton {
             } else {
                 signupThenable = APIClient.signUp(userCredentials);
             }
-            await signupThenable;
+            const response = await signupThenable;
+            console.debug(response);
             if (isTeacher) {
                 vscode.window.showInformationMessage("Teacher signed up successfully.");
             } else {
@@ -99,6 +101,7 @@ class APIClientSingleton {
      * @param error Error
      */
     public handleAxiosError(error: any) {
+        console.error(error);
         if (error.response) {
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
@@ -396,7 +399,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: String): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: string): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
@@ -459,6 +462,7 @@ class APIClientSingleton {
             responseType: "json",
         };
         const response = await APIClient.createRequest(options, "Fetching server info...");
+        console.debug(response);
         const cookiesString: string | undefined = response.headers["set-cookie"][0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");

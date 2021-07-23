@@ -93,6 +93,7 @@ export class FileZipUtil {
         }
         try {
             const response = await requestThenable;
+            console.debug(response);
             const zip = await JSZip.loadAsync(response.data);
             // Save ZIP for FSW operations
             if (!fs.existsSync(zipInfo.zipDir)) {
@@ -146,7 +147,7 @@ export class FileZipUtil {
     public static async getZipFromUris(fileUris: vscode.Uri[]) {
         const zip = new JSZip();
         fileUris.forEach((uri) => {
-            let uriPath = path.resolve(uri.fsPath)?.replace(/\\/g, '/');
+            const uriPath = path.resolve(uri.fsPath)?.replace(/\\/g, "/");
             const stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
                 FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
@@ -169,14 +170,14 @@ export class FileZipUtil {
             }
         });
         for (let file of list) {
-            file = path.resolve(dir, file)?.replace(/\\/g, '/');
+            file = path.resolve(dir, file)?.replace(/\\/g, "/");
             if (!ignoredFiles.includes(file)) {
                 const stat = fs.statSync(file);
                 if (stat && stat.isDirectory()) {
                     FileZipUtil.buildZipFromDirectory(file, zip, root, ignoredFiles);
                 } else {
                     const filedata = fs.readFileSync(file);
-                    zip.file(path.relative(root, file)?.replace(/\\/g, '/'), filedata);
+                    zip.file(path.relative(root, file)?.replace(/\\/g, "/"), filedata);
                 }
             }
 
