@@ -13,8 +13,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.lang.Nullable;
 
 @Entity
 public class ExerciseUserInfo {
@@ -25,6 +26,7 @@ public class ExerciseUserInfo {
     private Long id;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     private Exercise exercise;
 
