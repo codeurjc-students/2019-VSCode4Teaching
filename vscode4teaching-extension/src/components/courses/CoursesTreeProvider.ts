@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
+import { APIClientSession } from "../../client/APIClientSession";
 import { CurrentUser } from "../../client/CurrentUser";
 import { Course, instanceOfCourse } from "../../model/serverModel/course/Course";
 import { instanceOfExercise } from "../../model/serverModel/exercise/Exercise";
@@ -122,7 +123,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             name: "",
             lastName: "",
         };
-        const userUrl = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
+        let userUrl;
+        if (!isTeacher) {
+            userUrl = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
+        } else {
+            userUrl = APIClientSession.baseUrl ? APIClientSession.baseUrl : this.defaultServer;
+        }
         if (userUrl) {
             url = userUrl;
             const username = await this.getInput("Username", Validators.validateUsername);
