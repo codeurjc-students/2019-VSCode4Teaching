@@ -20,10 +20,11 @@ jest.mock("../../src/client/APIClient");
 const mockedAPIClient = mocked(APIClient, true);
 
 describe("FileZipUtil", () => {
-    const extractedPath = path.resolve(__dirname, "..", "files", "extracted");
-    const zipPath = path.resolve(__dirname, "..", "files", "zips");
-    const newFilePath = path.resolve(__dirname, "..", "files", "newfile.txt");
-    const pathZip = path.resolve(__dirname, "..", "files", "exs.zip");
+    const rootPath = path.resolve(__dirname, "..", "files");
+    const extractedPath = path.resolve(rootPath, "extracted");
+    const zipPath = path.resolve(rootPath, "zips");
+    const newFilePath = path.resolve(rootPath, "newfile.txt");
+    const pathZip = path.resolve(rootPath, "exs.zip");
 
     async function readZip() {
         const buffer = fs.readFileSync(pathZip);
@@ -102,18 +103,17 @@ describe("FileZipUtil", () => {
             id: 2,
             name: "Test exercise",
         };
-        const rootPath = path.resolve("..", "files");
         const ignoredPaths: string[] = [];
         // Create file to add
         fs.writeFileSync(newFilePath, "Test");
         const filePath = path.relative(rootPath, newFilePath);
         expectedZipInstance.file(filePath, "Test");
 
-        await FileZipUtil.updateFile(zipInstance, filePath, rootPath, ignoredPaths, exercise.id);
+        await FileZipUtil.updateFile(zipInstance, newFilePath, rootPath, ignoredPaths, exercise.id);
 
         expect(mockedAPIClient.uploadFiles).toHaveBeenCalledTimes(1);
-        expect(mockedAPIClient.uploadFiles).toHaveBeenNthCalledWith(1, exercise.id, await expectedZipInstance.generateAsync({ type: "nodebuffer" }));
         expect(mockedAPIClient.handleAxiosError).toHaveBeenCalledTimes(0);
+        expect(zipInstance.files).toHaveProperty([filePath]);
     });
 
     it("should delete file from zip instance", async () => {
@@ -123,7 +123,6 @@ describe("FileZipUtil", () => {
             id: 2,
             name: "Test exercise",
         };
-        const rootPath = path.resolve("..", "files");
         const ignoredPaths: string[] = [];
         const filePath = path.relative(rootPath, path.resolve(rootPath, "exs", "ex3.html"));
         expectedZipInstance.remove(filePath);
@@ -131,7 +130,7 @@ describe("FileZipUtil", () => {
         await FileZipUtil.deleteFile(zipInstance, filePath, rootPath, ignoredPaths, exercise.id);
 
         expect(mockedAPIClient.uploadFiles).toHaveBeenCalledTimes(1);
-        expect(mockedAPIClient.uploadFiles).toHaveBeenNthCalledWith(1, exercise.id, await expectedZipInstance.generateAsync({ type: "nodebuffer" }));
         expect(mockedAPIClient.handleAxiosError).toHaveBeenCalledTimes(0);
+        expect(zipInstance.files).not.toHaveProperty(filePath);
     });
 });

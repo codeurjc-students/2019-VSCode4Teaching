@@ -182,7 +182,7 @@ export class FileZipUtil {
                 const data = await readFilePromise(absFilePath);
                 absFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
                 if (!filePath.includes("v4texercise.v4t")) {
-                    jszipFile.file(filePath, data);
+                    jszipFile.file(absFilePath, data);
                     const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                     vscode.window.setStatusBarMessage("Compressing files...", thenable);
                     console.debug(jszipFile);
@@ -193,6 +193,8 @@ export class FileZipUtil {
             } catch (err) {
                 if (filePath.includes("v4texercise.v4t")) {
                     throw err;
+                } else {
+                    console.error(err);
                 }
             }
         }
