@@ -8,16 +8,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
+@Table(name="user_info")
 public class ExerciseUserInfo {
 
     @Id
@@ -26,7 +26,6 @@ public class ExerciseUserInfo {
     private Long id;
 
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     private Exercise exercise;
 
