@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import * as FormData from "form-data";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -64,7 +64,7 @@ class APIClientSessionSingleton {
      * Based on options creates an axios configuration with authorization.
      * @param options Axios build options from which to build the AxiosRequestConfig
      */
-    public buildOptions(options: AxiosBuildOptions): AxiosRequestConfig {
+    public buildOptions(options: AxiosBuildOptions) {
         const axiosConfig: AxiosRequestConfig = {
             url: options.url,
             baseURL: this.baseUrl,
@@ -85,7 +85,12 @@ class APIClientSessionSingleton {
         if (options.data instanceof FormData) {
             Object.assign(axiosConfig.headers, options.data.getHeaders());
         }
-        return axiosConfig;
+        const source = axios.CancelToken.source();
+        axiosConfig.cancelToken = source.token;
+        const timeout = setTimeout(() => {
+            source.cancel();
+        }, 10000);
+        return { axiosOptions: axiosConfig, timeout };
     }
 }
 export let APIClientSession = new APIClientSessionSingleton();

@@ -447,9 +447,13 @@ class APIClientSingleton {
      * @param statusMessage message to add to the vscode status bar
      */
     private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
-        const thenable = axios(APIClientSession.buildOptions(options));
+        const axiosOptions = APIClientSession.buildOptions(options);
+        const thenable = axios(axiosOptions.axiosOptions);
         vscode.window.setStatusBarMessage(statusMessage, thenable);
-        return thenable;
+        return thenable.then((result) => {
+            clearTimeout(axiosOptions.timeout);
+            return result;
+        });
     }
 
     /**
