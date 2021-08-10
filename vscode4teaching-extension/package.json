@@ -54,7 +54,7 @@
 				},
 				"vscode4teaching.defaultServer": {
 					"type": "string",
-					"default": "http://localhost:8080",
+					"default": "https://edukafora.codeurjc.es",
 					"description": "Default server to show when logging in"
 				}
 			}
