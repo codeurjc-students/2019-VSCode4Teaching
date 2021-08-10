@@ -41,14 +41,10 @@ class APIClientSingleton {
      * so it can be used to log in at a future (close in time) time.
      * @param username Username
      * @param password Password
-     * @param url Server URL
      */
-    public async loginV4T(username: string, password: string, url?: string) {
+    public async loginV4T(username: string, password: string) {
         try {
-            if (url) {
-                APIClientSession.invalidateSession();
-                APIClientSession.baseUrl = url;
-            }
+            APIClientSession.invalidateSession();
             await APIClient.getXSRFToken();
             const response = await APIClient.login(username, password);
             console.debug(response);
@@ -68,11 +64,10 @@ class APIClientSingleton {
      * @param url Server URL. Ignored if trying to sign up a teacher.
      * @param isTeacher Sign up as teacher (or not)
      */
-    public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
+    public async signUpV4T(userCredentials: UserSignup, isTeacher?: boolean) {
         try {
-            if (url && !isTeacher) {
+            if (!isTeacher) {
                 APIClientSession.invalidateSession();
-                APIClientSession.baseUrl = url;
                 await APIClient.getXSRFToken();
             }
             let signupThenable;
@@ -102,7 +97,10 @@ class APIClientSingleton {
      */
     public handleAxiosError(error: any) {
         console.error(error);
-        if (error.response) {
+        if (axios.isCancel(error)) {
+            vscode.window.showErrorMessage("Request timeout.");
+            APIClientSession.invalidateSession();
+        } else if (error.response) {
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
@@ -451,7 +449,9 @@ class APIClientSingleton {
         const thenable = axios(axiosOptions.axiosOptions);
         vscode.window.setStatusBarMessage(statusMessage, thenable);
         return thenable.then((result) => {
-            clearTimeout(axiosOptions.timeout);
+            if (axiosOptions.timeout) {
+                clearTimeout(axiosOptions.timeout);
+            }
             return result;
         });
     }

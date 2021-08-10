@@ -34,7 +34,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     private static onDidChangeTreeDataEventEmitter: vscode.EventEmitter<V4TItem | undefined> = new vscode.EventEmitter<V4TItem | undefined>();
     public readonly onDidChangeTreeData?: vscode.Event<V4TItem | null | undefined> = CoursesProvider.onDidChangeTreeDataEventEmitter.event;
-    private defaultServer: string = vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "");
     private loading = false;
 
     /**
@@ -93,18 +92,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Show form to get user data for logging in, then call client to log in.
      */
     public async login() {
-        // Ask for server url, then username, then password, and try to log in at the end
-        const url: string | undefined = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
-        if (url) {
-            const username: string | undefined = await this.getInput("Username", Validators.validateUsername);
-            if (username) {
-                const password: string | undefined = await this.getInput("Password", Validators.validatePasswordLogin, { password: true });
-                if (password) {
-                    try {
-                        await APIClient.loginV4T(username, password, url);
-                    } catch (error) {
-                        APIClient.handleAxiosError(error);
-                    }
+        const username: string | undefined = await this.getInput("Username", Validators.validateUsername);
+        if (username) {
+            const password: string | undefined = await this.getInput("Password", Validators.validatePasswordLogin, { password: true });
+            if (password) {
+                try {
+                    await APIClient.loginV4T(username, password);
+                } catch (error) {
+                    APIClient.handleAxiosError(error);
                 }
             }
         }
@@ -115,7 +110,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param isTeacher sign up as teacher if true, else sign up as student.
      */
     public async signup(isTeacher?: boolean) {
-        let url: string;
         let userCredentials: UserSignup = {
             username: "",
             password: "",
@@ -123,34 +117,25 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             name: "",
             lastName: "",
         };
-        let userUrl;
-        if (!isTeacher) {
-            userUrl = await this.getInput("Server", Validators.validateUrl, { value: this.defaultServer });
-        } else {
-            userUrl = APIClientSession.baseUrl ? APIClientSession.baseUrl : this.defaultServer;
-        }
-        if (userUrl) {
-            url = userUrl;
-            const username = await this.getInput("Username", Validators.validateUsername);
-            if (username) {
-                userCredentials = Object.assign(userCredentials, { username });
-                const password = await this.getInput("Password", Validators.validatePasswordSignup, { password: true });
-                if (password) {
-                    userCredentials = Object.assign(userCredentials, { password });
-                    Validators.valueToCompare = password;
-                    const confirmPassword = await this.getInput("Confirm password", Validators.validateEqualPassword, { password: true });
-                    if (confirmPassword) {
-                        const email = await this.getInput("Email", Validators.validateEmail);
-                        if (email) {
-                            userCredentials = Object.assign(userCredentials, { email });
-                            const name = await this.getInput("Name", Validators.validateName);
-                            if (name) {
-                                userCredentials = Object.assign(userCredentials, { name });
-                                const lastName = await this.getInput("Last name", Validators.validateLastName);
-                                if (lastName) {
-                                    userCredentials = Object.assign(userCredentials, { lastName });
-                                    await APIClient.signUpV4T(userCredentials, url, isTeacher);
-                                }
+        const username = await this.getInput("Username", Validators.validateUsername);
+        if (username) {
+            userCredentials = Object.assign(userCredentials, { username });
+            const password = await this.getInput("Password", Validators.validatePasswordSignup, { password: true });
+            if (password) {
+                userCredentials = Object.assign(userCredentials, { password });
+                Validators.valueToCompare = password;
+                const confirmPassword = await this.getInput("Confirm password", Validators.validateEqualPassword, { password: true });
+                if (confirmPassword) {
+                    const email = await this.getInput("Email", Validators.validateEmail);
+                    if (email) {
+                        userCredentials = Object.assign(userCredentials, { email });
+                        const name = await this.getInput("Name", Validators.validateName);
+                        if (name) {
+                            userCredentials = Object.assign(userCredentials, { name });
+                            const lastName = await this.getInput("Last name", Validators.validateLastName);
+                            if (lastName) {
+                                userCredentials = Object.assign(userCredentials, { lastName });
+                                await APIClient.signUpV4T(userCredentials, isTeacher);
                             }
                         }
                     }

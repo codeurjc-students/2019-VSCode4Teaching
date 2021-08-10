@@ -3,6 +3,7 @@ import * as FormData from "form-data";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
+import * as vscode from "vscode";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
 
@@ -14,7 +15,7 @@ class APIClientSessionSingleton {
 
     // APIClientSession is a singleton
     public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
-    public baseUrl: string | undefined;
+    public baseUrl: string = vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "https://edukafora.codeurjc.es");
     public jwtToken: string | undefined;
     public xsrfToken: string | undefined;
 
@@ -28,7 +29,6 @@ class APIClientSessionSingleton {
             const sessionParts = readSession.split("\n");
             this.jwtToken = sessionParts[0];
             this.xsrfToken = sessionParts[1];
-            this.baseUrl = sessionParts[2];
             success = true;
         } else {
             success = false;
@@ -45,7 +45,6 @@ class APIClientSessionSingleton {
         }
         this.jwtToken = undefined;
         this.xsrfToken = undefined;
-        this.baseUrl = undefined;
         CurrentUser.resetUserInfo();
     }
 
@@ -57,7 +56,7 @@ class APIClientSessionSingleton {
         if (!fs.existsSync(v4tPath)) {
             mkdirp.sync(v4tPath);
         }
-        fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken + "\n" + this.baseUrl);
+        fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken);
     }
 
     /**
@@ -85,11 +84,15 @@ class APIClientSessionSingleton {
         if (options.data instanceof FormData) {
             Object.assign(axiosConfig.headers, options.data.getHeaders());
         }
-        const source = axios.CancelToken.source();
-        axiosConfig.cancelToken = source.token;
-        const timeout = setTimeout(() => {
-            source.cancel();
-        }, 10000);
+        const CancelToken = axios.CancelToken;
+        const source = CancelToken.source();
+        let timeout;
+        if (source) {
+            axiosConfig.cancelToken = source.token;
+            timeout = setTimeout(() => {
+                source.cancel();
+            }, 10000);
+        }
         return { axiosOptions: axiosConfig, timeout };
     }
 }

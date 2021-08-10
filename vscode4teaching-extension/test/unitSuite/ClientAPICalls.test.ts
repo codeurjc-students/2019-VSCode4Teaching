@@ -1,5 +1,5 @@
 
-import axios, { AxiosPromise, AxiosRequestConfig } from "axios";
+import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
 import * as FormData from "form-data";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
@@ -13,9 +13,17 @@ import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit";
 
 jest.mock("axios");
-const mockedAxios = mocked(axios, false);
+const mockedAxios = mocked(axios, true);
+mockedAxios.mockResolvedValue({
+    data: undefined,
+    status: 200,
+    statusText: "",
+    headers: {},
+    config: {},
+});
 jest.mock("vscode");
 const mockedVscode = mocked(vscode, true);
+const baseUrl = "https://edukafora.codeurjc.es";
 
 // This tests don't bother with the response of the calls, only the request parameters
 describe("client API calls", () => {
@@ -33,12 +41,10 @@ describe("client API calls", () => {
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, message, thenable);
     }
 
-    const baseUrl = "http://test.com";
     const xsrfToken = "test";
     const jwtToken = "test";
 
     function setLoggedIn() {
-        APIClientSession.baseUrl = baseUrl;
         APIClientSession.xsrfToken = xsrfToken;
         APIClientSession.jwtToken = jwtToken;
     }
@@ -46,7 +52,6 @@ describe("client API calls", () => {
     afterEach(() => {
         mockedAxios.mockClear();
         mockedVscode.window.setStatusBarMessage.mockClear();
-        APIClientSession.baseUrl = undefined;
         APIClientSession.xsrfToken = undefined;
         APIClientSession.jwtToken = undefined;
     });
