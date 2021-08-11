@@ -82,17 +82,18 @@ class APIClientSessionSingleton {
             Object.assign(axiosConfig.headers, { "X-XSRF-TOKEN": this.xsrfToken });
             Object.assign(axiosConfig.headers, { Cookie: "XSRF-TOKEN=" + this.xsrfToken });
         }
+        let timeout;
         if (options.data instanceof FormData) {
             Object.assign(axiosConfig.headers, options.data.getHeaders());
-        }
-        const CancelToken = axios.CancelToken;
-        const source = CancelToken.source();
-        let timeout;
-        if (source) {
-            axiosConfig.cancelToken = source.token;
-            timeout = setTimeout(() => {
-                source.cancel();
-            }, 10000);
+        } else {
+            const CancelToken = axios.CancelToken;
+            const source = CancelToken.source();
+            if (source) {
+                axiosConfig.cancelToken = source.token;
+                timeout = setTimeout(() => {
+                    source.cancel();
+                }, 10000);
+            }
         }
         return { axiosOptions: axiosConfig, timeout };
     }
