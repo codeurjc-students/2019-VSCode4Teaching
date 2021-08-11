@@ -20,7 +20,7 @@ export class FileIgnoreUtil {
             const gitignoreData = fs.readFileSync(path.resolve(currentDir, gitignoreFile));
             const gitignoreText = gitignoreData.toString();
             ig = ig.add(gitignoreText);
-            ig = ig.add([".git"]);
+            ig = ig.add(["**/.git/**"]);
             files = FileIgnoreUtil.getIgnoredFiles(currentDir, currentDir, ig);
         }
         return files;
