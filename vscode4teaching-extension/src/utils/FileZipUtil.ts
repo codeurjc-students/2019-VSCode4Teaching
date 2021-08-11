@@ -176,13 +176,13 @@ export class FileZipUtil {
      */
     public static async updateFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
-            let absFilePath = path.resolve(filePath);
+            const absFilePath = path.resolve(filePath);
             const readFilePromise = promisify(fs.readFile);
             try {
                 const data = await readFilePromise(absFilePath);
-                absFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
+                const relativeFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
                 if (!filePath.includes("v4texercise.v4t")) {
-                    jszipFile.file(absFilePath, data);
+                    jszipFile.file(relativeFilePath, data);
                     const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                     vscode.window.setStatusBarMessage("Compressing files...", thenable);
                     console.debug(jszipFile);
@@ -210,9 +210,9 @@ export class FileZipUtil {
      */
     public static async deleteFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
-            let absFilePath = path.resolve(filePath);
-            absFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
-            jszipFile.remove(absFilePath);
+            const absFilePath = path.resolve(filePath);
+            const relativeFilePath = path.relative(rootPath, absFilePath).replace(/\\/g, "/");
+            jszipFile.remove(relativeFilePath);
             const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
             vscode.window.setStatusBarMessage("Compressing files...", thenable);
             return thenable.then((zipData) => { APIClient.uploadFiles(exerciseId, zipData); })
@@ -229,15 +229,16 @@ export class FileZipUtil {
                 ignoredFiles.push(file);
             }
         });
-        for (let file of list) {
-            file = path.resolve(dir, file)?.replace(/\\/g, "/");
-            if (!ignoredFiles.includes(file)) {
-                const stat = fs.statSync(file);
+        for (const file of list) {
+            const filePath = path.resolve(dir, file);
+            const fileUnix = filePath.replace(/\\/g, "/");
+            if (!ignoredFiles.includes(filePath)) {
+                const stat = fs.statSync(filePath);
                 if (stat && stat.isDirectory()) {
-                    FileZipUtil.buildZipFromDirectory(file, zip, root, ignoredFiles);
+                    FileZipUtil.buildZipFromDirectory(filePath, zip, root, ignoredFiles);
                 } else {
-                    const filedata = fs.readFileSync(file);
-                    zip.file(path.relative(root, file)?.replace(/\\/g, "/"), filedata);
+                    const filedata = fs.readFileSync(filePath);
+                    zip.file(path.relative(root, fileUnix)?.replace(/\\/g, "/"), filedata);
                 }
             }
 
