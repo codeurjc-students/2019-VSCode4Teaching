@@ -15,11 +15,12 @@ export class FileIgnoreUtil {
         const list = fs.readdirSync(currentDir);
         const gitignoreFile = list.find((f: string) => f.includes(".gitignore"));
         let files: string[] = [];
-        let ig = ignore();
         if (gitignoreFile) {
+            let ig = ignore();
             const gitignoreData = fs.readFileSync(path.resolve(currentDir, gitignoreFile));
             const gitignoreText = gitignoreData.toString();
             ig = ig.add(gitignoreText);
+            ig = ig.add([".git"]);
             files = FileIgnoreUtil.getIgnoredFiles(currentDir, currentDir, ig);
         }
         return files;

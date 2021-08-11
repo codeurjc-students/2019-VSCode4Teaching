@@ -3,7 +3,6 @@ import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
-import { visitParameterList } from "typescript";
 import * as vscode from "vscode";
 import * as vsls from "vsls";
 import * as WebSocket from "ws";
