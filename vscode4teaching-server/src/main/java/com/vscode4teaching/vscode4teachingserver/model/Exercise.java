@@ -51,7 +51,7 @@ public class Exercise {
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
 
-    @OneToMany(mappedBy="user_info", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy="exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseUserInfo> userInfo = new ArrayList<>();
 
