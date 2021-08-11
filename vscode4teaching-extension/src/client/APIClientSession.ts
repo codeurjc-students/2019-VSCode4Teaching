@@ -73,6 +73,7 @@ class APIClientSessionSingleton {
             },
             responseType: options.responseType,
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         if (this.jwtToken) {
             Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
