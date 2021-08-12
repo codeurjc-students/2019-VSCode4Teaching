@@ -80,6 +80,7 @@ describe("Client", () => {
             },
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosConfigLoginRequest: AxiosRequestConfig = {
             baseURL: newUrl,
@@ -95,6 +96,7 @@ describe("Client", () => {
             },
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
             status: 200,
@@ -179,6 +181,7 @@ describe("Client", () => {
             },
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
             status: 200,
@@ -268,6 +271,7 @@ describe("Client", () => {
             },
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosConfigSignupRequest: AxiosRequestConfig = {
             baseURL,
@@ -280,6 +284,7 @@ describe("Client", () => {
             data: userCredentials,
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
             status: 200,
@@ -353,6 +358,7 @@ describe("Client", () => {
             data: userCredentials,
             responseType: "json",
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         const expectedAxiosResponseSignup: AxiosResponse<object> = {
             status: 200,
