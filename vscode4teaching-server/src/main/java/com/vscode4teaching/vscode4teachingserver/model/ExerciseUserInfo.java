@@ -88,6 +88,8 @@ public class ExerciseUserInfo {
     }
 
     public void setLastModifiedFile(String lastModifiedFile) {
-        this.lastModifiedFile = lastModifiedFile;
+        if (lastModifiedFile != null) {
+            this.lastModifiedFile = lastModifiedFile;
+        }
     }
 }

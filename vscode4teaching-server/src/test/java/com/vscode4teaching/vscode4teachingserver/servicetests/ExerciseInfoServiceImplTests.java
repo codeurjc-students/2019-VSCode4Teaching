@@ -84,14 +84,43 @@ public class ExerciseInfoServiceImplTests {
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
         eui.setStatus(0);
+        eui.setLastModifiedFile("/old/file.txt");
+        String newFilePath = "modified/file.txt";
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, null);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, newFilePath);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
         assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getLastModifiedFile()).isEqualTo(newFilePath);
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
+        verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
+    }
+
+    @Test
+    public void updateExerciseUserInfo_valid_no_file() throws NotFoundException {
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1", course);
+        Long exerciseId = 2l;
+        exercise.setId(exerciseId);
+        String username = "johndoe";
+        Role studentRole = new Role("ROLE_STUDENT");
+        User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
+        eui.setStatus(0);
+        String oldFilePath = "/old/file.txt";
+        eui.setLastModifiedFile(oldFilePath);
+        Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
+        when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
+        when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 0, null);
+
+        assertThat(savedEui.getExercise()).isEqualTo(exercise);
+        assertThat(savedEui.getUser()).isEqualTo(user);
+        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getLastModifiedFile()).isEqualTo(oldFilePath);
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }
