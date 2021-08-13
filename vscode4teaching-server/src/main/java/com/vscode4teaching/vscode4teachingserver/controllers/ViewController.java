@@ -1,4 +1,4 @@
-package com.vscode4teaching.vscode4teachingserver;
+package com.vscode4teaching.vscode4teachingserver.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
