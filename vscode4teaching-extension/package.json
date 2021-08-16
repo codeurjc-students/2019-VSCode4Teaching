@@ -172,7 +172,8 @@
 			"explorer/context": [
 				{
 					"command": "vscode4teaching.diff",
-					"group": "navigation"
+					"group": "navigation",
+					"when": "vscode4teaching.isTeacher"
 				}
 			],
 			"view/title": [
