@@ -359,6 +359,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     commentProvider.addCwd(cwd);
                     const currentUser = CurrentUser.getUserInfo();
                     const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
+                    vscode.commands.executeCommand("setContext", "vscode4teaching.isTeacher", currentUserIsTeacher);
                     // Download comments
                     if (cwd.name !== "template") {
                         const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
