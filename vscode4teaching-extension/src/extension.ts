@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 try {
                     const courses = CurrentUser.getUserInfo().courses;
-                    if (courses) {
+                    if (courses && !showLiveshareBoardItem) {
                         showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
                         showLiveshareBoardItem.show();
                     }
@@ -75,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.login().then(() => {
             connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
             const courses = CurrentUser.getUserInfo().courses;
-            if (courses) {
+            if (courses && !showLiveshareBoardItem) {
                 showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
                 showLiveshareBoardItem.show();
             }
@@ -259,12 +259,14 @@ export function activate(context: vscode.ExtensionContext) {
                 const courses = CurrentUser.getUserInfo().courses;
                 if (courses) {
                     if (!showLiveshareBoardItem) {
-                        showLiveshareBoardItem = showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
+                        showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
                         showLiveshareBoardItem.show();
                     }
                     LiveshareWebview.show(courses);
                 }
             } catch (err) { console.error(err); }
+        } else {
+            vscode.window.showErrorMessage("You are not logged in.");
         }
     });
 
@@ -345,7 +347,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
 
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
-                        if (courses) {
+                        if (courses && !showLiveshareBoardItem) {
                             showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
                             showLiveshareBoardItem.show();
                         }
