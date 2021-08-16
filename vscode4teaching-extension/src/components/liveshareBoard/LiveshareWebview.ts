@@ -205,7 +205,9 @@ export class LiveshareWebview {
 
     private async sendLiveshareCode(username: string) {
         if (!username) {
-            vscode.window.showErrorMessage("Error sending Live Share code: username is null");
+            const errorMsg = "Error sending Live Share code: username is null";
+            vscode.window.showErrorMessage(errorMsg);
+            console.error(errorMsg);
             return;
         }
         if (liveshareAPI) {
@@ -232,6 +234,7 @@ export class LiveshareWebview {
                 (err) => {
                     if (err) {
                         vscode.window.showErrorMessage("Error sending code. Please, try opening another view to refresh the context.");
+                        console.error(err);
                     }
                     // TODO: Se podría incluir un botón que llame a initializeExtension, y que así se recargue todo
                 });
