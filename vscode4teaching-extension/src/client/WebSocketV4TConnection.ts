@@ -21,7 +21,7 @@ export class WebSocketV4TConnection {
         if (authToken && wsURL) {
             this.ws = new WebSocket(`${wsURL}/${channel}?bearer=${authToken}`);
             const wsHeartbeat = (websocket: WebSocket) => {
-                console.log("ws ping" + this.channel + ": " + new Date(new Date().getTime() - startConnectionDate).toISOString());
+                console.log("ws ping " + this.channel + ": " + new Date(new Date().getTime() - startConnectionDate));
                 if (this.wsTimeout) {
                     global.clearTimeout(this.wsTimeout);
                 }
