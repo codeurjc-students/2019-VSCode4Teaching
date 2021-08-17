@@ -4,11 +4,9 @@ import * as JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as vsls from "vsls";
-import * as WebSocket from "ws";
 import { APIClient } from "./client/APIClient";
-import { APIClientSession } from "./client/APIClientSession";
 import { CurrentUser } from "./client/CurrentUser";
+import { WebSocketV4TConnection } from "./client/WebSocketV4TConnection";
 import { CoursesProvider } from "./components/courses/CoursesTreeProvider";
 import { V4TItem } from "./components/courses/V4TItem/V4TItem";
 import { DashboardWebview } from "./components/dashboard/DashboardWebview";
@@ -23,6 +21,7 @@ import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "./model/V4TExerciseFile";
 import { FileService } from "./services/FileService";
+import { LiveShareService } from "./services/LiveShareService";
 import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
@@ -43,10 +42,8 @@ export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
 export let commentInterval: NodeJS.Timeout;
-export let ws: WebSocket | undefined;
-export let liveshareAPI: vsls.LiveShare | undefined | null;
-export let wsTimeout: NodeJS.Timeout;
-export let wsPingInterval: NodeJS.Timeout;
+export let wsLiveshare: WebSocketV4TConnection | undefined;
+export let liveshareService: LiveShareService | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -72,8 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const loginDisposable = vscode.commands.registerCommand("vscode4teaching.login", () => {
-        coursesProvider.login().then(() => {
-            connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
+        coursesProvider.login().then(async () => {
+            await initializeLiveShare();
             const courses = CurrentUser.getUserInfo().courses;
             if (courses && !showLiveshareBoardItem) {
                 showLiveshareBoardItem = new ShowLiveshareBoardItem("Liveshare Board", courses);
@@ -274,31 +271,11 @@ export function activate(context: vscode.ExtensionContext) {
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 
-    connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
-
-    vsls.getApi().then(
-        (resApi) => {
-            if (resApi) { liveshareAPI = resApi; } else {
-                vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
-                    (res) => {
-                        if (res === "Install") {
-                            vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
-                        }
-                    },
-                );
-            }
-        },
-        (_) => {
-            vscode.window.showErrorMessage("Install Liveshare extension in order to use its integrated service on V4T", "Install").then(
-                (res) => {
-                    if (res === "Install") {
-                        vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
-                    }
-                },
-            );
-        },
-    );
-
+    initializeLiveShare().then(() => {
+        console.log("LiveShare initialized");
+        console.log(liveshareService);
+        console.log(wsLiveshare);
+    });
 }
 
 export function deactivate() {
@@ -404,6 +381,15 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 }
             }
         }
+    }
+}
+
+export async function initializeLiveShare() {
+    if (!liveshareService) {
+        liveshareService = await LiveShareService.setup();
+    }
+    if (!wsLiveshare) {
+        wsLiveshare = new WebSocketV4TConnection("liveshare", (data: any) => liveshareService?.handleLiveshareMessage(data?.data));
     }
 }
 
@@ -565,63 +551,4 @@ export function setFinishItem(exerciseId: number) {
 
 export function setTemplate(cwdName: string, templatePath: string) {
     templates[cwdName] = templatePath;
-}
-
-export function connectWS(channel: string, callback: ((data: any) => void)) {
-    const authToken = APIClientSession.jwtToken;
-    const wsURL = APIClientSession.baseUrl?.replace("http", "ws");
-    const startConnectionDate = new Date().getTime();
-    if (authToken && wsURL) {
-        ws = new WebSocket(`${wsURL}/${channel}?bearer=${authToken}`);
-        const wsHeartbeat = (websocket: WebSocket) => {
-            console.log("ws ping: " + new Date(new Date().getTime() - startConnectionDate).toISOString());
-            global.clearTimeout(wsTimeout);
-            // Delay should be equal to the interval at which your server
-            // sends out pings plus a conservative assumption of the latency.
-            wsTimeout = global.setTimeout(() => {
-                console.warn("Timeout on websocket connection. Trying to reconnect...");
-                websocket.terminate();
-                connectWS(channel, callback);
-              }, 30000);
-        };
-        ws.on("open", wsHeartbeat);
-        ws.on("ping", wsHeartbeat);
-        ws.on("pong", wsHeartbeat);
-        ws.on("close", () => {
-            global.clearTimeout(wsTimeout);
-            global.clearInterval(wsPingInterval);
-        });
-        ws.onmessage = (data) => {
-            callback(data);
-        };
-        global.clearInterval(wsPingInterval);
-        wsPingInterval = global.setInterval(() => {
-            ws?.ping();
-        }, 20000);
-    } else { console.error("Could not connect with websockets"); }
-}
-
-export function setLiveshareAPI(data: vsls.LiveShare) {
-    liveshareAPI = data;
-}
-
-export function handleLiveshareMessage(dataStringified: string) {
-    if (!dataStringified) { return; }
-    const { from, code } = JSON.parse(dataStringified);
-    if (from && code) {
-        vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline").then(
-            (res) => {
-                if (res === "Accept") {
-                    const codeParsed: vscode.Uri = vscode.Uri.parse(code);
-                    vscode.env.clipboard.writeText(code).then(
-                        () => {
-                            vscode.window.showInformationMessage(`Code already set on clipboard: ${code}`);
-                            liveshareAPI?.join(codeParsed);
-                        },
-                        (err) => vscode.window.showErrorMessage(`Could not use clipboard: ${err}`),
-
-                    );
-                }
-            });
-    }
 }

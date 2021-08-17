@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import * as vsls from "vsls";
 import { APIClient } from "../../client/APIClient";
 import { CurrentUser } from "../../client/CurrentUser";
-import { connectWS, handleLiveshareMessage, liveshareAPI, setLiveshareAPI, ws } from "../../extension";
+import { initializeLiveShare, liveshareService, wsLiveshare } from "../../extension";
 import { Course } from "../../model/serverModel/course/Course";
 import { User } from "../../model/serverModel/user/User";
 
@@ -101,19 +101,10 @@ export class LiveshareWebview {
                         break;
                     }
 
-                    if (!liveshareAPI) {
-                        const api = await vsls.getApi();
-                        if (api == null) {
-                            vscode.window.showErrorMessage("Install Live Share extension in order to use its integrated service on V4T", "Install").then(
-                                (res) => {
-                                    if (res === "Install") {
-                                        vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
-                                    }
-                                },
-                            );
-                        } else { setLiveshareAPI(api); }
+                    if (!liveshareService) {
+                        await initializeLiveShare();
                     }
-                    if (liveshareAPI) {
+                    if (liveshareService) {
                         this.sendLiveshareCode(message.username);
                     }
                 }
@@ -210,18 +201,18 @@ export class LiveshareWebview {
             console.error(errorMsg);
             return;
         }
-        if (liveshareAPI) {
+        if (liveshareService) {
             if (!this.shareCode) {
-                const optionalCode = await liveshareAPI.share();
+                const optionalCode = await liveshareService.share();
                 if (optionalCode) { this.shareCode = optionalCode; }
             }
             if (!this.shareCode) {
                 vscode.window.showErrorMessage("Error generating Live Share Code");
                 return;
             }
-            if (!ws) {
+            if (!wsLiveshare) {
                 vscode.window.showInformationMessage("Reconnecting websocket session...");
-                connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
+                await initializeLiveShare();
             }
             let from: string;
             try {
@@ -230,7 +221,7 @@ export class LiveshareWebview {
                 vscode.window.showInformationMessage("Error getting sender username: sending undefined");
                 from = "undefined";
             }
-            ws?.send(JSON.stringify({ target: username, from, code: this.shareCode?.toString() }),
+            wsLiveshare?.send(JSON.stringify({ target: username, from, code: this.shareCode?.toString() }),
                 (err) => {
                     if (err) {
                         vscode.window.showErrorMessage("Error sending code. Please, try opening another view to refresh the context.");
