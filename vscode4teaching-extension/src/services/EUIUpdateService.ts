@@ -24,9 +24,9 @@ export class EUIUpdateService {
         const response = await APIClient.getExerciseUserInfo(exerciseId);
         console.debug(response);
         const originalStatus = response.data.status;
-        const responseEui = APIClient.updateExerciseUserInfo(exerciseId, originalStatus, info?.path || "");
+        const responseEui = await APIClient.updateExerciseUserInfo(exerciseId, originalStatus, info?.path || "");
         console.debug(responseEui);
     }
 
-    private static readonly URI_REGEX: RegExp = new RegExp("/\/" + FileZipUtil.downloadDir + "(\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+))$/");
+    private static readonly URI_REGEX: RegExp = new RegExp("/" + FileZipUtil.downloadDir + "(\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+))$");
 }
