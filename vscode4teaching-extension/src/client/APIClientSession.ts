@@ -15,9 +15,12 @@ class APIClientSessionSingleton {
 
     // APIClientSession is a singleton
     public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
-    public baseUrl: string = vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "https://edukafora.codeurjc.es");
     public jwtToken: string | undefined;
     public xsrfToken: string | undefined;
+
+    get baseUrl(): string {
+        return vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "https://edukafora.codeurjc.es");
+    }
 
     /**
      * Initialize session variables with file created when logging in
