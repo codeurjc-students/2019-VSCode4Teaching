@@ -1,9 +1,8 @@
 import { AxiosResponse } from "axios";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as WebSocket from "ws";
 import { APIClient } from "../../client/APIClient";
-import { APIClientSession } from "../../client/APIClientSession";
+import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
 export class DashboardWebview {
@@ -50,7 +49,7 @@ export class DashboardWebview {
 
     public readonly panel: vscode.WebviewPanel;
 
-    private ws: WebSocket | undefined;
+    private ws: WebSocketV4TConnection;
 
     private readonly _dashboardName: string;
     private _euis: ExerciseUserInfo[];
@@ -165,7 +164,7 @@ export class DashboardWebview {
                 }
             }
         });
-        this.connectWS();
+        this.ws = new WebSocketV4TConnection("dashboard-refresh", this.reloadData);
     }
 
     public dispose() {
@@ -335,23 +334,6 @@ export class DashboardWebview {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
-    }
-
-    private connectWS() {
-        const authToken = APIClientSession.jwtToken;
-        const wsURL = APIClientSession.baseUrl?.replace("http", "ws");
-        if (authToken && wsURL) {
-            this.ws = new WebSocket(`${wsURL}/dashboard-refresh?bearer=${authToken}`);
-            this.ws.onmessage = () => {
-                this.reloadData();
-            };
-        } else { console.info("Could not connect with websockets"); }
-    }
-
-    private disconnectWS() {
-        if (this.ws != null) {
-            this.ws.close();
-        }
     }
 
     private getElapsedTime(pastDateStr: Date) {

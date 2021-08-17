@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.services.websockets;
 
 import com.google.gson.Gson;
+import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyJSONObjectException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyURIException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.MissingPropertyException;
@@ -15,10 +16,13 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -79,11 +83,28 @@ public class SocketHandler extends TextWebSocketHandler {
         if (session.getPrincipal() == null) {
             logger.info("Closed Websocket connection with unidentified user");
         } else {
-            logger.info("Closed Websocket connection with user" + Objects.requireNonNull(session.getPrincipal()).getName());
+            logger.info("Closed Websocket connection with user: " + Objects.requireNonNull(session.getPrincipal()).getName());
         }
     }
 
+    public void refreshExerciseDashboards(Set<User> teachers) {
+        logger.info("Exercise user info updated, sending updates to teachers...");
+        for (User teacher : teachers) {
+            sessions.stream()
+                .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacher.getUsername()))
+                .forEach(t -> {
+                    try {
+                        t.sendMessage(new TextMessage("refresh"));
+                    } catch (IOException e) {
+                        System.out.println("Error sending websocket message: " + e.getMessage());
+                    }
+                });
+        }
+        logger.info("Updates sent to teachers");
+    }
+
     private void handleRefresh(TextMessage message) throws EmptyJSONObjectException, MissingPropertyException {
+        logger.info("Websockets: handling refresh");
         Map<String, String> objects = getMessageObjects(message);
         if (objects == null) throw new EmptyJSONObjectException();
         String teacherUsername = objects.get("teacher");
@@ -100,6 +121,7 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     private void handleLiveshare(TextMessage message) throws EmptyJSONObjectException, MissingPropertyException {
+        logger.info("Websockets: handling liveshare");
         Map<String, String> objects = getMessageObjects(message);
         if (objects == null) throw new EmptyJSONObjectException();
         String code = objects.get("code");

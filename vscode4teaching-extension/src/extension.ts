@@ -20,7 +20,7 @@ import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo"
 import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "./model/V4TExerciseFile";
-import { FileService } from "./services/FileService";
+import { EUIUpdateService } from "./services/EUIUpdateService";
 import { LiveShareService } from "./services/LiveShareService";
 import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
@@ -64,7 +64,6 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 } catch (err) { console.error(err); }
             }
-            FileService.initializeExerciseChecking();
         });
     }
 
@@ -321,7 +320,6 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0] || +zipSplit[zipSplit.length - 1].split("-")[0];
                 if (CurrentUser.isLoggedIn()) {
-
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
                         if (courses && !showLiveshareBoardItem) {
@@ -403,11 +401,13 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
         FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
             console.debug("File edited: " + e.fsPath);
         });
+        EUIUpdateService.updateExercise(e, exerciseId);
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
         FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
             console.debug("File added: " + e.fsPath);
         });
+        EUIUpdateService.updateExercise(e, exerciseId);
     });
     deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
         FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {

@@ -13,6 +13,7 @@ import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
+import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 
 import org.springframework.stereotype.Service;
 
@@ -20,9 +21,11 @@ import org.springframework.stereotype.Service;
 public class ExerciseInfoServiceImpl implements ExerciseInfoService {
 
     private final ExerciseUserInfoRepository exerciseUserInfoRepository;
+    private final SocketHandler websocketHandler;
 
-    public ExerciseInfoServiceImpl(ExerciseUserInfoRepository exerciseUserInfoRepository) {
+    public ExerciseInfoServiceImpl(ExerciseUserInfoRepository exerciseUserInfoRepository, SocketHandler websocketHandler) {
         this.exerciseUserInfoRepository = exerciseUserInfoRepository;
+        this.websocketHandler = websocketHandler;
     }
 
     @Override
@@ -44,6 +47,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
         eui.setStatus(status);
         eui.setLastModifiedFile(lastModifiedFile);
         eui = exerciseUserInfoRepository.save(eui);
+        websocketHandler.refreshExerciseDashboards(eui.getExercise().getCourse().getTeachers());
         return eui;
     }
 

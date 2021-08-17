@@ -15,11 +15,13 @@ import { ZipInfo } from "./ZipInfo";
 
 /**
  * Utility class used for zipping files
- * TODO: Comprobar funcionamiento correcto tanto en linux como windows
  */
 export class FileZipUtil {
-    public static readonly downloadDir = vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");
     public static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, "..", "v4t");
+
+    public static get downloadDir() {
+        return vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");
+    }
 
     /**
      * Returns zip info from an exercise

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -136,5 +137,12 @@ public class Course {
 
     public String getUuid() {
         return uuid;
+    }
+
+    public Set<User> getTeachers() {
+        Set<User> teachers = new HashSet<>();
+        teachers.add(this.creator);
+        teachers.addAll(this.usersInCourse.stream().filter(u -> u.isTeacher()).collect(Collectors.toSet()));
+        return teachers;
     }
 }
