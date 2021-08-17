@@ -73,6 +73,7 @@ export class DashboardWebview {
         this.panel.onDidDispose(() => {
             global.clearInterval(this.lastUpdatedInterval);
             // global.clearInterval(this._reloadInterval);
+            this.ws.close();
             this.dispose();
         });
 
@@ -169,8 +170,16 @@ export class DashboardWebview {
                 }
             }
         });
-        this.ws = new WebSocketV4TConnection("dashboard-refresh", this.reloadData);
-        this.lastUpdatedInterval = global.setInterval(this.updateElapsedTime, 1000);
+        this.ws = new WebSocketV4TConnection("dashboard-refresh", (dataStringified) => {
+            if (dataStringified) {
+                const { handle } = JSON.parse(dataStringified.data);
+                if (handle === "refresh") {
+                    this.reloadData();
+                }
+            }
+        });
+        // Only used to refresh elapsed times
+        this.lastUpdatedInterval = global.setInterval(this.getHtmlForWebview, 1000);
     }
 
     public dispose() {
@@ -363,9 +372,4 @@ export class DashboardWebview {
 
         return `${Math.floor(elapsedTime)} ${unit}`;
     }
-
-    private updateElapsedTime() {
-
-    }
-
 }

@@ -43,8 +43,8 @@ export class LiveShareService {
 
     public handleLiveshareMessage(dataStringified: string) {
         if (!dataStringified) { return; }
-        const { from, code } = JSON.parse(dataStringified);
-        if (from && code) {
+        const { handle, from, code } = JSON.parse(dataStringified);
+        if ((handle === "liveshare") && from && code) {
             vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline").then(
                 (res) => {
                     if (res === "Accept") {
@@ -69,4 +69,5 @@ export class LiveShareService {
     public async share () {
         return this.liveshareAPI.share();
     }
+    
 }

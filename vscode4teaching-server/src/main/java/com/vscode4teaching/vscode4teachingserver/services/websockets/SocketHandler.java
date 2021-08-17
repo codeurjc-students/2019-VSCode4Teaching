@@ -94,7 +94,7 @@ public class SocketHandler extends TextWebSocketHandler {
                 .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacher.getUsername()))
                 .forEach(t -> {
                     try {
-                        t.sendMessage(new TextMessage("refresh"));
+                        t.sendMessage(new TextMessage("{\"handle\":\"refresh\"}"));
                     } catch (IOException e) {
                         System.out.println("Error sending websocket message: " + e.getMessage());
                     }
@@ -113,7 +113,7 @@ public class SocketHandler extends TextWebSocketHandler {
                 .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacherUsername))
                 .forEach(t -> {
                     try {
-                        t.sendMessage(new TextMessage("refresh"));
+                        t.sendMessage(new TextMessage("{\"handle\":\"refresh\"}"));
                     } catch (IOException e) {
                         System.out.println("Error sending websocket message: " + e.getMessage());
                     }
@@ -132,7 +132,7 @@ public class SocketHandler extends TextWebSocketHandler {
                 .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(target))
                 .forEach(t -> {
                     try {
-                        t.sendMessage(new TextMessage("{\"from\":\"" + from + "\",\"code\":\"" + code + "\"}"));
+                        t.sendMessage(new TextMessage("{\"handle\":\"liveshare\",\"from\":\"" + from + "\",\"code\":\"" + code + "\"}"));
                     } catch (IOException e) {
                         System.out.println("Error sending websocket message: " + e.getMessage());
                     }

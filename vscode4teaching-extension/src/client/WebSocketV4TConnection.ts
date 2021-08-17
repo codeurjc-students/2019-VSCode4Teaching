@@ -14,6 +14,10 @@ export class WebSocketV4TConnection {
         this.ws?.send(data, cb);
     }
 
+    public close() {
+        this.ws?.close();
+    }
+
     private connect(channel: string, callback: ((data: any) => void)) {
         const authToken = APIClientSession.jwtToken;
         const wsURL = APIClientSession.baseUrl.replace("http", "ws");
@@ -31,7 +35,7 @@ export class WebSocketV4TConnection {
                     console.warn("Timeout on websocket connection. Trying to reconnect...");
                     websocket.terminate();
                     this.connect(channel, callback);
-                  }, 30000);
+                  }, 31000);
             };
             this.ws.on("open", wsHeartbeat);
             this.ws.on("ping", wsHeartbeat);
