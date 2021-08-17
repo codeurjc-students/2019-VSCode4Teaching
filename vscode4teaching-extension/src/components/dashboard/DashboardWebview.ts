@@ -54,6 +54,7 @@ export class DashboardWebview {
     private readonly _dashboardName: string;
     private _euis: ExerciseUserInfo[];
     // private _reloadInterval: NodeJS.Timeout | undefined;
+    private lastUpdatedInterval: NodeJS.Timeout;
     private _exerciseId: number;
     private sortAsc: boolean;
 
@@ -69,7 +70,11 @@ export class DashboardWebview {
 
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
-        this.panel.onDidDispose(() => this.dispose());
+        this.panel.onDidDispose(() => {
+            global.clearInterval(this.lastUpdatedInterval);
+            // global.clearInterval(this._reloadInterval);
+            this.dispose();
+        });
 
         // Update the content based on view changes
         this.panel.onDidChangeViewState(
@@ -165,6 +170,7 @@ export class DashboardWebview {
             }
         });
         this.ws = new WebSocketV4TConnection("dashboard-refresh", this.reloadData);
+        this.lastUpdatedInterval = global.setInterval(this.updateElapsedTime, 1000);
     }
 
     public dispose() {
@@ -337,22 +343,14 @@ export class DashboardWebview {
     }
 
     private getElapsedTime(pastDateStr: Date) {
-
         if (!pastDateStr) { return "-"; }
-        let pastDate: Date;
-        try {
-            pastDate = (pastDateStr + "").endsWith("Z") ? pastDateStr : new Date(`${pastDateStr}Z`);
-        } catch (_) {
-            return "-";
-        }
-        let elapsedTime = (new Date().getTime() - new Date(pastDate).getTime()) / 1000;
+        let elapsedTime = (new Date().getTime() - new Date(pastDateStr).getTime()) / 1000;
         if (elapsedTime < 0) { elapsedTime = 0; }
         let unit = "s";
         if (elapsedTime > 60) {
             elapsedTime /= 60;   // convert to minutes
             if (elapsedTime > 60) {
                 elapsedTime /= 60;  // convert to hours
-
                 if (elapsedTime > 24) {
                     elapsedTime /= 24;  // convert to days
                     if (elapsedTime > 365) {
@@ -364,6 +362,10 @@ export class DashboardWebview {
         }
 
         return `${Math.floor(elapsedTime)} ${unit}`;
+    }
+
+    private updateElapsedTime() {
+
     }
 
 }
