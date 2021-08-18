@@ -3,6 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
+import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
@@ -15,7 +16,7 @@ export class DashboardWebview {
         path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
         path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
-    public static show(euis: ExerciseUserInfo[], exercise: Exercise) {
+    public static show(euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -45,7 +46,7 @@ export class DashboardWebview {
             },
         );
 
-        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, exercise);
+        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, course, exercise);
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -59,7 +60,7 @@ export class DashboardWebview {
     private _exercise: Exercise;
     private sortAsc: boolean;
 
-    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], exercise: Exercise) {
+    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._euis = euis;
@@ -107,7 +108,7 @@ export class DashboardWebview {
                 //     break;
                 // }
                 case "goToWorkspace": {
-                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles").then(async () => {
+                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
                         const workspaces = vscode.workspace.workspaceFolders;
                         if (workspaces) {
                             const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);

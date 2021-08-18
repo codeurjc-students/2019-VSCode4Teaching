@@ -242,8 +242,8 @@ export function activate(context: vscode.ExtensionContext) {
         if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
             APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
                 console.debug(response);
-                if (showDashboardItem && showDashboardItem.exercise) {
-                    DashboardWebview.show(response.data, showDashboardItem.exercise);
+                if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
+                    DashboardWebview.show(response.data, showDashboardItem.course, showDashboardItem.exercise);
                 }
             }).catch((error) => APIClient.handleAxiosError(error));
         }
