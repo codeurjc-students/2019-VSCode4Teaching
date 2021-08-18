@@ -226,8 +226,17 @@ public class ExerciseControllerTests {
     public void getExerciseInfo_valid() throws Exception {
         Exercise ex = new Exercise("Spring Boot Exercise 1");
         ex.setId(1l);
-        User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
+        Role studentRole = new Role("ROLE_STUDENT");
+        Role teacherRole = new Role("ROLE_TEACHER");
+        User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe", studentRole);
         user.setId(4l);
+        User creator = new User("johndoesr@john.com", "johndoesr", "passwordsr", "John", "Doe Sr", studentRole, teacherRole);
+        creator.setId(15l);
+        Course course = new Course("Spring Boot Course");
+        course.addExercise(ex);
+        ex.setCourse(course);
+        course.setCreator(creator);
+        course.addUserInCourse(user);
         ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
         when(exerciseInfoService.getExerciseUserInfo(1l, "johndoe")).thenReturn(eui);
 
