@@ -73,7 +73,7 @@ describe("Dashboard webview", () => {
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
             lastModifiedFile: "",
         });
-        DashboardWebview.show(euis, exercise);
+        DashboardWebview.show(euis, course, exercise);
         if (DashboardWebview.currentPanel) {
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][0]).toBe("v4tdashboard");
