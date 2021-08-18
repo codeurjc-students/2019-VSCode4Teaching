@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { DashboardWebview } from "../../src/components/dashboard/DashboardWebview";
 import { Course } from "../../src/model/serverModel/course/Course";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
@@ -9,6 +10,10 @@ import { User } from "../../src/model/serverModel/user/User";
 
 jest.mock("vscode");
 const mockedVscode = mocked(vscode, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
+
+jest.useFakeTimers();
 
 describe("Dashboard webview", () => {
     it("should be created if it doesn't exist", () => {
@@ -49,7 +54,7 @@ describe("Dashboard webview", () => {
             ],
         };
         const euis: ExerciseUserInfo[] = [];
-        let now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        let now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student1,
@@ -57,7 +62,7 @@ describe("Dashboard webview", () => {
             updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()),
             lastModifiedFile: "/index.html",
         });
-        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student2,
@@ -65,7 +70,7 @@ describe("Dashboard webview", () => {
             updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()),
             lastModifiedFile: "/readme.md",
         });
-        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student3,
@@ -75,6 +80,7 @@ describe("Dashboard webview", () => {
         });
         DashboardWebview.show(euis, course, exercise);
         if (DashboardWebview.currentPanel) {
+            expect(global.setInterval).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][0]).toBe("v4tdashboard");
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][1]).toBe("V4T Dashboard: Exercise 1");

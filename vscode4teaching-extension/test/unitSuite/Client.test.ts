@@ -59,6 +59,8 @@ describe("Client", () => {
         mockedVscode.window.showErrorMessage.mockClear();
         mockedVscode.window.setStatusBarMessage.mockClear();
         mockedVscode.window.showInformationMessage.mockClear();
+
+        global.console.error = console.error;
     });
 
     beforeEach(() => {
@@ -155,6 +157,7 @@ describe("Client", () => {
     });
 
     it("should handle error 401", () => {
+        global.console.error = jest.fn();
         const error = {
             response: {
                 status: 401,
@@ -166,10 +169,12 @@ describe("Client", () => {
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledWith("It seems that we couldn't log in, please log in.");
         // Refresh tree view
         expect(mockedCoursesTreeProvider.triggerTreeReload).toHaveBeenCalledTimes(1);
+        expect(global.console.error).toHaveBeenCalledTimes(1);
         expectSessionInvalidated();
     });
 
     it("should handle error 403", () => {
+        global.console.error = jest.fn();
         const expectedAxiosConfigXSRFRequest: AxiosRequestConfig = {
             baseURL,
             url: "/api/csrf",
@@ -209,9 +214,11 @@ describe("Client", () => {
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "Fetching server info...", expect.anything());
         expect(mockedAxios).toHaveBeenCalledTimes(1);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigXSRFRequest);
+        expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
     it("should handle rest of http errors", () => {
+        global.console.error = jest.fn();
         const dataError = {
             error: "Bad request",
             url: "/api/error",
@@ -227,9 +234,11 @@ describe("Client", () => {
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Error 400. " + JSON.stringify(dataError));
         expectSessionInvalidated();
+        expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
     it("should handle cannot connect to server", () => {
+        global.console.error = jest.fn();
         const error = {
             request: {
                 data: "Request error",
@@ -241,9 +250,11 @@ describe("Client", () => {
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Can't connect to the server. " + error.message);
         expectSessionInvalidated();
+        expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
     it("should handle every error", () => {
+        global.console.error = jest.fn();
         const error = {
             message: "Request error",
         };
@@ -252,6 +263,7 @@ describe("Client", () => {
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith(error.message);
         expectSessionInvalidated();
+        expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
     it("should sign up student", async () => {

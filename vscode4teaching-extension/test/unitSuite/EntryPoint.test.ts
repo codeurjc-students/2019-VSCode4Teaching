@@ -6,11 +6,13 @@ import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
 import { CurrentUser } from "../../src/client/CurrentUser";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { CoursesProvider } from "../../src/components/courses/CoursesTreeProvider";
 import * as extension from "../../src/extension";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
+import { LiveShareService } from "../../src/services/LiveShareService";
 import { TeacherCommentService } from "../../src/services/TeacherCommentsService";
 import { FileIgnoreUtil } from "../../src/utils/FileIgnoreUtil";
 
@@ -32,6 +34,10 @@ jest.mock("../../src/utils/FileIgnoreUtil");
 const mockedFileIgnoreUtil = mocked(FileIgnoreUtil, true);
 jest.mock("jszip");
 const mockedJSZip = mocked(JSZip, true);
+jest.mock("../../src/services/LiveShareService");
+const mockedLiveShareService = mocked(LiveShareService, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
 
 jest.useFakeTimers();
 

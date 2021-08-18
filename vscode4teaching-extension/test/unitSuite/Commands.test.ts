@@ -6,12 +6,14 @@ import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
 import { CurrentUser } from "../../src/client/CurrentUser";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { FinishItem } from "../../src/components/statusBarItems/exercises/FinishItem";
 import * as extension from "../../src/extension";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "../../src/model/serverModel/file/FileInfo";
 import { User } from "../../src/model/serverModel/user/User";
+import { LiveShareService } from "../../src/services/LiveShareService";
 import { NoteComment } from "../../src/services/NoteComment";
 import { TeacherCommentService } from "../../src/services/TeacherCommentsService";
 import { FileZipUtil } from "../../src/utils/FileZipUtil";
@@ -33,6 +35,11 @@ jest.mock("../../src/utils/FileZipUtil");
 const mockedFileZipUtil = mocked(FileZipUtil, true);
 jest.mock("mkdirp");
 const mockedMkdirp = mocked(mkdirp, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
+jest.mock("../../src/services/LiveShareService");
+const mockedLiveShareService = mocked(LiveShareService, true);
+
 
 const ec: vscode.ExtensionContext = {
     subscriptions: [],
@@ -160,8 +167,8 @@ describe("Command implementations", () => {
         await commandFunctions["vscode4teaching.createComment"](replyMock);
 
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
         expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
         expect(mockedFs.readFileSync).toHaveBeenNthCalledWith(1, "/v4t/johndoe/.fileInfo/exercise/johndoejr.json", { encoding: "utf8" });
         expect(extension.commentProvider?.addComment).toHaveBeenCalledTimes(1);
