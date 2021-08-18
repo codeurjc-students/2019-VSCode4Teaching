@@ -7,6 +7,9 @@ import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
+// TODO: add user and user updating shows not found
+// TODO: change open workspace labels
+// TODO: add diff button aside open
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
 
@@ -68,7 +71,7 @@ export class DashboardWebview {
         this.sortAsc = false;
 
         // Set the webview's initial html content
-        this.panel.webview.html = this.getHtmlForWebview();
+        this.updateHtml();
 
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
@@ -83,7 +86,7 @@ export class DashboardWebview {
         this.panel.onDidChangeViewState(
             (e) => {
                 if (this.panel.visible) {
-                    this.panel.webview.html = this.getHtmlForWebview();
+                    this.updateHtml();
                 }
             },
         );
@@ -169,7 +172,7 @@ export class DashboardWebview {
                             });
                         }
                     }
-                    this.panel.webview.html = this.getHtmlForWebview();
+                    this.updateHtml();
                     break;
                 }
             }
@@ -183,7 +186,7 @@ export class DashboardWebview {
             }
         });
         // Only used to refresh elapsed times
-        this.lastUpdatedInterval = global.setInterval(this.getHtmlForWebview, 1000);
+        this.lastUpdatedInterval = global.setInterval(this.updateHtml, 1000);
     }
 
     public dispose() {
@@ -225,8 +228,12 @@ export class DashboardWebview {
         APIClient.getAllStudentsExerciseUserInfo(this._exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
             console.debug(response);
             this._euis = response.data;
-            this.panel.webview.html = this.getHtmlForWebview();
+            this.updateHtml();
         }).catch((error) => APIClient.handleAxiosError(error));
+    }
+
+    private updateHtml() {
+        this.updateHtml();
     }
 
     private getHtmlForWebview() {
