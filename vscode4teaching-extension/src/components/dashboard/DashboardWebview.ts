@@ -3,6 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
+import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
 export class DashboardWebview {
@@ -14,7 +15,7 @@ export class DashboardWebview {
         path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
         path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
-    public static show(euis: ExerciseUserInfo[], exerciseId: number) {
+    public static show(euis: ExerciseUserInfo[], exercise: Exercise) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -44,7 +45,7 @@ export class DashboardWebview {
             },
         );
 
-        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, exerciseId);
+        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, exercise);
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -55,14 +56,14 @@ export class DashboardWebview {
     private _euis: ExerciseUserInfo[];
     // private _reloadInterval: NodeJS.Timeout | undefined;
     private lastUpdatedInterval: NodeJS.Timeout;
-    private _exerciseId: number;
+    private _exercise: Exercise;
     private sortAsc: boolean;
 
-    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], exerciseId: number) {
+    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], exercise: Exercise) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._euis = euis;
-        this._exerciseId = exerciseId;
+        this._exercise = exercise;
         this.sortAsc = false;
 
         // Set the webview's initial html content
@@ -106,15 +107,17 @@ export class DashboardWebview {
                 //     break;
                 // }
                 case "goToWorkspace": {
-                    const workspaces = vscode.workspace.workspaceFolders;
-                    if (workspaces) {
-                        const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
-                        if (wsF) {
-                            const doc1 = await vscode.workspace.openTextDocument(await this.findLastModifiedFile(wsF, message.lastMod));
-                            // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
-                            await vscode.window.showTextDocument(doc1);
+                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles").then(async () => {
+                        const workspaces = vscode.workspace.workspaceFolders;
+                        if (workspaces) {
+                            const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
+                            if (wsF) {
+                                const doc1 = await vscode.workspace.openTextDocument(await this.findLastModifiedFile(wsF, message.lastMod));
+                                // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
+                                await vscode.window.showTextDocument(doc1);
+                            }
                         }
-                    }
+                    });
                 }
 
                 case "sort": {
@@ -218,7 +221,7 @@ export class DashboardWebview {
     }
 
     private reloadData() {
-        APIClient.getAllStudentsExerciseUserInfo(this._exerciseId).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+        APIClient.getAllStudentsExerciseUserInfo(this._exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
             console.debug(response);
             this._euis = response.data;
             this.panel.webview.html = this.getHtmlForWebview();

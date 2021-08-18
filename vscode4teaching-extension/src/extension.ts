@@ -239,11 +239,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
-        if (showDashboardItem) {
-            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exerciseId).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+        if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
+            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
                 console.debug(response);
-                if (showDashboardItem) {
-                    DashboardWebview.show(response.data, showDashboardItem.exerciseId);
+                if (showDashboardItem && showDashboardItem.exercise) {
+                    DashboardWebview.show(response.data, showDashboardItem.exercise);
                 }
             }).catch((error) => APIClient.handleAxiosError(error));
         }
@@ -345,11 +345,11 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         }
                         commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                     }
+                    const eui = await APIClient.getExerciseUserInfo(exerciseId);
+                    console.debug(eui);
                     // If user is student and exercise is not finished add finish button
                     if (!currentUserIsTeacher && !finishItem) {
                         try {
-                            const eui = await APIClient.getExerciseUserInfo(exerciseId);
-                            console.debug(eui);
                             if (eui.data.status !== 1) {
                                 const jszipFile = new JSZip();
                                 if (fs.existsSync(zipUri)) {
@@ -367,7 +367,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         if (!exerciseId) {
                             vscode.window.showInformationMessage("Wrong exercise ID format");
                         } else {
-                            showDashboardItem = new ShowDashboardItem(cwd.name, exerciseId);
+                            showDashboardItem = new ShowDashboardItem(cwd.name, eui.data.exercise.course, eui.data.exercise);
                             showDashboardItem.show();
                         }
                     }

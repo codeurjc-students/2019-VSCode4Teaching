@@ -190,11 +190,6 @@
 					"group": "inline@1"
 				},
 				{
-					"command": "vscode4teaching.refreshexercises",
-					"when": "view == vscode4teachingview && viewItem == courseteacher",
-					"group": "inline@1"
-				},
-				{
 					"command": "vscode4teaching.addexercise",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@2"

@@ -605,7 +605,7 @@ describe("client API calls", () => {
     it("should request get sharing code for exercise correctly", () => {
         const exercise: Exercise = {
             name: "Exercise",
-            id: 1,
+            id: 2,
         };
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,

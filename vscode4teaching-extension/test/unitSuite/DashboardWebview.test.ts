@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { DashboardWebview } from "../../src/components/dashboard/DashboardWebview";
+import { Course } from "../../src/model/serverModel/course/Course";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
@@ -11,6 +12,11 @@ const mockedVscode = mocked(vscode, true);
 
 describe("Dashboard webview", () => {
     it("should be created if it doesn't exist", () => {
+        const course: Course = {
+            id: 1,
+            name: "Course",
+            exercises: [],
+        };
         const exercise: Exercise = {
             id: 1,
             name: "Exercise 1",
@@ -67,7 +73,7 @@ describe("Dashboard webview", () => {
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
             lastModifiedFile: "",
         });
-        DashboardWebview.show(euis, exercise.id);
+        DashboardWebview.show(euis, exercise);
         if (DashboardWebview.currentPanel) {
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][0]).toBe("v4tdashboard");
