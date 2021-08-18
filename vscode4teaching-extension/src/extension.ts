@@ -145,8 +145,9 @@ export function activate(context: vscode.ExtensionContext) {
     const diff = vscode.commands.registerCommand("vscode4teaching.diff", (file: vscode.Uri) => {
         const wf = vscode.workspace.getWorkspaceFolder(file);
         if (wf) {
+            const parentDir = path.resolve(wf.uri.fsPath, "..");
             const relativePath = path.relative(wf.uri.fsPath, file.fsPath);
-            const templateFile = path.resolve(templates[wf.name], relativePath);
+            const templateFile = path.resolve(templates[parentDir], relativePath);
             if (fs.existsSync(templateFile)) {
                 const templateFileUri = vscode.Uri.file(templateFile);
                 vscode.commands.executeCommand("vscode.diff", file, templateFileUri);
@@ -374,7 +375,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     // Set template location if exists
                     if (currentUserIsTeacher && v4tjson.template) {
                         // Template should be the same in the workspace
-                        templates[cwd.name] = v4tjson.template;
+                        templates[parentDir] = v4tjson.template;
                     }
                 }
             }

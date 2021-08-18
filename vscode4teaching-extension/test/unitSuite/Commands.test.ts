@@ -416,7 +416,8 @@ describe("Command implementations", () => {
         };
         mockedVscode.workspace.getWorkspaceFolder.mockReturnValueOnce(wf);
         mockedPath.relative.mockReturnValueOnce("file.txt");
-        extension.setTemplate("johndoejr", "template");
+        extension.setTemplate("parentdir", "template");
+        mockedPath.resolve.mockReturnValueOnce("parentdir");
         mockedPath.resolve.mockReturnValueOnce("template/file.txt");
         mockedFs.existsSync.mockReturnValueOnce(true);
 
@@ -427,8 +428,9 @@ describe("Command implementations", () => {
         expect(mockedVscode.workspace.getWorkspaceFolder).toHaveBeenNthCalledWith(1, file);
         expect(mockedPath.relative).toHaveBeenCalledTimes(1);
         expect(mockedPath.relative).toHaveBeenNthCalledWith(1, wf.uri.fsPath, file.fsPath);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "template", "file.txt");
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "johndoejr", "..");
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "template", "file.txt");
         expect(mockedFs.existsSync).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", file, mockedVscode.Uri.file("template/file.txt"));
