@@ -233,7 +233,7 @@ export class DashboardWebview {
     }
 
     private updateHtml() {
-        this.updateHtml();
+        this.panel.webview.html = this.getHtmlForWebview();
     }
 
     private getHtmlForWebview() {
