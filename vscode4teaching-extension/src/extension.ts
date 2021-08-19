@@ -45,6 +45,7 @@ export let commentInterval: NodeJS.Timeout;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
+// TODO: Comments not working
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
@@ -95,10 +96,12 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
+        // TODO: Show warning that files have been downloaded
         await getSingleStudentExerciseFiles(courseName, exercise);
     });
 
     const getStudentFiles = vscode.commands.registerCommand("vscode4teaching.getstudentfiles", async (courseName: string, exercise: Exercise) => {
+        // TODO: Show warning that files have been downloaded
         await getMultipleStudentExerciseFiles(courseName, exercise);
     });
 

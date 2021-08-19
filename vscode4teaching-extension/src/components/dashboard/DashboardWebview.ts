@@ -7,7 +7,6 @@ import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
-// TODO: add user and user updating shows not found
 // TODO: change open workspace labels
 // TODO: add diff button aside open
 export class DashboardWebview {
@@ -186,7 +185,7 @@ export class DashboardWebview {
             }
         });
         // Only used to refresh elapsed times
-        this.lastUpdatedInterval = global.setInterval(this.updateHtml, 1000);
+        this.lastUpdatedInterval = global.setInterval(this.updateLastDate, 1000, this.panel, this._euis, this.getElapsedTime);
     }
 
     public dispose() {
@@ -194,6 +193,14 @@ export class DashboardWebview {
 
         // Clean up our resources
         this.panel.dispose();
+    }
+
+    private updateLastDate(panel: vscode.WebviewPanel, euis: ExerciseUserInfo[], getElapsedTime: (pastDate: Date) => string) {
+        const message: {[key: string]: string} = {};
+        for (const eui of euis) {
+            message["user-lastmod-" + eui.user.id] = getElapsedTime(eui.updateDateTime);
+        }
+        panel.webview.postMessage(message);
     }
 
     private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string) {
@@ -285,7 +292,7 @@ export class DashboardWebview {
             const f = vscode.workspace.workspaceFolders?.find((folder) => folder.name === eui.user.username);
             rows += f ? `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button>` : `Not found`;
             rows = rows + `</td>\n`;
-            rows = rows + `<td class='last-modification'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
+            rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
 
         }
