@@ -2,17 +2,17 @@ package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
 public class UserRequest {
 
-    private long[] ids;
+    private Long[] ids;
 
     public UserRequest() {
         // Empty constructor for DTO
     }
 
-    public long[] getIds() {
+    public Long[] getIds() {
         return ids;
     }
 
-    public void setIds(long[] ids) {
+    public void setIds(Long[] ids) {
         this.ids = ids;
     }
 

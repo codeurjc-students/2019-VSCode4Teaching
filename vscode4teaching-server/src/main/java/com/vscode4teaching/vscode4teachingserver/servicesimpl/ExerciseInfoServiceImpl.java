@@ -47,7 +47,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
         eui.setStatus(status);
         eui.setLastModifiedFile(lastModifiedFile);
         eui = exerciseUserInfoRepository.save(eui);
-        websocketHandler.refreshExerciseDashboards(eui.getExercise().getCourse().getTeachers());
+        this.websocketHandler.refreshExerciseDashboards(eui.getExercise().getCourse().getTeachers());
         return eui;
     }
 

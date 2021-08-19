@@ -269,14 +269,14 @@ public class CourseControllerTests {
         expectedUsers.add(teacher);
 
         UserRequest request = new UserRequest();
-        long[] ids = { 1l, 5l };
+        Long[] ids = { 1l, 5l };
         request.setIds(ids);
         Course expectedCourse = new Course("Spring Boot Course");
         expectedCourse.setId(1l);
         expectedCourse.addUserInCourse(teacher);
         expectedCourse.addUserInCourse(newUser1);
         expectedCourse.addUserInCourse(newUser2);
-        when(courseService.addUsersToCourse(anyLong(), any(long[].class), anyString())).thenReturn(expectedCourse);
+        when(courseService.addUsersToCourse(anyLong(), any(Long[].class), anyString())).thenReturn(expectedCourse);
         String requestString = objectMapper.writeValueAsString(request);
 
         MvcResult mvcResult = mockMvc
@@ -288,7 +288,7 @@ public class CourseControllerTests {
         String expectedResponseBody = objectMapper.writerWithView(CourseViews.UsersView.class)
                 .writeValueAsString(expectedCourse);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-        verify(courseService, times(1)).addUsersToCourse(anyLong(), any(long[].class), anyString());
+        verify(courseService, times(1)).addUsersToCourse(anyLong(), any(Long[].class), anyString());
 
         logger.info("Test addUserToCourse_valid() ends.");
     }
@@ -355,12 +355,12 @@ public class CourseControllerTests {
         expectedUsers.add(teacher);
 
         UserRequest request = new UserRequest();
-        long[] ids = { 1l, 5l };
+        Long[] ids = { 1l, 5l };
         request.setIds(ids);
         Course expectedCourse = new Course("Spring Boot Course");
         expectedCourse.setId(1l);
         expectedCourse.addUserInCourse(teacher);
-        when(courseService.removeUsersFromCourse(anyLong(), any(long[].class), anyString())).thenReturn(expectedCourse);
+        when(courseService.removeUsersFromCourse(anyLong(), any(Long[].class), anyString())).thenReturn(expectedCourse);
         String requestString = objectMapper.writeValueAsString(request);
 
         MvcResult mvcResult = mockMvc
@@ -372,7 +372,7 @@ public class CourseControllerTests {
         String expectedResponseBody = objectMapper.writerWithView(CourseViews.UsersView.class)
                 .writeValueAsString(expectedCourse);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-        verify(courseService, times(1)).removeUsersFromCourse(anyLong(), any(long[].class), anyString());
+        verify(courseService, times(1)).removeUsersFromCourse(anyLong(), any(Long[].class), anyString());
 
         logger.info("Test removeUsersFromCourse_valid() ends.");
     }

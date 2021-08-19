@@ -32,6 +32,7 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourse
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
+import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +58,9 @@ public class CourseServiceImplTests {
 
     @Mock
     private ExerciseUserInfoRepository exerciseUserInfoRepository;
+
+    @Mock
+    private SocketHandler websocketHandler;
 
     @InjectMocks
     private CourseServiceImpl courseServiceImpl;
@@ -383,7 +387,7 @@ public class CourseServiceImplTests {
         when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
 
-        long[] ids = { 1l, 5l };
+        Long[] ids = { 1l, 5l };
         Course savedCourse = courseServiceImpl.addUsersToCourse(5l, ids, "johndoe");
 
         assertThat(course.getUsersInCourse()).contains(newUser1);
@@ -459,7 +463,7 @@ public class CourseServiceImplTests {
         when(courseRepository.findById(anyLong())).thenReturn(courseOpt);
         when(courseRepository.save(any(Course.class))).thenReturn(expectedSavedCourse);
 
-        long[] ids = { 1l, 5l };
+        Long[] ids = { 1l, 5l };
         Course savedCourse = courseServiceImpl.removeUsersFromCourse(5l, ids, "johndoe");
 
         assertThat(course.getUsersInCourse()).doesNotContain(newUser1);

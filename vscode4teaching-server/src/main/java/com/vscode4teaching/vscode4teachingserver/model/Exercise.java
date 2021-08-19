@@ -169,4 +169,9 @@ public class Exercise {
     public List<ExerciseUserInfo> getUserInfo() {
         return userInfo;
     }
+
+    public void setUserInfo(List<ExerciseUserInfo> userInfo) {
+        this.userInfo = userInfo;
+    }
+    
 }
