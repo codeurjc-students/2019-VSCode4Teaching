@@ -115,8 +115,9 @@ describe("Extension entry point", () => {
                 name: exercise.name,
             },
         ];
+        const zipLocation = path.sep === "/" ? "testZipLocation/" + exercise.id + ".zip" : "testZipLocation\\" + exercise.id + ".zip";
         const v4tjson = {
-            zipLocation: "testZipLocation/" + exercise.id + ".zip",
+            zipLocation,
         };
         const user: User = {
             id: 40,
@@ -144,7 +145,6 @@ describe("Extension entry point", () => {
         mockedClient.handleAxiosError.mockImplementation((error) => console.error(error));
         mockedClient.getExerciseUserInfo.mockResolvedValueOnce(euiResponse);
 
-        mockedPath.sep = "/";
         mockedPath.resolve.mockReturnValueOnce("testParentURL").mockImplementation((x) => x);
 
         mockedVscode.workspace.findFiles.mockResolvedValueOnce([mockedVscode.Uri.parse("testV4TLocation")]);

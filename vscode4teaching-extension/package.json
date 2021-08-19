@@ -42,7 +42,7 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./out/src/extension.js",
+	"main": "./out/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "VSCode4Teaching",
@@ -285,11 +285,14 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --external:jszip --external:form-data --external:ws --format=cjs --platform=node",
+		"build": "npm run esbuild-base -- --sourcemap",
+		"watch": "npm run esbuild-base -- --sourcemap --watch",
+		"test-compile": "rimraf out && tsc -p ./",
+		"test-watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
-		"test": "npm run unitTest",
+		"test": "npm run test-compile && npm run unitTest",
 		"unitTest": "jest",
 		"coverage": "jest --coverage",
 		"lint": "tslint --project . --out tslint_report.txt",
@@ -308,6 +311,7 @@
 		"@types/vscode": "^1.45.1",
 		"@types/ws": "^7.4.4",
 		"cheerio": "^1.0.0-rc.3",
+		"esbuild": "^0.12.20",
 		"glob": "^7.1.6",
 		"jest": "^26.0.1",
 		"jest-sonar-reporter": "^2.0.0",

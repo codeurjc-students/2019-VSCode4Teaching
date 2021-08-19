@@ -16,7 +16,7 @@
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
-			"preLaunchTask": "npm: watch"
+			"preLaunchTask": "npm: build"
 		},
 		{
 			"name": "Unit Tests",
@@ -26,7 +26,7 @@
 			"args": [],
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
-			"preLaunchTask": "npm: watch"
+			"preLaunchTask": "npm: test-watch"
 		}
 	]
 }

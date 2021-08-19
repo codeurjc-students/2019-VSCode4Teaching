@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
-import * as rimraf from "rimraf";
+import rimraf from "rimraf";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
@@ -44,7 +44,7 @@ describe("Client", () => {
         APIClient.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");
         if (fs.existsSync(v4tPath)) {
-            rimraf(v4tPath, ((error) => {
+            rimraf(v4tPath, ((error: any) => {
                 // console.error(error);
             }));
         }

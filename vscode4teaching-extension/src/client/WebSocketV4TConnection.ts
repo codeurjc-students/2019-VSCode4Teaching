@@ -1,4 +1,4 @@
-import * as WebSocket from "ws";
+import WebSocket from "ws";
 import { APIClientSession } from "./APIClientSession";
 
 export class WebSocketV4TConnection {

@@ -1,8 +1,8 @@
 import { AxiosPromise, AxiosResponse } from "axios";
 import * as fs from "fs";
-import JSZip = require("jszip");
+import JSZip from "jszip";
 import * as path from "path";
-import * as rimraf from "rimraf";
+import rimraf from "rimraf";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
@@ -32,13 +32,13 @@ describe("FileZipUtil", () => {
     }
 
     afterEach(() => {
-        rimraf(zipPath, (error) => {
+        rimraf(zipPath, (error: any) => {
             return error;
         });
-        rimraf(extractedPath, (error) => {
+        rimraf(extractedPath, (error: any) => {
             return error;
         });
-        rimraf(newFilePath, (error) => {
+        rimraf(newFilePath, (error: any) => {
             return error;
         });
         mockedAPIClient.uploadFiles.mockClear();

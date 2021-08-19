@@ -1,6 +1,6 @@
 
 import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
-import * as FormData from "form-data";
+import FormData from "form-data";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";

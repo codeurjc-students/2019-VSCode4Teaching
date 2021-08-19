@@ -1,6 +1,6 @@
 import { AxiosPromise } from "axios";
 import * as fs from "fs";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import { promisify } from "util";
@@ -17,7 +17,7 @@ import { ZipInfo } from "./ZipInfo";
  * Utility class used for zipping files
  */
 export class FileZipUtil {
-    public static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, "..", "v4t");
+    public static readonly INTERNAL_FILES_DIR = path.resolve(__dirname, "v4t");
 
     public static get downloadDir() {
         return vscode.workspace.getConfiguration("vscode4teaching").get("defaultExerciseDownloadDirectory", "v4tdownloads");

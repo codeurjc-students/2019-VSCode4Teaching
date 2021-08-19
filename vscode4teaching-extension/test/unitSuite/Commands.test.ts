@@ -40,7 +40,6 @@ const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
 jest.mock("../../src/services/LiveShareService");
 const mockedLiveShareService = mocked(LiveShareService, true);
 
-
 const ec: vscode.ExtensionContext = {
     subscriptions: [],
     workspaceState: {
@@ -117,8 +116,9 @@ describe("Command implementations", () => {
         const commentsMock: NoteComment[] = [
             new NoteComment("test1", mockedVscode.CommentMode.Preview, { name: "johndoe" }, lineText),
         ];
+        const route = path.sep === "/" ? "/v4t/johndoe/course/exercise/johndoejr/file.txt" : "e:\\v4t\\johndoe\\course\\exercise\\johndoejr\\file.txt";
         const threadMock: vscode.CommentThread = {
-            uri: mockedVscode.Uri.parse("/v4t/johndoe/course/exercise/johndoejr/file.txt"),
+            uri: mockedVscode.Uri.parse(route),
             range: rangeMock,
             collapsibleState: mockedVscode.CommentThreadCollapsibleState.Expanded,
             comments: commentsMock,
@@ -143,7 +143,6 @@ describe("Command implementations", () => {
 
         mockedFileZipUtil.INTERNAL_FILES_DIR = "v4t";
 
-        mockedPath.sep = "/";
         mockedPath.resolve.mockImplementation((...args) => {
             let finalRoute = "";
             for (const arg of args) {
@@ -170,6 +169,7 @@ describe("Command implementations", () => {
         expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
         expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
         expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
+        const fileInfoRoute = path.sep === "/" ? "/v4t/johndoe/.fileInfo/exercise/johndoejr.json" : "e:\\v4t\\johndoe\\.fileInfo\\exercise\\johndoejr.json";
         expect(mockedFs.readFileSync).toHaveBeenNthCalledWith(1, "/v4t/johndoe/.fileInfo/exercise/johndoejr.json", { encoding: "utf8" });
         expect(extension.commentProvider?.addComment).toHaveBeenCalledTimes(1);
         expect(extension.commentProvider?.addComment).toHaveBeenNthCalledWith(1, replyMock, 101);

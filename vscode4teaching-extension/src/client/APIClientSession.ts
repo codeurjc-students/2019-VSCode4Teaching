@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import * as FormData from "form-data";
+import FormData from "form-data";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
@@ -14,7 +14,7 @@ import { CurrentUser } from "./CurrentUser";
 class APIClientSessionSingleton {
 
     // APIClientSession is a singleton
-    public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
+    public readonly sessionPath = path.resolve(__dirname, "v4t", "v4tsession");
     public jwtToken: string | undefined;
     public xsrfToken: string | undefined;
 

@@ -15,8 +15,8 @@ export class DashboardWebview {
 
     public static readonly viewType = "v4tdashboard";
 
-    public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
-        path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
+    public static readonly resourcesPath = __dirname.includes(path.sep + "out") ?
+        path.join(__dirname, "..", "resources", "dashboard") :
         path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
     public static show(euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {

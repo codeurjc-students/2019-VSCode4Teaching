@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import * as fs from "fs";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
