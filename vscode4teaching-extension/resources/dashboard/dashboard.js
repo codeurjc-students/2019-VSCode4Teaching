@@ -22,6 +22,7 @@
             document.getElementById(key).textContent = message[key]
         }
     })
+
     document.querySelectorAll(".workspace-link").forEach((row) => {
         row.addEventListener("click", () => {
             const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
@@ -29,6 +30,17 @@
                 type: "goToWorkspace",
                 username: username,
                 lastMod:row.attributes.getNamedItem("data-lastMod").value,
+            });
+        });
+    });
+
+    document.querySelectorAll(".workspace-link-diff").forEach((row) => {
+        row.addEventListener("click", () => {
+            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
+            vscode.postMessage({
+                type: "diff",
+                username: username,
+                lastMod:row.attributes.getNamedItem("data-lastMod-diff").value,
             });
         });
     });

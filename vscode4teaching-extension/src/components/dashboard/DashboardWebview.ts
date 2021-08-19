@@ -7,8 +7,6 @@ import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
-// TODO: change open workspace labels
-// TODO: add diff button aside open
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
 
@@ -121,6 +119,20 @@ export class DashboardWebview {
                             }
                         }
                     });
+                    break;
+                }
+
+                case "diff": {
+                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
+                        const workspaces = vscode.workspace.workspaceFolders;
+                        if (workspaces) {
+                            const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
+                            if (wsF) {
+                                await vscode.commands.executeCommand("vscode4teaching.diff", await this.findLastModifiedFile(wsF, message.lastMod));
+                            }
+                        }
+                    });
+                    break;
                 }
 
                 case "sort": {
@@ -196,7 +208,7 @@ export class DashboardWebview {
     }
 
     private updateLastDate(panel: vscode.WebviewPanel, euis: ExerciseUserInfo[], getElapsedTime: (pastDate: Date) => string) {
-        const message: {[key: string]: string} = {};
+        const message: { [key: string]: string } = {};
         for (const eui of euis) {
             message["user-lastmod-" + eui.user.id] = getElapsedTime(eui.updateDateTime);
         }
@@ -289,8 +301,8 @@ export class DashboardWebview {
                 }
             }
             rows = rows + `<td>`;
-            const f = vscode.workspace.workspaceFolders?.find((folder) => folder.name === eui.user.username);
-            rows += f ? `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button>` : `Not found`;
+            const buttons = `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button><button data-lastMod-diff = '${eui.lastModifiedFile}' class='workspace-link-diff'>Diff</button>`;
+            rows += eui.lastModifiedFile ? buttons : `Not found`;
             rows = rows + `</td>\n`;
             rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
@@ -345,7 +357,7 @@ export class DashboardWebview {
                                 <span></span>
                             </span>
                         </th>
-                        <th>Open in Workspace</th>
+                        <th>Last modified file</th>
                         <th>Last modification
                             <span class="sorter ${this.sortAsc ? "active" : ""}">
                                 <span></span>
