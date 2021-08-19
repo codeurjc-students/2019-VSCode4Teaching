@@ -96,12 +96,10 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
-        // TODO: Show warning that files have been downloaded
         await getSingleStudentExerciseFiles(courseName, exercise);
     });
 
     const getStudentFiles = vscode.commands.registerCommand("vscode4teaching.getstudentfiles", async (courseName: string, exercise: Exercise) => {
-        // TODO: Show warning that files have been downloaded
         await getMultipleStudentExerciseFiles(courseName, exercise);
     });
 
@@ -361,6 +359,11 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                                 }
                                 finishItem = new FinishItem(exerciseId);
                                 finishItem.show();
+                                const message = `
+                                    The exercise has been downloaded! You can start editing its files in the Explorer view (Ctrl + Shift + E).
+                                    You can mark the exercise as finished using the 'Finish' button in the status bar.
+                                `;
+                                vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
                             }
                         } catch (error) {
                             APIClient.handleAxiosError(error);
@@ -373,6 +376,18 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         } else {
                             showDashboardItem = new ShowDashboardItem(cwd.name, eui.data.exercise.course, eui.data.exercise);
                             showDashboardItem.show();
+                            const message = `
+                                The exercise has been downloaded! You can see the template files and your students' files in the Explorer view (Ctrl + Shift + E).
+                                You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
+                            `;
+                            const openDashboard = "Open dashboard";
+                            vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
+                                console.debug(value);
+                                if (value === openDashboard) {
+                                    console.debug("Opening dashboard");
+                                    return vscode.commands.executeCommand("vscode4teaching.showdashboard");
+                                }
+                            }).then(() => console.debug("Message dismissed"));
                         }
                     }
                     // Set template location if exists
