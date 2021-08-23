@@ -76,7 +76,7 @@ describe("Dashboard webview", () => {
             user: student3,
             status: 2,
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
-            lastModifiedFile: "",
+            lastModifiedFile: undefined,
         });
         DashboardWebview.show(euis, course, exercise);
         if (DashboardWebview.currentPanel) {
@@ -121,7 +121,7 @@ describe("Dashboard webview", () => {
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
             expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
             expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
-            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Open in Workspace");
+            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modified file");
             expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
             // Table data is correct
             const tableData = $("td").toArray();
@@ -129,13 +129,23 @@ describe("Dashboard webview", () => {
             expect(tableData[1].firstChild.data).toBe("student1");
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
-            expect(tableData[3].firstChild.data).toBe("Not found");
+            expect(tableData[3].childNodes[0].name).toBe("button");
+            expect(tableData[3].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[3].childNodes[0].attribs["data-lastmod"]).toBe("/index.html");
+            expect(tableData[3].childNodes[1].name).toBe("button");
+            expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
+            expect(tableData[3].childNodes[1].attribs["data-lastmod-diff"]).toBe("/index.html");
             // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
             expect(tableData[7].firstChild.data).toBe("Finished");
             expect(tableData[7].attribs.class).toBe("finished-cell");
-            expect(tableData[8].firstChild.data).toBe("Not found");
+            expect(tableData[8].childNodes[0].name).toBe("button");
+            expect(tableData[8].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[8].childNodes[0].attribs["data-lastmod"]).toBe("/readme.md");
+            expect(tableData[8].childNodes[1].name).toBe("button");
+            expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
+            expect(tableData[8].childNodes[1].attribs["data-lastmod-diff"]).toBe("/readme.md");
             // expect(tableData[9].firstChild.data).toBe("13 min");
             expect(tableData[10].firstChild.data).toBe("Student 3");
             expect(tableData[11].firstChild.data).toBe("student3");

@@ -147,6 +147,8 @@ describe("Extension entry point", () => {
 
         mockedPath.resolve.mockReturnValueOnce("testParentURL").mockImplementation((x) => x);
 
+        mockedVscode.window.showInformationMessage.mockResolvedValueOnce(undefined);
+
         mockedVscode.workspace.findFiles.mockResolvedValueOnce([mockedVscode.Uri.parse("testV4TLocation")]);
         const fswFunctionMocks: vscode.FileSystemWatcher = {
             dispose: jest.fn(),
