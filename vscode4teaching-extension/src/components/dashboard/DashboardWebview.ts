@@ -28,10 +28,7 @@ export class DashboardWebview {
         }
 
         // Otherwise, create a new panel.
-        let dashboardName = "";
-        if (euis.length > 0) {
-            dashboardName = euis[0].exercise.name;
-        }
+        const dashboardName = exercise.name;
 
         const panel = vscode.window.createWebviewPanel(
             DashboardWebview.viewType,
