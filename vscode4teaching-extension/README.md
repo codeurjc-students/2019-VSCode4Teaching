@@ -7,6 +7,7 @@
   - [Prerequisites](README.md#prerequisites)
   - [Compiling](README.md#compiling)
   - [Running tests](README.md#running-tests)
+  - [Other options](README.md#other-options)
 - [Features](README.md#features)
   - [General features](README.md#general-features)
     - [Log in](README.md#log-in)
@@ -46,11 +47,34 @@ Go to the Extensions on the left (Ctrl + Shift + X) and search for "VS Code 4 Te
 ### Compiling
 
 Open the vscode4teaching-extension folder with VS Code and press F5. This will compile and run the extension in a new Extension Development Host window.
+For more information about packaging and publishing see <https://code.visualstudio.com/api/working-with-extensions/publishing-extension>
 
 ### Running tests
 
 Use the following command to run all tests:  
 `npm test`  
+
+### Other options
+
+You can compile the minified version running:
+
+`npm run vscode:prepublish`
+
+You can compile a build with sourcemaps for easier debugging with:
+
+`npm run build`
+
+You can compile an unbundled version (used mainly in tests) with:
+
+`npm run test-compile`
+
+You can pass a linter with:
+
+`npm run lint`
+
+You can get test coverage with:
+
+`npm run coverage`
 
 ## Features
 
@@ -159,7 +183,7 @@ Teachers can sign up another teacher in the application.
 
 #### Dashboard
 
-Teachers have a dashboard per exercise to check on their students' progress. They can also open the last modified file by a student as a quick access from dashboard. Dashboard will be reloaded automatically every time a change is made by a student via WebSockets.
+Teachers have a dashboard per exercise to check on their students' progress. They can also open the last modified file by a student as a quick access from dashboard, or see the difference (Diff) between the template and this file. Dashboard will be reloaded automatically every time a change is made by a student via WebSockets.
 ![Teacher dashboard](../readme_resources/dashboard.png)
 
 #### Liveshare

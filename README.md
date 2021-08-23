@@ -1,6 +1,6 @@
 # 2019-VSCode4Teaching
 
-[![Build Status](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching.svg?branch=master)](https://travis-ci.org/codeurjc-students/2019-VSCode4Teaching)
+[![Build Status](https://api.travis-ci.com/codeurjc-students/2019-VSCode4Teaching.svg?branch=master)](https://app.travis-ci.com/github/codeurjc-students/2019-VSCode4Teaching)
 [![Extension version](https://vsmarketplacebadge.apphb.com/version-short/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
 [![Extension installs](https://vsmarketplacebadge.apphb.com/installs/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)  
 VSCode extension for teaching.  
@@ -73,7 +73,7 @@ A teacher puts a comment in a student file:
 ![Teacher puts comment](readme_resources/teachercomment.gif)
 The student sees the comment and responds:  
 ![Student sees comment and responds](readme_resources/studentcomment.gif)
-Student finishes his exercise:
+Student finishes his exercise:  
 ![Student finishes exercise](readme_resources/finishexercise.gif)
 Teacher checks progress of all students in his dashboard:
 ![Teacher checks his dashboard](readme_resources/dashboard.png)

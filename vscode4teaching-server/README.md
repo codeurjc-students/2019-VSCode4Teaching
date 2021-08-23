@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [REST API Documentation](README.md#rest-api-documentation)
+- [API Documentation](README.md#api-documentation)
 - [Docker](README.md#docker)
 - [Database Initializer](README.md#database-initializer)
 - [Installing](README.md#installing)
@@ -12,9 +12,10 @@
   - [Compiling](README.md#compiling)
   - [Running tests](README.md#running-tests)
 
-## REST API Documentation
+## API Documentation
 
 Click [HERE](API.md) for the documentation on the REST API running on the server.  
+Click [HERE](WSAPI.md) for the documentation on the WebSocket API running on the server.  
 
 ## Docker
 
