@@ -179,14 +179,14 @@ describe("Extension entry point", () => {
         expect(extension.commentProvider?.getThreads).toHaveBeenCalledTimes(1);
         expect(extension.commentInterval).toBeTruthy();
         expect(global.setInterval).toHaveBeenCalledTimes(1);
-        expect(global.setInterval).toHaveBeenNthCalledWith(1,
-            extension.commentProvider?.getThreads,
-            60000,
-            exercise.id,
-            "johndoejr",
-            cwds[0],
-            mockedClient.handleAxiosError,
-        );
+        const intervalMock = (global.setInterval as jest.Mock);
+        // expect getThreads function bound by its commentProvider as first argument of setInterval
+        expect(Object.create(extension.commentProvider?.getThreads.prototype) instanceof intervalMock.mock.calls[0][0]).toBe(true);
+        expect(intervalMock.mock.calls[0][1]).toBe(60000);
+        expect(intervalMock.mock.calls[0][2]).toBe(exercise.id);
+        expect(intervalMock.mock.calls[0][3]).toBe("johndoejr");
+        expect(intervalMock.mock.calls[0][4]).toBe(cwds[0]);
+        expect(intervalMock.mock.calls[0][5]).toBe(mockedClient.handleAxiosError);
         expect(mockedVscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(1);
         expect(fswFunctionMocks.onDidChange).toHaveBeenCalledTimes(1);
         expect(fswFunctionMocks.onDidCreate).toHaveBeenCalledTimes(1);

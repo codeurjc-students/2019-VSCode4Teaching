@@ -173,7 +173,8 @@ export function activate(context: vscode.ExtensionContext) {
 
             const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, currentUser.username, ".fileInfo", exerciseName, username + ".json");
             const fileInfoArray: FileInfo[] = JSON.parse(fs.readFileSync(fileInfoPath, { encoding: "utf8" }));
-            const fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
+            let fileRelativePath = currentUserIsTeacher ? filePath.split(separator + username + separator)[1] : filePath.split(separator + exerciseName + separator)[1];
+            fileRelativePath = fileRelativePath.replace(/\\/g, "/");
             const fileInfo = fileInfoArray.find((file: FileInfo) => file.path === fileRelativePath);
             if (fileInfo) {
                 try {
@@ -340,12 +341,8 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     // Download comments
                     if (cwd.name !== "template") {
                         const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
-                        try {
-                            await commentProvider.getThreads(exerciseId, username, cwd);
-                        } catch (error) {
-                            APIClient.handleAxiosError(error);
-                        }
-                        commentInterval = global.setInterval(commentProvider.getThreads, 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
+                        await commentProvider.getThreads(exerciseId, username, cwd, APIClient.handleAxiosError);
+                        commentInterval = global.setInterval(commentProvider.getThreads.bind(commentProvider), 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                     }
                     const eui = await APIClient.getExerciseUserInfo(exerciseId);
                     console.debug(eui);

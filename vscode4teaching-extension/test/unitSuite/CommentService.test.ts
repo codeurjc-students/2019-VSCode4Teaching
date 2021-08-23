@@ -283,13 +283,14 @@ describe("Comment Service", () => {
 
         mockedPath.resolve.mockReturnValueOnce("path test");
 
-        await commentProvider.getThreads(1, "johndoe", cwd);
+        await commentProvider.getThreads(1, "johndoe", cwd, mockedClient.handleAxiosError);
 
         expect(mockedClient.getAllComments).toHaveBeenCalledTimes(1);
         expect(mockedClient.getAllComments).toHaveBeenNthCalledWith(1, "johndoe", 1);
         expect(mockedVscode.workspace.openTextDocument).toHaveBeenCalledTimes(1);
         expect(mockedVscode.workspace.openTextDocument).toHaveBeenNthCalledWith(1, mockedVscode.Uri.file("path test"));
         expect(commentProvider.commentController.createCommentThread).toHaveBeenCalledTimes(2);
+        expect(mockedClient.handleAxiosError).toHaveBeenCalledTimes(0);
     });
 
     it("should update thread line", async () => {

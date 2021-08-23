@@ -194,7 +194,7 @@ export class DashboardWebview {
             }
         });
         // Only used to refresh elapsed times
-        this.lastUpdatedInterval = global.setInterval(this.updateLastDate, 1000, this.panel, this._euis, this.getElapsedTime);
+        this.lastUpdatedInterval = global.setInterval(this.updateLastDate.bind(this), 1000);
     }
 
     public dispose() {
@@ -204,12 +204,12 @@ export class DashboardWebview {
         this.panel.dispose();
     }
 
-    private updateLastDate(panel: vscode.WebviewPanel, euis: ExerciseUserInfo[], getElapsedTime: (pastDate: Date) => string) {
+    private updateLastDate() {
         const message: { [key: string]: string } = {};
-        for (const eui of euis) {
-            message["user-lastmod-" + eui.user.id] = getElapsedTime(eui.updateDateTime);
+        for (const eui of this._euis) {
+            message["user-lastmod-" + eui.user.id] = this.getElapsedTime(eui.updateDateTime);
         }
-        panel.webview.postMessage(message);
+        this.panel.webview.postMessage(message);
     }
 
     private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string) {
