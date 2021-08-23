@@ -191,7 +191,7 @@
 				},
 				{
 					"command": "vscode4teaching.refreshexercises",
-					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@1"
 				},
 				{
