@@ -1,8 +1,9 @@
-import { AxiosRequestConfig } from "axios";
-import * as FormData from "form-data";
+import axios, { AxiosRequestConfig } from "axios";
+import FormData from "form-data";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
+import * as vscode from "vscode";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
 
@@ -13,10 +14,13 @@ import { CurrentUser } from "./CurrentUser";
 class APIClientSessionSingleton {
 
     // APIClientSession is a singleton
-    public readonly sessionPath = path.resolve(__dirname, "..", "v4t", "v4tsession");
-    public baseUrl: string | undefined;
+    public readonly sessionPath = path.resolve(__dirname, "v4t", "v4tsession");
     public jwtToken: string | undefined;
     public xsrfToken: string | undefined;
+
+    get baseUrl(): string {
+        return vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer", "https://edukafora.codeurjc.es");
+    }
 
     /**
      * Initialize session variables with file created when logging in
@@ -28,7 +32,6 @@ class APIClientSessionSingleton {
             const sessionParts = readSession.split("\n");
             this.jwtToken = sessionParts[0];
             this.xsrfToken = sessionParts[1];
-            this.baseUrl = sessionParts[2];
             success = true;
         } else {
             success = false;
@@ -45,7 +48,6 @@ class APIClientSessionSingleton {
         }
         this.jwtToken = undefined;
         this.xsrfToken = undefined;
-        this.baseUrl = undefined;
         CurrentUser.resetUserInfo();
     }
 
@@ -57,14 +59,14 @@ class APIClientSessionSingleton {
         if (!fs.existsSync(v4tPath)) {
             mkdirp.sync(v4tPath);
         }
-        fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken + "\n" + this.baseUrl);
+        fs.writeFileSync(this.sessionPath, this.jwtToken + "\n" + this.xsrfToken);
     }
 
     /**
      * Based on options creates an axios configuration with authorization.
      * @param options Axios build options from which to build the AxiosRequestConfig
      */
-    public buildOptions(options: AxiosBuildOptions): AxiosRequestConfig {
+    public buildOptions(options: AxiosBuildOptions) {
         const axiosConfig: AxiosRequestConfig = {
             url: options.url,
             baseURL: this.baseUrl,
@@ -74,6 +76,7 @@ class APIClientSessionSingleton {
             },
             responseType: options.responseType,
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
         };
         if (this.jwtToken) {
             Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
@@ -82,10 +85,20 @@ class APIClientSessionSingleton {
             Object.assign(axiosConfig.headers, { "X-XSRF-TOKEN": this.xsrfToken });
             Object.assign(axiosConfig.headers, { Cookie: "XSRF-TOKEN=" + this.xsrfToken });
         }
+        let timeout;
         if (options.data instanceof FormData) {
             Object.assign(axiosConfig.headers, options.data.getHeaders());
+        } else {
+            const CancelToken = axios.CancelToken;
+            const source = CancelToken.source();
+            if (source) {
+                axiosConfig.cancelToken = source.token;
+                timeout = setTimeout(() => {
+                    source.cancel();
+                }, 10000);
+            }
         }
-        return axiosConfig;
+        return { axiosOptions: axiosConfig, timeout };
     }
 }
 export let APIClientSession = new APIClientSessionSingleton();

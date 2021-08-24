@@ -6,12 +6,14 @@ import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
 import { CurrentUser } from "../../src/client/CurrentUser";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { FinishItem } from "../../src/components/statusBarItems/exercises/FinishItem";
 import * as extension from "../../src/extension";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "../../src/model/serverModel/file/FileInfo";
 import { User } from "../../src/model/serverModel/user/User";
+import { LiveShareService } from "../../src/services/LiveShareService";
 import { NoteComment } from "../../src/services/NoteComment";
 import { TeacherCommentService } from "../../src/services/TeacherCommentsService";
 import { FileZipUtil } from "../../src/utils/FileZipUtil";
@@ -33,6 +35,10 @@ jest.mock("../../src/utils/FileZipUtil");
 const mockedFileZipUtil = mocked(FileZipUtil, true);
 jest.mock("mkdirp");
 const mockedMkdirp = mocked(mkdirp, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
+jest.mock("../../src/services/LiveShareService");
+const mockedLiveShareService = mocked(LiveShareService, true);
 
 const ec: vscode.ExtensionContext = {
     subscriptions: [],
@@ -110,8 +116,9 @@ describe("Command implementations", () => {
         const commentsMock: NoteComment[] = [
             new NoteComment("test1", mockedVscode.CommentMode.Preview, { name: "johndoe" }, lineText),
         ];
+        const route = path.sep === "/" ? "/v4t/johndoe/course/exercise/johndoejr/file.txt" : "e:\\v4t\\johndoe\\course\\exercise\\johndoejr\\file.txt";
         const threadMock: vscode.CommentThread = {
-            uri: mockedVscode.Uri.parse("/v4t/johndoe/course/exercise/johndoejr/file.txt"),
+            uri: mockedVscode.Uri.parse(route),
             range: rangeMock,
             collapsibleState: mockedVscode.CommentThreadCollapsibleState.Expanded,
             comments: commentsMock,
@@ -136,7 +143,6 @@ describe("Command implementations", () => {
 
         mockedFileZipUtil.INTERNAL_FILES_DIR = "v4t";
 
-        mockedPath.sep = "/";
         mockedPath.resolve.mockImplementation((...args) => {
             let finalRoute = "";
             for (const arg of args) {
@@ -159,10 +165,11 @@ describe("Command implementations", () => {
         extension.setCommentProvider("johndoe");
         await commandFunctions["vscode4teaching.createComment"](replyMock);
 
-        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
+        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "v4t", "johndoe", ".fileInfo", "exercise", "johndoejr.json");
         expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
+        const fileInfoRoute = path.sep === "/" ? "/v4t/johndoe/.fileInfo/exercise/johndoejr.json" : "e:\\v4t\\johndoe\\.fileInfo\\exercise\\johndoejr.json";
         expect(mockedFs.readFileSync).toHaveBeenNthCalledWith(1, "/v4t/johndoe/.fileInfo/exercise/johndoejr.json", { encoding: "utf8" });
         expect(extension.commentProvider?.addComment).toHaveBeenCalledTimes(1);
         expect(extension.commentProvider?.addComment).toHaveBeenNthCalledWith(1, replyMock, 101);
@@ -186,7 +193,7 @@ describe("Command implementations", () => {
             status: 1,
             user,
             exercise,
-            updateDateTime: new Date(),
+            updateDateTime: new Date().toISOString(),
             lastModifiedFile: "",
         };
         const response: AxiosResponse<ExerciseUserInfo> = {
@@ -409,19 +416,21 @@ describe("Command implementations", () => {
         };
         mockedVscode.workspace.getWorkspaceFolder.mockReturnValueOnce(wf);
         mockedPath.relative.mockReturnValueOnce("file.txt");
-        extension.setTemplate("johndoejr", "template");
+        extension.setTemplate("parentdir", "template");
+        mockedPath.resolve.mockReturnValueOnce("parentdir");
         mockedPath.resolve.mockReturnValueOnce("template/file.txt");
         mockedFs.existsSync.mockReturnValueOnce(true);
 
         await commandFunctions["vscode4teaching.diff"](file);
 
-        expect(vscode.window.showErrorMessage).toHaveBeenCalledTimes(5);
+        expect(vscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
         expect(mockedVscode.workspace.getWorkspaceFolder).toHaveBeenCalledTimes(1);
         expect(mockedVscode.workspace.getWorkspaceFolder).toHaveBeenNthCalledWith(1, file);
         expect(mockedPath.relative).toHaveBeenCalledTimes(1);
         expect(mockedPath.relative).toHaveBeenNthCalledWith(1, wf.uri.fsPath, file.fsPath);
-        expect(mockedPath.resolve).toHaveBeenCalledTimes(1);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "template", "file.txt");
+        expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "johndoejr", "..");
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "template", "file.txt");
         expect(mockedFs.existsSync).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", file, mockedVscode.Uri.file("template/file.txt"));

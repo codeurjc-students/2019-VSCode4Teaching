@@ -1,6 +1,6 @@
 
-import axios, { AxiosPromise, AxiosRequestConfig } from "axios";
-import * as FormData from "form-data";
+import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import FormData from "form-data";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
@@ -13,9 +13,17 @@ import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit";
 
 jest.mock("axios");
-const mockedAxios = mocked(axios, false);
+const mockedAxios = mocked(axios, true);
+mockedAxios.mockResolvedValue({
+    data: undefined,
+    status: 200,
+    statusText: "",
+    headers: {},
+    config: {},
+});
 jest.mock("vscode");
 const mockedVscode = mocked(vscode, true);
+const baseUrl = "https://edukafora.codeurjc.es";
 
 // This tests don't bother with the response of the calls, only the request parameters
 describe("client API calls", () => {
@@ -33,12 +41,10 @@ describe("client API calls", () => {
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, message, thenable);
     }
 
-    const baseUrl = "http://test.com";
     const xsrfToken = "test";
     const jwtToken = "test";
 
     function setLoggedIn() {
-        APIClientSession.baseUrl = baseUrl;
         APIClientSession.xsrfToken = xsrfToken;
         APIClientSession.jwtToken = jwtToken;
     }
@@ -46,7 +52,6 @@ describe("client API calls", () => {
     afterEach(() => {
         mockedAxios.mockClear();
         mockedVscode.window.setStatusBarMessage.mockClear();
-        APIClientSession.baseUrl = undefined;
         APIClientSession.xsrfToken = undefined;
         APIClientSession.jwtToken = undefined;
     });
@@ -65,6 +70,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/currentuser",
@@ -86,6 +92,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/courses/" + courseId + "/exercises",
@@ -107,6 +114,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "arraybuffer",
             url: "/api/exercises/" + exerciseId + "/files",
@@ -131,6 +139,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/courses",
@@ -156,6 +165,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "PUT",
             responseType: "json",
             url: "/api/courses/" + oldCourseId,
@@ -178,6 +188,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "DELETE",
             responseType: "json",
             url: "/api/courses/" + oldCourseId,
@@ -203,6 +214,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/courses/" + courseId + "/exercises",
@@ -228,6 +240,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "PUT",
             responseType: "json",
             url: "/api/exercises/" + exerciseId,
@@ -252,6 +265,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/exercises/" + exerciseId + "/files/template",
@@ -273,6 +287,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "DELETE",
             responseType: "json",
             url: "/api/exercises/" + exerciseId,
@@ -293,6 +308,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/users",
@@ -314,6 +330,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/courses/" + courseId + "/users",
@@ -338,6 +355,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/courses/" + courseId + "/users",
@@ -362,6 +380,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "DELETE",
             responseType: "json",
             url: "/api/courses/" + courseId + "/users",
@@ -383,6 +402,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/courses/" + courseId + "/creator",
@@ -407,6 +427,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/exercises/" + exerciseId + "/files",
@@ -428,6 +449,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "arraybuffer",
             url: "/api/exercises/" + exerciseId + "/teachers/files",
@@ -449,6 +471,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "arraybuffer",
             url: "/api/exercises/" + exerciseId + "/files/template",
@@ -471,6 +494,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/users/" + username + "/exercises/" + exerciseId + "/files",
@@ -496,6 +520,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
             url: "/api/files/" + fileId + "/comments",
@@ -517,6 +542,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/files/" + fileId + "/comments",
@@ -539,6 +565,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/users/" + username + "/exercises/" + exerciseId + "/comments",
@@ -564,6 +591,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/courses/" + course.id + "/code",
@@ -577,7 +605,7 @@ describe("client API calls", () => {
     it("should request get sharing code for exercise correctly", () => {
         const exercise: Exercise = {
             name: "Exercise",
-            id: 1,
+            id: 2,
         };
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
@@ -588,6 +616,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/exercises/" + exercise.id + "/code",
@@ -613,6 +642,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "PUT",
             responseType: "json",
             url: "/api/comments/" + fileId + "/lines",
@@ -634,6 +664,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/courses/code/" + code,
@@ -655,6 +686,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/exercises/" + exerciseId + "/info",
@@ -679,6 +711,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "PUT",
             responseType: "json",
             url: "/api/exercises/" + exerciseId + "/info",
@@ -700,6 +733,7 @@ describe("client API calls", () => {
                 "X-XSRF-TOKEN": xsrfToken,
             },
             maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             method: "GET",
             responseType: "json",
             url: "/api/exercises/" + exerciseId + "/info/teacher",

@@ -75,6 +75,7 @@ export class TeacherCommentService {
             }),
         };
         const response = await APIClient.saveComment(fileId, serverCommentThread);
+        console.debug(response);
         // If saved correctly then add thread to the map
         if (response.data.id) {
             this.threads.set(response.data.id, thread);
@@ -88,20 +89,25 @@ export class TeacherCommentService {
      * @param cwd workspace directory of the files
      * @param errorCallback error callback if API request fails
      */
-    public async getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder) {
-        const response = await APIClient.getAllComments(username, exerciseId);
-        if (response.data) {
-            const fileInfoArray = response.data;
-            for (const fileInfo of fileInfoArray) {
-                if (fileInfo.comments) {
-                    const uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
-                    // if document exists and can be opened then add thread
-                    const textDoc = await vscode.workspace.openTextDocument(uri);
-                    for (const commentThread of fileInfo.comments) {
-                        this.createThreadFromServer(commentThread, textDoc);
+    public async getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: (err: any) => void) {
+        try {
+            const response = await APIClient.getAllComments(username, exerciseId);
+            console.debug(response);
+            if (response.data) {
+                const fileInfoArray = response.data;
+                for (const fileInfo of fileInfoArray) {
+                    if (fileInfo.comments) {
+                        const uri = vscode.Uri.file(path.resolve(cwd.uri.fsPath, fileInfo.path));
+                        // if document exists and can be opened then add thread
+                        const textDoc = await vscode.workspace.openTextDocument(uri);
+                        for (const commentThread of fileInfo.comments) {
+                            this.createThreadFromServer(commentThread, textDoc);
+                        }
                     }
                 }
             }
+        } catch (err) {
+            errorCallback(err);
         }
     }
 
@@ -128,6 +134,7 @@ export class TeacherCommentService {
      */
     public async updateThreadLine(threadId: number, line: number, lineText: string) {
         const response = await APIClient.updateCommentThreadLine(threadId, line, lineText);
+        console.debug(response);
         const commentThread = response.data;
         const oldThread = this.threads.get(threadId);
         if (oldThread) {

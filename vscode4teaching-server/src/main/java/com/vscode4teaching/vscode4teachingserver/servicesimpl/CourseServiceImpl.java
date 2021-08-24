@@ -1,8 +1,10 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.Min;
 
@@ -22,23 +24,28 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorE
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepo;
     private final ExerciseRepository exerciseRepo;
     private final UserRepository userRepo;
     private final ExerciseUserInfoRepository exerciseUserInfoRepo;
+    private final SocketHandler websocketHandler;
 
     public CourseServiceImpl(CourseRepository courseRepo, ExerciseRepository exerciseRepo, UserRepository userRepo,
-            ExerciseUserInfoRepository exerciseUserInfoRepo) {
+            ExerciseUserInfoRepository exerciseUserInfoRepo, SocketHandler websocketHandler) {
         this.courseRepo = courseRepo;
         this.exerciseRepo = exerciseRepo;
         this.userRepo = userRepo;
         this.exerciseUserInfoRepo = exerciseUserInfoRepo;
+        this.websocketHandler = websocketHandler;
     }
 
     @Override
@@ -77,6 +84,7 @@ public class CourseServiceImpl implements CourseService {
             ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
             exerciseUserInfoRepo.save(eui);
         }
+        this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return savedExercise;
     }
 
@@ -118,6 +126,7 @@ public class CourseServiceImpl implements CourseService {
             ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
             exerciseUserInfoRepo.save(eui);
         }
+        this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return courseRepo.save(course);
     }
 
@@ -148,7 +157,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course addUsersToCourse(@Min(1) Long courseId, long[] userIds, String requestUsername)
+    public Course addUsersToCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
@@ -161,6 +170,7 @@ public class CourseServiceImpl implements CourseService {
                 exerciseUserInfoRepo.save(eui);
             }
         }
+        this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return this.courseRepo.save(course);
     }
 
@@ -174,7 +184,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course removeUsersFromCourse(@Min(1) Long courseId, long[] userIds, String requestUsername)
+    public Course removeUsersFromCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
@@ -186,6 +196,9 @@ public class CourseServiceImpl implements CourseService {
             }
             course.removeUserFromCourse(user);
         }
+        List<Long> exerciseIds = course.getExercises().stream().map(e -> e.getId()).collect(Collectors.toList());
+        this.exerciseUserInfoRepo.deleteByExercise_IdInAndUser_IdIn(exerciseIds, Arrays.asList(userIds));
+        this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return this.courseRepo.save(course);
     }
 

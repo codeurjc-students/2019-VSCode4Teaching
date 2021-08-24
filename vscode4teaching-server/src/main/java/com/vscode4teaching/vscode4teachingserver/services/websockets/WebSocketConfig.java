@@ -8,7 +8,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
+
+    private final SocketHandler socketHandler;
+
+	public WebSocketConfig(SocketHandler socketHandler) {
+		this.socketHandler = socketHandler;
+	}
+
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new SocketHandler(), "/liveshare", "dashboard-refresh");
+        registry.addHandler(socketHandler, "/liveshare", "dashboard-refresh");
     }
 }

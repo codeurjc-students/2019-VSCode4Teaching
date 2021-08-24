@@ -6,11 +6,13 @@ import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { APIClient } from "../../src/client/APIClient";
 import { CurrentUser } from "../../src/client/CurrentUser";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { CoursesProvider } from "../../src/components/courses/CoursesTreeProvider";
 import * as extension from "../../src/extension";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
+import { LiveShareService } from "../../src/services/LiveShareService";
 import { TeacherCommentService } from "../../src/services/TeacherCommentsService";
 import { FileIgnoreUtil } from "../../src/utils/FileIgnoreUtil";
 
@@ -32,6 +34,10 @@ jest.mock("../../src/utils/FileIgnoreUtil");
 const mockedFileIgnoreUtil = mocked(FileIgnoreUtil, true);
 jest.mock("jszip");
 const mockedJSZip = mocked(JSZip, true);
+jest.mock("../../src/services/LiveShareService");
+const mockedLiveShareService = mocked(LiveShareService, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
 
 jest.useFakeTimers();
 
@@ -109,8 +115,9 @@ describe("Extension entry point", () => {
                 name: exercise.name,
             },
         ];
+        const zipLocation = path.sep === "/" ? "testZipLocation/" + exercise.id + ".zip" : "testZipLocation\\" + exercise.id + ".zip";
         const v4tjson = {
-            zipLocation: "testZipLocation/" + exercise.id + ".zip",
+            zipLocation,
         };
         const user: User = {
             id: 40,
@@ -124,7 +131,7 @@ describe("Extension entry point", () => {
             exercise,
             user,
             status: 0,
-            updateDateTime: new Date(),
+            updateDateTime: new Date().toISOString(),
             lastModifiedFile: "",
         };
         const euiResponse: AxiosResponse<ExerciseUserInfo> = {
@@ -138,8 +145,9 @@ describe("Extension entry point", () => {
         mockedClient.handleAxiosError.mockImplementation((error) => console.error(error));
         mockedClient.getExerciseUserInfo.mockResolvedValueOnce(euiResponse);
 
-        mockedPath.sep = "/";
         mockedPath.resolve.mockReturnValueOnce("testParentURL").mockImplementation((x) => x);
+
+        mockedVscode.window.showInformationMessage.mockResolvedValueOnce(undefined);
 
         mockedVscode.workspace.findFiles.mockResolvedValueOnce([mockedVscode.Uri.parse("testV4TLocation")]);
         const fswFunctionMocks: vscode.FileSystemWatcher = {
@@ -171,14 +179,14 @@ describe("Extension entry point", () => {
         expect(extension.commentProvider?.getThreads).toHaveBeenCalledTimes(1);
         expect(extension.commentInterval).toBeTruthy();
         expect(global.setInterval).toHaveBeenCalledTimes(1);
-        expect(global.setInterval).toHaveBeenNthCalledWith(1,
-            extension.commentProvider?.getThreads,
-            60000,
-            exercise.id,
-            "johndoejr",
-            cwds[0],
-            mockedClient.handleAxiosError,
-        );
+        const intervalMock = (global.setInterval as jest.Mock);
+        // expect getThreads function bound by its commentProvider as first argument of setInterval
+        expect(Object.create(extension.commentProvider?.getThreads.prototype) instanceof intervalMock.mock.calls[0][0]).toBe(true);
+        expect(intervalMock.mock.calls[0][1]).toBe(60000);
+        expect(intervalMock.mock.calls[0][2]).toBe(exercise.id);
+        expect(intervalMock.mock.calls[0][3]).toBe("johndoejr");
+        expect(intervalMock.mock.calls[0][4]).toBe(cwds[0]);
+        expect(intervalMock.mock.calls[0][5]).toBe(mockedClient.handleAxiosError);
         expect(mockedVscode.workspace.createFileSystemWatcher).toHaveBeenCalledTimes(1);
         expect(fswFunctionMocks.onDidChange).toHaveBeenCalledTimes(1);
         expect(fswFunctionMocks.onDidCreate).toHaveBeenCalledTimes(1);

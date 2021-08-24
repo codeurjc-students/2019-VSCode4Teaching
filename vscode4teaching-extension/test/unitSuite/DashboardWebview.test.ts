@@ -1,16 +1,27 @@
 import * as cheerio from "cheerio";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
+import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { DashboardWebview } from "../../src/components/dashboard/DashboardWebview";
+import { Course } from "../../src/model/serverModel/course/Course";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
 
 jest.mock("vscode");
 const mockedVscode = mocked(vscode, true);
+jest.mock("../../src/client/WebSocketV4TConnection");
+const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
+
+jest.useFakeTimers();
 
 describe("Dashboard webview", () => {
     it("should be created if it doesn't exist", () => {
+        const course: Course = {
+            id: 1,
+            name: "Course",
+            exercises: [],
+        };
         const exercise: Exercise = {
             id: 1,
             name: "Exercise 1",
@@ -43,32 +54,33 @@ describe("Dashboard webview", () => {
             ],
         };
         const euis: ExerciseUserInfo[] = [];
-        let now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        let now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student1,
             status: 0,
-            updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()),
+            updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()).toISOString(),
             lastModifiedFile: "/index.html",
         });
-        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student2,
             status: 1,
-            updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()),
+            updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()).toISOString(),
             lastModifiedFile: "/readme.md",
         });
-        now = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
             exercise,
             user: student3,
             status: 2,
-            updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
-            lastModifiedFile: "",
+            updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
+            lastModifiedFile: undefined,
         });
-        DashboardWebview.show(euis, exercise.id);
+        DashboardWebview.show(euis, course, exercise);
         if (DashboardWebview.currentPanel) {
+            expect(global.setInterval).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][0]).toBe("v4tdashboard");
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][1]).toBe("V4T Dashboard: Exercise 1");
@@ -109,7 +121,7 @@ describe("Dashboard webview", () => {
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
             expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
             expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
-            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Open in Workspace");
+            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modified file");
             expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
             // Table data is correct
             const tableData = $("td").toArray();
@@ -117,13 +129,23 @@ describe("Dashboard webview", () => {
             expect(tableData[1].firstChild.data).toBe("student1");
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
-            expect(tableData[3].firstChild.data).toBe("Not found");
+            expect(tableData[3].childNodes[0].name).toBe("button");
+            expect(tableData[3].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[3].childNodes[0].attribs["data-lastmod"]).toBe("/index.html");
+            expect(tableData[3].childNodes[1].name).toBe("button");
+            expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
+            expect(tableData[3].childNodes[1].attribs["data-lastmod-diff"]).toBe("/index.html");
             // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
             expect(tableData[7].firstChild.data).toBe("Finished");
             expect(tableData[7].attribs.class).toBe("finished-cell");
-            expect(tableData[8].firstChild.data).toBe("Not found");
+            expect(tableData[8].childNodes[0].name).toBe("button");
+            expect(tableData[8].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[8].childNodes[0].attribs["data-lastmod"]).toBe("/readme.md");
+            expect(tableData[8].childNodes[1].name).toBe("button");
+            expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
+            expect(tableData[8].childNodes[1].attribs["data-lastmod-diff"]).toBe("/readme.md");
             // expect(tableData[9].firstChild.data).toBe("13 min");
             expect(tableData[10].firstChild.data).toBe("Student 3");
             expect(tableData[11].firstChild.data).toBe("student3");

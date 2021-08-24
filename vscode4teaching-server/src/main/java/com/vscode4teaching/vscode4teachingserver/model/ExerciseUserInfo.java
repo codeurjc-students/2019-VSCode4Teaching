@@ -8,15 +8,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.lang.Nullable;
 
 @Entity
+@Table(name="user_info")
 public class ExerciseUserInfo {
 
     @Id
@@ -87,6 +88,8 @@ public class ExerciseUserInfo {
     }
 
     public void setLastModifiedFile(String lastModifiedFile) {
-        this.lastModifiedFile = lastModifiedFile;
+        if (lastModifiedFile != null) {
+            this.lastModifiedFile = lastModifiedFile;
+        }
     }
 }

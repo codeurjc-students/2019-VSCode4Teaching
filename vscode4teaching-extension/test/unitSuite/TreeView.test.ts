@@ -201,11 +201,9 @@ describe("Tree View", () => {
     });
 
     it("should show login form correctly then call login", async () => {
-        const mockUrl = "http://test.com:12345";
         const mockUsername = "johndoe";
         const mockPassword = "password";
 
-        const inputOptionsURL = mockGetInput("Server", Validators.validateUrl, mockUrl, mockUrl);
         const inputOptionsUsername = mockGetInput("Username", Validators.validateUsername, mockUsername);
         const inputOptionsPassword = mockGetInput("Password", Validators.validatePasswordLogin, mockPassword, undefined, true);
 
@@ -213,11 +211,10 @@ describe("Tree View", () => {
 
         await coursesProvider.login();
 
-        expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(3);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsURL);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(2, inputOptionsUsername);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(3, inputOptionsPassword);
-        expect(mockedClient.loginV4T).toHaveBeenLastCalledWith(mockUsername, mockPassword, mockUrl);
+        expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(2);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsUsername);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(2, inputOptionsPassword);
+        expect(mockedClient.loginV4T).toHaveBeenLastCalledWith(mockUsername, mockPassword);
     });
 
     it("should logout correctly", () => {
@@ -463,7 +460,6 @@ describe("Tree View", () => {
     });
 
     it("should sign up student correctly", async () => {
-        const mockUrl = "http://test.com:12345";
         const userData = {
             username: "johndoe",
             password: "password",
@@ -472,7 +468,6 @@ describe("Tree View", () => {
             lastName: "Doe",
         };
 
-        const inputOptionsURL = mockGetInput("Server", Validators.validateUrl, mockUrl, mockUrl);
         const inputOptionsUsername = mockGetInput("Username", Validators.validateUsername, userData.username);
         const inputOptionsPassword = mockGetInput("Password", Validators.validatePasswordSignup, userData.password, undefined, true);
         const inputOptionsPasswordConfirm = mockGetInput("Confirm password", Validators.validateEqualPassword, userData.password, undefined, true);
@@ -484,16 +479,15 @@ describe("Tree View", () => {
 
         await coursesProvider.signup(false);
 
-        expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(7);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsURL);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(2, inputOptionsUsername);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(3, inputOptionsPassword);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(4, inputOptionsPasswordConfirm);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(5, inputOptionsEmail);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(6, inputOptionsName);
-        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(7, inputOptionsLastName);
+        expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(6);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsUsername);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(2, inputOptionsPassword);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(3, inputOptionsPasswordConfirm);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(4, inputOptionsEmail);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(5, inputOptionsName);
+        expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(6, inputOptionsLastName);
         expect(mockedClient.signUpV4T).toHaveBeenCalledTimes(1);
-        expect(mockedClient.signUpV4T).toHaveBeenNthCalledWith(1, userData, mockUrl, false);
+        expect(mockedClient.signUpV4T).toHaveBeenNthCalledWith(1, userData, false);
     });
 
     it("should get course from code", async () => {

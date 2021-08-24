@@ -12,7 +12,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "1.0.16",
+	"version": "2.0.1",
 	"engines": {
 		"vscode": "^1.45.1"
 	},
@@ -42,7 +42,7 @@
 	"activationEvents": [
 		"*"
 	],
-	"main": "./out/src/extension.js",
+	"main": "./out/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "VSCode4Teaching",
@@ -54,8 +54,8 @@
 				},
 				"vscode4teaching.defaultServer": {
 					"type": "string",
-					"default": "http://localhost:8080",
-					"description": "Default server to show when logging in"
+					"default": "https://edukafora.codeurjc.es",
+					"description": "Default server to use when logging in"
 				}
 			}
 		},
@@ -172,7 +172,8 @@
 			"explorer/context": [
 				{
 					"command": "vscode4teaching.diff",
-					"group": "navigation"
+					"group": "navigation",
+					"when": "vscode4teaching.isTeacher"
 				}
 			],
 			"view/title": [
@@ -289,10 +290,13 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "rimraf out && esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --external:jszip --external:form-data --external:ws --format=cjs --platform=node",
+		"build": "npm run esbuild-base -- --sourcemap",
+		"watch": "npm run esbuild-base -- --sourcemap --watch",
+		"test-compile": "rimraf out && tsc -p ./",
+		"test-watch": "tsc -watch -p ./",
+		"pretest": "npm run test-compile",
 		"test": "npm run unitTest",
 		"unitTest": "jest",
 		"coverage": "jest --coverage",
@@ -312,6 +316,7 @@
 		"@types/vscode": "^1.45.1",
 		"@types/ws": "^7.4.4",
 		"cheerio": "^1.0.0-rc.3",
+		"esbuild": "^0.12.20",
 		"glob": "^7.1.6",
 		"jest": "^26.0.1",
 		"jest-sonar-reporter": "^2.0.0",

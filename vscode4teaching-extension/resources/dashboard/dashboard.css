@@ -135,3 +135,7 @@ table th {
 .sorter-ls.active span:last-of-type {
     transform: rotate(45deg);
 }
+
+.workspace-link {
+    margin-right: 4px;
+}

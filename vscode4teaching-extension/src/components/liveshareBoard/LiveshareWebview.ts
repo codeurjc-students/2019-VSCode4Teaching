@@ -1,10 +1,10 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import * as vsls from "vsls";
 import { APIClient } from "../../client/APIClient";
-import { Course } from "../../model/serverModel/course/Course";
-import * as vsls from 'vsls';
 import { CurrentUser } from "../../client/CurrentUser";
-import { liveshareAPI, ws, setLiveshareAPI, connectWS, handleLiveshareMessage } from "../../extension";
+import { initializeLiveShare, liveshareService, wsLiveshare } from "../../extension";
+import { Course } from "../../model/serverModel/course/Course";
 import { User } from "../../model/serverModel/user/User";
 
 export class LiveshareWebview {
@@ -12,8 +12,8 @@ export class LiveshareWebview {
 
     public static readonly viewType = "v4tliveshareBoard";
 
-    public static readonly resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
-        path.join(__dirname, "..", "..", "..", "..", "resources", "dashboard") :
+    public static readonly resourcesPath = __dirname.includes(path.sep + "out") ?
+        path.join(__dirname, "..", "resources", "dashboard") :
         path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
     public static show(courses: Course[]) {
@@ -28,7 +28,7 @@ export class LiveshareWebview {
         }
 
         // Otherwise, create a new panel.
-        let dashboardName = "Liveshare Dashboard";
+        const dashboardName = "Liveshare Dashboard";
 
         const panel = vscode.window.createWebviewPanel(
             LiveshareWebview.viewType,
@@ -55,7 +55,6 @@ export class LiveshareWebview {
     private sortAsc: boolean;
     private shareCode: vscode.Uri | null;
 
-
     private constructor(panel: vscode.WebviewPanel, dashboardName: string, courses: Course[]) {
         this.panel = panel;
         this._dashboardName = dashboardName;
@@ -66,18 +65,15 @@ export class LiveshareWebview {
         this.sortAsc = false;
         this.shareCode = null;
 
-        this.getUsersDataFromCourses().then(_ => {
+        this.getUsersDataFromCourses().then((_) => {
             // Set the webview's initial html content
             this.getHtmlForWebview().then(
-                data => {
+                (data) => {
                     this.panel.webview.html = data;
                 },
-                err => { console.error(err); }
+                (err) => { console.error(err); },
             );
         });
-
-
-
 
         // Listen for when the panel is disposed
         // This happens when the user closes the panel or when the panel is closed programatically
@@ -88,78 +84,67 @@ export class LiveshareWebview {
             (e) => {
                 if (this.panel.visible) {
                     this.getHtmlForWebview().then(
-                        data => {
+                        (data) => {
                             this.panel.webview.html = data;
                         },
-                        err => { console.error(err); }
+                        (err) => { console.error(err); },
                     );
                 }
             },
         );
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
-                case 'start-liveshare': {
+                case "start-liveshare": {
 
                     if (CurrentUser.getUserInfo().username === message.username) {
-                        vscode.window.showWarningMessage("Choose a valid user to start Live Share")
+                        vscode.window.showWarningMessage("Choose a valid user to start Live Share");
                         break;
                     }
 
-                    if (!liveshareAPI) {
-                        const api = await vsls.getApi();
-                        if (api == null) {
-                            vscode.window.showErrorMessage("Install Live Share extension in order to use its integrated service on V4T", "Install").then(
-                                res => {
-                                    if (res === "Install") {
-                                        vscode.commands.executeCommand("workbench.extensions.installExtension", "ms-vsliveshare.vsliveshare-pack");
-                                    }
-                                }
-                            );
-                        }
-                        else setLiveshareAPI(api);
+                    if (!liveshareService) {
+                        await initializeLiveShare();
                     }
-                    if (liveshareAPI) {
+                    if (liveshareService) {
                         this.sendLiveshareCode(message.username);
                     }
                 }
                 case "sort-ls": {
                     this.sortAsc = message.desc;
-                    let weight = this.sortAsc ? 1 : -1;
+                    const weight = this.sortAsc ? 1 : -1;
                     switch (message.column % this.data.length) {
                         case 0: {
-                            //full name
-                            this.data[message.courseIndex].users.sort(function (a: User, b: User) {
+                            // full name
+                            this.data[message.courseIndex].users.sort((a: User, b: User) => {
 
-                                const aname = ((a.name) ? a.name : '') + ' ' + ((a.lastName) ? a.lastName : '');
-                                const bname = ((b.name) ? b.name : '') + ' ' + ((b.lastName) ? b.lastName : '');
+                                const aname = ((a.name) ? a.name : "") + " " + ((a.lastName) ? a.lastName : "");
+                                const bname = ((b.name) ? b.name : "") + " " + ((b.lastName) ? b.lastName : "");
 
-                                if (aname > bname)
+                                if (aname > bname) {
                                     return -1 * weight;
-                                else if (a.username < b.username)
+                                } else if (a.username < b.username) {
                                     return 1 * weight;
-                                else return 0;
-                            })
+                                } else { return 0; }
+                            });
                             break;
                         }
                         case 1: {
-                            //username
-                            this.data[message.courseIndex].users.sort(function (a: User, b: User) {
-                                if (a.username > b.username)
+                            // username
+                            this.data[message.courseIndex].users.sort((a: User, b: User) => {
+                                if (a.username > b.username) {
                                     return -1 * weight;
-                                else if (a.username < b.username)
+                                } else if (a.username < b.username) {
                                     return 1 * weight;
-                                else return 0;
-                            })
+                                } else { return 0; }
+                            });
                             break;
                         }
                         case 2: {
-                            //role
+                            // role
                             this.data[message.courseIndex].users.sort((a: User, b: User) => {
-                                if (a.roles.some(r => r.roleName == "ROLE_TEACHER")) return -1 * weight;
-                                if (b.roles.some(r => r.roleName == "ROLE_TEACHER")) return 1 * weight;
-                                if (a.username < b.username) return -1 * weight;
-                                if (a.username > b.username) return 1 * weight;
-                                else return 0;
+                                if (a.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return -1 * weight; }
+                                if (b.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return 1 * weight; }
+                                if (a.username < b.username) { return -1 * weight; }
+                                if (a.username > b.username) { return 1 * weight; } else { return 0; }
                             });
                             break;
                         }
@@ -171,52 +156,63 @@ export class LiveshareWebview {
         });
     }
 
+    public dispose() {
+        LiveshareWebview.currentPanel = undefined;
+
+        // Clean up our resources
+        this.panel.dispose();
+    }
+
     private async getUsersDataFromCourses(): Promise<void> {
-        for (let i = 0; i < this._courses.length; i++) {
-            const users = await this.getUsersFromCourse(this._courses[i]);
-            this.data.push({ course: this._courses[i], users });
+        for (const course of this._courses) {
+            const users = await this.getUsersFromCourse(course);
+            this.data.push({ course, users });
         }
     }
 
     private async getUsersFromCourse(course: Course): Promise<User[]> {
         const users = await APIClient.getUsersInCourse(course.id);
-        if (!users?.data) return [];
+        console.debug(users);
+        if (!users?.data) { return []; }
 
         let currentUsername: string;
         try {
             currentUsername = CurrentUser.getUserInfo().username;
-        } catch (_) { }
+        } catch (err) {
+            console.error(err);
+        }
         const filteredUsers = users.data
-            .filter(user => currentUsername && currentUsername !== user.username)
+            .filter((user) => currentUsername && currentUsername !== user.username)
             .sort((user1, user2) => {
-                if (user1.roles.some(r => r.roleName == "ROLE_TEACHER")) return -1;
-                if (user2.roles.some(r => r.roleName == "ROLE_TEACHER")) return 1;
-                if (user1.username < user2.username) return -1;
-                if (user1.username > user2.username) return 1;
-                else return 0;
+                if (user1.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return -1; }
+                if (user2.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return 1; }
+                if (user1.username < user2.username) { return -1; }
+                if (user1.username > user2.username) { return 1; } else { return 0; }
             });
 
-        this.users = new Set([...this.users, ...filteredUsers.map(user => user.username)]);
+        this.users = new Set([...this.users, ...filteredUsers.map((user) => user.username)]);
         return filteredUsers;
     }
 
     private async sendLiveshareCode(username: string) {
         if (!username) {
-            vscode.window.showErrorMessage("Error sending Live Share code: username is null");
+            const errorMsg = "Error sending Live Share code: username is null";
+            vscode.window.showErrorMessage(errorMsg);
+            console.error(errorMsg);
             return;
         }
-        if (liveshareAPI) {
+        if (liveshareService) {
             if (!this.shareCode) {
-                const optionalCode = await liveshareAPI.share();
-                if (optionalCode) this.shareCode = optionalCode;
+                const optionalCode = await liveshareService.share();
+                if (optionalCode) { this.shareCode = optionalCode; }
             }
             if (!this.shareCode) {
                 vscode.window.showErrorMessage("Error generating Live Share Code");
                 return;
             }
-            if (!ws) {
+            if (!wsLiveshare) {
                 vscode.window.showInformationMessage("Reconnecting websocket session...");
-                connectWS("liveshare", (data: any) => handleLiveshareMessage(data?.data));
+                await initializeLiveShare();
             }
             let from: string;
             try {
@@ -225,20 +221,15 @@ export class LiveshareWebview {
                 vscode.window.showInformationMessage("Error getting sender username: sending undefined");
                 from = "undefined";
             }
-            ws?.send(JSON.stringify({ "target": username, "from": from, "code": this.shareCode?.toString() }),
-                err => {
-                    if (err)
+            wsLiveshare?.send(JSON.stringify({ target: username, from, code: this.shareCode?.toString() }),
+                (err) => {
+                    if (err) {
                         vscode.window.showErrorMessage("Error sending code. Please, try opening another view to refresh the context.");
-                    //TODO: Se podría incluir un botón que llame a initializeExtension, y que así se recargue todo
-                })
+                        console.error(err);
+                    }
+                    // TODO: Se podría incluir un botón que llame a initializeExtension, y que así se recargue todo
+                });
         }
-    }
-
-    public dispose() {
-        LiveshareWebview.currentPanel = undefined;
-
-        // Clean up our resources
-        this.panel.dispose();
     }
 
     private async getHtmlForWebview() {
@@ -266,9 +257,9 @@ export class LiveshareWebview {
         }
 
         let searchbar: string = "<datalist id='usernames'>\n";
-        this.users.forEach(username => {
+        this.users.forEach((username) => {
             searchbar = searchbar + `<option value='${username}'>`;
-        })
+        });
         searchbar = searchbar + "</datalist>";
 
         // Use a nonce to whitelist which scripts can be run
@@ -306,9 +297,9 @@ export class LiveshareWebview {
 
     private async generateHTMLTableFromCourse(course: Course, users: User[], courseIndex: number): Promise<string> {
         let rows = "";
-        if (!users.length) return "";
+        if (!users.length) { return ""; }
         users
-            .forEach(user => {
+            .forEach((user) => {
                 rows = rows + "<tr>\n";
                 rows = rows + "<td>" + (user.name ? (user.name) : "") + " " + (user.lastName ? (user.lastName) : "") + "</td>\n";
                 rows = rows + "<td class='username'>" + (user.username ? (user.username) : "") + "</td>\n";
@@ -323,19 +314,19 @@ export class LiveshareWebview {
         <table data-courseIndex="${courseIndex}">
             <tr>
                 <th>Full name
-                    <span class="sorter-ls ${this.sortAsc ? 'active' : ''}">
+                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
                         <span></span>
                         <span></span>
                     </span>
                 </th>
                 <th>Username
-                    <span class="sorter-ls ${this.sortAsc ? 'active' : ''}">
+                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
                         <span></span>
                         <span></span>
                     </span>
                 </th>
                 <th>Role
-                    <span class="sorter-ls ${this.sortAsc ? 'active' : ''}">
+                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
                         <span></span>
                         <span></span>
                     </span>
@@ -343,7 +334,7 @@ export class LiveshareWebview {
                 <th>Liveshare</th>
             </tr>
             ${rows}
-        </table>`
+        </table>`;
 
         return text;
     }

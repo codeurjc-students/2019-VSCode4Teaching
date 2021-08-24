@@ -1,5 +1,5 @@
 import axios, { AxiosPromise } from "axios";
-import * as FormData from "form-data";
+import FormData from "form-data";
 import * as vscode from "vscode";
 import { CoursesProvider } from "../components/courses/CoursesTreeProvider";
 import { ServerCommentThread } from "../model/serverModel/comment/ServerCommentThread";
@@ -41,16 +41,13 @@ class APIClientSingleton {
      * so it can be used to log in at a future (close in time) time.
      * @param username Username
      * @param password Password
-     * @param url Server URL
      */
-    public async loginV4T(username: string, password: string, url?: string) {
+    public async loginV4T(username: string, password: string) {
         try {
-            if (url) {
-                APIClientSession.invalidateSession();
-                APIClientSession.baseUrl = url;
-            }
+            APIClientSession.invalidateSession();
             await APIClient.getXSRFToken();
             const response = await APIClient.login(username, password);
+            console.debug(response);
             vscode.window.showInformationMessage("Logged in");
             APIClientSession.jwtToken = response.data.jwtToken;
             APIClientSession.createSessionFile();
@@ -67,11 +64,10 @@ class APIClientSingleton {
      * @param url Server URL. Ignored if trying to sign up a teacher.
      * @param isTeacher Sign up as teacher (or not)
      */
-    public async signUpV4T(userCredentials: UserSignup, url?: string, isTeacher?: boolean) {
+    public async signUpV4T(userCredentials: UserSignup, isTeacher?: boolean) {
         try {
-            if (url && !isTeacher) {
+            if (!isTeacher) {
                 APIClientSession.invalidateSession();
-                APIClientSession.baseUrl = url;
                 await APIClient.getXSRFToken();
             }
             let signupThenable;
@@ -80,7 +76,8 @@ class APIClientSingleton {
             } else {
                 signupThenable = APIClient.signUp(userCredentials);
             }
-            await signupThenable;
+            const response = await signupThenable;
+            console.debug(response);
             if (isTeacher) {
                 vscode.window.showInformationMessage("Teacher signed up successfully.");
             } else {
@@ -99,7 +96,11 @@ class APIClientSingleton {
      * @param error Error
      */
     public handleAxiosError(error: any) {
-        if (error.response) {
+        console.error(error);
+        if (axios.isCancel(error)) {
+            vscode.window.showErrorMessage("Request timeout.");
+            APIClientSession.invalidateSession();
+        } else if (error.response) {
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
@@ -396,7 +397,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: String): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: string): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
@@ -444,9 +445,15 @@ class APIClientSingleton {
      * @param statusMessage message to add to the vscode status bar
      */
     private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
-        const thenable = axios(APIClientSession.buildOptions(options));
+        const axiosOptions = APIClientSession.buildOptions(options);
+        const thenable = axios(axiosOptions.axiosOptions);
         vscode.window.setStatusBarMessage(statusMessage, thenable);
-        return thenable;
+        return thenable.then((result) => {
+            if (axiosOptions.timeout) {
+                clearTimeout(axiosOptions.timeout);
+            }
+            return result;
+        });
     }
 
     /**
@@ -459,6 +466,7 @@ class APIClientSingleton {
             responseType: "json",
         };
         const response = await APIClient.createRequest(options, "Fetching server info...");
+        console.debug(response);
         const cookiesString: string | undefined = response.headers["set-cookie"][0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");

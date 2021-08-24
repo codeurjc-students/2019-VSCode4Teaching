@@ -9,8 +9,8 @@ import { V4TItemType } from "./V4TItemType";
  */
 export class V4TItem extends vscode.TreeItem {
 
-    private resourcesPath = __dirname.includes(path.sep + "out" + path.sep) ?
-        path.join(__dirname, "..", "..", "..", "..", "..", "resources") :
+    private resourcesPath = __dirname.includes(path.sep + "out") ?
+        path.join(__dirname, "..", "resources") :
         path.join(__dirname, "..", "..", "..", "..", "resources");
     constructor(
         readonly label: string,

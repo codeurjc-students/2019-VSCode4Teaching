@@ -8,7 +8,7 @@ jest.mock("../../src/client/CurrentUser");
 const mockedCurrentUser = mocked(CurrentUser, true);
 jest.mock("path");
 const mockedPath = mocked(path, true);
-mockedPath.resolve.mockImplementationOnce(() => "v4t"); // set INTERNAL_FILES_DIR to mock value
+mockedPath.resolve.mockImplementation((...args) => "v4t"); // set INTERNAL_FILES_DIR to mock value
 
 import { FileZipUtil } from "../../src/utils/FileZipUtil";
 

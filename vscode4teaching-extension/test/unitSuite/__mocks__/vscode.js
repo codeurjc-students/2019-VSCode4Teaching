@@ -59,7 +59,10 @@ const window = {
 };
 
 const WorkspaceConfiguration = {
-    get: jest.fn().mockImplementation(e => {
+    get: jest.fn().mockImplementation((e, defaultValue) => {
+        if (defaultValue !== undefined) {
+            return defaultValue
+        }
         switch (e) {
             case "defaultServer": {
                 return "http://test.com:12345"
@@ -98,7 +101,7 @@ const mockUriFile = f => {
     return { fsPath: f }
 };
 Uri.file = mockUriFile.bind(Uri);
-Uri.parse = mockUriFile.bind(Uri)
+Uri.parse = mockUriFile.bind(Uri);
 
 const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, endCharacter) => {
     const positionMockStart = {

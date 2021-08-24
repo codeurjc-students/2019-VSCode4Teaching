@@ -1,42 +1,43 @@
 dist: trusty
 branches:
   only:
-    - master
+  - master
 jobs:
   include:
-    - language: java
-      jdk: oraclejdk11
-      services:
-        - docker
-      before_script:
-        - cd ./vscode4teaching-server/
-        - chmod +x mvnw
-      script:
-        - "./mvnw clean package -B -q"
-      after_script:
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker build -t vscode4teaching/vscode4teaching:1.0.16 .
-        - docker build -t vscode4teaching/vscode4teaching:latest .
-        - docker push vscode4teaching/vscode4teaching:1.0.16
-        - docker push vscode4teaching/vscode4teaching:latest
-    - language: node_js
-      os:
-        - linux
-        - osx
-      node_js: 10.15.3
-      install:
-        - |
-          if [ $TRAVIS_OS_NAME == "linux" ]; then
-            export DISPLAY=':99.0'
-            /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          fi
-      before_script:
-        - cd ./vscode4teaching-extension
-        - npm install --save-dev
-      script:
-        - npm test
-      cache:
-        npm: false
+  - language: java
+    jdk: oraclejdk11
+    services:
+    - docker
+    before_script:
+    - cd ./vscode4teaching-server/
+    - chmod +x mvnw
+    script:
+    - "./mvnw clean package -B -q"
+    after_script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker build -t vscode4teaching/vscode4teaching:2.0.1 .
+    - docker build -t vscode4teaching/vscode4teaching:latest .
+    - docker push vscode4teaching/vscode4teaching:2.0.1
+    - docker push vscode4teaching/vscode4teaching:latest
+  - language: node_js
+    os:
+    - linux
+    - osx
+    node_js: 10.15.3
+    install:
+    - |
+      if [ $TRAVIS_OS_NAME == "linux" ]; then
+        export DISPLAY=':99.0'
+        /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      fi
+    before_script:
+    - cd ./vscode4teaching-extension
+    - npm install --save-dev
+    script:
+    - npm test
+    cache:
+      npm: false
 env:
   global:
-    secure: nI25Y4EHLUXmVAiK3JPPYe1ci60togbKDwvBkOEZCzkYcKjzbKH7q6RLisaFOOJyhJP1ffr5c/ME/mLOu3tgmGLq4hfl2k03wAFwLobsLzpuwQigFutByDIPndzFPkpZsV+wDv4nhChgTUVzC9lw2d1DvE2t3RYpA165V0PukrGx37CYfwe0+4IrZ7e59YPyiA33Op2sCvLugDg7qlM/qlpW0ifeoznfiN7C915/uwf93FBcbMW7jzKCuyIg0T/siR5SHTfrXfF+mhsSZi9XpZJmkokpjEz/KqE9Y1kYNTaPdoy0QtMKppd7ysCjJFUv0PNQ9DMTOvQrk8sFCQLCd3w5gXnDHYZIIGCjqf/9ZqNxAH6dLf98rUImbHim2f8jh+wXs4x8HipIZEWNDkUFfqPBaumCHmHNTDkolGPneBg5wnRqlnZ/7A/IrTytZIX+Cl8GmkWPleZ42947skS1JLHmnw1c9yoOgFKFS3QN93lIV3+zU1PMQTrwvoj5OQRKWj/fSW6Y3ZxaFaIFbEhupH16//Ml8gNPbRBXmEwfFaTChru6hl10qWiLcrZyL7eXXAfsfr9Wd9lZnB3ri0hNtJWVEXDomXfalMFWBon0tXykMd2/HYNiZK8EsPuTiIh5ISq6+5t1S4q818hrV+qp4Vk73qwTY5GAVoULSXjP7VQ=
+  - secure: Xubi//N9TBKtampk7kO3V0rvuhbCIzVJ7ad2oJIoZGVUyCgmt9KdK46jfG2eSUYuvOMKg1xrXia0R0YC+VveoJPiRgCxqNIfqhb605XaY0SLRXAh2cThABs6q3IwFzoFVIG/8/xhZpqSngbystQxm8EflGhYdZYukijqtEEx78VrtuWaPRBcxGBFt8GaaLyzWvy8eY6Fzw4KZntZPHaalLt0t5k+Qt+Dt2AJuUb3YV1IaWyMQIeF0dKM2XLMpUISeRBVzPrqSmRxpbMyR+8iktPY2KYJFmeH1MD8H1imG/OVkHxSRiXsPXkZ8ueqXSzZ1R9cNIR6ZLKRIyo2sMvxRz5Kzr2fhcEtxCtyRW0sXFV4EG7lsUewn9E9MJ7e5OtnwZOKkcIvStydrwd3t9TH+pUdptgVGA+EdL/T4mcIjPkzYWPoUoLn1MYR3YYUezvqsJXrgl4HqQJSSLgaCEso/q/s5+IH+1y4xFYpLNo05+OhMWz0vNCBbPT02VC+6YTQwHAOcGNjOHDwgkwkg1KC46ZMkbdfm4bhNL1oWfAPynuHjNAfinzxc0kE/FataPXVEt7XX+dA3YdQL+KffqKdRLQqDgsQ1ZNvE+oZwJT1NMfIhlsreboBl1C9diQrxfLwaHBZjUXuNpbI6FK8W8iyQvBNfPWvcdKdMmrNdQV7268=
+  - secure: nWKjhXkCD7qAjXAO//DYZXAcC5dDVtX+EgxQOAyCoyTfw0hdtxIHbn2iylpPlkd9iLObEkK1R30TWXsteZMHyBHJEgJM+YueuVqTUXKgS+EK6F0PebvgjyhZzfIZrTWOmhieHC/cXmDLeJbVkO+9++5KYGj0nYxkURqVXrguYlU7g+InbE8/raYjWsmpUVjhaEd245fyT2jmwSiaxiu8tWa9KuawsQeS/CVSNYAZaXfpLUk2ZOqOOxtR1TWfAv+4C84i6u+KhUS9FI6Li5MBMIZkU+npyx9gWw2EzmQf2ciqPYIGyRUe50tx5HLufZZ31RYae0jowuy7UpOQckNOG+hUxdzMCGX1pwh2mgKEKFL1XC8AsFo+rIt9eJhRaJN+hAQ8VtAhc8VzrdQhSn1CPgrT3ePO3wjyjo49MZjOrWd9q6r1DSXYQcOURFa2iUp+v5z4RFbAAyW/eAaEXlUr62ACQrQqZ5gGqchRYm2W2a5T+gua7ToyXO4yNzCt27hUv6c4kgtS7ATm1PKvD0/oDA6k6Roix4BJER38ONdp6sj8fmuEUfvTnS5QmVh8Zg4rf4htBGPriE/UFF2SSvj4kYj5ZKVFYeP4wGMhiGjADSp81LVdrSnGe7P7HoYEX3CGnukabV9+3b3eOXr+iy4e0UxZLsTp8Gs8T85Qqc6Kpc0=

@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [REST API Documentation](README.md#rest-api-documentation)
+- [API Documentation](README.md#api-documentation)
 - [Docker](README.md#docker)
 - [Database Initializer](README.md#database-initializer)
 - [Installing](README.md#installing)
@@ -12,9 +12,10 @@
   - [Compiling](README.md#compiling)
   - [Running tests](README.md#running-tests)
 
-## REST API Documentation
+## API Documentation
 
 Click [HERE](API.md) for the documentation on the REST API running on the server.  
+Click [HERE](WSAPI.md) for the documentation on the WebSocket API running on the server.  
 
 ## Docker
 
@@ -26,7 +27,7 @@ Link to Docker Hub: (<https://cloud.docker.com/u/ivchicano/repository/docker/ivc
 You can run a docker compose with the image and a mysql database by going to the **docker** directory inside the server directory and running the following command:  
 `docker-compose up`
 The server will run in port 8080.
-You should check the section [Arguments/Environment variables](README.md#argumentsenvironment-variables) for more info about configuration of the server (important in production environments), and modify the docker-compose according to your needs.
+You should check the section [Arguments/Environment variables](README.md#argumentsenvironment-variables) for more info about configuration of the server (important in production environments), and modify the .env file according to your needs.
 
 ## Database Initializer  
 

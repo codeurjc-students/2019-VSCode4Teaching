@@ -14,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
@@ -26,6 +27,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
+@Table(name="exercise")
 public class Exercise {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,13 +43,17 @@ public class Exercise {
     @JsonView(ExerciseViews.CourseView.class)
     private Course course;
 
-    @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> template = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
+
+    @OneToMany(mappedBy="exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ExerciseUserInfo> userInfo = new ArrayList<>();
 
     @JsonView(ExerciseViews.CodeView.class)
     private String uuid = UUID.randomUUID().toString();
@@ -159,4 +165,13 @@ public class Exercise {
     public String getUuid() {
         return uuid;
     }
+
+    public List<ExerciseUserInfo> getUserInfo() {
+        return userInfo;
+    }
+
+    public void setUserInfo(List<ExerciseUserInfo> userInfo) {
+        this.userInfo = userInfo;
+    }
+    
 }

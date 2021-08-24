@@ -1,24 +1,35 @@
-version: "3.7"
+version: "3.9"
 
 services:
     db:
         image: mysql
         command: --default-authentication-plugin=mysql_native_password
+        volumes:
+            - db_data:/var/lib/mysql
+        restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: T4cwGK3q5NdR3vMz
-            MYSQL_DATABASE: vscode4teach
-            MYSQL_USER: vscode4teach
-            MYSQL_PASSWORD: AvScnGQp5e4GHnd
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+            MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     app:
-        image: vscode4teaching/vscode4teaching:1.1.0
+        image: vscode4teaching/vscode4teaching:latest
         links:
             - db
         depends_on:
             - db
+        env_file:
+            - .env
         ports:
-            - "8080:8080"
+            - "${SERVER_PORT}:${SERVER_PORT}"
+        volumes:
+            - v4t_courses:${V4T_FILEDIRECTORY}
         restart: always
-        environment:
-            SPRING_DATASOURCE_URL: jdbc:mysql://db/vscode4teach?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-            SPRING_DATASOURCE_USERNAME: vscode4teach
-            SPRING_DATASOURCE_PASSWORD: AvScnGQp5e4GHnd
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - "9000:8080"
+volumes:
+    db_data: {}
+    v4t_courses: {}

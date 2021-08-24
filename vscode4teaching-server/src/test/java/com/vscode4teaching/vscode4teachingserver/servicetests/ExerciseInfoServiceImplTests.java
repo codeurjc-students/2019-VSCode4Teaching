@@ -5,8 +5,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
@@ -17,6 +19,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUser
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
+import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseInfoServiceImpl;
 
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,9 @@ import static org.mockito.ArgumentMatchers.any;
 public class ExerciseInfoServiceImplTests {
     @Mock
     private ExerciseUserInfoRepository exerciseUserInfoRepository;
+
+    @Mock
+    private SocketHandler websocketHandler;
 
     @InjectMocks
     private ExerciseInfoServiceImpl exerciseInfoService;
@@ -84,14 +90,52 @@ public class ExerciseInfoServiceImplTests {
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
         eui.setStatus(0);
+        eui.setLastModifiedFile("/old/file.txt");
+        String newFilePath = "modified/file.txt";
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
+        course.addUserInCourse(user);
+        User creator = new User("creator@john.com", "creator", "creatorteacher", "creator", "Doe Sr", studentRole, new Role("ROLE_TEACHER"));
+        User teacher = new User("johndoesr@john.com", "johndoesr", "johndoesrteacher", "John", "Doe Sr", studentRole, new Role("ROLE_TEACHER"));
+        course.addUserInCourse(teacher);
+        course.setCreator(creator);
+        Set<User> teacherSet = new HashSet<>();
+        teacherSet.add(teacher);
+        teacherSet.add(creator);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, null);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, newFilePath);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
         assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getLastModifiedFile()).isEqualTo(newFilePath);
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
+        verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
+        verify(websocketHandler, times(1)).refreshExerciseDashboards(teacherSet);
+    }
+
+    @Test
+    public void updateExerciseUserInfo_valid_no_file() throws NotFoundException {
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1", course);
+        Long exerciseId = 2l;
+        exercise.setId(exerciseId);
+        String username = "johndoe";
+        Role studentRole = new Role("ROLE_STUDENT");
+        User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
+        eui.setStatus(0);
+        String oldFilePath = "/old/file.txt";
+        eui.setLastModifiedFile(oldFilePath);
+        Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
+        when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
+        when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 0, null);
+
+        assertThat(savedEui.getExercise()).isEqualTo(exercise);
+        assertThat(savedEui.getUser()).isEqualTo(user);
+        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getLastModifiedFile()).isEqualTo(oldFilePath);
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }
