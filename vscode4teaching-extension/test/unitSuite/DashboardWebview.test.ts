@@ -59,7 +59,7 @@ describe("Dashboard webview", () => {
             exercise,
             user: student1,
             status: 0,
-            updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()),
+            updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()).toISOString(),
             lastModifiedFile: "/index.html",
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
@@ -67,7 +67,7 @@ describe("Dashboard webview", () => {
             exercise,
             user: student2,
             status: 1,
-            updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()),
+            updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()).toISOString(),
             lastModifiedFile: "/readme.md",
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
@@ -75,7 +75,7 @@ describe("Dashboard webview", () => {
             exercise,
             user: student3,
             status: 2,
-            updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()),
+            updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
             lastModifiedFile: undefined,
         });
         DashboardWebview.show(euis, course, exercise);

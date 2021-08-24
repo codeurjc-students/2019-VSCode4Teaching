@@ -193,7 +193,7 @@ describe("Command implementations", () => {
             status: 1,
             user,
             exercise,
-            updateDateTime: new Date(),
+            updateDateTime: new Date().toISOString(),
             lastModifiedFile: "",
         };
         const response: AxiosResponse<ExerciseUserInfo> = {

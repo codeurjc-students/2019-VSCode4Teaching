@@ -378,8 +378,9 @@ export class DashboardWebview {
         return text;
     }
 
-    private getElapsedTime(pastDateStr: Date) {
+    private getElapsedTime(pastDateStr: string) {
         if (!pastDateStr) { return "-"; }
+        pastDateStr += "Z";
         let elapsedTime = (new Date().getTime() - new Date(pastDateStr).getTime()) / 1000;
         if (elapsedTime < 0) { elapsedTime = 0; }
         let unit = "s";
