@@ -99,12 +99,13 @@ class APIClientSingleton {
         console.error(error);
         if (axios.isCancel(error)) {
             vscode.window.showErrorMessage("Request timeout.");
-            APIClientSession.invalidateSession();
+            // APIClientSession.invalidateSession();
         } else if (error.response) {
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
-                APIClientSession.invalidateSession();
+                APIClient.getXSRFToken();
+                // APIClientSession.invalidateSession();
                 CoursesProvider.triggerTreeReload();
             } else if (error.response.status === 403 && !APIClient.error403thrown) {
                 vscode.window.showWarningMessage("Something went wrong, please try again.");
@@ -118,7 +119,7 @@ class APIClientSingleton {
                 vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
                 APIClient.error401thrown = false;
                 APIClient.error403thrown = false;
-                APIClientSession.invalidateSession();
+                // APIClientSession.invalidateSession();
             }
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
