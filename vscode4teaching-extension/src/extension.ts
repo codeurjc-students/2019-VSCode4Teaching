@@ -45,7 +45,6 @@ export let commentInterval: NodeJS.Timeout;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
-// TODO: Comments not working
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
@@ -273,11 +272,6 @@ export function activate(context: vscode.ExtensionContext) {
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 
-    initializeLiveShare().then(() => {
-        console.log("LiveShare initialized");
-        console.log(liveshareService);
-        console.log(wsLiveshare);
-    });
 }
 
 export function deactivate() {
@@ -304,7 +298,7 @@ export function disableFeatures() {
     global.clearInterval(commentInterval);
 }
 
-export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>, restartDashboard?: boolean) {
 
     disableFeatures();
 
@@ -323,6 +317,11 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0] || +zipSplit[zipSplit.length - 1].split("-")[0];
                 if (CurrentUser.isLoggedIn()) {
+                    initializeLiveShare().then(() => {
+                        console.log("LiveShare initialized");
+                        console.log(liveshareService);
+                        console.log(wsLiveshare);
+                    });
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
                         if (courses && !showLiveshareBoardItem) {
@@ -373,18 +372,20 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         } else {
                             showDashboardItem = new ShowDashboardItem(cwd.name, eui.data.exercise.course, eui.data.exercise);
                             showDashboardItem.show();
-                            const message = `
-                                The exercise has been downloaded! You can see the template files and your students' files in the Explorer view (Ctrl + Shift + E).
-                                You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
-                            `;
-                            const openDashboard = "Open dashboard";
-                            vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
-                                console.debug(value);
-                                if (value === openDashboard) {
-                                    console.debug("Opening dashboard");
-                                    return vscode.commands.executeCommand("vscode4teaching.showdashboard");
-                                }
-                            }).then(() => console.debug("Message dismissed"));
+                            if (!restartDashboard) {
+                                const message = `
+                                    The exercise has been downloaded! You can see the template files and your students' files in the Explorer view (Ctrl + Shift + E).
+                                    You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
+                                `;
+                                const openDashboard = "Open dashboard";
+                                vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
+                                    console.debug(value);
+                                    if (value === openDashboard) {
+                                        console.debug("Opening dashboard");
+                                        return vscode.commands.executeCommand("vscode4teaching.showdashboard");
+                                    }
+                                }).then(() => console.debug("Message dismissed"));
+                            }
                         }
                     }
                     // Set template location if exists
@@ -536,7 +537,7 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
                 ...subdirectoriesURIs);
             currentCwds = vscode.workspace.workspaceFolders;
             if (currentCwds && !newWorkspaces) {
-                await initializeExtension(currentCwds);
+                await initializeExtension(currentCwds, true);
             }
         }
     }
