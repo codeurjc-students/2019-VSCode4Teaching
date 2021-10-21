@@ -223,19 +223,25 @@ export function activate(context: vscode.ExtensionContext) {
         const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
         if (selectedOption === "Accept" && finishItem) {
-            const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
-            console.debug(response);
-            if (response.data.status === 1 && finishItem) {
-                finishItem.dispose();
-                if (changeEvent) {
-                    changeEvent.dispose();
+            try {
+                const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
+                console.debug(response);
+                if (response.data.status === 1 && finishItem) {
+                    finishItem.dispose();
+                    if (changeEvent) {
+                        changeEvent.dispose();
+                    }
+                    if (createEvent) {
+                        createEvent.dispose();
+                    }
+                    if (deleteEvent) {
+                        deleteEvent.dispose();
+                    }
+                } else {
+                    vscode.window.showErrorMessage("An unexpected error has occurred. The exercise has not been marked as finished. Please try again.");
                 }
-                if (createEvent) {
-                    createEvent.dispose();
-                }
-                if (deleteEvent) {
-                    deleteEvent.dispose();
-                }
+            } catch (error) {
+                APIClient.handleAxiosError(error);
             }
         }
     });
@@ -357,7 +363,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                                 finishItem.show();
                                 const message = `
                                     The exercise has been downloaded! You can start editing its files in the Explorer view (Ctrl + Shift + E).
-                                    You can mark the exercise as finished using the 'Finish' button in the status bar.
+                                    You can mark the exercise as finished using the 'Finish' button in the status bar below.
                                 `;
                                 vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
                             }
