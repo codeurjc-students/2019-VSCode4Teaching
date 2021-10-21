@@ -29,6 +29,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFile
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
@@ -239,6 +240,36 @@ public class ExerciseFilesServiceImplTests {
         assertThat(savedFiles.get(0).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(0).getPath());
         assertThat(savedFiles.get(1).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(1).getPath());
         assertThat(savedFiles.get(2).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(2).getPath());
+    }
+
+    @Test
+    public void saveExerciseFilesFinishedError() throws Exception {
+        User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        student.setId(3l);
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2l);
+        student.addRole(studentRole);
+        Course course = new Course("Spring Boot Course");
+        course.setId(4l);
+        course.addUserInCourse(student);
+        Exercise exercise = new Exercise();
+        exercise.setName("Exercise 1");
+        exercise.setId(1l);
+        course.addExercise(exercise);
+        exercise.setCourse(course);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, student);
+        eui.setStatus(1);
+        when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(anyLong(), anyString()))
+                .thenReturn(Optional.of(eui));
+        // Get files
+        File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip").toFile();
+        MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
+                new FileInputStream(file));
+
+        ExerciseFinishedException e = assertThrows(ExerciseFinishedException.class, () -> filesService.saveExerciseFiles(1l, mockFile, "johndoe"));
+        
+        assertThat(e.getMessage()).isEqualToIgnoringWhitespace("Exercise is marked as finished: 1");
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(anyLong(), anyString());
     }
 
     @Test

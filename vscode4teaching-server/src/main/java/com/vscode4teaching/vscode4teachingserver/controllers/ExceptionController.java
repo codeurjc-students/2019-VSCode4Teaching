@@ -10,6 +10,10 @@ import javax.validation.ConstraintViolationException;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse.ErrorDetail;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyJSONObjectException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyURIException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.MissingPropertyException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
@@ -93,10 +97,16 @@ public class ExceptionController {
         return new ResponseEntity<>("This user does not exist: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(NotInCourseException.class)
+    @ExceptionHandler(MalformedJwtException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
+    public ResponseEntity<String> handleMalformedJwtException(MalformedJwtException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(value = { NotInCourseException.class, CantRemoveCreatorException.class, NotCreatorException.class })
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(NoTemplateException.class)
@@ -105,27 +115,10 @@ public class ExceptionController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(MultipartException.class)
+    @ExceptionHandler(value = { ExerciseFinishedException.class, MultipartException.class,
+        EmptyJSONObjectException.class, EmptyURIException.class, MissingPropertyException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleMultipartException(MultipartException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(MalformedJwtException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<String> handleMalformedJwtException(MalformedJwtException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(CantRemoveCreatorException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<String> handleCantRemoveCreatorException(CantRemoveCreatorException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(NotCreatorException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<String> handleNotCreatorException(NotCreatorException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 }

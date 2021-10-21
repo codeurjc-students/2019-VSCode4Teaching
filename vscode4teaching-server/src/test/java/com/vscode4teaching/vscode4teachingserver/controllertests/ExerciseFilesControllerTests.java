@@ -35,6 +35,7 @@ import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -179,6 +180,45 @@ public class ExerciseFilesControllerTests {
 
         MvcResult result = mockMvc.perform(multipart("/api/exercises/1/files").file(mockMultiFile1).with(csrf())
                 .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isOk()).andReturn();
+
+        List<UploadFileResponse> expectedResponse = new ArrayList<>();
+        expectedResponse.add(new UploadFileResponse("ex1.html", "text/html", 23l));
+        expectedResponse.add(new UploadFileResponse("ex2.html", "text/html", 23l));
+        expectedResponse.add(new UploadFileResponse("ex3" + File.separator + "ex3.html", "text/html", 23l));
+
+        assertThat(result.getResponse().getContentAsString())
+                .isEqualToIgnoringWhitespace(objectMapper.writeValueAsString(expectedResponse));
+
+        logger.info(result.getResponse().getContentAsString());
+        verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString());
+    }
+
+    @Test
+    public void uploadFileFinishedException() throws Exception {
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(1l);
+        byte[] mock = null;
+        MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
+        Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3"));
+        Path path1 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex1.html");
+        Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex1.html");
+        Files.copy(path1, path1Copy, StandardCopyOption.REPLACE_EXISTING);
+        Path path2 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex2.html");
+        Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex2.html");
+        Files.copy(path2, path2Copy, StandardCopyOption.REPLACE_EXISTING);
+        Path path3 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex3/ex3.html");
+        Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3/ex3.html");
+        Files.copy(path3, path3Copy, StandardCopyOption.REPLACE_EXISTING);
+
+        File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex1.html");
+        File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex2.html");
+        File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex3/ex3.html");
+        Map<Exercise, List<File>> returnMap = new HashMap<>();
+        returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
+        when(filesService.saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString())).thenThrow(ExerciseFinishedException.class);
+
+        MvcResult result = mockMvc.perform(multipart("/api/exercises/1/files").file(mockMultiFile1).with(csrf())
+                .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest()).andReturn();
 
         List<UploadFileResponse> expectedResponse = new ArrayList<>();
         expectedResponse.add(new UploadFileResponse("ex1.html", "text/html", 23l));
