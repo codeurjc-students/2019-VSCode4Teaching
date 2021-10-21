@@ -127,7 +127,6 @@ class APIClientSingleton {
             APIClientSession.invalidateSession();
         } else {
             vscode.window.showErrorMessage(error.message);
-            APIClientSession.invalidateSession();
         }
     }
 
