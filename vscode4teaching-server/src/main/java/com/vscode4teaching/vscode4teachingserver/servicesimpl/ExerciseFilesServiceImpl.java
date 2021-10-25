@@ -104,6 +104,9 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, isTemplate);
         String lastFolderPath = isTemplate ? "template" : requestUsername;
+        // For example, for root path "v4t_courses", a course "Course 1" with id 34, an exercise "Exercise 1" with id 77
+        // and a user "john.doe" the final directory path would be
+        // v4t_courses/course_1_34/exercise_1_77/john.doe
         Path targetDirectory = Paths.get(rootPath + File.separator + course.getName().toLowerCase().replace(" ", "_")
                 + "_" + course.getId() + File.separator + exercise.getName().toLowerCase().replace(" ", "_") + "_"
                 + exercise.getId() + File.separator + lastFolderPath).toAbsolutePath().normalize();
@@ -114,47 +117,38 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         ZipInputStream zis = new ZipInputStream(file.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
         List<File> files = new ArrayList<>();
-
-        Set<String> pathSet = new HashSet<>();
         while (zipEntry != null) {
             File destFile = newFile(targetDirectory.toFile(), zipEntry);
-            String parsed = "";
-            if (File.separatorChar == '/') {
-                parsed = destFile.getAbsolutePath().replace("\\", "/");
-
-            } else if (File.separatorChar == '\\') {
-                parsed = destFile.getAbsolutePath().replace("/", "\\");
-            }
-            if (!pathSet.contains(parsed)) {
-                pathSet.add(parsed);
-                if (zipEntry.isDirectory()) {
-                    Files.createDirectories(destFile.toPath());
-                } else {
-                    if (!destFile.getParentFile().exists()) {
-                        Files.createDirectories(destFile.getParentFile().toPath());
-                    }
-                    files.add(destFile);
-                    try (FileOutputStream fos = new FileOutputStream(destFile)) {
-                        int len;
-                        while ((len = zis.read(buffer)) > 0) {
-                            fos.write(buffer, 0, len);
-                        }
-                    }
-                    Optional<ExerciseFile> previousFileOpt = fileRepository.findByPath(destFile.getCanonicalPath());
-                    if (!previousFileOpt.isPresent()) {
-                        ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
-                        if (isTemplate) {
-                            ExerciseFile savedFile = fileRepository.save(exFile);
-                            exercise.addFileToTemplate(savedFile);
-                        } else {
-                            exFile.setOwner(user);
-                            ExerciseFile savedFile = fileRepository.save(exFile);
-                            exercise.addUserFile(savedFile);
-                        }
+            if (zipEntry.isDirectory()) {
+                if (!destFile.isDirectory() && !destFile.mkdirs()) {
+                    throw new IOException("Failed to create directory " + destFile);
+                }
+            } else {
+                // fix for Windows-created archives
+                File parent = destFile.getParentFile();
+                if (!parent.isDirectory() && !parent.mkdirs()) {
+                    throw new IOException("Failed to create directory " + parent);
+                }
+                files.add(destFile);
+                FileOutputStream fos = new FileOutputStream(destFile);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+                Optional<ExerciseFile> previousFileOpt = fileRepository.findByPath(destFile.getCanonicalPath());
+                if (!previousFileOpt.isPresent()) {
+                    ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
+                    if (isTemplate) {
+                        ExerciseFile savedFile = fileRepository.save(exFile);
+                        exercise.addFileToTemplate(savedFile);
+                    } else {
+                        exFile.setOwner(user);
+                        ExerciseFile savedFile = fileRepository.save(exFile);
+                        exercise.addUserFile(savedFile);
                     }
                 }
             }
-
             zipEntry = zis.getNextEntry();
         }
         zis.closeEntry();

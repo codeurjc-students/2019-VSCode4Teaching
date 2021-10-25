@@ -35,7 +35,6 @@ import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -54,7 +53,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.NestedServletException;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
