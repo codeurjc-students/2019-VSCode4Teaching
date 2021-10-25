@@ -150,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
             const templateFile = path.resolve(templates[parentDir], relativePath);
             if (fs.existsSync(templateFile)) {
                 const templateFileUri = vscode.Uri.file(templateFile);
-                vscode.commands.executeCommand("vscode.diff", file, templateFileUri);
+                vscode.commands.executeCommand("vscode.diff", templateFileUri, file);
             } else {
                 vscode.window.showErrorMessage("File doesn't exist in the template.");
             }
