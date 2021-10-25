@@ -226,7 +226,7 @@ export function activate(context: vscode.ExtensionContext) {
             try {
                 const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
                 console.debug(response);
-                if (response.data.status === 1 && finishItem) {
+                if ((response.data.status === 1) && finishItem) {
                     finishItem.dispose();
                     if (changeEvent) {
                         changeEvent.dispose();
