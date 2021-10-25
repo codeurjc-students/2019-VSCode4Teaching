@@ -389,7 +389,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         const code = await this.getInput("Introduce sharing code", Validators.validateSharingCode);
         if (code) {
             try {
-                const response = await APIClient.getCourseWithCode(code);
+                const response = await APIClient.getCourseWithCode(code.trim());
                 console.debug(response);
                 const course: Course = response.data;
                 CurrentUser.addNewCourse(course);
