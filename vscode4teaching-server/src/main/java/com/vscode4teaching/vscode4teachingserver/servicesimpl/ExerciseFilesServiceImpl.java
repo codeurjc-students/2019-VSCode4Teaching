@@ -29,6 +29,9 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateE
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +43,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     private final ExerciseFileRepository fileRepository;
     private final ExerciseUserInfoRepository exerciseUserInfoRepository;
     private final UserRepository userRepository;
+    private final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImpl.class);
 
     @Value("${v4t.filedirectory}")
     private String rootPath;
@@ -136,9 +140,8 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                     fos.write(buffer, 0, len);
                 }
                 fos.close();
-                Optional<ExerciseFile> previousFileOpt = fileRepository.findByPath(destFile.getCanonicalPath());
-                if (!previousFileOpt.isPresent()) {
-                    ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
+                ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
+                try {
                     if (isTemplate) {
                         ExerciseFile savedFile = fileRepository.save(exFile);
                         exercise.addFileToTemplate(savedFile);
@@ -147,6 +150,8 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                         ExerciseFile savedFile = fileRepository.save(exFile);
                         exercise.addUserFile(savedFile);
                     }
+                } catch (ConstraintViolationException ex) {
+                    logger.error(ex.getMessage());
                 }
             }
             zipEntry = zis.getNextEntry();

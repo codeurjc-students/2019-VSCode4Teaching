@@ -199,7 +199,6 @@ public class ExerciseFilesServiceImplTests {
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(anyLong(), anyString()))
                 .thenReturn(Optional.of(eui));
-        when(fileRepository.findByPath(any(String.class))).thenReturn(Optional.empty());
         // Get files
         File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip").toFile();
         MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
@@ -212,7 +211,6 @@ public class ExerciseFilesServiceImplTests {
         verify(userRepository, times(1)).findByUsername(anyString());
         verify(fileRepository, times(3)).save(any(ExerciseFile.class));
         verify(exerciseRepository, times(1)).save(any(Exercise.class));
-        verify(fileRepository, times(3)).findByPath(any(String.class));
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(anyLong(), anyString());
         assertThat(Files.exists(Paths.get("null/"))).isTrue();
         assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
