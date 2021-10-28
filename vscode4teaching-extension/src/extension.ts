@@ -222,7 +222,7 @@ export function activate(context: vscode.ExtensionContext) {
     const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", async () => {
         const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
-        if (selectedOption === "Accept" && finishItem) {
+        if ((selectedOption === "Accept") && finishItem) {
             try {
                 const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
                 console.debug(response);
@@ -342,7 +342,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     commentProvider.addCwd(cwd);
                     const currentUser = CurrentUser.getUserInfo();
                     const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
-                    vscode.commands.executeCommand("setContext", "vscode4teaching.isTeacher", currentUserIsTeacher);
+                    await vscode.commands.executeCommand("setContext", "vscode4teaching.isTeacher", currentUserIsTeacher);
                     // Download comments
                     if (cwd.name !== "template") {
                         const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
