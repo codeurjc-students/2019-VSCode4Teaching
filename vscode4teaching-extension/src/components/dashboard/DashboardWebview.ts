@@ -110,9 +110,14 @@ export class DashboardWebview {
                         if (workspaces) {
                             const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
                             if (wsF) {
-                                const doc1 = await vscode.workspace.openTextDocument(await this.findLastModifiedFile(wsF, message.lastMod));
-                                // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
-                                await vscode.window.showTextDocument(doc1);
+                                const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
+                                if (!lastFile) {
+                                    vscode.window.showWarningMessage("Last modified file no longer exists (it might have been deleted by the student)");
+                                } else {
+                                    const doc1 = await vscode.workspace.openTextDocument(lastFile);
+                                    // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
+                                    await vscode.window.showTextDocument(doc1);
+                                }
                             }
                         }
                     });
@@ -125,7 +130,12 @@ export class DashboardWebview {
                         if (workspaces) {
                             const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
                             if (wsF) {
-                                await vscode.commands.executeCommand("vscode4teaching.diff", await this.findLastModifiedFile(wsF, message.lastMod));
+                                const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
+                                if (!lastFile) {
+                                    vscode.window.showWarningMessage("Last modified file no longer exists (it might have been deleted by the student)");
+                                } else {
+                                    await vscode.commands.executeCommand("vscode4teaching.diff", lastFile);
+                                }
                             }
                         }
                     });
