@@ -129,7 +129,8 @@ export class FileZipUtil {
                     const v4tpath = v4tpathArray[i];
                     fs.writeFileSync(v4tpath, fileData);
                 } catch (error) {
-                    vscode.window.showErrorMessage(error);
+                    console.error(error);
+                    vscode.window.showErrorMessage(error as string);
                 }
             }
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
@@ -142,7 +143,8 @@ export class FileZipUtil {
             fs.writeFileSync(path.resolve(zipInfo.dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
             return zipInfo.dir;
         } catch (error) {
-            vscode.window.showErrorMessage(error);
+            console.error(error);
+            vscode.window.showErrorMessage(error as string);
         }
     }
 

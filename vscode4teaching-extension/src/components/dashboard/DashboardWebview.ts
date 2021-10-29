@@ -108,7 +108,7 @@ export class DashboardWebview {
                     await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
                         const workspaces = vscode.workspace.workspaceFolders;
                         if (workspaces) {
-                            const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
+                            const wsF = workspaces.find((e) => e.name === message.username);
                             if (wsF) {
                                 const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
                                 if (!lastFile) {
@@ -118,7 +118,11 @@ export class DashboardWebview {
                                     // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
                                     await vscode.window.showTextDocument(doc1);
                                 }
+                            } else {
+                                vscode.window.showErrorMessage("Student's files not found.");
                             }
+                        } else {
+                            vscode.window.showErrorMessage("The exercise's workspace is not open.");
                         }
                     });
                     break;
@@ -128,7 +132,7 @@ export class DashboardWebview {
                     await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
                         const workspaces = vscode.workspace.workspaceFolders;
                         if (workspaces) {
-                            const wsF = vscode.workspace.workspaceFolders?.find((e) => e.name === message.username);
+                            const wsF = workspaces.find((e) => e.name === message.username);
                             if (wsF) {
                                 const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
                                 if (!lastFile) {
@@ -136,7 +140,11 @@ export class DashboardWebview {
                                 } else {
                                     await vscode.commands.executeCommand("vscode4teaching.diff", lastFile);
                                 }
+                            } else {
+                                vscode.window.showErrorMessage("Student's files not found.");
                             }
+                        } else {
+                            vscode.window.showErrorMessage("The exercise's workspace is not open.");
                         }
                     });
                     break;
