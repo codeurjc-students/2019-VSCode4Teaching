@@ -142,8 +142,8 @@ const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, 
 });
 
 const commands = {
-    registerCommand: jest.fn(),
-    executeCommand: jest.fn()
+    registerCommand: jest.fn(() => Promise.resolve({ data: {} })),
+    executeCommand: jest.fn(() => Promise.resolve({ data: {} }))
 };
 
 const TreeItemCollapsibleState = {

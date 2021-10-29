@@ -399,6 +399,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
+
+    public changeLoading(loading: boolean) {
+        this.loading = loading;
+        CoursesProvider.triggerTreeReload();
+    }
+
     /**
      * Create exercise buttons from exercises.
      * @param element course

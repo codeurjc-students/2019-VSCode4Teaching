@@ -95,11 +95,21 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
-        await getSingleStudentExerciseFiles(courseName, exercise);
+        coursesProvider.changeLoading(true);
+        try {
+            await getSingleStudentExerciseFiles(courseName, exercise);
+        } finally {
+            coursesProvider.changeLoading(false);
+        }
     });
 
     const getStudentFiles = vscode.commands.registerCommand("vscode4teaching.getstudentfiles", async (courseName: string, exercise: Exercise) => {
-        await getMultipleStudentExerciseFiles(courseName, exercise);
+        coursesProvider.changeLoading(true);
+        try {
+            await getMultipleStudentExerciseFiles(courseName, exercise);
+        } finally {
+            coursesProvider.changeLoading(false);
+        }
     });
 
     const addCourseDisposable = vscode.commands.registerCommand("vscode4teaching.addcourse", () => {
