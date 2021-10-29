@@ -160,7 +160,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise files...");
+        return APIClient.createRequest(options, "Downloading exercise files...", true);
     }
 
     public addCourse(data: CourseEdit): AxiosPromise<Course> {
@@ -230,7 +230,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading template...");
+        return APIClient.createRequest(options, "Uploading template...", true);
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {
@@ -298,7 +298,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading files...");
+        return APIClient.createRequest(options, "Uploading files...", true);
     }
 
     public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -307,7 +307,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading student files...");
+        return APIClient.createRequest(options, "Downloading student files...", true);
     }
 
     public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -316,7 +316,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise template...");
+        return APIClient.createRequest(options, "Downloading exercise template...", true);
     }
 
     public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
@@ -445,10 +445,18 @@ class APIClientSingleton {
      * @param options Options from to build axios request
      * @param statusMessage message to add to the vscode status bar
      */
-    private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
+    private createRequest(options: AxiosBuildOptions, statusMessage: string, notification: boolean = false): AxiosPromise<any> {
         const axiosOptions = APIClientSession.buildOptions(options);
         const thenable = axios(axiosOptions.axiosOptions);
-        vscode.window.setStatusBarMessage(statusMessage, thenable);
+        if (notification) {
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title: statusMessage,
+            }, (progress, token) => thenable);
+        } else {
+            vscode.window.setStatusBarMessage("$(sync~spin)" + statusMessage, thenable);
+        }
         return thenable.then((result) => {
             if (axiosOptions.timeout) {
                 clearTimeout(axiosOptions.timeout);
