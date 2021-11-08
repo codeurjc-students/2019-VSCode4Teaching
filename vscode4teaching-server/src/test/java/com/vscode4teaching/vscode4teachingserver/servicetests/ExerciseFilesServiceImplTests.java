@@ -15,9 +15,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
@@ -37,6 +39,7 @@ import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseFilesServi
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -68,6 +71,13 @@ public class ExerciseFilesServiceImplTests {
     private ExerciseFilesServiceImpl filesService;
 
     private static final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImplTests.class);
+
+    private Set<String> pathsSaved = new HashSet<>();
+
+    @BeforeEach
+    public void startup() {
+        this.pathsSaved = new HashSet<>();
+    }
 
     @AfterEach
     public void cleanup() {
@@ -177,8 +187,51 @@ public class ExerciseFilesServiceImplTests {
         verify(exerciseRepository, times(1)).findById(anyLong());
     }
 
-    @Test
-    public void saveExerciseFiles() throws Exception {
+    private List<File> runSaveExerciseFiles() throws Exception {
+        // Get files
+        File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip").toFile();
+        MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
+                new FileInputStream(file));
+
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
+        return filesMap.values().stream().findFirst().get();
+    }
+
+    private boolean checkPathHasBeenSaved(String path) {
+        return this.pathsSaved.add(path);
+    }
+
+    private void fileAsserts() throws IOException {
+        assertThat(Files.exists(Paths.get("null/"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html"))).isTrue();
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html")))
+                .contains("<html>Exercise 1</html>");
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html")))
+                .contains("<html>Exercise 2</html>");
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html")))
+                .contains("<html>Exercise 3</html>");
+    }
+
+    private void exerciseUserInfoAsserts(ExerciseUserInfo eui) {
+        Exercise exercise = eui.getExercise();
+        User student = eui.getUser();
+        assertThat(exercise.getUserFiles()).hasSize(3);
+        assertThat(exercise.getUserFiles().get(0).getOwner()).isEqualTo(student);
+        assertThat(exercise.getUserFiles().get(1).getOwner()).isEqualTo(student);
+        assertThat(exercise.getUserFiles().get(2).getOwner()).isEqualTo(student);
+        assertThat(exercise.getUserFiles().get(0).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html").toAbsolutePath().toString());
+        assertThat(exercise.getUserFiles().get(1).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html").toAbsolutePath().toString());
+        assertThat(exercise.getUserFiles().get(2).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html").toAbsolutePath().toString());
+    }
+
+    private ExerciseUserInfo setupSaveExerciseFiles() {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
         student.setId(3l);
         Role studentRole = new Role("ROLE_STUDENT");
@@ -195,46 +248,59 @@ public class ExerciseFilesServiceImplTests {
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, student);
         when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(student));
+        when(fileRepository.findByPath(anyString())).thenAnswer(I -> {
+            String path = (String) I.getArguments()[0];
+            if (this.checkPathHasBeenSaved(path)) {
+                return Optional.empty();
+            } else {
+                return Optional.of(new ExerciseFile(path));
+            }
+        });
         when(fileRepository.save(any(ExerciseFile.class))).then(returnsFirstArg());
         when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(anyLong(), anyString()))
                 .thenReturn(Optional.of(eui));
-        // Get files
-        File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip").toFile();
-        MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
-                new FileInputStream(file));
+        return eui;
+    }
 
-        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
-        List<File> savedFiles = filesMap.values().stream().findFirst().get();
+    @Test
+    public void saveExerciseFiles() throws Exception {
+        ExerciseUserInfo eui = this.setupSaveExerciseFiles();
+        Exercise exercise = eui.getExercise();
+
+        List<File> savedFiles = this.runSaveExerciseFiles();
 
         verify(exerciseRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).findByUsername(anyString());
+        verify(fileRepository, times(3)).findByPath(anyString());
         verify(fileRepository, times(3)).save(any(ExerciseFile.class));
         verify(exerciseRepository, times(1)).save(any(Exercise.class));
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(anyLong(), anyString());
-        assertThat(Files.exists(Paths.get("null/"))).isTrue();
-        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
-        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe"))).isTrue();
-        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html"))).isTrue();
-        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html"))).isTrue();
-        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html"))).isTrue();
-        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html")))
-                .contains("<html>Exercise 1</html>");
-        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html")))
-                .contains("<html>Exercise 2</html>");
-        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html")))
-                .contains("<html>Exercise 3</html>");
-        assertThat(exercise.getUserFiles()).hasSize(3);
-        assertThat(exercise.getUserFiles().get(0).getOwner()).isEqualTo(student);
-        assertThat(exercise.getUserFiles().get(1).getOwner()).isEqualTo(student);
-        assertThat(exercise.getUserFiles().get(2).getOwner()).isEqualTo(student);
-        assertThat(exercise.getUserFiles().get(0).getPath()).isEqualToIgnoringCase(
-                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex1.html").toAbsolutePath().toString());
-        assertThat(exercise.getUserFiles().get(1).getPath()).isEqualToIgnoringCase(
-                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex2.html").toAbsolutePath().toString());
-        assertThat(exercise.getUserFiles().get(2).getPath()).isEqualToIgnoringCase(
-                Paths.get("null/spring_boot_course_4/exercise_1_1/johndoe/ex3/ex3.html").toAbsolutePath().toString());
+        this.fileAsserts();
+        this.exerciseUserInfoAsserts(eui);
         assertThat(savedFiles.size()).isEqualTo(3);
+        assertThat(savedFiles.get(0).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(0).getPath());
+        assertThat(savedFiles.get(1).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(1).getPath());
+        assertThat(savedFiles.get(2).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(2).getPath());
+    }
+
+    @Test
+    public void saveExerciseFilesIgnoreDuplicates() throws Exception {
+        ExerciseUserInfo eui = this.setupSaveExerciseFiles();
+        Exercise exercise = eui.getExercise();
+
+        // Run twice to send duplicates
+        this.runSaveExerciseFiles();
+        List<File> savedFiles = this.runSaveExerciseFiles();
+
+        verify(exerciseRepository, times(2)).findById(anyLong());
+        verify(userRepository, times(2)).findByUsername(anyString());
+        verify(fileRepository, times(6)).findByPath(anyString());
+        verify(fileRepository, times(3)).save(any(ExerciseFile.class));
+        verify(exerciseRepository, times(2)).save(any(Exercise.class));
+        verify(exerciseUserInfoRepository, times(2)).findByExercise_IdAndUser_Username(anyLong(), anyString());
+        this.fileAsserts();
+        this.exerciseUserInfoAsserts(eui);
         assertThat(savedFiles.get(0).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(0).getPath());
         assertThat(savedFiles.get(1).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(1).getPath());
         assertThat(savedFiles.get(2).getAbsolutePath()).isEqualToIgnoringCase(exercise.getUserFiles().get(2).getPath());
@@ -264,8 +330,9 @@ public class ExerciseFilesServiceImplTests {
         MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
                 new FileInputStream(file));
 
-        ExerciseFinishedException e = assertThrows(ExerciseFinishedException.class, () -> filesService.saveExerciseFiles(1l, mockFile, "johndoe"));
-        
+        ExerciseFinishedException e = assertThrows(ExerciseFinishedException.class,
+                () -> filesService.saveExerciseFiles(1l, mockFile, "johndoe"));
+
         assertThat(e.getMessage()).isEqualToIgnoringWhitespace("Exercise is marked as finished: 1");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(anyLong(), anyString());
     }
