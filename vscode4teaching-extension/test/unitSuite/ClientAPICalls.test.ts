@@ -28,17 +28,26 @@ const baseUrl = "https://edukafora.codeurjc.es";
 // This tests don't bother with the response of the calls, only the request parameters
 describe("client API calls", () => {
 
-    function expectCorrectRequest(options: AxiosRequestConfig, message: string, thenable: AxiosPromise<any>) {
+    function expectCorrectRequest(options: AxiosRequestConfig, message: string, notification: boolean, thenable: AxiosPromise<any>) {
         expect(mockedAxios).toHaveBeenCalledTimes(1);
         if (options.data instanceof FormData) {
             // if formdata content-type is generated randomly
             const config = (mockedAxios.mock.calls[0][0] as AxiosRequestConfig);
             options.headers = config.headers;
             options.data = config.data;
+        } 
+        if (notification) {
+            expect(mockedVscode.window.withProgress).toHaveBeenCalledTimes(1);
+            expect(mockedVscode.window.withProgress).toHaveBeenNthCalledWith(1, {
+                location: mockedVscode.ProgressLocation.Notification,
+                cancellable: false,
+                title: message,
+            }, expect.any(Function));
+        } else {
+            expect(mockedVscode.window.setStatusBarMessage).toHaveBeenCalledTimes(1);
+            expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) " + message, thenable);
         }
         expect(mockedAxios).toHaveBeenNthCalledWith(1, options);
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenCalledTimes(1);
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, message, thenable);
     }
 
     const xsrfToken = "test";
@@ -52,6 +61,7 @@ describe("client API calls", () => {
     afterEach(() => {
         mockedAxios.mockClear();
         mockedVscode.window.setStatusBarMessage.mockClear();
+        mockedVscode.window.withProgress.mockClear();
         APIClientSession.xsrfToken = undefined;
         APIClientSession.jwtToken = undefined;
     });
@@ -78,7 +88,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getServerUserInfo();
 
-        expectCorrectRequest(expectedOptions, "Fetching user data...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching user data...", false, thenable);
     });
 
     it("should request get exercises correctly", () => {
@@ -100,7 +110,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getExercises(courseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching exercises...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching exercises...", false, thenable);
     });
 
     it("should request get exercise files correctly", () => {
@@ -122,7 +132,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getExerciseFiles(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Downloading exercise files...", thenable);
+        expectCorrectRequest(expectedOptions, "Downloading exercise files...", true, thenable);
     });
 
     it("should request add course correctly", () => {
@@ -147,7 +157,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.addCourse(course);
 
-        expectCorrectRequest(expectedOptions, "Creating course...", thenable);
+        expectCorrectRequest(expectedOptions, "Creating course...", false, thenable);
     });
 
     it("should request edit course correctly", () => {
@@ -173,7 +183,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.editCourse(oldCourseId, course);
 
-        expectCorrectRequest(expectedOptions, "Editing course...", thenable);
+        expectCorrectRequest(expectedOptions, "Editing course...", false, thenable);
     });
 
     it("should request delete course correctly", () => {
@@ -196,7 +206,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.deleteCourse(oldCourseId);
 
-        expectCorrectRequest(expectedOptions, "Deleting course...", thenable);
+        expectCorrectRequest(expectedOptions, "Deleting course...", false, thenable);
     });
 
     it("should request add exercise correctly", () => {
@@ -222,7 +232,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.addExercise(courseId, exercise);
 
-        expectCorrectRequest(expectedOptions, "Adding exercise...", thenable);
+        expectCorrectRequest(expectedOptions, "Adding exercise...", false, thenable);
     });
 
     it("should request edit exercise correctly", () => {
@@ -248,7 +258,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.editExercise(exerciseId, exercise);
 
-        expectCorrectRequest(expectedOptions, "Sending exercise info...", thenable);
+        expectCorrectRequest(expectedOptions, "Sending exercise info...", false, thenable);
     });
 
     it("should request upload exercise template correctly", () => {
@@ -273,7 +283,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.uploadExerciseTemplate(exerciseId, data);
 
-        expectCorrectRequest(expectedOptions, "Uploading template...", thenable);
+        expectCorrectRequest(expectedOptions, "Uploading template...", true, thenable);
     });
 
     it("should request delete exercise template correctly", () => {
@@ -295,7 +305,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.deleteExercise(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Deleting exercise...", thenable);
+        expectCorrectRequest(expectedOptions, "Deleting exercise...", false, thenable);
     });
 
     it("should request get all users correctly", () => {
@@ -316,7 +326,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getAllUsers();
 
-        expectCorrectRequest(expectedOptions, "Fetching user data...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching user data...", false, thenable);
     });
 
     it("should request get users in course correctly", () => {
@@ -338,7 +348,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getUsersInCourse(courseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching user data...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching user data...", false, thenable);
     });
 
     it("should request add users to course correctly", () => {
@@ -363,7 +373,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.addUsersToCourse(courseId, data);
 
-        expectCorrectRequest(expectedOptions, "Adding users to course...", thenable);
+        expectCorrectRequest(expectedOptions, "Adding users to course...", false, thenable);
     });
 
     it("should request remove users from course correctly", () => {
@@ -388,7 +398,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.removeUsersFromCourse(courseId, data);
 
-        expectCorrectRequest(expectedOptions, "Removing users from course...", thenable);
+        expectCorrectRequest(expectedOptions, "Removing users from course...", false, thenable);
     });
 
     it("should request get creator correctly", () => {
@@ -410,7 +420,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getCreator(courseId);
 
-        expectCorrectRequest(expectedOptions, "Getting course info...", thenable);
+        expectCorrectRequest(expectedOptions, "Getting course info...", false, thenable);
     });
 
     it("should request upload files correctly", () => {
@@ -435,7 +445,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.uploadFiles(exerciseId, data);
 
-        expectCorrectRequest(expectedOptions, "Uploading files...", thenable);
+        expectCorrectRequest(expectedOptions, "Uploading files...", true, thenable);
     });
 
     it("should request get all student files correctly", () => {
@@ -457,7 +467,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getAllStudentFiles(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Downloading student files...", thenable);
+        expectCorrectRequest(expectedOptions, "Downloading student files...", true, thenable);
     });
 
     it("should request get template correctly", () => {
@@ -479,7 +489,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getTemplate(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Downloading exercise template...", thenable);
+        expectCorrectRequest(expectedOptions, "Downloading exercise template...", true, thenable);
     });
 
     it("should request get files info correctly", () => {
@@ -502,7 +512,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getFilesInfo(username, exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching file information...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching file information...", false, thenable);
     });
 
     it("should request save comment correctly", () => {
@@ -528,7 +538,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.saveComment(fileId, serverThread);
 
-        expectCorrectRequest(expectedOptions, "Saving comments...", thenable);
+        expectCorrectRequest(expectedOptions, "Saving comments...", false, thenable);
     });
 
     it("should request get comment correctly", () => {
@@ -550,7 +560,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getComments(fileId);
 
-        expectCorrectRequest(expectedOptions, "Fetching comments...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching comments...", false, thenable);
     });
 
     it("should request get all comment correctly", () => {
@@ -573,7 +583,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getAllComments(username, exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching comments...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching comments...", false, thenable);
     });
 
     it("should request get sharing code for course correctly", () => {
@@ -599,7 +609,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getSharingCode(course);
 
-        expectCorrectRequest(expectedOptions, "Fetching sharing code...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching sharing code...", false, thenable);
     });
 
     it("should request get sharing code for exercise correctly", () => {
@@ -624,7 +634,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getSharingCode(exercise);
 
-        expectCorrectRequest(expectedOptions, "Fetching sharing code...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching sharing code...", false, thenable);
     });
 
     it("should request update comment thread line correctly", () => {
@@ -650,7 +660,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.updateCommentThreadLine(fileId, lineInfo.line, lineInfo.lineText);
 
-        expectCorrectRequest(expectedOptions, "Saving comments...", thenable);
+        expectCorrectRequest(expectedOptions, "Saving comments...", false, thenable);
     });
 
     it("should request get sharing code for exercise correctly", () => {
@@ -672,7 +682,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getCourseWithCode(code);
 
-        expectCorrectRequest(expectedOptions, "Fetching course data...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching course data...", false, thenable);
     });
 
     it("should request get exercise user info for exercise correctly", () => {
@@ -694,7 +704,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getExerciseUserInfo(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching exercise info for current user...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching exercise info for current user...", false, thenable);
     });
 
     it("should request update exercise user info for exercise correctly", () => {
@@ -719,7 +729,7 @@ describe("client API calls", () => {
 
         const thenable = APIClient.updateExerciseUserInfo(exerciseId, status);
 
-        expectCorrectRequest(expectedOptions, "Updating exercise user info...", thenable);
+        expectCorrectRequest(expectedOptions, "Updating exercise user info...", false, thenable);
     });
 
     it("should request update exercise user info for exercise correctly", () => {
@@ -741,6 +751,6 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getAllStudentsExerciseUserInfo(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching students' exercise user info...", thenable);
+        expectCorrectRequest(expectedOptions, "Fetching students' exercise user info...", false, thenable);
     });
 });

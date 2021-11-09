@@ -455,7 +455,7 @@ class APIClientSingleton {
                 title: statusMessage,
             }, (progress, token) => thenable);
         } else {
-            vscode.window.setStatusBarMessage("$(sync~spin)" + statusMessage, thenable);
+            vscode.window.setStatusBarMessage("$(sync~spin) " + statusMessage, thenable);
         }
         return thenable.then((result) => {
             if (axiosOptions.timeout) {

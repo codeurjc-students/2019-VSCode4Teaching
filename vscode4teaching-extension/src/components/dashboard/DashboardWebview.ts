@@ -71,7 +71,9 @@ export class DashboardWebview {
         // This happens when the user closes the panel or when the panel is closed programatically
         this.panel.onDidDispose(() => {
             global.clearInterval(this.lastUpdatedInterval);
-            // global.clearInterval(this._reloadInterval);
+            // if (this._reloadInterval !== undefined) {
+            //     global.clearInterval(this._reloadInterval);
+            // }
             this.ws.close();
             this.dispose();
         });
