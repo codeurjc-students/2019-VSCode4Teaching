@@ -512,15 +512,15 @@ async function getSingleStudentExerciseFiles(courseName: string, exercise: Exerc
             const username = CurrentUser.getUserInfo().username;
             const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
             await getFilesInfo(exercise, fileInfoPath, [username]);
-            const newWorkspace = vscode.workspace.updateWorkspaceFolders(0,
-                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
-                { uri, name: exercise.name });
             vscode.workspace.onDidChangeWorkspaceFolders(() => {
                 currentCwds = vscode.workspace.workspaceFolders;
-                if (currentCwds && !newWorkspace) {
+                if (currentCwds) {
                     initializeExtension(currentCwds, true);
                 }
             });
+            vscode.workspace.updateWorkspaceFolders(0,
+                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+                { uri, name: exercise.name });
         }
     }
 }
@@ -543,8 +543,22 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
     const newWorkspaceURIs = await getStudentExerciseFiles(courseName, exercise);
     if (newWorkspaceURIs && newWorkspaceURIs[1]) {
         const wsURI: string = newWorkspaceURIs[1];
-        const directories = fs.readdirSync(wsURI, { withFileTypes: true })
+        let directories = fs.readdirSync(wsURI, { withFileTypes: true })
             .filter((dirent) => dirent.isDirectory());
+        /*
+            Move "template" directory to beginning of directory array
+            As in the documentation for vscode.workspace.onDidChangeWorkspaceFolders:
+
+            If the first workspace folder is added, removed or changed, the currently executing extensions
+            (including the one that called this method) will be terminated and restarted so that the (deprecated)
+            rootPath property is updated to point to the first workspace folder.
+
+            The folder that never changes is the "template" one, so we move it to the beginning of the array to avoid
+            reloading all extensions if the same workspace is opened and there are new students added.
+        */
+        const template = directories.filter((dirent) => dirent.name === "template")[0];
+        directories = directories.filter((dirent) => dirent.name !== "template");
+        directories.unshift(template);
         // Get file info for id references
         if (coursesProvider && CurrentUser.isLoggedIn()) {
             const usernames = directories.filter((dirent) => !dirent.name.includes("template")).map((dirent) => dirent.name);
@@ -555,16 +569,16 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
                     uri: vscode.Uri.file(path.resolve(wsURI, dirent.name)),
                 };
             });
-            // open all student files and template
-            const newWorkspaces = vscode.workspace.updateWorkspaceFolders(0,
-                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
-                ...subdirectoriesURIs);
             vscode.workspace.onDidChangeWorkspaceFolders(() => {
                 currentCwds = vscode.workspace.workspaceFolders;
-                if (currentCwds && !newWorkspaces) {
+                if (currentCwds) {
                     initializeExtension(currentCwds, true);
                 }
             });
+            // open all student files and template
+            vscode.workspace.updateWorkspaceFolders(0,
+                vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
+                ...subdirectoriesURIs);
         }
     }
 }
