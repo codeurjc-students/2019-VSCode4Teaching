@@ -314,7 +314,7 @@ export function disableFeatures() {
     global.clearInterval(commentInterval);
 }
 
-export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>, restartDashboard?: boolean) {
+export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>, hideWelcomeMessage?: boolean) {
 
     disableFeatures();
 
@@ -372,12 +372,14 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                                 finishItem = new FinishItem(exerciseId);
                                 finishItem.show();
                                 vscode.commands.executeCommand("workbench.view.explorer").then(() => {
-                                const message = `
-                                    The exercise has been downloaded! You can start editing its files in the Explorer view.
-                                    You can mark the exercise as finished using the 'Finish' button in the status bar below.
-                                `;
-                                return vscode.window.showInformationMessage(message);
-                                }).then(() => console.debug("Message dismissed"));
+                                    if (!hideWelcomeMessage) {
+                                        const message = `
+                                            The exercise has been downloaded! You can start editing its files in the Explorer view.
+                                            You can mark the exercise as finished using the 'Finish' button in the status bar below.
+                                        `;
+                                        vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
+                                    }
+                                });
                             }
                         } catch (error) {
                             APIClient.handleAxiosError(error);
@@ -391,7 +393,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                             showDashboardItem = new ShowDashboardItem(cwd.name, eui.data.exercise.course, eui.data.exercise);
                             showDashboardItem.show();
                             vscode.commands.executeCommand("workbench.view.explorer").then(() => {
-                                if (!restartDashboard) {
+                                if (!hideWelcomeMessage) {
                                     const message = `
                                         The exercise has been downloaded! You can see the template files and your students' files in the Explorer view.
                                         You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
@@ -513,10 +515,12 @@ async function getSingleStudentExerciseFiles(courseName: string, exercise: Exerc
             const newWorkspace = vscode.workspace.updateWorkspaceFolders(0,
                 vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
                 { uri, name: exercise.name });
-            currentCwds = vscode.workspace.workspaceFolders;
-            if (currentCwds && !newWorkspace) {
-                await initializeExtension(currentCwds);
-            }
+            vscode.workspace.onDidChangeWorkspaceFolders(() => {
+                currentCwds = vscode.workspace.workspaceFolders;
+                if (currentCwds && !newWorkspace) {
+                    initializeExtension(currentCwds, true);
+                }
+            });
         }
     }
 }
@@ -555,10 +559,12 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
             const newWorkspaces = vscode.workspace.updateWorkspaceFolders(0,
                 vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
                 ...subdirectoriesURIs);
-            currentCwds = vscode.workspace.workspaceFolders;
-            if (currentCwds && !newWorkspaces) {
-                await initializeExtension(currentCwds, true);
-            }
+            vscode.workspace.onDidChangeWorkspaceFolders(() => {
+                currentCwds = vscode.workspace.workspaceFolders;
+                if (currentCwds && !newWorkspaces) {
+                    initializeExtension(currentCwds, true);
+                }
+            });
         }
     }
 }
