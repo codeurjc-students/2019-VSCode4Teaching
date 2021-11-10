@@ -42,6 +42,7 @@ export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
 export let commentInterval: NodeJS.Timeout;
+export let uploadTimeout: NodeJS.Timeout | undefined;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
@@ -437,21 +438,39 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     changeEvent = fsw.onDidChange((e: vscode.Uri) => {
-        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File edited: " + e.fsPath);
-        });
-        EUIUpdateService.updateExercise(e, exerciseId);
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File edited: " + e.fsPath);
+            });
+            EUIUpdateService.updateExercise(e, exerciseId);
+        }, 500);
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
-        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File added: " + e.fsPath);
-        });
-        EUIUpdateService.updateExercise(e, exerciseId);
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File added: " + e.fsPath);
+            });
+            EUIUpdateService.updateExercise(e, exerciseId);
+        }, 500);
     });
     deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
-        FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File deleted: " + e.fsPath);
-        });
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File deleted: " + e.fsPath);
+            });
+        }, 500);
     });
 
     vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
