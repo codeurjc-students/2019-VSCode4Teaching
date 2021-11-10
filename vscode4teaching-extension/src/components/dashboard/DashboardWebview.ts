@@ -126,6 +126,7 @@ export class DashboardWebview {
                         } else {
                             vscode.window.showErrorMessage("The exercise's workspace is not open.");
                         }
+                        this.panel.webview.postMessage({ type: "openDone", username: message.username});
                     });
                     break;
                 }
@@ -148,6 +149,7 @@ export class DashboardWebview {
                         } else {
                             vscode.window.showErrorMessage("The exercise's workspace is not open.");
                         }
+                        this.panel.webview.postMessage({ type: "openDone", username: message.username });
                     });
                     break;
                 }
@@ -229,7 +231,7 @@ export class DashboardWebview {
         for (const eui of this._euis) {
             message["user-lastmod-" + eui.user.id] = this.getElapsedTime(eui.updateDateTime);
         }
-        this.panel.webview.postMessage(message);
+        this.panel.webview.postMessage({type: "updateDate", update: message});
     }
 
     private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string) {
@@ -318,7 +320,7 @@ export class DashboardWebview {
                 }
             }
             rows = rows + `<td>`;
-            const buttons = `<button data-lastMod = '${eui.lastModifiedFile}' class='workspace-link'>Open</button><button data-lastMod-diff = '${eui.lastModifiedFile}' class='workspace-link-diff'>Diff</button>`;
+            const buttons = `<button data-lastMod='${eui.lastModifiedFile}' class='workspace-link'>Open</button><button data-lastMod-diff='${eui.lastModifiedFile}' class='workspace-link-diff'>Diff</button>`;
             rows += eui.lastModifiedFile ? buttons : `Not found`;
             rows = rows + `</td>\n`;
             rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
