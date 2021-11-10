@@ -25,7 +25,7 @@
                 }
                 break;
             case 'openDone':
-                document.querySelectorAll("button." + message.username).forEach((e) => {
+                document.querySelectorAll(".button-col > button").forEach((e) => {
                     e.disabled = false;
                 });
                 break;
@@ -34,7 +34,7 @@
 
     document.querySelectorAll(".workspace-link").forEach((row) => {
         row.addEventListener("click", () => {
-            Array.from(row.parentElement.children).forEach((e) => {
+            document.querySelectorAll(".button-col > button").forEach((e) => {
                 e.disabled = true;
             });
             const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;

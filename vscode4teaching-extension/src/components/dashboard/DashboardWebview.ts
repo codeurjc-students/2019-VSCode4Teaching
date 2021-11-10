@@ -319,7 +319,7 @@ export class DashboardWebview {
                     break;
                 }
             }
-            rows = rows + `<td>`;
+            rows = rows + `<td class="button-col">`;
             const buttons = `<button data-lastMod='${eui.lastModifiedFile}' class='workspace-link'>Open</button><button data-lastMod-diff='${eui.lastModifiedFile}' class='workspace-link-diff'>Diff</button>`;
             rows += eui.lastModifiedFile ? buttons : `Not found`;
             rows = rows + `</td>\n`;
