@@ -289,6 +289,23 @@ export function activate(context: vscode.ExtensionContext) {
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 
+    // Temp fix for this issue https://github.com/microsoft/vscode/issues/136787
+    // TODO: Remove this when the issue is fixed
+    const isWin = process.platform === "win32";
+    if (isWin) {
+        if (vscode.workspace.getConfiguration("http").get("systemCertificates")) {
+            vscode.window.showWarningMessage("There may be issues connecting to the server unless you change your configuration settings.\nClicking the button will automatically make all configuration changes needed.", "Change configuration and restart").then((selected) => {
+                if (selected) {
+                    vscode.workspace.getConfiguration("http").update("systemCertificates", false, true).then(() => {
+                        vscode.commands.executeCommand("workbench.action.reloadWindow");
+                    }, (error) => {
+                        console.error(error);
+                        vscode.window.showErrorMessage("There was an error updating your configuration: " + error);
+                    });
+                }
+            });
+        }
+    }
 }
 
 export function deactivate() {
