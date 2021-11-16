@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
-import { APIClientSession } from "../../client/APIClientSession";
 import { CurrentUser } from "../../client/CurrentUser";
 import { Course, instanceOfCourse } from "../../model/serverModel/course/Course";
 import { instanceOfExercise } from "../../model/serverModel/exercise/Exercise";
@@ -253,6 +252,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     // Create zip file from files and send them
                     const course: Course = item.item;
                     try {
+                        this.loading = true;
+                        CoursesProvider.triggerTreeReload();
                         const addExerciseData = await APIClient.addExercise(course.id, { name });
                         console.debug(addExerciseData);
                         try {
@@ -260,7 +261,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             const zipContent = await FileZipUtil.getZipFromUris(fileUris);
                             const response = await APIClient.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
                             console.debug(response);
-                            CoursesProvider.triggerTreeReload(item);
                         } catch (uploadError) {
                             try {
                                 // If upload fails delete the exercise and show error
@@ -270,6 +270,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             } catch (deleteError) {
                                 APIClient.handleAxiosError(deleteError);
                             }
+                        } finally {
+                            this.loading = false;
+                            CoursesProvider.triggerTreeReload();
                         }
                     } catch (error) {
                         APIClient.handleAxiosError(error);
