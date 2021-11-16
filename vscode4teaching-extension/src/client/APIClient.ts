@@ -417,7 +417,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return APIClient.createRequest(options, "Fetching students' exercise user info...");
+        return APIClient.createRequest(options, "Fetching students' exercise user info...", true);
     }
 
     private signUp(credentials: UserSignup): AxiosPromise<User> {

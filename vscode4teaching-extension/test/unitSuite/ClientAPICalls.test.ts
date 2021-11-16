@@ -751,6 +751,6 @@ describe("client API calls", () => {
 
         const thenable = APIClient.getAllStudentsExerciseUserInfo(exerciseId);
 
-        expectCorrectRequest(expectedOptions, "Fetching students' exercise user info...", false, thenable);
+        expectCorrectRequest(expectedOptions, "Fetching students' exercise user info...", true, thenable);
     });
 });
