@@ -90,8 +90,11 @@ public class ExerciseInfoServiceImplTests {
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
         eui.setStatus(0);
-        eui.setLastModifiedFile("/old/file.txt");
-        String newFilePath = "modified/file.txt";
+        Set<String> euiOldModifiedFiles = new HashSet<>();
+        euiOldModifiedFiles.add("/old/file.txt");
+        eui.setModifiedFiles(euiOldModifiedFiles);
+        ArrayList<String> euiNewModifiedFiles = new ArrayList<>();
+        euiNewModifiedFiles.add("/modified/file.txt");
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         course.addUserInCourse(user);
         User creator = new User("creator@john.com", "creator", "creatorteacher", "creator", "Doe Sr", studentRole, new Role("ROLE_TEACHER"));
@@ -103,12 +106,14 @@ public class ExerciseInfoServiceImplTests {
         teacherSet.add(creator);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, newFilePath);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, euiNewModifiedFiles);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
         assertThat(savedEui.getStatus() == 1).isTrue();
-        assertThat(savedEui.getLastModifiedFile()).isEqualTo(newFilePath);
+        assertThat(savedEui.getModifiedFiles()).size().isEqualTo(2);
+        assertThat(savedEui.getModifiedFiles()).contains("/modified/file.txt");
+        assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
         verify(websocketHandler, times(1)).refreshExerciseDashboards(teacherSet);
@@ -125,8 +130,9 @@ public class ExerciseInfoServiceImplTests {
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
         eui.setStatus(0);
-        String oldFilePath = "/old/file.txt";
-        eui.setLastModifiedFile(oldFilePath);
+        Set<String> euiOldModifiedFiles = new HashSet<>();
+        euiOldModifiedFiles.add("/old/file.txt");
+        eui.setModifiedFiles(euiOldModifiedFiles);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
@@ -135,7 +141,8 @@ public class ExerciseInfoServiceImplTests {
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
         assertThat(savedEui.getStatus() == 0).isTrue();
-        assertThat(savedEui.getLastModifiedFile()).isEqualTo(oldFilePath);
+        assertThat(savedEui.getModifiedFiles()).size().isEqualTo(1);
+        assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
         verify(exerciseUserInfoRepository, times(1)).save(any(ExerciseUserInfo.class));
     }

@@ -41,11 +41,11 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     }
 
     @Override
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, String lastModifiedFile)
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, List<String> modifiedFiles)
             throws NotFoundException {
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         eui.setStatus(status);
-        eui.setLastModifiedFile(lastModifiedFile);
+        eui.addModifiedFiles(modifiedFiles);
         eui = exerciseUserInfoRepository.save(eui);
         this.websocketHandler.refreshExerciseDashboards(eui.getExercise().getCourse().getTeachers());
         return eui;
