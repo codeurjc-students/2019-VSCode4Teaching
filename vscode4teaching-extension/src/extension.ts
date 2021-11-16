@@ -405,17 +405,11 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     }
                     vscode.commands.executeCommand("workbench.view.explorer").then(() => {
                         if (!hideWelcomeMessage) {
-                            if (currentUserIsTeacher) {
-                                const message = `
-                                    The exercise has been downloaded! You can start editing its files in the Explorer view.
-                                    You can mark the exercise as finished using the 'Finish' button in the status bar below.
-                                `;
+                            if (!currentUserIsTeacher) {
+                                const message = `The exercise has been downloaded! You can start editing its files in the Explorer view. You can mark the exercise as finished using the 'Finish' button in the status bar below.`;
                                 vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
                             } else {
-                                const message = `
-                                        The exercise has been downloaded! You can see the template files and your students' files in the Explorer view.
-                                        You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
-                                    `;
+                                const message = `The exercise has been downloaded! You can see the template files and your students' files in the Explorer view. You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.`;
                                 const openDashboard = "Open dashboard";
                                 vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
                                     console.debug(value);
