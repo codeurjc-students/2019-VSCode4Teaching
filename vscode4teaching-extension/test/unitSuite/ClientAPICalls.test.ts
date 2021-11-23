@@ -35,7 +35,7 @@ describe("client API calls", () => {
             const config = (mockedAxios.mock.calls[0][0] as AxiosRequestConfig);
             options.headers = config.headers;
             options.data = config.data;
-        } 
+        }
         if (notification) {
             expect(mockedVscode.window.withProgress).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.withProgress).toHaveBeenNthCalledWith(1, {

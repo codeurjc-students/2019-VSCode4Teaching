@@ -457,36 +457,9 @@ export class DashboardWebview {
                     // Create directory tree object from relative paths with relative path and children
                     // Result is array of objects with keys "name" with the name of the file and "children" if the file is a directory listing its children
                     const result: OpenQuickPick[] = [];
-                    const level: { [key: string]: any } = { result };
-                    relativePaths.forEach((relPath) => {
-                        relPath.split("/").reduce((r, name, i, a) => {
-                            if (!r[name]) {
-                                r[name] = { result: [] };
-                                r.result.push(new OpenQuickPick(name, r[name].result));
-                            }
-                            return r[name];
-                        }, level);
-                    });
-                    // Add full relative path to each leaf node
                     relativePaths.forEach((relPath, index) => {
-                        const parts = relPath.split("/");
-                        let currentNode = result;
-                        for (const part of parts) {
-                            const node = currentNode.find((e) => e.name === part);
-                            if (node) {
-                                if (node.children && node.children.length > 0) {
-                                    currentNode = node.children;
-                                } else {
-                                    node.fullPath = uris[index];
-                                    break;
-                                }
-                            }
-                        }
+                        result.push(new OpenQuickPick(relPath, [], undefined, false, uris[index]));
                     });
-                    // Combine paths if there is only 1 directory as a child
-                    result.forEach((e) => this.shortenPaths(e));
-                    // Add parent directories/files to all children
-                    result.forEach((e) => this.addParentsToChildren(result, e.children));
                     return result;
                 } else {
                     throw new Error("No files found for student " + username);
