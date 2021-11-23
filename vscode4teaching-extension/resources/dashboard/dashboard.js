@@ -41,7 +41,6 @@
             vscode.postMessage({
                 type: "goToWorkspace",
                 username: username,
-                lastMod:row.attributes.getNamedItem("data-lastMod").value,
             });
         });
     });
@@ -55,7 +54,6 @@
             vscode.postMessage({
                 type: "diff",
                 username: username,
-                lastMod:row.attributes.getNamedItem("data-lastMod-diff").value,
             });
         });
     });

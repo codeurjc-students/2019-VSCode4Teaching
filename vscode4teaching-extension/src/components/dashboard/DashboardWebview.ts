@@ -6,6 +6,7 @@ import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
 import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
+import { OpenQuickPick } from "./OpenQuickPick";
 
 export class DashboardWebview {
     public static currentPanel: DashboardWebview | undefined;
@@ -107,49 +108,28 @@ export class DashboardWebview {
                 //     break;
                 // }
                 case "goToWorkspace": {
-                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
-                        const workspaces = vscode.workspace.workspaceFolders;
-                        if (workspaces) {
-                            const wsF = workspaces.find((e) => e.name === message.username);
-                            if (wsF) {
-                                const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
-                                if (!lastFile) {
-                                    vscode.window.showWarningMessage("Last modified file no longer exists (it might have been deleted by the student)");
-                                } else {
-                                    const doc1 = await vscode.workspace.openTextDocument(lastFile);
-                                    // let doc1 = await vscode.workspace.openTextDocument(await this.findMainFile(wsF));
-                                    await vscode.window.showTextDocument(doc1);
-                                }
-                            } else {
-                                vscode.window.showErrorMessage("Student's files not found.");
-                            }
-                        } else {
-                            vscode.window.showErrorMessage("The exercise's workspace is not open.");
+                    this.showQuickPick(message.username, course, exercise).then(async (filePath) => {
+                        if (filePath !== undefined) {
+                            const doc1 = await vscode.workspace.openTextDocument(filePath);
+                            await vscode.window.showTextDocument(doc1);
                         }
-                        this.panel.webview.postMessage({ type: "openDone", username: message.username});
+                        this.panel.webview.postMessage({ type: "openDone", username: message.username });
+                    }).catch((err) => {
+                        console.error(err);
+                        vscode.window.showErrorMessage(err);
                     });
                     break;
                 }
 
                 case "diff": {
-                    await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise).then(async () => {
-                        const workspaces = vscode.workspace.workspaceFolders;
-                        if (workspaces) {
-                            const wsF = workspaces.find((e) => e.name === message.username);
-                            if (wsF) {
-                                const lastFile = await this.findLastModifiedFile(wsF, message.lastMod);
-                                if (!lastFile) {
-                                    vscode.window.showWarningMessage("Last modified file no longer exists (it might have been deleted by the student)");
-                                } else {
-                                    await vscode.commands.executeCommand("vscode4teaching.diff", lastFile);
-                                }
-                            } else {
-                                vscode.window.showErrorMessage("Student's files not found.");
-                            }
-                        } else {
-                            vscode.window.showErrorMessage("The exercise's workspace is not open.");
+                    this.showQuickPick(message.username, course, exercise).then(async (filePath) => {
+                        if (filePath !== undefined) {
+                            await vscode.commands.executeCommand("vscode4teaching.diff", filePath);
                         }
                         this.panel.webview.postMessage({ type: "openDone", username: message.username });
+                    }).catch((err) => {
+                        console.error(err);
+                        vscode.window.showErrorMessage(err);
                     });
                     break;
                 }
@@ -231,10 +211,10 @@ export class DashboardWebview {
         for (const eui of this._euis) {
             message["user-lastmod-" + eui.user.id] = this.getElapsedTime(eui.updateDateTime);
         }
-        this.panel.webview.postMessage({type: "updateDate", update: message});
+        this.panel.webview.postMessage({ type: "updateDate", update: message });
     }
 
-    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string) {
+    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string): Promise<{ uri: vscode.Uri, relativePath: string }> {
         if (fileRoute === "null") { return this.findMainFile(folder); }
 
         const fileRegex = /^\/[^\/]+\/[^\/]+\/[^\/]+\/(.+)$/;
@@ -242,24 +222,26 @@ export class DashboardWebview {
         if (regexResults && regexResults.length > 1) {
             const match: vscode.Uri[] = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, regexResults[1]));
             if (match.length === 1) {
-                return match[0];
+                return { uri: match[0], relativePath: regexResults[1] };
             }
         }
         return this.findMainFile(folder);
     }
 
-    private async findMainFile(folder: vscode.WorkspaceFolder) {
+    private async findMainFile(folder: vscode.WorkspaceFolder): Promise<{ uri: vscode.Uri, relativePath: string }> {
         const patterns = ["readme.*", "readme", "Main.*", "main.*", "index.html", "*"];
         let matches: vscode.Uri[] = [];
         let i = 0;
+        let pattern = "";
         while (matches.length <= 0 && i < patterns.length) {
-            const file = new vscode.RelativePattern(folder, patterns[i++]);
+            pattern = patterns[i++];
+            const file = new vscode.RelativePattern(folder, pattern);
             matches = (await vscode.workspace.findFiles(file));
         }
         if (matches.length <= 0) {
             matches = (await vscode.workspace.findFiles(new vscode.RelativePattern(folder, "*")));
         }
-        return matches[0];
+        return { uri: matches[0], relativePath: pattern };
     }
 
     private reloadData() {
@@ -320,8 +302,8 @@ export class DashboardWebview {
                 }
             }
             rows = rows + `<td class="button-col">`;
-            const buttons = `<button data-lastMod='${eui.lastModifiedFile}' class='workspace-link'>Open</button><button data-lastMod-diff='${eui.lastModifiedFile}' class='workspace-link-diff'>Diff</button>`;
-            rows += eui.lastModifiedFile ? buttons : `Not found`;
+            const buttons = `<button class='workspace-link'>Open</button><button class='workspace-link-diff'>Diff</button>`;
+            rows += buttons;
             rows = rows + `</td>\n`;
             rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
@@ -421,5 +403,144 @@ export class DashboardWebview {
         }
 
         return `${Math.floor(elapsedTime)} ${unit}`;
+    }
+
+    /**
+     * Show quick pick with all modified files in EUIs for each user
+     * @param username string username
+     * @param course Course course
+     * @param exercise Exercise exercise
+     * @returns Thenable<string|undefined> the selected file
+     */
+    private async showQuickPick(username: string, course: Course, exercise: Exercise): Promise<vscode.Uri | undefined> {
+        // Download most recent files
+        await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise);
+        return vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: "Getting modified files...",
+        }, (progress, token) => this.buildQuickPickItems(username))
+        .then(async (result: OpenQuickPick[]) => {
+            if (result) {
+                const selection = await this.showQuickPickRecursive(result);
+                if (selection) {
+                    return selection;
+                }
+            }
+        });
+    }
+
+    private async buildQuickPickItems(username: string): Promise<OpenQuickPick[]> {
+        // Find all modified files URIs (paths)
+        const workspaces = vscode.workspace.workspaceFolders;
+        if (workspaces) {
+            const wsF = workspaces.find((e) => e.name === username);
+            if (wsF) {
+                const euis = this._euis.filter((eui) => eui.user.username === username);
+                const uris: vscode.Uri[] = [];
+                const relativePaths: string[] = [];
+                if (euis.length > 0) {
+                    const eui = euis[0];
+                    if (eui.modifiedFiles && eui.modifiedFiles.length > 0) {
+                        for (const fileName of eui.modifiedFiles) {
+                            const lastFile = await this.findLastModifiedFile(wsF, fileName);
+                            if (lastFile.uri) {
+                                relativePaths.push(lastFile.relativePath);
+                                uris.push(lastFile.uri);
+                            }
+                        }
+                    } else {
+                        vscode.window.showWarningMessage(`No modified files for ${username}`);
+                    }
+                }
+                if (uris.length > 0) {
+                    // Create directory tree object from relative paths with relative path and children
+                    // Result is array of objects with keys "name" with the name of the file and "children" if the file is a directory listing its children
+                    const result: OpenQuickPick[] = [];
+                    const level: { [key: string]: any } = { result };
+                    relativePaths.forEach((relPath) => {
+                        relPath.split("/").reduce((r, name, i, a) => {
+                            if (!r[name]) {
+                                r[name] = { result: [] };
+                                r.result.push(new OpenQuickPick(name, r[name].result));
+                            }
+                            return r[name];
+                        }, level);
+                    });
+                    // Add full relative path to each leaf node
+                    relativePaths.forEach((relPath, index) => {
+                        const parts = relPath.split("/");
+                        let currentNode = result;
+                        for (const part of parts) {
+                            const node = currentNode.find((e) => e.name === part);
+                            if (node) {
+                                if (node.children && node.children.length > 0) {
+                                    currentNode = node.children;
+                                } else {
+                                    node.fullPath = uris[index];
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                    // Combine paths if there is only 1 directory as a child
+                    result.forEach((e) => this.shortenPaths(e));
+                    // Add parent directories/files to all children
+                    result.forEach((e) => this.addParentsToChildren(result, e.children));
+                    return result;
+                } else {
+                    throw new Error("No files found for student " + username);
+                }
+            } else {
+                throw new Error("No files found for student " + username);
+            }
+        } else {
+            throw new Error("The exercise's workspace is not open.");
+        }
+    }
+
+    // Add parent object as property to children in the tree with key "children" as array of objects
+    private addParentsToChildren(parents: OpenQuickPick[], children: OpenQuickPick[]) {
+        children.forEach((child) => {
+            child.parents = parents;
+            if (child.children) {
+                this.addParentsToChildren(children, child.children);
+            }
+        });
+    }
+
+    // Combines parent and child as a single path if there is only one child and it is a directory
+    private shortenPaths(item: OpenQuickPick) {
+        if ((item.children.length === 1) && (item.children[0].children.length > 0)) {
+            const child = item.children[0];
+            item.name = item.name + "/" + child.name;
+            item.children = child.children;
+            this.shortenPaths(item);
+        } else {
+            for (const child of item.children) {
+                this.shortenPaths(child);
+            }
+        }
+    }
+
+    // Recursive show quick pick with files given the file or directory name and an array of children
+    private async showQuickPickRecursive(recursiveFiles: OpenQuickPick[]): Promise<vscode.Uri | undefined> {
+        if (!recursiveFiles[0].isGoBackButton && recursiveFiles[0].parents && recursiveFiles[0].parents.length > 0) {
+            recursiveFiles.unshift(new OpenQuickPick("..", [], recursiveFiles[0].parents, true));
+        }
+        const selection = await vscode.window.showQuickPick(recursiveFiles, {
+            placeHolder: "Choose a file to open",
+        });
+        if (selection) {
+            if (selection.parents && selection.label === "..") {
+                return this.showQuickPickRecursive(selection.parents);
+            }
+            if (selection.children && selection.children.length > 0) {
+                return this.showQuickPickRecursive(selection.children);
+            } else {
+                console.log(selection);
+                return selection.fullPath;
+            }
+        }
     }
 }

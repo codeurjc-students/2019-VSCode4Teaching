@@ -6,5 +6,5 @@ export interface ExerciseUserInfo {
     user: User;
     status: number;
     updateDateTime: string;
-    lastModifiedFile?: string;
+    modifiedFiles?: string[];
 }

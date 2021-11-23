@@ -398,14 +398,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: string): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: number, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
             responseType: "json",
             data: {
                 status,
-                lastModifiedFile,
+                modifiedFiles,
             },
         };
         return APIClient.createRequest(options, "Updating exercise user info...");

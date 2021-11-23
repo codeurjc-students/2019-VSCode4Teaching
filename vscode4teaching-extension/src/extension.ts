@@ -448,6 +448,7 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     changeEvent = fsw.onDidChange((e: vscode.Uri) => {
+        EUIUpdateService.addModifiedPath(e);
         if (uploadTimeout) {
             global.clearTimeout(uploadTimeout);
         }
@@ -455,11 +456,12 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
             uploadTimeout = undefined;
             FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
                 console.debug("File edited: " + e.fsPath);
+                EUIUpdateService.updateExercise(exerciseId);
             });
-            EUIUpdateService.updateExercise(e, exerciseId);
         }, 500);
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
+        EUIUpdateService.addModifiedPath(e);
         if (uploadTimeout) {
             global.clearTimeout(uploadTimeout);
         }
@@ -467,8 +469,8 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
             uploadTimeout = undefined;
             FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
                 console.debug("File added: " + e.fsPath);
+                EUIUpdateService.updateExercise(exerciseId);
             });
-            EUIUpdateService.updateExercise(e, exerciseId);
         }, 500);
     });
     deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
