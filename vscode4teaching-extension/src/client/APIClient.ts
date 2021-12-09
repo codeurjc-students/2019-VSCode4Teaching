@@ -99,8 +99,10 @@ class APIClientSingleton {
         console.error(error);
         if (axios.isCancel(error)) {
             vscode.window.showErrorMessage("Request timeout.");
-            APIClientSession.invalidateSession();
+            // APIClientSession.invalidateSession();
         } else if (error.response) {
+            console.log(error.response);
+            console.log(error.request);
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
@@ -118,14 +120,13 @@ class APIClientSingleton {
                 vscode.window.showErrorMessage("Error " + error.response.status + ". " + msg);
                 APIClient.error401thrown = false;
                 APIClient.error403thrown = false;
-                APIClientSession.invalidateSession();
+                // APIClientSession.invalidateSession();
             }
         } else if (error.request) {
             vscode.window.showErrorMessage("Can't connect to the server. " + error.message);
             APIClientSession.invalidateSession();
         } else {
             vscode.window.showErrorMessage(error.message);
-            APIClientSession.invalidateSession();
         }
     }
 
@@ -159,7 +160,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise files...");
+        return APIClient.createRequest(options, "Downloading exercise files...", true);
     }
 
     public addCourse(data: CourseEdit): AxiosPromise<Course> {
@@ -229,7 +230,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading template...");
+        return APIClient.createRequest(options, "Uploading template...", true);
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {
@@ -297,7 +298,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading files...");
+        return APIClient.createRequest(options, "Uploading files...", true);
     }
 
     public getAllStudentFiles(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -306,7 +307,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading student files...");
+        return APIClient.createRequest(options, "Downloading student files...", true);
     }
 
     public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
@@ -315,7 +316,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise template...");
+        return APIClient.createRequest(options, "Downloading exercise template...", true);
     }
 
     public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
@@ -397,14 +398,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, lastModifiedFile?: string): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: number, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
             responseType: "json",
             data: {
                 status,
-                lastModifiedFile,
+                modifiedFiles,
             },
         };
         return APIClient.createRequest(options, "Updating exercise user info...");
@@ -416,7 +417,7 @@ class APIClientSingleton {
             method: "GET",
             responseType: "json",
         };
-        return APIClient.createRequest(options, "Fetching students' exercise user info...");
+        return APIClient.createRequest(options, "Fetching students' exercise user info...", true);
     }
 
     private signUp(credentials: UserSignup): AxiosPromise<User> {
@@ -444,10 +445,18 @@ class APIClientSingleton {
      * @param options Options from to build axios request
      * @param statusMessage message to add to the vscode status bar
      */
-    private createRequest(options: AxiosBuildOptions, statusMessage: string): AxiosPromise<any> {
+    private createRequest(options: AxiosBuildOptions, statusMessage: string, notification: boolean = false): AxiosPromise<any> {
         const axiosOptions = APIClientSession.buildOptions(options);
         const thenable = axios(axiosOptions.axiosOptions);
-        vscode.window.setStatusBarMessage(statusMessage, thenable);
+        if (notification) {
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title: statusMessage,
+            }, (progress, token) => thenable);
+        } else {
+            vscode.window.setStatusBarMessage("$(sync~spin) " + statusMessage, thenable);
+        }
         return thenable.then((result) => {
             if (axiosOptions.timeout) {
                 clearTimeout(axiosOptions.timeout);

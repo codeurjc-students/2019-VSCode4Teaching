@@ -56,6 +56,7 @@ const window = {
     showQuickPick: jest.fn((array, options) => {
         return Promise.resolve([...array]);
     }),
+    withProgress: jest.fn(),
 };
 
 const WorkspaceConfiguration = {
@@ -86,6 +87,7 @@ const workspace = {
     onWillSaveTextDocument: jest.fn(),
     updateWorkspaceFolders: jest.fn(),
     getWorkspaceFolder: jest.fn(),
+    onDidChangeWorkspaceFolders: jest.fn(),
 };
 
 const Uri = jest.fn().mockImplementation((x) => {
@@ -142,8 +144,8 @@ const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, 
 });
 
 const commands = {
-    registerCommand: jest.fn(),
-    executeCommand: jest.fn()
+    registerCommand: jest.fn(() => Promise.resolve({ data: {} })),
+    executeCommand: jest.fn(() => Promise.resolve({ data: {} }))
 };
 
 const TreeItemCollapsibleState = {
@@ -210,6 +212,10 @@ const MarkdownString = jest.fn().mockImplementation((text) => {
 
 const RelativePattern = jest.fn();
 
+const ProgressLocation = {
+    Notification: 0,
+}
+
 const vscode = {
     WorkspaceFolder,
     ExtensionContext,
@@ -237,6 +243,7 @@ const vscode = {
     EndOfLine,
     MarkdownString,
     RelativePattern,
+    ProgressLocation
 };
 
 module.exports = vscode;

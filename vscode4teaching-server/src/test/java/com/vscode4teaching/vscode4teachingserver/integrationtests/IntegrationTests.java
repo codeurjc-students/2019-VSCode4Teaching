@@ -52,4 +52,38 @@ public class IntegrationTests {
         Course actualResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Course.class);
         assertThat(actualResponse.getName()).isEqualTo(course.getName());
     }
+
+    // Login, try to create course without body (fails with bad request) and token
+    // doesn't get invalidated on error
+    @Test
+    public void expectError() throws Exception {
+        JWTRequest jwtRequest = new JWTRequest();
+        jwtRequest.setUsername("johndoe");
+        jwtRequest.setPassword("teacherpassword");
+
+        MvcResult loginResult = mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
+                .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk()).andReturn();
+        JWTResponse jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(),
+                JWTResponse.class);
+
+        MvcResult mvcErrorResult = mockMvc.perform(post("/api/courses").contentType("application/json").with(csrf())
+                .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest())
+                .andReturn();
+
+        CourseDTO course = new CourseDTO();
+        course.setName("Spring Boot Course");
+
+        MvcResult mvcCorrectResult = mockMvc
+                .perform(post("/api/courses").contentType("application/json").with(csrf())
+                        .content(objectMapper.writeValueAsString(course))
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isCreated()).andReturn();
+
+        String actualErrorResponse = mvcErrorResult.getResponse().getContentAsString();
+        assertThat(actualErrorResponse).isEqualTo("");
+        Course actualCorrectResponse = objectMapper.readValue(mvcCorrectResult.getResponse().getContentAsString(),
+                Course.class);
+        assertThat(actualCorrectResponse.getName()).isEqualTo(course.getName());
+    }
+
 }

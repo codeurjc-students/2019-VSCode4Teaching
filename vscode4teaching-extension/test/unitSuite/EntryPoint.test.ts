@@ -132,7 +132,7 @@ describe("Extension entry point", () => {
             user,
             status: 0,
             updateDateTime: new Date().toISOString(),
-            lastModifiedFile: "",
+            modifiedFiles: [],
         };
         const euiResponse: AxiosResponse<ExerciseUserInfo> = {
             data: eui,
@@ -193,6 +193,12 @@ describe("Extension entry point", () => {
         expect(fswFunctionMocks.onDidDelete).toHaveBeenCalledTimes(1);
         expect(mockedVscode.workspace.onWillSaveTextDocument).toHaveBeenCalledTimes(1);
         expect(mockedVscode.workspace.onDidSaveTextDocument).toHaveBeenCalledTimes(1);
+        expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(2);
+        expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "setContext", "vscode4teaching.isTeacher", false);
+        expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(2, "workbench.view.explorer");
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
+        const message = `The exercise has been downloaded! You can start editing its files in the Explorer view. You can mark the exercise as finished using the 'Finish' button in the status bar below.`;
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(1, message);
         expect(extension.finishItem).toBeTruthy();
     });
 

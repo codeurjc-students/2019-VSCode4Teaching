@@ -33,10 +33,16 @@ function createSessionFile(newXsrfToken: string, newJwtToken: string) {
     fs.writeFileSync(APIClientSession.sessionPath, newJwtToken + "\n" + newXsrfToken);
 }
 
-function expectSessionInvalidated() {
-    // Session is invalidated
-    expect(mockedCurrentUser.resetUserInfo).toHaveBeenCalledTimes(1);
-    expect(fs.existsSync(APIClientSession.sessionPath)).toBeFalsy();
+function expectSessionInvalidated(isInvalidated: boolean) {
+    if (isInvalidated) {
+        // Session is invalidated
+        expect(mockedCurrentUser.resetUserInfo).toHaveBeenCalledTimes(1);
+        expect(fs.existsSync(APIClientSession.sessionPath)).toBeFalsy();
+    } else {
+        // Session is not invalidated
+        expect(mockedCurrentUser.resetUserInfo).toHaveBeenCalledTimes(0);
+        expect(fs.existsSync(APIClientSession.sessionPath)).toBeTruthy();
+    }
 }
 
 describe("Client", () => {
@@ -130,9 +136,9 @@ describe("Client", () => {
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
         // Set status bar when fetching XSRF
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenCalledTimes(2);
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "Fetching server info...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Fetching server info...", expect.anything());
         // Set status bar when calling login
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(2, "Logging in to VS Code 4 Teaching...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(2, "$(sync~spin) Logging in to VS Code 4 Teaching...", expect.anything());
         // Make a request for XSRF Token
         expect(mockedAxios).toHaveBeenCalledTimes(2);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigXSRFRequest);
@@ -153,7 +159,7 @@ describe("Client", () => {
 
     it("should invalidate session", () => {
         APIClient.invalidateSession();
-        expectSessionInvalidated();
+        expectSessionInvalidated(true);
     });
 
     it("should handle error 401", () => {
@@ -170,7 +176,7 @@ describe("Client", () => {
         // Refresh tree view
         expect(mockedCoursesTreeProvider.triggerTreeReload).toHaveBeenCalledTimes(1);
         expect(global.console.error).toHaveBeenCalledTimes(1);
-        expectSessionInvalidated();
+        expectSessionInvalidated(true);
     });
 
     it("should handle error 403", () => {
@@ -211,10 +217,11 @@ describe("Client", () => {
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledWith("Something went wrong, please try again.");
         // Fetch XSRF Token
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenCalledTimes(1);
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "Fetching server info...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Fetching server info...", expect.anything());
         expect(mockedAxios).toHaveBeenCalledTimes(1);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigXSRFRequest);
         expect(global.console.error).toHaveBeenCalledTimes(1);
+        expectSessionInvalidated(false);
     });
 
     it("should handle rest of http errors", () => {
@@ -233,7 +240,7 @@ describe("Client", () => {
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Error 400. " + JSON.stringify(dataError));
-        expectSessionInvalidated();
+        expectSessionInvalidated(false);
         expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
@@ -249,7 +256,7 @@ describe("Client", () => {
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith("Can't connect to the server. " + error.message);
-        expectSessionInvalidated();
+        expectSessionInvalidated(true);
         expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
@@ -262,7 +269,7 @@ describe("Client", () => {
         // Error message showed
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledWith(error.message);
-        expectSessionInvalidated();
+        expectSessionInvalidated(false);
         expect(global.console.error).toHaveBeenCalledTimes(1);
     });
 
@@ -337,9 +344,9 @@ describe("Client", () => {
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
         // Set status bar when fetching XSRF
         expect(mockedVscode.window.setStatusBarMessage).toHaveBeenCalledTimes(2);
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "Fetching server info...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Fetching server info...", expect.anything());
         // Set status bar when calling signup
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(2, "Signing up to VS Code 4 Teaching...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(2, "$(sync~spin) Signing up to VS Code 4 Teaching...", expect.anything());
         // Make a request for XSRF Token
         expect(mockedAxios).toHaveBeenCalledTimes(2);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigXSRFRequest);
@@ -403,7 +410,7 @@ describe("Client", () => {
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);
         expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
         // Set status bar when calling signup
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "Signing teacher up to VS Code 4 Teaching...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Signing teacher up to VS Code 4 Teaching...", expect.anything());
         // Make a request for signing up
         expect(mockedAxios).toHaveBeenCalledTimes(1);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigSignupRequest);

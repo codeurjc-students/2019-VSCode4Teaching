@@ -60,7 +60,7 @@ describe("Dashboard webview", () => {
             user: student1,
             status: 0,
             updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()).toISOString(),
-            lastModifiedFile: "/index.html",
+            modifiedFiles: ["/index.html"],
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
@@ -68,7 +68,7 @@ describe("Dashboard webview", () => {
             user: student2,
             status: 1,
             updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()).toISOString(),
-            lastModifiedFile: "/readme.md",
+            modifiedFiles: ["/readme.md"],
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
@@ -76,7 +76,7 @@ describe("Dashboard webview", () => {
             user: student3,
             status: 2,
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
-            lastModifiedFile: undefined,
+            modifiedFiles: undefined,
         });
         DashboardWebview.show(euis, course, exercise);
         if (DashboardWebview.currentPanel) {
@@ -131,10 +131,8 @@ describe("Dashboard webview", () => {
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].childNodes[0].name).toBe("button");
             expect(tableData[3].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[3].childNodes[0].attribs["data-lastmod"]).toBe("/index.html");
             expect(tableData[3].childNodes[1].name).toBe("button");
             expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
-            expect(tableData[3].childNodes[1].attribs["data-lastmod-diff"]).toBe("/index.html");
             // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
             expect(tableData[5].firstChild.data).toBe("Student 2");
             expect(tableData[6].firstChild.data).toBe("student2");
@@ -142,16 +140,13 @@ describe("Dashboard webview", () => {
             expect(tableData[7].attribs.class).toBe("finished-cell");
             expect(tableData[8].childNodes[0].name).toBe("button");
             expect(tableData[8].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[8].childNodes[0].attribs["data-lastmod"]).toBe("/readme.md");
             expect(tableData[8].childNodes[1].name).toBe("button");
             expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
-            expect(tableData[8].childNodes[1].attribs["data-lastmod-diff"]).toBe("/readme.md");
             // expect(tableData[9].firstChild.data).toBe("13 min");
             expect(tableData[10].firstChild.data).toBe("Student 3");
             expect(tableData[11].firstChild.data).toBe("student3");
             expect(tableData[12].firstChild.data).toBe("On progress");
             expect(tableData[12].attribs.class).toBe("onprogress-cell");
-            expect(tableData[13].firstChild.data).toBe("Not found");
             // expect(tableData[14].firstChild.data).toBe("35 s");
         } else {
             fail("Current panel wasn't created");

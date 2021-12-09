@@ -42,10 +42,10 @@ export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
 export let commentInterval: NodeJS.Timeout;
+export let uploadTimeout: NodeJS.Timeout | undefined;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
-// TODO: Comments not working
 export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
@@ -96,11 +96,21 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
-        await getSingleStudentExerciseFiles(courseName, exercise);
+        coursesProvider.changeLoading(true);
+        try {
+            await getSingleStudentExerciseFiles(courseName, exercise);
+        } finally {
+            coursesProvider.changeLoading(false);
+        }
     });
 
     const getStudentFiles = vscode.commands.registerCommand("vscode4teaching.getstudentfiles", async (courseName: string, exercise: Exercise) => {
-        await getMultipleStudentExerciseFiles(courseName, exercise);
+        coursesProvider.changeLoading(true);
+        try {
+            await getMultipleStudentExerciseFiles(courseName, exercise);
+        } finally {
+            coursesProvider.changeLoading(false);
+        }
     });
 
     const addCourseDisposable = vscode.commands.registerCommand("vscode4teaching.addcourse", () => {
@@ -151,7 +161,7 @@ export function activate(context: vscode.ExtensionContext) {
             const templateFile = path.resolve(templates[parentDir], relativePath);
             if (fs.existsSync(templateFile)) {
                 const templateFileUri = vscode.Uri.file(templateFile);
-                vscode.commands.executeCommand("vscode.diff", file, templateFileUri);
+                vscode.commands.executeCommand("vscode.diff", templateFileUri, file);
             } else {
                 vscode.window.showErrorMessage("File doesn't exist in the template.");
             }
@@ -223,20 +233,26 @@ export function activate(context: vscode.ExtensionContext) {
     const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", async () => {
         const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
-        if (selectedOption === "Accept" && finishItem) {
-            const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
-            console.debug(response);
-            if (response.data.status === 1 && finishItem) {
-                finishItem.dispose();
-                if (changeEvent) {
-                    changeEvent.dispose();
+        if ((selectedOption === "Accept") && finishItem) {
+            try {
+                const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
+                console.debug(response);
+                if ((response.data.status === 1) && finishItem) {
+                    finishItem.dispose();
+                    if (changeEvent) {
+                        changeEvent.dispose();
+                    }
+                    if (createEvent) {
+                        createEvent.dispose();
+                    }
+                    if (deleteEvent) {
+                        deleteEvent.dispose();
+                    }
+                } else {
+                    vscode.window.showErrorMessage("An unexpected error has occurred. The exercise has not been marked as finished. Please try again.");
                 }
-                if (createEvent) {
-                    createEvent.dispose();
-                }
-                if (deleteEvent) {
-                    deleteEvent.dispose();
-                }
+            } catch (error) {
+                APIClient.handleAxiosError(error);
             }
         }
     });
@@ -273,11 +289,23 @@ export function activate(context: vscode.ExtensionContext) {
         deleteCourseDisposable, refreshView, refreshCourse, addExercise, editExercise, deleteExercise, addUsersToCourse,
         removeUsersFromCourse, getStudentFiles, diff, createComment, share, signup, signupTeacher, getWithCode, finishExercise, showDashboard, showLiveshareBoard);
 
-    initializeLiveShare().then(() => {
-        console.log("LiveShare initialized");
-        console.log(liveshareService);
-        console.log(wsLiveshare);
-    });
+    // Temp fix for this issue https://github.com/microsoft/vscode/issues/136787
+    // TODO: Remove this when the issue is fixed
+    const isWin = process.platform === "win32";
+    if (isWin) {
+        if (vscode.workspace.getConfiguration("http").get("systemCertificates")) {
+            vscode.window.showWarningMessage("There may be issues connecting to the server unless you change your configuration settings.\nClicking the button will automatically make all configuration changes needed.", "Change configuration and restart").then((selected) => {
+                if (selected) {
+                    vscode.workspace.getConfiguration("http").update("systemCertificates", false, true).then(() => {
+                        vscode.commands.executeCommand("workbench.action.reloadWindow");
+                    }, (error) => {
+                        console.error(error);
+                        vscode.window.showErrorMessage("There was an error updating your configuration: " + error);
+                    });
+                }
+            });
+        }
+    }
 }
 
 export function deactivate() {
@@ -304,7 +332,7 @@ export function disableFeatures() {
     global.clearInterval(commentInterval);
 }
 
-export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>) {
+export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFolder>, hideWelcomeMessage?: boolean) {
 
     disableFeatures();
 
@@ -323,6 +351,11 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const zipSplit = zipUri.split(path.sep);
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split("\.")[0] || +zipSplit[zipSplit.length - 1].split("-")[0];
                 if (CurrentUser.isLoggedIn()) {
+                    initializeLiveShare().then(() => {
+                        console.log("LiveShare initialized");
+                        console.log(liveshareService);
+                        console.log(wsLiveshare);
+                    });
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
                         if (courses && !showLiveshareBoardItem) {
@@ -337,7 +370,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     commentProvider.addCwd(cwd);
                     const currentUser = CurrentUser.getUserInfo();
                     const currentUserIsTeacher = ModelUtils.isTeacher(currentUser);
-                    vscode.commands.executeCommand("setContext", "vscode4teaching.isTeacher", currentUserIsTeacher);
+                    await vscode.commands.executeCommand("setContext", "vscode4teaching.isTeacher", currentUserIsTeacher);
                     // Download comments
                     if (cwd.name !== "template") {
                         const username: string = currentUserIsTeacher ? cwd.name : currentUser.username;
@@ -356,11 +389,6 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                                 }
                                 finishItem = new FinishItem(exerciseId);
                                 finishItem.show();
-                                const message = `
-                                    The exercise has been downloaded! You can start editing its files in the Explorer view (Ctrl + Shift + E).
-                                    You can mark the exercise as finished using the 'Finish' button in the status bar.
-                                `;
-                                vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
                             }
                         } catch (error) {
                             APIClient.handleAxiosError(error);
@@ -373,20 +401,26 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         } else {
                             showDashboardItem = new ShowDashboardItem(cwd.name, eui.data.exercise.course, eui.data.exercise);
                             showDashboardItem.show();
-                            const message = `
-                                The exercise has been downloaded! You can see the template files and your students' files in the Explorer view (Ctrl + Shift + E).
-                                You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.
-                            `;
-                            const openDashboard = "Open dashboard";
-                            vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
-                                console.debug(value);
-                                if (value === openDashboard) {
-                                    console.debug("Opening dashboard");
-                                    return vscode.commands.executeCommand("vscode4teaching.showdashboard");
-                                }
-                            }).then(() => console.debug("Message dismissed"));
                         }
                     }
+                    vscode.commands.executeCommand("workbench.view.explorer").then(() => {
+                        if (!hideWelcomeMessage) {
+                            if (!currentUserIsTeacher) {
+                                const message = `The exercise has been downloaded! You can start editing its files in the Explorer view. You can mark the exercise as finished using the 'Finish' button in the status bar below.`;
+                                vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
+                            } else {
+                                const message = `The exercise has been downloaded! You can see the template files and your students' files in the Explorer view. You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.`;
+                                const openDashboard = "Open dashboard";
+                                vscode.window.showInformationMessage(message, openDashboard).then((value: string | undefined) => {
+                                    console.debug(value);
+                                    if (value === openDashboard) {
+                                        console.debug("Opening dashboard");
+                                        return vscode.commands.executeCommand("vscode4teaching.showdashboard");
+                                    }
+                                }).then(() => console.debug("Message dismissed"));
+                            }
+                        }
+                    });
                     // Set template location if exists
                     if (currentUserIsTeacher && v4tjson.template) {
                         // Template should be the same in the workspace
@@ -414,21 +448,41 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     changeEvent = fsw.onDidChange((e: vscode.Uri) => {
-        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File edited: " + e.fsPath);
-        });
-        EUIUpdateService.updateExercise(e, exerciseId);
+        EUIUpdateService.addModifiedPath(e);
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File edited: " + e.fsPath);
+                EUIUpdateService.updateExercise(exerciseId);
+            });
+        }, 500);
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
-        FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File added: " + e.fsPath);
-        });
-        EUIUpdateService.updateExercise(e, exerciseId);
+        EUIUpdateService.addModifiedPath(e);
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File added: " + e.fsPath);
+                EUIUpdateService.updateExercise(exerciseId);
+            });
+        }, 500);
     });
     deleteEvent = fsw.onDidDelete((e: vscode.Uri) => {
-        FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-            console.debug("File deleted: " + e.fsPath);
-        });
+        if (uploadTimeout) {
+            global.clearTimeout(uploadTimeout);
+        }
+        uploadTimeout = global.setTimeout(() => {
+            uploadTimeout = undefined;
+            FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
+                console.debug("File deleted: " + e.fsPath);
+            });
+        }, 500);
     });
 
     vscode.workspace.onWillSaveTextDocument((e: vscode.TextDocumentWillSaveEvent) => {
@@ -489,13 +543,15 @@ async function getSingleStudentExerciseFiles(courseName: string, exercise: Exerc
             const username = CurrentUser.getUserInfo().username;
             const fileInfoPath = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, username, ".fileInfo", exercise.name);
             await getFilesInfo(exercise, fileInfoPath, [username]);
-            const newWorkspace = vscode.workspace.updateWorkspaceFolders(0,
+            vscode.workspace.onDidChangeWorkspaceFolders(() => {
+                currentCwds = vscode.workspace.workspaceFolders;
+                if (currentCwds) {
+                    initializeExtension(currentCwds, true);
+                }
+            });
+            vscode.workspace.updateWorkspaceFolders(0,
                 vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
                 { uri, name: exercise.name });
-            currentCwds = vscode.workspace.workspaceFolders;
-            if (currentCwds && !newWorkspace) {
-                await initializeExtension(currentCwds);
-            }
         }
     }
 }
@@ -518,8 +574,22 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
     const newWorkspaceURIs = await getStudentExerciseFiles(courseName, exercise);
     if (newWorkspaceURIs && newWorkspaceURIs[1]) {
         const wsURI: string = newWorkspaceURIs[1];
-        const directories = fs.readdirSync(wsURI, { withFileTypes: true })
+        let directories = fs.readdirSync(wsURI, { withFileTypes: true })
             .filter((dirent) => dirent.isDirectory());
+        /*
+            Move "template" directory to beginning of directory array
+            As in the documentation for vscode.workspace.onDidChangeWorkspaceFolders:
+
+            If the first workspace folder is added, removed or changed, the currently executing extensions
+            (including the one that called this method) will be terminated and restarted so that the (deprecated)
+            rootPath property is updated to point to the first workspace folder.
+
+            The folder that never changes is the "template" one, so we move it to the beginning of the array to avoid
+            reloading all extensions if the same workspace is opened and there are new students added.
+        */
+        const template = directories.filter((dirent) => dirent.name === "template")[0];
+        directories = directories.filter((dirent) => dirent.name !== "template");
+        directories.unshift(template);
         // Get file info for id references
         if (coursesProvider && CurrentUser.isLoggedIn()) {
             const usernames = directories.filter((dirent) => !dirent.name.includes("template")).map((dirent) => dirent.name);
@@ -530,14 +600,16 @@ async function getMultipleStudentExerciseFiles(courseName: string, exercise: Exe
                     uri: vscode.Uri.file(path.resolve(wsURI, dirent.name)),
                 };
             });
+            vscode.workspace.onDidChangeWorkspaceFolders(() => {
+                currentCwds = vscode.workspace.workspaceFolders;
+                if (currentCwds) {
+                    initializeExtension(currentCwds, true);
+                }
+            });
             // open all student files and template
-            const newWorkspaces = vscode.workspace.updateWorkspaceFolders(0,
+            vscode.workspace.updateWorkspaceFolders(0,
                 vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0,
                 ...subdirectoriesURIs);
-            currentCwds = vscode.workspace.workspaceFolders;
-            if (currentCwds && !newWorkspaces) {
-                await initializeExtension(currentCwds);
-            }
         }
     }
 }

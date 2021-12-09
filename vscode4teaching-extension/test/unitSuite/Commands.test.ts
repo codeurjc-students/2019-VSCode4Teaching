@@ -194,7 +194,7 @@ describe("Command implementations", () => {
             user,
             exercise,
             updateDateTime: new Date().toISOString(),
-            lastModifiedFile: "",
+            modifiedFiles: [],
         };
         const response: AxiosResponse<ExerciseUserInfo> = {
             data: eui,
@@ -433,6 +433,6 @@ describe("Command implementations", () => {
         expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "template", "file.txt");
         expect(mockedFs.existsSync).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(1);
-        expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", file, mockedVscode.Uri.file("template/file.txt"));
+        expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", mockedVscode.Uri.file("template/file.txt"), file);
     });
 });

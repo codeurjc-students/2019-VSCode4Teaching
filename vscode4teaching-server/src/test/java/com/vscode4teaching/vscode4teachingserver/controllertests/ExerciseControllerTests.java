@@ -2,6 +2,8 @@ package com.vscode4teaching.vscode4teachingserver.controllertests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -260,10 +262,12 @@ public class ExerciseControllerTests {
         user.setId(4l);
         ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
         euiDTO.setStatus(1);
-        euiDTO.setLastModifiedFile("/sample");
+        ArrayList<String> euiModifiedFiles = new ArrayList<>();
+        euiModifiedFiles.add("/sample");
+        euiDTO.setModifiedFiles(euiModifiedFiles);
         ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
         updatedEui.setStatus(1);
-        when(exerciseInfoService.updateExerciseUserInfo(1l, "johndoe", 1, "/sample")).thenReturn(updatedEui);
+        when(exerciseInfoService.updateExerciseUserInfo(anyLong(), anyString(), anyInt(), anyList())).thenReturn(updatedEui);
 
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())

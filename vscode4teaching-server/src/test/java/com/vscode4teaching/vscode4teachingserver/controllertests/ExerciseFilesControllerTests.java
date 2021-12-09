@@ -192,6 +192,7 @@ public class ExerciseFilesControllerTests {
         verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString());
     }
 
+
     @Test
     public void uploadFile_noBody() throws Exception {
         mockMvc.perform(multipart("/api/exercises/1/files").with(csrf()).header("Authorization",

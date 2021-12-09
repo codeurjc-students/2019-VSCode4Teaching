@@ -2,7 +2,11 @@ package com.vscode4teaching.vscode4teachingserver.model;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -44,8 +48,9 @@ public class ExerciseUserInfo {
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     private LocalDateTime updateDateTime;
 
+    @ElementCollection
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
-    private String lastModifiedFile;
+    private Set<String> modifiedFiles = new HashSet<>();
 
     public ExerciseUserInfo() {
 
@@ -83,13 +88,17 @@ public class ExerciseUserInfo {
         this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }
 
-    public String getLastModifiedFile() {
-        return lastModifiedFile;
+    public Set<String> getModifiedFiles() {
+        return modifiedFiles;
     }
 
-    public void setLastModifiedFile(String lastModifiedFile) {
-        if (lastModifiedFile != null) {
-            this.lastModifiedFile = lastModifiedFile;
+    public void setModifiedFiles(Set<String> modifiedFiles) {
+        this.modifiedFiles = modifiedFiles;
+    }
+
+    public void addModifiedFiles(Collection<String> modifiedFiles) {
+        if (modifiedFiles != null) {
+            this.modifiedFiles.addAll(modifiedFiles);
         }
     }
 }

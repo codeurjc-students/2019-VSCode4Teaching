@@ -106,7 +106,7 @@ public class ExerciseController {
     public ResponseEntity<ExerciseUserInfo> updateExerciseUserInfo(@PathVariable Long exerciseId,
                                                                    @RequestBody ExerciseUserInfoDTO exerciseUserInfoDTO, HttpServletRequest request) throws NotFoundException {
         return ResponseEntity.ok(exerciseInfoService.updateExerciseUserInfo(exerciseId,
-                jwtTokenUtil.getUsernameFromToken(request), exerciseUserInfoDTO.getStatus(), exerciseUserInfoDTO.getLastModifiedFile()));
+                jwtTokenUtil.getUsernameFromToken(request), exerciseUserInfoDTO.getStatus(), exerciseUserInfoDTO.getModifiedFiles()));
     }
 
     @GetMapping("/exercises/{exerciseId}/info/teacher")
