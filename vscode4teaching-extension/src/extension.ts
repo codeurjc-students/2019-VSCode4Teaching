@@ -27,6 +27,9 @@ import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
 
+// Base URL of server
+const getServerBaseUrl = () => vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer");
+
 /**
  * Entrypoiny of the extension.
  * Activate is called at start.
@@ -161,7 +164,7 @@ export function activate(context: vscode.ExtensionContext) {
             const templateFile = path.resolve(templates[parentDir], relativePath);
             if (fs.existsSync(templateFile)) {
                 const templateFileUri = vscode.Uri.file(templateFile);
-                vscode.commands.executeCommand("vscode.diff", templateFileUri, file);
+                vscode.commands.executeCommand("vscode.diff", file, templateFileUri);
             } else {
                 vscode.window.showErrorMessage("File doesn't exist in the template.");
             }
@@ -203,13 +206,10 @@ export function activate(context: vscode.ExtensionContext) {
             const codeThenable = APIClient.getSharingCode(item.item);
             codeThenable.then((response) => {
                 console.debug(response);
-                const code = response.data;
-                vscode.window.showInformationMessage(
-                    "Share this code with your students to give them access to this course:\n" + code,
-                    "Copy to clipboard",
-                ).then((clicked) => {
+                const link = `${getServerBaseUrl()}?code=${response.data}`;
+                vscode.window.showInformationMessage("Share this link with your students to give them access to this course:\n" + link, "Copy link").then((clicked) => {
                     if (clicked) {
-                        vscode.env.clipboard.writeText(code).then(() => {
+                        vscode.env.clipboard.writeText(link).then(() => {
                             vscode.window.showInformationMessage("Copied to clipboard");
                         });
                     }
@@ -259,12 +259,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
         if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
-            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-                console.debug(response);
-                if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
-                    DashboardWebview.show(response.data, showDashboardItem.course, showDashboardItem.exercise);
-                }
-            }).catch((error) => APIClient.handleAxiosError(error));
+            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exercise.id)
+                .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+                    console.debug(response);
+                    if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
+                        DashboardWebview.show(response.data, showDashboardItem.course, showDashboardItem.exercise);
+                    }
+                }).catch((error) => APIClient.handleAxiosError(error));
         }
     });
 

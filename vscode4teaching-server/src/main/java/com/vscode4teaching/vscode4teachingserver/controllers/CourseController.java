@@ -82,8 +82,7 @@ public class CourseController {
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
-        return ResponseEntity
-                .ok(courseService.getCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
+        return ResponseEntity.ok(courseService.getCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
     @PutMapping("/courses/{id}")

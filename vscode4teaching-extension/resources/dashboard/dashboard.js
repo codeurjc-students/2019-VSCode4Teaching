@@ -70,5 +70,12 @@
             });
         }
     );
+
+    document.getElementById("hideStudentNames").addEventListener("click", (event) => {
+        vscode.postMessage({
+            type: "changeVisibilityStudentsNames",
+            value: event.target.checked,
+        });
+    });
 }());
 

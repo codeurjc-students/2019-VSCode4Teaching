@@ -103,7 +103,8 @@ public class ExceptionController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(value = { NotInCourseException.class, CantRemoveCreatorException.class, NotCreatorException.class })
+    @ExceptionHandler(value = { NotInCourseException.class, CantRemoveCreatorException.class,
+            NotCreatorException.class })
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
@@ -116,7 +117,7 @@ public class ExceptionController {
     }
 
     @ExceptionHandler(value = { ExerciseFinishedException.class, MultipartException.class,
-        EmptyJSONObjectException.class, EmptyURIException.class, MissingPropertyException.class})
+            EmptyJSONObjectException.class, EmptyURIException.class, MissingPropertyException.class })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleMultipartException(MultipartException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

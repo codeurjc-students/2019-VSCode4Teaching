@@ -30,6 +30,7 @@ export class DashboardWebview {
 
         // Otherwise, create a new panel.
         const dashboardName = exercise.name;
+        const dashboardViewName = course.name + " - " + exercise.name;
 
         const panel = vscode.window.createWebviewPanel(
             DashboardWebview.viewType,
@@ -44,7 +45,7 @@ export class DashboardWebview {
             },
         );
 
-        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, course, exercise);
+        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, dashboardViewName, euis, course, exercise);
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -52,18 +53,22 @@ export class DashboardWebview {
     private ws: WebSocketV4TConnection;
 
     private readonly _dashboardName: string;
+    private readonly _dashboardViewName: string;
     private _euis: ExerciseUserInfo[];
     // private _reloadInterval: NodeJS.Timeout | undefined;
     private lastUpdatedInterval: NodeJS.Timeout;
     private _exercise: Exercise;
     private sortAsc: boolean;
+    private hiddenStudentNames: boolean;
 
-    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
+    private constructor(panel: vscode.WebviewPanel, dashboardName: string, dashboardViewName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
         this.panel = panel;
         this._dashboardName = dashboardName;
+        this._dashboardViewName = dashboardViewName;
         this._euis = euis;
         this._exercise = exercise;
         this.sortAsc = false;
+        this.hiddenStudentNames = false;
 
         // Set the webview's initial html content
         this.updateHtml();
@@ -80,12 +85,11 @@ export class DashboardWebview {
         });
 
         // Update the content based on view changes
-        this.panel.onDidChangeViewState(
-            (e) => {
+        this.panel.onDidChangeViewState((e) => {
                 if (this.panel.visible) {
                     this.updateHtml();
                 }
-            },
+            }
         );
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
@@ -185,6 +189,12 @@ export class DashboardWebview {
                     this.updateHtml();
                     break;
                 }
+
+                case "changeVisibilityStudentsNames": {
+                    this.hiddenStudentNames = message.value;
+                    this.updateHtml();
+                    break;
+                }
             }
         });
         this.ws = new WebSocketV4TConnection("dashboard-refresh", (dataStringified) => {
@@ -277,13 +287,14 @@ export class DashboardWebview {
         // for (const eui of this._euis) {
         for (const eui of this._euis) {
             rows = rows + "<tr>\n";
-            if (eui.user.name && eui.user.lastName) {
-                rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
-            } else {
-                rows = rows + "<td></td>";
+            if (!this.hiddenStudentNames) {
+                if (eui.user.name && eui.user.lastName) {
+                    rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
+                } else {
+                    rows = rows + "<td></td>";
+                }
             }
-            rows = rows + "<td class='username'>" + eui.user.username + "</td>\n";
-
+            rows = rows + "<td>student_" + eui.id + "</td>\n";
             switch (eui.status) {
                 case 0: {
                     // not started
@@ -322,31 +333,29 @@ export class DashboardWebview {
                 <link rel="stylesheet" type="text/css" href="${cssUri}">
             </head>
             <body>
-            <h1>Exercise dashboard</h1>
-            <hr/>
-            <!--<div class="reload-options">
-                    <label for="time-reload">Reload every: </label>
-                    <br/>
-                    <select id="time-reload">
-                        <option value="0" selected>Never</option>
-                        <option value="5">5 seconds</option>
-                        <option value="30">30 seconds</option>
-                        <option value="60">1 minute</option>
-                        <option value="300">5 minutes</option>
-                    </select>
-                    <button id="button-reload">Reload</button>
+                <h1>VSCode4Teaching Dashboard</h1>
+                <h2>${this._dashboardViewName}</h2>
+                <div class="reload-options">
+                    <div class="option">
+                        <div class="name">Hide student's names</div>
+                        <label class="switch">
+                            <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${(this.hiddenStudentNames) ? ' checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
-                -->
-                <br/>
+                <hr/>
                 <table>
                     <tr>
-                        <th>Full name
+                    ${(!this.hiddenStudentNames) ? 
+                        `<th>Full name
                             <span class="sorter ${this.sortAsc ? "active" : ""}">
                                 <span></span>
                                 <span></span>
                             </span>
-                        </th>
-                        <th>Username
+                        </th>`
+                    : '' }
+                        <th>Exercise folder
                             <span class="sorter ${this.sortAsc ? "active" : ""}">
                                 <span></span>
                                 <span></span>
@@ -370,7 +379,7 @@ export class DashboardWebview {
                 </table>
                 <script nonce="${nonce}" src="${scriptUri}"></script>
             </body>
-            </html>`;
+        </html>`;
     }
 
     private getNonce() {

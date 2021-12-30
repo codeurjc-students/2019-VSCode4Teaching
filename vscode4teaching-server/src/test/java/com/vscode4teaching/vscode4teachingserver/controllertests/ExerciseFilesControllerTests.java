@@ -96,10 +96,10 @@ public class ExerciseFilesControllerTests {
     @Test
     public void downloadFilesFromExercise_exercise() throws Exception {
         Exercise exercise = new Exercise("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         List<File> files = new ArrayList<>();
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej1.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoe/ej2.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_13/ej1.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_13/ej2.txt"));
         for (File file : files) {
             file.getParentFile().mkdirs();
             file.createNewFile();
@@ -159,20 +159,20 @@ public class ExerciseFilesControllerTests {
         exercise.setId(1l);
         byte[] mock = null;
         MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
-        Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3"));
+        Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex3"));
         Path path1 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex1.html");
-        Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex1.html");
+        Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex1.html");
         Files.copy(path1, path1Copy, StandardCopyOption.REPLACE_EXISTING);
         Path path2 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex2.html");
-        Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex2.html");
+        Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex2.html");
         Files.copy(path2, path2Copy, StandardCopyOption.REPLACE_EXISTING);
         Path path3 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex3/ex3.html");
-        Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/ex3/ex3.html");
+        Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex3/ex3.html");
         Files.copy(path3, path3Copy, StandardCopyOption.REPLACE_EXISTING);
 
-        File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex1.html");
-        File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex2.html");
-        File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/johndoe/", "ex3/ex3.html");
+        File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex1.html");
+        File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex2.html");
+        File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex3/ex3.html");
         Map<Exercise, List<File>> returnMap = new HashMap<>();
         returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
         when(filesService.saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString())).thenReturn(returnMap);
@@ -191,7 +191,6 @@ public class ExerciseFilesControllerTests {
         logger.info(result.getResponse().getContentAsString());
         verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString());
     }
-
 
     @Test
     public void uploadFile_noBody() throws Exception {
@@ -284,12 +283,12 @@ public class ExerciseFilesControllerTests {
         Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(1l);
         List<File> files = new ArrayList<>();
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej1.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr/ej2.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej1.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr2/ej2.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej1.txt"));
-        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/johndoejr3/ej2.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_13/ej1.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_13/ej2.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_14/ej1.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_14/ej2.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_15/ej1.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/student_15/ej2.txt"));
         for (File file : files) {
             file.getParentFile().mkdirs();
             file.createNewFile();
@@ -308,12 +307,12 @@ public class ExerciseFilesControllerTests {
                 .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
         byte[] zipContent = result.getResponse().getContentAsByteArray();
         ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej2.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej2.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_13/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_13/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_14/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_14/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej2.txt");
         verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
     }
 
@@ -323,12 +322,12 @@ public class ExerciseFilesControllerTests {
         Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(1l);
         List<File> files = new ArrayList<>();
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr\\ej1.txt"));
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr\\ej2.txt"));
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr2\\ej1.txt"));
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr2\\ej2.txt"));
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr3\\ej1.txt"));
-        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\johndoejr3\\ej2.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_13\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_13\\ej2.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_14\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_14\\ej2.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_15\\ej1.txt"));
+        files.add(new File("v4t-course-test\\spring-boot-course\\exercise_1_1\\student_15\\ej2.txt"));
         for (File file : files) {
             file.getParentFile().mkdirs();
             file.createNewFile();
@@ -347,12 +346,12 @@ public class ExerciseFilesControllerTests {
                 .isEqualTo("attachment; filename=\"exercise-1-files.zip\"");
         byte[] zipContent = result.getResponse().getContentAsByteArray();
         ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr/ej2.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr2/ej2.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej1.txt");
-        assertThat(zis.getNextEntry().getName()).isEqualTo("johndoejr3/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_13/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_13/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_14/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_14/ej2.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej2.txt");
         verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
     }
 

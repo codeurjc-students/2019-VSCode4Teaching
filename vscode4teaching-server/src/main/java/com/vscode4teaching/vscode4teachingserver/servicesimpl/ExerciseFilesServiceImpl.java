@@ -90,27 +90,25 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
         }
-        return saveFiles(exerciseId, file, requestUsername, false);
+        return saveFiles(exerciseId, file, requestUsername, eui);
     }
 
     @Override
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file,
                                                           String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
-        return saveFiles(exerciseId, file, requestUsername, true);
+        return saveFiles(exerciseId, file, requestUsername, null);
     }
 
     private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
-                                                boolean isTemplate) throws ExerciseNotFoundException, NotInCourseException, IOException {
+                                                ExerciseUserInfo eui) throws ExerciseNotFoundException, NotInCourseException, IOException {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
         User user = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
-        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, isTemplate);
-        String lastFolderPath = isTemplate ? "template" : requestUsername;
-        // For example, for root path "v4t_courses", a course "Course 1" with id 34, an exercise "Exercise 1" with id 77
-        // and a user "john.doe" the final directory path would be
-        // v4t_courses/course_1_34/exercise_1_77/john.doe
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, (eui == null));
+        // eui is null if file is a template, otherwise it'll be a normal eui
+        String lastFolderPath = (eui == null) ? "template" : "student_" + eui.getId();
         Path targetDirectory = Paths.get(rootPath + File.separator + course.getName().toLowerCase().replace(" ", "_")
                 + "_" + course.getId() + File.separator + exercise.getName().toLowerCase().replace(" ", "_") + "_"
                 + exercise.getId() + File.separator + lastFolderPath).toAbsolutePath().normalize();
@@ -143,7 +141,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 try {
                     if (!fileRepository.findByPath(destFile.getCanonicalPath()).isPresent()) {
-                        if (isTemplate) {
+                        if (eui == null) {
                             ExerciseFile savedFile = fileRepository.save(exFile);
                             exercise.addFileToTemplate(savedFile);
                         } else {
@@ -215,16 +213,15 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
         if (!files.isEmpty()) {
-            String username = files.get(0).getOwner().getUsername();
             List<ExerciseFile> copyFiles = new ArrayList<>(files);
 
-            // Change paths to be relative to username
+            // Change paths to be relative to student's folder (named "student_{number}")
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
                 if (File.separator.contains("\\")) {
                     separator = "\\" + File.separator;
                 }
-                file.setPath(file.getPath().split(username + separator)[1]);
+                file.setPath(file.getPath().split("student_[0-9]*" + separator)[1]);
             });
             return copyFiles;
         } else {

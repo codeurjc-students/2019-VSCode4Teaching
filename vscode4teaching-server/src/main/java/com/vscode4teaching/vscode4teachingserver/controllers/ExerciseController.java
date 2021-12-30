@@ -46,7 +46,7 @@ public class ExerciseController {
     private final JWTTokenUtil jwtTokenUtil;
 
     public ExerciseController(CourseService courseService, ExerciseInfoService exerciseInfoService,
-                              JWTTokenUtil jwtTokenUtil) {
+            JWTTokenUtil jwtTokenUtil) {
         this.courseService = courseService;
         this.jwtTokenUtil = jwtTokenUtil;
         this.exerciseInfoService = exerciseInfoService;
@@ -63,7 +63,7 @@ public class ExerciseController {
     @PostMapping("/courses/{courseId}/exercises")
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<Exercise> addExercise(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
-                                                @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotInCourseException {
+            @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotInCourseException {
         Exercise exercise = new Exercise(exerciseDTO.name);
         Exercise savedExercise = courseService.addExerciseToCourse(courseId, exercise,
                 jwtTokenUtil.getUsernameFromToken(request));
@@ -73,7 +73,7 @@ public class ExerciseController {
     @PutMapping("/exercises/{exerciseId}")
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<Exercise> updateExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId,
-                                                   @RequestBody ExerciseDTO exerciseDTO) throws ExerciseNotFoundException, NotInCourseException {
+            @RequestBody ExerciseDTO exerciseDTO) throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = new Exercise(exerciseDTO.getName());
         return ResponseEntity
                 .ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
@@ -96,7 +96,7 @@ public class ExerciseController {
     @GetMapping("/exercises/{exerciseId}/info")
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     public ResponseEntity<ExerciseUserInfo> getExerciseUserInfo(@PathVariable Long exerciseId,
-                                                                HttpServletRequest request) throws NotFoundException {
+            HttpServletRequest request) throws NotFoundException {
         return ResponseEntity
                 .ok(exerciseInfoService.getExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
@@ -112,7 +112,7 @@ public class ExerciseController {
     @GetMapping("/exercises/{exerciseId}/info/teacher")
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     public ResponseEntity<List<ExerciseUserInfo>> getAllExerciseUserInfo(@PathVariable Long exerciseId,
-                                                                         HttpServletRequest request) throws NotInCourseException, ExerciseNotFoundException {
+            HttpServletRequest request) throws NotInCourseException, ExerciseNotFoundException {
         List<ExerciseUserInfo> euis = exerciseInfoService.getAllStudentExerciseUserInfo(exerciseId,
                 jwtTokenUtil.getUsernameFromToken(request));
         return !euis.isEmpty() ? ResponseEntity.ok(euis) : ResponseEntity.noContent().build();

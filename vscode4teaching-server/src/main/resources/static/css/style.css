@@ -21,7 +21,7 @@ section {
     border-radius: 10px;
     grid-area: section;
     text-align: center;
-    margin: 2rem 3%;
+    margin: 2rem 6%;
 }
 
 section > h1.title {
@@ -32,7 +32,7 @@ section > h1.title {
 .text-body {
     margin: 1rem;
     font-family: louis-george-cafe, serif;
-    font-size: 25px;
+    font-size: 23px;
 }
 
 .demo-gif {
@@ -55,37 +55,85 @@ section > h1.title {
     src: url("../fonts/Comfortaa-Light.ttf");
 }
 
-
-#download {
+.downloadBtn {
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
     text-transform: uppercase;
-    border: 2px solid #0987f3;
-    background-color: hsl(197, 69%, 94%);
-    padding: 2px 4px;
+    border-radius: 20px;
+    padding: 12px 40px;
     font-family: Comfortaa, serif;
+    font-size: 20px;
+    transition: all 0.5s;
 }
 
-#download > img {
-    width: 40px;
+.downloadBtn#vsc {
+    border: 2px solid #007acc;
+    background-color: #ceebff;
+}
+
+.downloadBtn#v4t {
+    border: 2px solid #f88a81;
+    background-color: #fbb7b1;
+}
+
+.downloadBtn:hover {
+    transition: all 0.5s;
+}
+
+.downloadBtn#vsc:hover {
+    background-color: #9ad6ff;
+    box-shadow: 0px 0px 20px #9ad6ff;
+}
+
+.downloadBtn#v4t:hover {
+    background-color: #fbb7b1;
+    box-shadow: 0px 0px 20px #fbb7b1;
+}
+
+.downloadBtn > img {
+    width: 30px;
     margin-right: 16px;
 }
 
-#download > span {
+.downloadBtn > span {
     color: black;
     font-weight: bold;
 }
 
-#download:link,
-#download:visited {
+.downloadBtn:link,
+.downloadBtn:visited {
     text-decoration: none;
 }
 
-#download:hover {
-    background-color: hsl(197, 64%, 78%);
+h3 {
+    font-family: louis-george-cafe, serif;
 }
 
-h3{
-    font-family: louis-george-cafe, serif;
+.codeBlock {
+    display: flex;
+    width: 40%;
+    margin: 0 auto;
+}
+
+#givenCodeInput {
+    border: 2px solid #007acc;
+    padding: 12px 40px;
+    flex-grow: 9;
+    transition: all 0.25s;
+}
+
+#givenCodeInput:focus {
+    outline: none;
+    box-shadow: 0px 0px 20px #9ad6ff;
+    transition: all 0.25s;
+}
+
+#codeCopyBtn {
+    background-color: #007acc;
+    padding: 12px 40px;
+    color: white;
+    border: 0;
+    flex-grow: 1;
+    cursor: pointer;
 }

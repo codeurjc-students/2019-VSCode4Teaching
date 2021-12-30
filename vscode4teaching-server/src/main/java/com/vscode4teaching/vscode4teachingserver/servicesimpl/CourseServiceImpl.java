@@ -131,6 +131,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Course getCourseInformationWithSharingCode(String uuid)
+            throws CourseNotFoundException{
+                return this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
+    }
+
+    @Override
     public Exercise editExercise(Long exerciseId, Exercise exerciseData, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
