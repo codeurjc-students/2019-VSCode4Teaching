@@ -223,7 +223,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const signupTeacher = vscode.commands.registerCommand("vscode4teaching.signupteacher", () => {
-        coursesProvider.signup(true).catch((error) => APIClient.handleAxiosError(error));
+        coursesProvider.inviteTeacher().catch((error) => APIClient.handleAxiosError(error));
     });
 
     const getWithCode = vscode.commands.registerCommand("vscode4teaching.getwithcode", async () => {

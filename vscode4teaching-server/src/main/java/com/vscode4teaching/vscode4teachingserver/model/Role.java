@@ -1,14 +1,14 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.vscode4teaching.vscode4teachingserver.model.views.RoleViews;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.vscode4teaching.vscode4teachingserver.model.views.RoleViews;
 
 @Entity
 public class Role {
@@ -44,5 +44,5 @@ public class Role {
         this.roleName = roleName;
     }
 
-    
+
 }

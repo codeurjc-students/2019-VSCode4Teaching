@@ -50,9 +50,9 @@ describe("Client", () => {
         APIClient.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");
         if (fs.existsSync(v4tPath)) {
-            rimraf(v4tPath, ((error: any) => {
+            rimraf(v4tPath, (error: any) => {
                 // console.error(error);
-            }));
+            });
         }
         mockedAxios.mockReset();
         mockedCoursesTreeProvider.mockClear();
@@ -84,8 +84,7 @@ describe("Client", () => {
             baseURL: newUrl,
             url: "/api/csrf",
             method: "GET",
-            headers: {
-            },
+            headers: {},
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
@@ -96,7 +95,7 @@ describe("Client", () => {
             method: "POST",
             headers: {
                 "X-XSRF-TOKEN": newXsrfToken,
-                "Cookie": "XSRF-TOKEN=" + newXsrfToken,
+                Cookie: "XSRF-TOKEN=" + newXsrfToken,
             },
             data: {
                 username,
@@ -106,7 +105,8 @@ describe("Client", () => {
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
             headers: {
@@ -118,8 +118,7 @@ describe("Client", () => {
         const expectedAxiosResponseLogin: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
-            headers: {
-            },
+            headers: {},
             data: {
                 jwtToken: newJwtToken,
             },
@@ -286,8 +285,7 @@ describe("Client", () => {
             baseURL,
             url: "/api/csrf",
             method: "GET",
-            headers: {
-            },
+            headers: {},
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
@@ -305,7 +303,8 @@ describe("Client", () => {
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
             headers: {
@@ -317,8 +316,7 @@ describe("Client", () => {
         const expectedAxiosResponseSignup: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
-            headers: {
-            },
+            headers: {},
             data: {
                 id: 23,
                 email: "johndoe@john.com",
@@ -337,7 +335,7 @@ describe("Client", () => {
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseXSRF)
             .mockResolvedValueOnce(expectedAxiosResponseSignup);
-        await APIClient.signUpV4T(userCredentials, false);
+        await APIClient.signUpStudent(userCredentials);
 
         // Fail if errors are thrown or a promise is rejected (call handleAxiosError)
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);
@@ -357,65 +355,59 @@ describe("Client", () => {
         expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledWith("Signed up. Please log in.");
     });
 
-    it("should sign up teacher", async () => {
-        const userCredentials: UserSignup = {
+    it("should generate an invitation for a new teacher", async () => {
+        const invitedTeacherCredentials: UserSignup = {
             username: "johndoe",
-            password: "password",
             email: "johndoe@john.com",
             name: "John",
             lastName: "Doe",
         };
         const expectedAxiosConfigSignupRequest: AxiosRequestConfig = {
             baseURL,
-            url: "/api/teachers/register",
+            url: "/api/teachers/invitation",
             method: "POST",
             headers: {
                 "Authorization": "Bearer " + jwtToken,
                 "X-XSRF-TOKEN": xsrfToken,
                 "Cookie": "XSRF-TOKEN=" + xsrfToken,
             },
-            data: userCredentials,
+            data: invitedTeacherCredentials,
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseSignup: AxiosResponse<object> = {
-            status: 200,
-            statusText: "OK",
-            headers: {
-            },
+        const expectedAxiosResponseSignup: AxiosResponse<any> = {
+            status: 201,
+            statusText: "",
+            headers: {},
             data: {
-                id: 23,
                 email: "johndoe@john.com",
                 username: "johndoe",
                 name: "John",
                 lastName: "Doe",
-                roles: [
-                    {
-                        roleName: "ROLE_STUDENT",
-                    },
-                    {
-                        roleName: "ROLE_TEACHER",
-                    },
-                ],
+                password: "bf8a45f8-c20f-4eab-bb13-b02f78cffcb3", // Fake UUID
             },
             config: expectedAxiosConfigSignupRequest,
         };
         mockedAxios
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseSignup);
-        await APIClient.signUpV4T(userCredentials, true);
+        await APIClient.signUpTeacher(invitedTeacherCredentials);
+
+        // Response is interpreted and link is generated
+        const link = baseURL + "/app/teacher/sign-up/" + expectedAxiosResponseSignup.data.password;
 
         // Fail if errors are thrown or a promise is rejected (call handleAxiosError)
         expect(mockedVscode.window.showWarningMessage).toHaveBeenCalledTimes(0);
-        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(0);
+        // When testing, promise returned by showInformationError gets rejected (because of a undefined value), so error is caught (handleAxiosError)
+        expect(mockedVscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
         // Set status bar when calling signup
-        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Signing teacher up to VS Code 4 Teaching...", expect.anything());
+        expect(mockedVscode.window.setStatusBarMessage).toHaveBeenNthCalledWith(1, "$(sync~spin) Inviting teacher to VS Code 4 Teaching...", expect.anything());
         // Make a request for signing up
         expect(mockedAxios).toHaveBeenCalledTimes(1);
         expect(mockedAxios).toHaveBeenNthCalledWith(1, expectedAxiosConfigSignupRequest);
         // Show user that he is signed up
         expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
-        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledWith("Teacher signed up successfully.");
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledWith("The new teacher has been successfully invited! Copy the link and share it with they to finish the process:\n" + link, "Copy link");
     });
 });

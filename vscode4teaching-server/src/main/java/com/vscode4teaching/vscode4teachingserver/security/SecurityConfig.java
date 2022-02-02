@@ -43,9 +43,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         final String teacherRole = "TEACHER";
         final String studentRole = "STUDENT";
-        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/*/creator", "/", "/img/**", "/js/**", "/css/**", "/fonts/**")
-                .permitAll().antMatchers(HttpMethod.POST, "/api/login", "/api/register").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/teachers/register", "/api/exercises/*/teachers/**")
+        http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/code/*", "/api/courses/*/creator")
+                .permitAll().antMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/teachers/invitation").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/exercises/*/teachers/**")
                 .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users")
                 .hasAnyRole(teacherRole)
@@ -54,8 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole(teacherRole).antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
                 .hasAnyRole(teacherRole).antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
-                .hasAnyRole(teacherRole).anyRequest().hasAnyRole(studentRole).and().csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().exceptionHandling()
+                .hasAnyRole(teacherRole).antMatchers("/api/**").hasAnyRole(studentRole)
+                .anyRequest().permitAll().and()
+                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 

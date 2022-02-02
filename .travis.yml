@@ -1,43 +1,44 @@
 dist: trusty
 branches:
-  only:
-  - master
+    only:
+        - master
 jobs:
-  include:
-  - language: java
-    jdk: oraclejdk11
-    services:
-    - docker
-    before_script:
-    - cd ./vscode4teaching-server/
-    - chmod +x mvnw
-    script:
-    - "./mvnw clean package -B -q"
-    after_script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t vscode4teaching/vscode4teaching:2.0.2 .
-    - docker build -t vscode4teaching/vscode4teaching:latest .
-    - docker push vscode4teaching/vscode4teaching:2.0.2
-    - docker push vscode4teaching/vscode4teaching:latest
-  - language: node_js
-    os:
-    - linux
-    - osx
-    node_js: 10.15.3
-    install:
-    - |
-      if [ $TRAVIS_OS_NAME == "linux" ]; then
-        export DISPLAY=':99.0'
-        /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-      fi
-    before_script:
-    - cd ./vscode4teaching-extension
-    - npm install --save-dev
-    script:
-    - npm test
-    cache:
-      npm: false
+    include:
+        - name: V4T Server
+          language: java
+          jdk: oraclejdk11
+          services:
+              - docker
+          before_script:
+              - cd ./vscode4teaching-server/
+              - chmod +x mvnw
+          script:
+              - "./mvnw clean package -B -q"
+          after_script:
+              - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+              - docker build -t vscode4teaching/vscode4teaching:2.0.2 .
+              - docker build -t vscode4teaching/vscode4teaching:latest .
+              - docker push vscode4teaching/vscode4teaching:2.0.2
+              - docker push vscode4teaching/vscode4teaching:latest
+        - language: node_js
+          os:
+              - linux
+              - osx
+          node_js: 10.15.3
+          install:
+              - |
+                  if [ $TRAVIS_OS_NAME == "linux" ]; then
+                    export DISPLAY=':99.0'
+                    /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+                  fi
+          before_script:
+              - cd ./vscode4teaching-extension
+              - npm install --save-dev
+          script:
+              - npm test
+          cache:
+              npm: false
 env:
-  global:
-  - secure: Xubi//N9TBKtampk7kO3V0rvuhbCIzVJ7ad2oJIoZGVUyCgmt9KdK46jfG2eSUYuvOMKg1xrXia0R0YC+VveoJPiRgCxqNIfqhb605XaY0SLRXAh2cThABs6q3IwFzoFVIG/8/xhZpqSngbystQxm8EflGhYdZYukijqtEEx78VrtuWaPRBcxGBFt8GaaLyzWvy8eY6Fzw4KZntZPHaalLt0t5k+Qt+Dt2AJuUb3YV1IaWyMQIeF0dKM2XLMpUISeRBVzPrqSmRxpbMyR+8iktPY2KYJFmeH1MD8H1imG/OVkHxSRiXsPXkZ8ueqXSzZ1R9cNIR6ZLKRIyo2sMvxRz5Kzr2fhcEtxCtyRW0sXFV4EG7lsUewn9E9MJ7e5OtnwZOKkcIvStydrwd3t9TH+pUdptgVGA+EdL/T4mcIjPkzYWPoUoLn1MYR3YYUezvqsJXrgl4HqQJSSLgaCEso/q/s5+IH+1y4xFYpLNo05+OhMWz0vNCBbPT02VC+6YTQwHAOcGNjOHDwgkwkg1KC46ZMkbdfm4bhNL1oWfAPynuHjNAfinzxc0kE/FataPXVEt7XX+dA3YdQL+KffqKdRLQqDgsQ1ZNvE+oZwJT1NMfIhlsreboBl1C9diQrxfLwaHBZjUXuNpbI6FK8W8iyQvBNfPWvcdKdMmrNdQV7268=
-  - secure: nWKjhXkCD7qAjXAO//DYZXAcC5dDVtX+EgxQOAyCoyTfw0hdtxIHbn2iylpPlkd9iLObEkK1R30TWXsteZMHyBHJEgJM+YueuVqTUXKgS+EK6F0PebvgjyhZzfIZrTWOmhieHC/cXmDLeJbVkO+9++5KYGj0nYxkURqVXrguYlU7g+InbE8/raYjWsmpUVjhaEd245fyT2jmwSiaxiu8tWa9KuawsQeS/CVSNYAZaXfpLUk2ZOqOOxtR1TWfAv+4C84i6u+KhUS9FI6Li5MBMIZkU+npyx9gWw2EzmQf2ciqPYIGyRUe50tx5HLufZZ31RYae0jowuy7UpOQckNOG+hUxdzMCGX1pwh2mgKEKFL1XC8AsFo+rIt9eJhRaJN+hAQ8VtAhc8VzrdQhSn1CPgrT3ePO3wjyjo49MZjOrWd9q6r1DSXYQcOURFa2iUp+v5z4RFbAAyW/eAaEXlUr62ACQrQqZ5gGqchRYm2W2a5T+gua7ToyXO4yNzCt27hUv6c4kgtS7ATm1PKvD0/oDA6k6Roix4BJER38ONdp6sj8fmuEUfvTnS5QmVh8Zg4rf4htBGPriE/UFF2SSvj4kYj5ZKVFYeP4wGMhiGjADSp81LVdrSnGe7P7HoYEX3CGnukabV9+3b3eOXr+iy4e0UxZLsTp8Gs8T85Qqc6Kpc0=
+    global:
+        - secure: Xubi//N9TBKtampk7kO3V0rvuhbCIzVJ7ad2oJIoZGVUyCgmt9KdK46jfG2eSUYuvOMKg1xrXia0R0YC+VveoJPiRgCxqNIfqhb605XaY0SLRXAh2cThABs6q3IwFzoFVIG/8/xhZpqSngbystQxm8EflGhYdZYukijqtEEx78VrtuWaPRBcxGBFt8GaaLyzWvy8eY6Fzw4KZntZPHaalLt0t5k+Qt+Dt2AJuUb3YV1IaWyMQIeF0dKM2XLMpUISeRBVzPrqSmRxpbMyR+8iktPY2KYJFmeH1MD8H1imG/OVkHxSRiXsPXkZ8ueqXSzZ1R9cNIR6ZLKRIyo2sMvxRz5Kzr2fhcEtxCtyRW0sXFV4EG7lsUewn9E9MJ7e5OtnwZOKkcIvStydrwd3t9TH+pUdptgVGA+EdL/T4mcIjPkzYWPoUoLn1MYR3YYUezvqsJXrgl4HqQJSSLgaCEso/q/s5+IH+1y4xFYpLNo05+OhMWz0vNCBbPT02VC+6YTQwHAOcGNjOHDwgkwkg1KC46ZMkbdfm4bhNL1oWfAPynuHjNAfinzxc0kE/FataPXVEt7XX+dA3YdQL+KffqKdRLQqDgsQ1ZNvE+oZwJT1NMfIhlsreboBl1C9diQrxfLwaHBZjUXuNpbI6FK8W8iyQvBNfPWvcdKdMmrNdQV7268=
+        - secure: nWKjhXkCD7qAjXAO//DYZXAcC5dDVtX+EgxQOAyCoyTfw0hdtxIHbn2iylpPlkd9iLObEkK1R30TWXsteZMHyBHJEgJM+YueuVqTUXKgS+EK6F0PebvgjyhZzfIZrTWOmhieHC/cXmDLeJbVkO+9++5KYGj0nYxkURqVXrguYlU7g+InbE8/raYjWsmpUVjhaEd245fyT2jmwSiaxiu8tWa9KuawsQeS/CVSNYAZaXfpLUk2ZOqOOxtR1TWfAv+4C84i6u+KhUS9FI6Li5MBMIZkU+npyx9gWw2EzmQf2ciqPYIGyRUe50tx5HLufZZ31RYae0jowuy7UpOQckNOG+hUxdzMCGX1pwh2mgKEKFL1XC8AsFo+rIt9eJhRaJN+hAQ8VtAhc8VzrdQhSn1CPgrT3ePO3wjyjo49MZjOrWd9q6r1DSXYQcOURFa2iUp+v5z4RFbAAyW/eAaEXlUr62ACQrQqZ5gGqchRYm2W2a5T+gua7ToyXO4yNzCt27hUv6c4kgtS7ATm1PKvD0/oDA6k6Roix4BJER38ONdp6sj8fmuEUfvTnS5QmVh8Zg4rf4htBGPriE/UFF2SSvj4kYj5ZKVFYeP4wGMhiGjADSp81LVdrSnGe7P7HoYEX3CGnukabV9+3b3eOXr+iy4e0UxZLsTp8Gs8T85Qqc6Kpc0=

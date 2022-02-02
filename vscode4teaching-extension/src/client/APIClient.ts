@@ -59,30 +59,40 @@ class APIClientSingleton {
     }
 
     /**
-     * Signs up in V4T server.
-     * @param userCredentials User to sign up
-     * @param url Server URL. Ignored if trying to sign up a teacher.
-     * @param isTeacher Sign up as teacher (or not)
+     * Sign up in V4T server for students.
+     * @param userCredentials User to sign up.
      */
-    public async signUpV4T(userCredentials: UserSignup, isTeacher?: boolean) {
+    public async signUpStudent(userCredentials: UserSignup) {
         try {
-            if (!isTeacher) {
-                APIClientSession.invalidateSession();
-                await APIClient.getXSRFToken();
-            }
-            let signupThenable;
-            if (isTeacher) {
-                signupThenable = APIClient.signUpTeacher(userCredentials);
-            } else {
-                signupThenable = APIClient.signUp(userCredentials);
-            }
-            const response = await signupThenable;
+            APIClientSession.invalidateSession();
+            await APIClient.getXSRFToken();
+            const response = await APIClient.signUp(userCredentials);
             console.debug(response);
-            if (isTeacher) {
-                vscode.window.showInformationMessage("Teacher signed up successfully.");
-            } else {
-                vscode.window.showInformationMessage("Signed up. Please log in.");
-            }
+            vscode.window.showInformationMessage("Signed up. Please log in.");
+        } catch (error) {
+            APIClient.handleAxiosError(error);
+        }
+    }
+
+    /**
+     * Invitation for new teachers in V4T Server.
+     * @param userCredentials Invited teacher's credentials.
+     */
+    public async signUpTeacher(userCredentials: UserSignup) {
+        try {
+            const response = await APIClient.inviteTeacher(userCredentials);
+            console.debug(response);
+            const link = APIClientSession.baseUrl + "/app/teacher/sign-up/" + response.data.password;
+            const windowMessage = vscode.window.showInformationMessage(
+                "The new teacher has been successfully invited! Copy the link and share it with they to finish the process:\n" + link,
+                "Copy link"
+            ).then((clicked) => {
+                if (clicked) {
+                    vscode.env.clipboard.writeText(link).then(() => {
+                        vscode.window.showInformationMessage("Copied to clipboard.");
+                    });
+                }
+            });
         } catch (error) {
             APIClient.handleAxiosError(error);
         }
@@ -430,14 +440,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
-    private signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
+    private inviteTeacher(credentials: UserSignup): AxiosPromise<UserSignup> {
         const options: AxiosBuildOptions = {
-            url: "/api/teachers/register",
+            url: "/api/teachers/invitation",
             method: "POST",
             responseType: "json",
             data: credentials,
         };
-        return APIClient.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
+        return APIClient.createRequest(options, "Inviting teacher to VS Code 4 Teaching...");
     }
 
     /**
