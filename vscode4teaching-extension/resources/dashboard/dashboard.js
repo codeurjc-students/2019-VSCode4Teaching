@@ -59,12 +59,12 @@
     });
 
     document.querySelectorAll(".sorter").forEach(
-        (header, i) => {
+        (header) => {
             header.addEventListener("click", () => {
                 let order = header.classList.toggle('active');
                 vscode.postMessage({
                     type: "sort",
-                    column: i,
+                    column: header.dataset.column,
                     desc: order,
                 });
             });
