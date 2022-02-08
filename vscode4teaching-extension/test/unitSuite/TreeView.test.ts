@@ -237,7 +237,7 @@ describe("Tree View", () => {
             },
             status: 201,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
         mockedCurrentUser.updateUserInfo.mockResolvedValueOnce(
@@ -276,7 +276,7 @@ describe("Tree View", () => {
             },
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
         mockedCurrentUser.isLoggedIn.mockReturnValueOnce(true);
@@ -305,7 +305,7 @@ describe("Tree View", () => {
         mockedClient.deleteCourse.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: undefined,
         });
@@ -362,7 +362,7 @@ describe("Tree View", () => {
         mockedClient.addExercise.mockResolvedValueOnce({
             status: 201,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: {
                 id: 10,
@@ -376,7 +376,7 @@ describe("Tree View", () => {
         mockedClient.uploadExerciseTemplate.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: {
             },
@@ -418,7 +418,7 @@ describe("Tree View", () => {
             },
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
 
@@ -444,7 +444,7 @@ describe("Tree View", () => {
         mockedClient.deleteExercise.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: undefined,
         });
@@ -502,7 +502,7 @@ describe("Tree View", () => {
             data: course,
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getCourseWithCode.mockResolvedValueOnce(response);
@@ -546,14 +546,14 @@ describe("Tree View", () => {
             ],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         const responseUsersCourse: AxiosResponse<User[]> = {
             data: [mockedUserTeacherModel, mockedUserStudentModel],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getAllUsers.mockResolvedValueOnce(responseUsers);
@@ -603,7 +603,7 @@ describe("Tree View", () => {
                 }],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getUsersInCourse.mockResolvedValueOnce(responseUsersCourse);
@@ -611,7 +611,7 @@ describe("Tree View", () => {
             data: mockedUserTeacherModel,
             status: 200,
             statusText: "2",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getCreator.mockResolvedValueOnce(responseCreator);

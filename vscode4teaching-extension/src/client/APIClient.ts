@@ -486,7 +486,7 @@ class APIClientSingleton {
         };
         const response = await APIClient.createRequest(options, "Fetching server info...");
         console.debug(response);
-        const cookiesString: string | undefined = response.headers["set-cookie"][0];
+        const cookiesString: string | undefined = response.headers["set-cookie"]?.[0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");
             const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));

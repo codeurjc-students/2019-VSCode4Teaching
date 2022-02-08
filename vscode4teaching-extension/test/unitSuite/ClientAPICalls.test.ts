@@ -14,8 +14,7 @@ import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit"
 
 jest.mock("axios");
 const mockedAxios = mocked(axios, true);
-mockedAxios.mockResolvedValue({
-    data: undefined,
+mockedAxios.mockResolvedValue(<any>{
     status: 200,
     statusText: "",
     headers: {},

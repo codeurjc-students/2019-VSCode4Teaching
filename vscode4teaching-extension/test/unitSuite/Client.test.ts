@@ -109,12 +109,11 @@ describe("Client", () => {
             // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"];
         const expectedAxiosResponseLogin: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
@@ -193,15 +192,15 @@ describe("Client", () => {
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=29f6caf7-b522-4730-87c4-bfb1b3db0e66; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=29f6caf7-b522-4730-87c4-bfb1b3db0e66; Path=/"];
         mockedAxios
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseXSRF);
@@ -307,12 +306,11 @@ describe("Client", () => {
             // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"];
         const expectedAxiosResponseSignup: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
