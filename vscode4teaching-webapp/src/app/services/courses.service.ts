@@ -10,7 +10,8 @@ import { CommonService } from "./common.service";
 export class CoursesService {
     constructor(private http: HttpClient, private common: CommonService) {}
 
+    // In version 2.1
     getCourseByCode(code: string): Observable<Course> {
-        return this.http.get<Course>(this.common.baseURL + "/api/courses/code/" + code, { withCredentials: true });
+        return this.http.get<Course>(this.common.baseURL + "/api/v2/courses/code/" + code, { withCredentials: true });
     }
 }

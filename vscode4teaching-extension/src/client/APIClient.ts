@@ -393,7 +393,7 @@ class APIClientSingleton {
     public getCourseWithCode(code: string): AxiosPromise<Course> {
         const options: AxiosBuildOptions = {
             url: "/api/courses/code/" + code,
-            method: "GET",
+            method: "PUT",
             responseType: "json",
         };
         return APIClient.createRequest(options, "Fetching course data...");

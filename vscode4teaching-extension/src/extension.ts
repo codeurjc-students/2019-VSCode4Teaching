@@ -206,7 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
             const codeThenable = APIClient.getSharingCode(item.item);
             codeThenable.then((response) => {
                 console.debug(response);
-                const link = `${getServerBaseUrl()}?code=${response.data}`;
+                const link = `${getServerBaseUrl()}/app?code=${response.data}`;
                 vscode.window.showInformationMessage("Share this link with your students to give them access to this course:\n" + link, "Copy link").then((clicked) => {
                     if (clicked) {
                         vscode.env.clipboard.writeText(link).then(() => {
