@@ -26,9 +26,9 @@ p {
 }
 
 .container-big {
-    width: 70vw;
+    width: 60vw;
     background-color: white;
-    padding: 3rem 1rem;
+    padding: 2rem;
     box-shadow: 0px 0px 20px rgba(244, 74, 62, 0.5);
     display: flex;
     animation: FadeIn 1s 1 ease-in-out;
