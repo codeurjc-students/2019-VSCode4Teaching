@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.8</version>
+		<version>2.5.9</version>
 		<relativePath/>
 		<!-- lookup parent from repository -->
 	</parent>
@@ -50,9 +50,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-
 			<exclusions>
 				<exclusion>
 					<groupId>junit</groupId>
@@ -60,7 +63,7 @@
 				</exclusion>
 				<exclusion>
 					<groupId>org.mockito</groupId>
-					<artifactId>mockito-core</artifactId>
+					<artifactId>mockito-inline</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -97,10 +100,6 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
 			<version>0.9.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -148,5 +147,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
+
