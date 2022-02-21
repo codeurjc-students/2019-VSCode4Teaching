@@ -14,8 +14,9 @@
 
 ## API Documentation
 
-Click [HERE](API.md) for the documentation on the REST API running on the server.  
-Click [HERE](WSAPI.md) for the documentation on the WebSocket API running on the server.  
+- [Click here](API.json) to navigate to the documentation on the REST API running on the server (in OpenAPI 3.0 JSON format).
+  You can also read this documentation in Swagger interactive web service by accessing ``{URL}/swagger-ui/index.html``, where ``{URL}`` has to be the URL where V4T has been deployed (e.g. if running at ``localhost:8080``, you can go to [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)).
+- [Click here](WSAPI.md) to read the documentation on the WebSocket API running on the server.  
 
 ## Docker
 
