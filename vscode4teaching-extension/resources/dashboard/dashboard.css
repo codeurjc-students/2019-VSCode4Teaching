@@ -33,6 +33,7 @@ button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
+    margin: 0.25rem;
 }
 
 button:hover {

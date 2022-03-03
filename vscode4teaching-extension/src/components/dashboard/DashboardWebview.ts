@@ -102,7 +102,7 @@ export class DashboardWebview {
                 //     break;
                 // }
                 case "goToWorkspace": {
-                    this.showQuickPick(message.username, course, exercise)
+                    this.showQuickPick(message.username, course, exercise, message.eui)
                         .then(async (filePath) => {
                             if (filePath !== undefined) {
                                 const doc1 = await vscode.workspace.openTextDocument(filePath);
@@ -118,7 +118,7 @@ export class DashboardWebview {
                 }
 
                 case "diff": {
-                    this.showQuickPick(message.username, course, exercise)
+                    this.showQuickPick(message.username, course, exercise, message.eui)
                         .then(async (filePath) => {
                             if (filePath !== undefined) {
                                 await vscode.commands.executeCommand("vscode4teaching.diff", filePath);
@@ -297,7 +297,7 @@ export class DashboardWebview {
                     rows = rows + "<td></td>";
                 }
             }
-            rows = rows + "<td>student_" + eui.id + "</td>\n";
+            rows = rows + `<td class="exercise-folder">student_${eui.id}</td>\n`;
             switch (eui.status) {
                 case 0: {
                     // not started
@@ -315,11 +315,11 @@ export class DashboardWebview {
                     break;
                 }
             }
-            rows = rows + `<td class="button-col">`;
-            const buttons = `<button class='workspace-link'>Open</button><button class='workspace-link-diff'>Diff</button>`;
+            rows = rows + `<td class="button-col" data-username="${eui.user.username}" data-eui="${eui.id}">`;
+            const buttons = `<button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button>`;
             rows += buttons;
             rows = rows + `</td>\n`;
-            rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
+            rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
         }
 
@@ -435,7 +435,7 @@ export class DashboardWebview {
      * @param exercise Exercise exercise
      * @returns Thenable<string|undefined> the selected file
      */
-    private async showQuickPick(username: string, course: Course, exercise: Exercise): Promise<vscode.Uri | undefined> {
+    private async showQuickPick(username: string, course: Course, exercise: Exercise, eui_id: number): Promise<vscode.Uri | undefined> {
         // Download most recent files
         await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise);
         return vscode.window
@@ -445,7 +445,7 @@ export class DashboardWebview {
                     cancellable: false,
                     title: "Getting modified files...",
                 },
-                (progress, token) => this.buildQuickPickItems(username)
+                (progress, token) => this.buildQuickPickItems(username, eui_id)
             )
             .then(async (result: OpenQuickPick[]) => {
                 if (result) {
@@ -457,13 +457,16 @@ export class DashboardWebview {
             });
     }
 
-    private async buildQuickPickItems(username: string): Promise<OpenQuickPick[]> {
+    private async buildQuickPickItems(username: string, eui_id: number): Promise<OpenQuickPick[]> {
+        const putoId: number = eui_id as number;
         // Find all modified files URIs (paths)
         const workspaces = vscode.workspace.workspaceFolders;
         if (workspaces) {
-            const wsF = workspaces.find((e) => e.name === username);
+            const wsF = workspaces.find((e) => e.name === "student_" + eui_id.toString());
             if (wsF) {
-                const euis = this._euis.filter((eui) => eui.user.username === username);
+                const euis = this._euis.filter((eui) => {
+                    return eui.id.toString() === putoId.toString();
+                });
                 const uris: vscode.Uri[] = [];
                 const relativePaths: string[] = [];
                 if (euis.length > 0) {

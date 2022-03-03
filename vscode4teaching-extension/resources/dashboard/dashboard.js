@@ -1,20 +1,6 @@
 // For security reasons, we must keep the VS Code API object private and make sure it is never leaked into the global scope.
 (function () {
     const vscode = acquireVsCodeApi();
-    // const selectTimeReload = document.getElementById("time-reload");
-    // selectTimeReload.addEventListener("change", () => {
-    //     const timeSelected = selectTimeReload.value;
-    //     vscode.postMessage({
-    //         type: "changeReloadTime",
-    //         reloadTime: timeSelected
-    //     });
-    // });
-    // document.getElementById("button-reload").addEventListener("click", () => {
-    //     vscode.postMessage({
-    //         type: "reload",
-    //         reload: true
-    //     });
-    // });
 
     window.addEventListener('message', event => {
         const message = event.data;
@@ -32,28 +18,32 @@
         }
     })
 
-    document.querySelectorAll(".workspace-link").forEach((row) => {
-        row.addEventListener("click", () => {
-            document.querySelectorAll(".button-col > button").forEach((e) => {
+    document.querySelectorAll(".workspace-link-open").forEach((openBtn) => {
+        openBtn.addEventListener("click", () => {
+            Array.from(openBtn.parentElement.children).forEach((e) => {
                 e.disabled = true;
             });
-            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
+            const username = openBtn.parentElement.dataset.username;
+            const eui = openBtn.parentElement.dataset.eui;
             vscode.postMessage({
                 type: "goToWorkspace",
                 username: username,
+                eui: eui,
             });
         });
     });
 
-    document.querySelectorAll(".workspace-link-diff").forEach((row) => {
-        row.addEventListener("click", () => {
-            Array.from(row.parentElement.children).forEach((e) => {
+    document.querySelectorAll(".workspace-link-diff").forEach((diffBtn) => {
+        diffBtn.addEventListener("click", () => {
+            Array.from(diffBtn.parentElement.children).forEach((e) => {
                 e.disabled = true;
             });
-            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
+            const username = diffBtn.parentElement.dataset.username;
+            const eui = diffBtn.parentElement.dataset.eui;
             vscode.postMessage({
                 type: "diff",
                 username: username,
+                eui: eui,
             });
         });
     });
