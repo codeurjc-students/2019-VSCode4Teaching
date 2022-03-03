@@ -18,7 +18,7 @@ export class V4TBuildItems {
     });
     public static readonly SIGNUP_TEACHER_ITEM = new V4TItem("Invite a teacher", V4TItemType.SignupTeacher, TreeItemCollapsibleState.None, undefined, undefined, {
         command: "vscode4teaching.signupteacher",
-        title: "Sign up in VS Code 4 Teaching",
+        title: "Invite a teacher to join VS Code 4 Teaching",
     });
     public static readonly LOGOUT_ITEM = new V4TItem("Logout", V4TItemType.Logout, TreeItemCollapsibleState.None, undefined, undefined, {
         command: "vscode4teaching.logout",
@@ -30,5 +30,4 @@ export class V4TBuildItems {
     });
     public static readonly NO_COURSES_ITEM = new V4TItem("No courses available", V4TItemType.NoCourses, TreeItemCollapsibleState.None);
     public static readonly NO_EXERCISES_ITEM = new V4TItem("No exercises available", V4TItemType.NoExercises, TreeItemCollapsibleState.None);
-
 }

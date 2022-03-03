@@ -71,6 +71,7 @@ describe("Extension entry point", () => {
         "vscode4teaching.refreshcourses",
         "vscode4teaching.refreshexercises",
         "vscode4teaching.addexercise",
+        "vscode4teaching.addmultipleexercises",
         "vscode4teaching.editexercise",
         "vscode4teaching.deleteexercise",
         "vscode4teaching.adduserstocourse",

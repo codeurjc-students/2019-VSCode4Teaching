@@ -211,14 +211,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Deleting course...");
     }
 
-    public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
+    public addExercises(courseId: number, exercisesData: ExerciseEdit[]): AxiosPromise<Exercise[]> {
         const options: AxiosBuildOptions = {
-            url: "/api/courses/" + id + "/exercises",
+            url: "/api/v2/courses/" + courseId + "/exercises",
             method: "POST",
             responseType: "json",
-            data,
+            data: exercisesData,
         };
-        return APIClient.createRequest(options, "Adding exercise...");
+        return APIClient.createRequest(options, "Adding new exercises...");
     }
 
     public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
@@ -231,7 +231,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Sending exercise info...");
     }
 
-    public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
+    public uploadExerciseTemplate(id: number, data: Buffer, showNotification?: boolean): AxiosPromise<any> {
         const dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         const options: AxiosBuildOptions = {
@@ -240,7 +240,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading template...", true);
+        return APIClient.createRequest(options, "Uploading template...", showNotification ?? true);
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {

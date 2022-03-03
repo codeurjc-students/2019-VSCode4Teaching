@@ -1,8 +1,10 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
@@ -60,14 +62,28 @@ public class ExerciseController {
         return exercises.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(exercises);
     }
 
+    @Deprecated
     @PostMapping("/courses/{courseId}/exercises")
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<Exercise> addExercise(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
-            @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotInCourseException {
+                                                @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotInCourseException {
         Exercise exercise = new Exercise(exerciseDTO.name);
         Exercise savedExercise = courseService.addExerciseToCourse(courseId, exercise,
                 jwtTokenUtil.getUsernameFromToken(request));
         return new ResponseEntity<>(savedExercise, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/v2/courses/{courseId}/exercises")
+    @JsonView(ExerciseViews.CourseView.class)
+    @Transactional
+    public ResponseEntity<List<Exercise>> addExercises(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
+                                                 @Valid @RequestBody ExerciseDTO[] exercisesDTO) throws CourseNotFoundException, NotInCourseException {
+        ArrayList<Exercise> savedExercises = new ArrayList<>();
+        for (ExerciseDTO exerciseDTO : exercisesDTO) {
+            Exercise exercise = new Exercise(exerciseDTO.name);
+            savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
+        }
+        return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
     }
 
     @PutMapping("/exercises/{exerciseId}")

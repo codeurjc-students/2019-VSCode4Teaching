@@ -216,7 +216,7 @@ describe("client API calls", () => {
 
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
-            data: exercise,
+            data: [exercise],
             headers: {
                 "Authorization": "Bearer " + jwtToken,
                 "Cookie": "XSRF-TOKEN=" + xsrfToken,
@@ -226,12 +226,42 @@ describe("client API calls", () => {
             maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
-            url: "/api/courses/" + courseId + "/exercises",
+            url: "/api/v2/courses/" + courseId + "/exercises",
         };
 
-        const thenable = APIClient.addExercise(courseId, exercise);
+        const thenable = APIClient.addExercises(courseId, [exercise]);
 
-        expectCorrectRequest(expectedOptions, "Adding exercise...", false, thenable);
+        expectCorrectRequest(expectedOptions, "Adding new exercises...", false, thenable);
+    });
+
+    it("should request add multiple exercises correctly", () => {
+        const courseId = 1;
+        const exercises: ExerciseEdit[] = [
+            { name: "Exercise 1", },
+            { name: "Exercise 2", },
+            { name: "Exercise 3", },
+            { name: "Exercise 4", },
+            { name: "Exercise 5", },
+        ];
+
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: exercises,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "POST",
+            responseType: "json",
+            url: "/api/v2/courses/" + courseId + "/exercises",
+        };
+
+        const thenable = APIClient.addExercises(courseId, exercises);
+
+        expectCorrectRequest(expectedOptions, "Adding new exercises...", false, thenable);
     });
 
     it("should request edit exercise correctly", () => {

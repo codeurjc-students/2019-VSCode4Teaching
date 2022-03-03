@@ -56,7 +56,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                     // Find course, exercise and user
                     String absolutePath = filePath.toAbsolutePath().toString();
                     int i = absolutePath.lastIndexOf(rootPath);
-                    String[] parts = absolutePath.substring(i).split(Pattern.quote(File.separator));
+                    String[] parts = absolutePath.substring(i + rootPath.length()).split(Pattern.quote(File.separator));
                     String[] courseParts = parts[1].split("_");
                     long course_id = Long.parseLong(courseParts[courseParts.length - 1]);
                     Optional<Course> courseOpt = courseRepository.findById(course_id);

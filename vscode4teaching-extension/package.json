@@ -110,6 +110,14 @@
 				}
 			},
 			{
+				"command": "vscode4teaching.addmultipleexercises",
+				"title": "Add Multiple Exercises",
+				"icon": {
+					"light": "resources/light/add_multiple.png",
+					"dark": "resources/dark/add_multiple.png"
+				}
+			},
+			{
 				"command": "vscode4teaching.editexercise",
 				"title": "Edit Exercise",
 				"icon": {
@@ -209,29 +217,34 @@
 					"group": "inline@2"
 				},
 				{
-					"command": "vscode4teaching.editcourse",
+					"command": "vscode4teaching.addmultipleexercises",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@3"
 				},
 				{
-					"command": "vscode4teaching.deletecourse",
+					"command": "vscode4teaching.editcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@4"
 				},
 				{
-					"command": "vscode4teaching.adduserstocourse",
+					"command": "vscode4teaching.deletecourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@5"
 				},
 				{
-					"command": "vscode4teaching.removeusersfromcourse",
+					"command": "vscode4teaching.adduserstocourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@6"
 				},
 				{
-					"command": "vscode4teaching.share",
+					"command": "vscode4teaching.removeusersfromcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@7"
+				},
+				{
+					"command": "vscode4teaching.share",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@8"
 				},
 				{
 					"command": "vscode4teaching.editexercise",
