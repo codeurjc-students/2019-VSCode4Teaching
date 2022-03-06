@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (wf) {
             const parentDir = path.resolve(wf.uri.fsPath, "..");
             const relativePath = path.relative(wf.uri.fsPath, file.fsPath);
-            const templateFile = path.resolve(templates[parentDir], relativePath);
+            const templateFile = path.resolve(parentDir, "template", relativePath);
             if (fs.existsSync(templateFile)) {
                 const templateFileUri = vscode.Uri.file(templateFile);
                 vscode.commands.executeCommand("vscode.diff", file, templateFileUri);

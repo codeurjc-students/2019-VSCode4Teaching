@@ -40,15 +40,7 @@ export class TeacherSignUpFormComponent {
      */
     // Step 1 form -> asks for username
     stepOneForm = this.fb.group({
-        username: [
-            "",
-            [
-                Validators.required,
-                Validators.minLength(4),
-                Validators.maxLength(50),
-                Validators.pattern("^(?:(?!template).)+$"),
-            ],
-        ],
+        username: ["", [Validators.required, Validators.minLength(4), Validators.maxLength(50), Validators.pattern("^(?:(?!template).)+$")]],
     });
 
     // Step 2 form -> asks for a new password (two times)
@@ -63,10 +55,7 @@ export class TeacherSignUpFormComponent {
                 const password = control.get("password");
                 const confirmPassword = control.get("confirmPassword");
 
-                const error =
-                    password && confirmPassword && password.value !== confirmPassword.value
-                        ? { passwordConfirmed: true }
-                        : control.get("confirmPassword")?.getError("required");
+                const error = password && confirmPassword && password.value !== confirmPassword.value ? { passwordConfirmed: true } : control.get("confirmPassword")?.getError("required");
                 control.get("confirmPassword")?.setErrors(error);
                 return error;
             },
@@ -96,8 +85,7 @@ export class TeacherSignUpFormComponent {
                                 next: (usuario) => {
                                     if (usuario === undefined) {
                                         // User's info was not found (but login was successful)
-                                        this.error =
-                                            "There happened a problem while trying to check your user information. Please try again later.";
+                                        this.error = "There happened a problem while trying to check your user information. Please try again later.";
                                     } else {
                                         // User was properly found and information has been saved => Step 2
                                         this.user = usuario;
@@ -110,7 +98,10 @@ export class TeacherSignUpFormComponent {
                             });
                         },
                         // Login was not successful (username is wrong)
-                        error: (_) => (this.error = "The username you entered is not registered. Please try again."),
+                        error: (_) => {
+                            this.error = "The username you entered is not registered. Please try again.";
+                            this.requestSent = false;
+                        },
                     });
                 },
                 // XSRF Token could not be saved (server is unavailable)
@@ -134,8 +125,6 @@ export class TeacherSignUpFormComponent {
 
     // True if a input is valid, false otherwise (used in template)
     getValidationStatusOfField(formGroup: FormGroup, fieldName: string, error?: string): boolean {
-        return error
-            ? !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.hasError(error))
-            : !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.errors);
+        return error ? !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.hasError(error)) : !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.errors);
     }
 }

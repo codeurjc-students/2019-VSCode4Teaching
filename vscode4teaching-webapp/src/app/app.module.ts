@@ -14,7 +14,7 @@ import { ErrorNotFoundComponent } from "./components/error-not-found/error-not-f
 @NgModule({
     declarations: [AppComponent, TeacherSignUpFormComponent, IndexComponent, ErrorNotFoundComponent],
     imports: [BrowserModule, ReactiveFormsModule, AppRoutingModule, HttpClientModule, HttpClientXsrfModule],
-    providers: [AuthTokenService, { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
+    providers: [AuthTokenService, { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }, { provide: Window, useValue: window }],
     bootstrap: [AppComponent],
 })
 export class AppModule {}

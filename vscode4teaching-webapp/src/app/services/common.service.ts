@@ -1,17 +1,23 @@
-import { HttpClient, HttpResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, of } from "rxjs";
 import { User } from "../model/user.model";
 import { AuthTokenService } from "./auth/auth-token.service";
 import { environment } from "src/environments/environment";
+
 @Injectable({
     providedIn: "root",
 })
 export class CommonService {
     // Base URL of REST API
-    public baseURL: string = environment.production ? "//localhost:8080" : "//localhost:4200";
+    public baseURL: string;
 
-    constructor(private http: HttpClient, private auth: AuthTokenService) {}
+    constructor(private http: HttpClient, private auth: AuthTokenService, private window: Window) {
+        this.baseURL = "//" + this.window.location.hostname;
+        if (this.window.location.port) {
+            this.baseURL += ":" + (environment.production ? "8080" : "4200");
+        }
+    }
 
     // XSRF Token has to be included in every request and it is saved as a cookie that is included in every request
     getXSRFToken(): Observable<string> {

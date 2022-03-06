@@ -431,7 +431,7 @@ describe("Command implementations", () => {
         expect(mockedPath.relative).toHaveBeenNthCalledWith(1, wf.uri.fsPath, file.fsPath);
         expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
         expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "student_11", "..");
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "template", "file.txt");
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "parentdir", "template", "file.txt");
         expect(mockedFs.existsSync).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", file, mockedVscode.Uri.file("template/file.txt"));

@@ -13,7 +13,7 @@ services:
             MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
             MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     app:
-        image: vscode4teaching/vscode4teaching:latest
+        image: vscode4teaching/vscode4teaching:2.1.0-beta1
         links:
             - db
         depends_on:

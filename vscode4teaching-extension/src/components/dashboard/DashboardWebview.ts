@@ -458,14 +458,13 @@ export class DashboardWebview {
     }
 
     private async buildQuickPickItems(username: string, eui_id: number): Promise<OpenQuickPick[]> {
-        const putoId: number = eui_id as number;
         // Find all modified files URIs (paths)
         const workspaces = vscode.workspace.workspaceFolders;
         if (workspaces) {
             const wsF = workspaces.find((e) => e.name === "student_" + eui_id.toString());
             if (wsF) {
                 const euis = this._euis.filter((eui) => {
-                    return eui.id.toString() === putoId.toString();
+                    return eui.id.toString() === eui_id.toString();
                 });
                 const uris: vscode.Uri[] = [];
                 const relativePaths: string[] = [];
