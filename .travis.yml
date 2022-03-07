@@ -17,10 +17,10 @@ jobs:
           after_script:
               - cd ..
               - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-              - docker build -t vscode4teaching/vscode4teaching:2.1.0-beta1 .
-              # Beta version: latest won't be changed until 2.1.0 is released
+              - docker build -t vscode4teaching/vscode4teaching:2.1.1-beta .
+              # Beta version: latest won't be changed until 2.1.X is finally released
               # - docker build -t vscode4teaching/vscode4teaching:latest .
-              - docker push vscode4teaching/vscode4teaching:2.1.0-beta1
+              - docker push vscode4teaching/vscode4teaching:2.1.1-beta
               # - docker push vscode4teaching/vscode4teaching:latest
         - name: V4T Extension (Node.js)
           language: node_js
