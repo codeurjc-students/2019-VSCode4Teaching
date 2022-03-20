@@ -91,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.logout();
         if (showLiveshareBoardItem) {
             showLiveshareBoardItem.dispose();
-            showDashboardItem = undefined;
+            showLiveshareBoardItem = undefined;
         }
         if (showDashboardItem) {
             showDashboardItem.dispose();
