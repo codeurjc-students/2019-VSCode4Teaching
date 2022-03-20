@@ -219,7 +219,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             String username = files.get(0).getOwner().getUsername();
             List<ExerciseFile> copyFiles = new ArrayList<>(files);
 
-            // Change paths to be relative to username
+            // Change paths to be relative to student's folder (named "student_{number}")
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
                 if (File.separator.contains("\\")) {

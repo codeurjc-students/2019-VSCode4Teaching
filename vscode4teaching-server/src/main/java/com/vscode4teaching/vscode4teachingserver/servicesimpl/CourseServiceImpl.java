@@ -54,6 +54,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Optional<Course> getCourseById(Long courseId) {
+        return this.courseRepo.findById(courseId);
+    }
+
+    @Override
     public Course registerNewCourse(Course course, String requestUsername) throws TeacherNotFoundException {
         Optional<User> teacherOpt = userRepo.findByUsername(requestUsername);
         User teacher = teacherOpt.orElseThrow(() -> new TeacherNotFoundException(requestUsername));

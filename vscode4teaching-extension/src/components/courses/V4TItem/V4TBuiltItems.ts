@@ -16,7 +16,7 @@ export class V4TBuildItems {
         command: "vscode4teaching.signup",
         title: "Sign up in VS Code 4 Teaching",
     });
-    public static readonly SIGNUP_TEACHER_ITEM = new V4TItem("Sign up a teacher", V4TItemType.SignupTeacher, TreeItemCollapsibleState.None, undefined, undefined, {
+    public static readonly SIGNUP_TEACHER_ITEM = new V4TItem("Invite a teacher", V4TItemType.SignupTeacher, TreeItemCollapsibleState.None, undefined, undefined, {
         command: "vscode4teaching.signupteacher",
         title: "Sign up in VS Code 4 Teaching",
     });

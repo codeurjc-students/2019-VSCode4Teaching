@@ -106,9 +106,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     /**
      * Show form for signing up then call client.
-     * @param isTeacher sign up as teacher if true, else sign up as student.
      */
-    public async signup(isTeacher?: boolean) {
+    public async signup() {
         let userCredentials: UserSignup = {
             username: "",
             password: "",
@@ -134,7 +133,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             const lastName = await this.getInput("Last name", Validators.validateLastName);
                             if (lastName) {
                                 userCredentials = Object.assign(userCredentials, { lastName });
-                                await APIClient.signUpV4T(userCredentials, isTeacher);
+                                await APIClient.signUpStudent(userCredentials);
                             }
                         }
                     }
@@ -142,6 +141,36 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             }
         }
     }
+
+    /**
+     * Show form for inviting a new teacher (must be performed by other teacher).
+     */
+    public async inviteTeacher() {
+        let userCredentials: UserSignup = {
+            username: "",
+            email: "",
+            name: "",
+            lastName: "",
+        };
+        const firstname = await this.getInput("First name", Validators.validateName);
+        if (firstname) {
+            userCredentials.name = firstname;
+            const lastname = await this.getInput("Last name", Validators.validateLastName);
+            if (lastname) {
+                userCredentials.lastName = lastname;
+                const username = await this.getInput("Username", Validators.validateUsername);
+                if (username) {
+                    userCredentials.username = username;
+                    const email = await this.getInput("E-mail", Validators.validateEmail);
+                    if (email) {
+                        userCredentials.email = email;
+                        await APIClient.signUpTeacher(userCredentials);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Log out current user.
      */

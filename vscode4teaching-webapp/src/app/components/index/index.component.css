@@ -1,14 +1,25 @@
-body {
+@font-face {
+    font-family: louis-george-cafe;
+    src: url("/assets/fonts/Louis George Cafe.ttf");
+}
+
+@font-face {
+    font-family: moon-get-heavy;
+    src: url("/assets/fonts/moon_get-Heavy.otf");
+}
+
+@font-face {
+    font-family: Comfortaa;
+    src: url("/assets/fonts/Comfortaa-Light.ttf");
 }
 
 header {
     background-color: white;
-    grid-area: header;
-    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 20px;
+    height: 10vh;
 }
 
 header > img.logo {
@@ -17,11 +28,7 @@ header > img.logo {
 }
 
 section {
-    border: 2px solid black;
-    border-radius: 10px;
-    grid-area: section;
     text-align: center;
-    margin: 2rem 6%;
 }
 
 section > h1.title {
@@ -32,27 +39,11 @@ section > h1.title {
 .text-body {
     margin: 1rem;
     font-family: louis-george-cafe, serif;
-    font-size: 23px;
 }
 
 .demo-gif {
     width: 950px;
     max-width: 85vw;
-}
-
-@font-face {
-    font-family: louis-george-cafe;
-    src: url("../fonts/Louis George Cafe.ttf");
-}
-
-@font-face {
-    font-family: moon-get-heavy;
-    src: url("../fonts/moon_get-Heavy.otf");
-}
-
-@font-face {
-    font-family: Comfortaa;
-    src: url("../fonts/Comfortaa-Light.ttf");
 }
 
 .downloadBtn {
@@ -108,16 +99,17 @@ section > h1.title {
 
 h3 {
     font-family: louis-george-cafe, serif;
+    margin: 1.5rem 0 0.75rem;
 }
 
 .codeBlock {
     display: flex;
     width: 40%;
-    margin: 0 auto;
+    margin: 0 auto 0.5rem auto;
 }
 
 #givenCodeInput {
-    border: 2px solid #007acc;
+    border: 2px solid #f44a3e;
     padding: 12px 40px;
     flex-grow: 9;
     transition: all 0.25s;
@@ -125,12 +117,12 @@ h3 {
 
 #givenCodeInput:focus {
     outline: none;
-    box-shadow: 0px 0px 20px #9ad6ff;
+    box-shadow: 0px 0px 20px #f38078;
     transition: all 0.25s;
 }
 
 #codeCopyBtn {
-    background-color: #007acc;
+    background-color: #f44a3e;
     padding: 12px 40px;
     color: white;
     border: 0;

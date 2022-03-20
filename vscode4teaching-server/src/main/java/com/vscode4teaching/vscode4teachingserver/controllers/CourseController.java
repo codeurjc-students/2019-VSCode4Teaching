@@ -1,12 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserRequest;
@@ -16,27 +9,20 @@ import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
-
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -61,6 +47,14 @@ public class CourseController {
         return !courses.isEmpty() ? ResponseEntity.ok(courses) : ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/courses/{courseId}")
+    @JsonView(CourseViews.CreatorView.class)
+    public ResponseEntity<Course> getCourse(@PathVariable @Min(1) Long courseId) {
+        Optional<Course> course = courseService.getCourseById(courseId);
+        logger.info("Course got: {}", course);
+        return course.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     @GetMapping("/courses/{courseId}/creator")
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<User> getCreator(@PathVariable @Min(1) Long courseId) throws CourseNotFoundException {
@@ -79,17 +73,16 @@ public class CourseController {
     }
 
     @GetMapping("/courses/code/{courseCode}")
-    @JsonView(CourseViews.ExercisesView.class)
-    public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
+    @JsonView(CourseViews.CreatorView.class)
+    public ResponseEntity<Course> getCourseWithCode(@PathVariable String courseCode)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
-        return ResponseEntity
-                .ok(courseService.getCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
+        return ResponseEntity.ok(courseService.getCourseInformationWithSharingCode(courseCode));
     }
 
     @PutMapping("/courses/{id}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
-            @Valid @RequestBody CourseDTO courseDTO) throws CourseNotFoundException, NotInCourseException {
+                                               @Valid @RequestBody CourseDTO courseDTO) throws CourseNotFoundException, NotInCourseException {
         Course course = new Course(courseDTO.getName());
         Course savedCourse = courseService.editCourse(id, course, jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.ok(savedCourse);
@@ -119,7 +112,7 @@ public class CourseController {
     @PostMapping("/courses/{courseId}/users")
     @JsonView(CourseViews.UsersView.class)
     public ResponseEntity<Course> addUserToCourse(@PathVariable @Min(1) Long courseId,
-            @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
+                                                  @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
         return ResponseEntity.ok(courseService.addUsersToCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
@@ -128,7 +121,7 @@ public class CourseController {
     @DeleteMapping("/courses/{courseId}/users")
     @JsonView(CourseViews.UsersView.class)
     public ResponseEntity<Course> removeUsersFromCourse(@PathVariable @Min(1) Long courseId,
-            @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
+                                                        @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException {
         return ResponseEntity.ok(courseService.removeUsersFromCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));

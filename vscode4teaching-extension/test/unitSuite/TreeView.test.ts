@@ -475,9 +475,9 @@ describe("Tree View", () => {
         const inputOptionsName = mockGetInput("Name", Validators.validateName, userData.name);
         const inputOptionsLastName = mockGetInput("Last name", Validators.validateLastName, userData.lastName);
 
-        mockedClient.signUpV4T.mockResolvedValueOnce();
+        mockedClient.signUpStudent.mockResolvedValueOnce();
 
-        await coursesProvider.signup(false);
+        await coursesProvider.signup();
 
         expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(6);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsUsername);
@@ -486,8 +486,8 @@ describe("Tree View", () => {
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(4, inputOptionsEmail);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(5, inputOptionsName);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(6, inputOptionsLastName);
-        expect(mockedClient.signUpV4T).toHaveBeenCalledTimes(1);
-        expect(mockedClient.signUpV4T).toHaveBeenNthCalledWith(1, userData, false);
+        expect(mockedClient.signUpStudent).toHaveBeenCalledTimes(1);
+        expect(mockedClient.signUpStudent).toHaveBeenNthCalledWith(1, userData);
     });
 
     it("should get course from code", async () => {

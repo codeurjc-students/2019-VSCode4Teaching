@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -24,6 +25,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface CourseService {
     public List<Course> getAllCourses();
+
+    public Optional<Course> getCourseById(Long courseId);
 
     public Course registerNewCourse(@Valid Course course, String requestUsername) throws TeacherNotFoundException;
 
