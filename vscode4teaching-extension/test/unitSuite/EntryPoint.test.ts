@@ -128,6 +128,7 @@ describe("Extension entry point", () => {
         };
         mockedCurrentUser.getUserInfo.mockReturnValue(user);
         const eui: ExerciseUserInfo = {
+            id: 1,
             exercise,
             user,
             status: 0,

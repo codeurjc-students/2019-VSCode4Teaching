@@ -16,31 +16,33 @@
     //     });
     // });
 
-    window.addEventListener('message', event => {
+    window.addEventListener("message", (event) => {
         const message = event.data;
         switch (message.type) {
-            case 'updateDate':
+            case "updateDate":
                 for (const key in message.update) {
-                    document.getElementById(key).textContent = message.update[key]
+                    document.getElementById(key).textContent = message.update[key];
                 }
                 break;
-            case 'openDone':
+            case "openDone":
                 document.querySelectorAll(".button-col > button").forEach((e) => {
                     e.disabled = false;
                 });
                 break;
         }
-    })
+    });
 
-    document.querySelectorAll(".workspace-link").forEach((row) => {
+    document.querySelectorAll(".workspace-link-open").forEach((row) => {
         row.addEventListener("click", () => {
             document.querySelectorAll(".button-col > button").forEach((e) => {
                 e.disabled = true;
             });
-            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
+            const username = row.parentElement.parentElement.dataset.username;
+            const eui_id = row.parentElement.parentElement.dataset.eui;
             vscode.postMessage({
                 type: "goToWorkspace",
-                username: username,
+                username,
+                eui_id,
             });
         });
     });
@@ -50,25 +52,31 @@
             Array.from(row.parentElement.children).forEach((e) => {
                 e.disabled = true;
             });
-            const username = Array.from(row.parentElement.parentElement.children).find(e => e.classList.contains('username')).innerHTML;
+            const username = row.parentElement.parentElement.dataset.username;
+            const eui_id = row.parentElement.parentElement.dataset.eui;
             vscode.postMessage({
                 type: "diff",
-                username: username,
+                username,
+                eui_id,
             });
         });
     });
 
-    document.querySelectorAll(".sorter").forEach(
-        (header, i) => {
-            header.addEventListener("click", () => {
-                let order = header.classList.toggle('active');
-                vscode.postMessage({
-                    type: "sort",
-                    column: i,
-                    desc: order,
-                });
+    document.querySelectorAll(".sorter").forEach((header) => {
+        header.addEventListener("click", () => {
+            let order = header.classList.toggle("active");
+            vscode.postMessage({
+                type: "sort",
+                column: header.dataset.column,
+                desc: order,
             });
-        }
-    );
-}());
+        });
+    });
 
+    document.getElementById("hideStudentNames").addEventListener("click", (event) => {
+        vscode.postMessage({
+            type: "changeVisibilityStudentsNames",
+            value: event.target.checked,
+        });
+    });
+})();

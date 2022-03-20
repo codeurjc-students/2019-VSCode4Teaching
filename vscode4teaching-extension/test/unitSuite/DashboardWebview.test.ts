@@ -56,6 +56,7 @@ describe("Dashboard webview", () => {
         const euis: ExerciseUserInfo[] = [];
         let now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 1,
             exercise,
             user: student1,
             status: 0,
@@ -64,6 +65,7 @@ describe("Dashboard webview", () => {
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 2,
             exercise,
             user: student2,
             status: 1,
@@ -72,6 +74,7 @@ describe("Dashboard webview", () => {
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 3,
             exercise,
             user: student3,
             status: 2,
@@ -119,14 +122,14 @@ describe("Dashboard webview", () => {
             // Table headers are correct
             const tableHeaders = $("th").toArray();
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
-            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
+            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Exercise folder");
             expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
             expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modified file");
             expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
             // Table data is correct
             const tableData = $("td").toArray();
             expect(tableData[0].firstChild.data).toBe("Student 1");
-            expect(tableData[1].firstChild.data).toBe("student1");
+            expect(tableData[1].firstChild.data).toBe("student_1");
             expect(tableData[2].firstChild.data).toBe("Not started");
             expect(tableData[2].attribs.class).toBe("not-started-cell");
             expect(tableData[3].childNodes[0].name).toBe("button");
@@ -135,7 +138,7 @@ describe("Dashboard webview", () => {
             expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
             // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
             expect(tableData[5].firstChild.data).toBe("Student 2");
-            expect(tableData[6].firstChild.data).toBe("student2");
+            expect(tableData[6].firstChild.data).toBe("student_2");
             expect(tableData[7].firstChild.data).toBe("Finished");
             expect(tableData[7].attribs.class).toBe("finished-cell");
             expect(tableData[8].childNodes[0].name).toBe("button");
@@ -144,7 +147,7 @@ describe("Dashboard webview", () => {
             expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
             // expect(tableData[9].firstChild.data).toBe("13 min");
             expect(tableData[10].firstChild.data).toBe("Student 3");
-            expect(tableData[11].firstChild.data).toBe("student3");
+            expect(tableData[11].firstChild.data).toBe("student_3");
             expect(tableData[12].firstChild.data).toBe("On progress");
             expect(tableData[12].attribs.class).toBe("onprogress-cell");
             // expect(tableData[14].firstChild.data).toBe("35 s");

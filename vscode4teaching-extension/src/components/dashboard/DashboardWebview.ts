@@ -13,14 +13,10 @@ export class DashboardWebview {
 
     public static readonly viewType = "v4tdashboard";
 
-    public static readonly resourcesPath = __dirname.includes(path.sep + "out") ?
-        path.join(__dirname, "..", "resources", "dashboard") :
-        path.join(__dirname, "..", "..", "..", "resources", "dashboard");
+    public static readonly resourcesPath = __dirname.includes(path.sep + "out") ? path.join(__dirname, "..", "resources", "dashboard") : path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
     public static show(euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
-        const column = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.viewColumn
-            : undefined;
+        const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         // If we already have a panel, show it.
         if (DashboardWebview.currentPanel) {
@@ -30,21 +26,17 @@ export class DashboardWebview {
 
         // Otherwise, create a new panel.
         const dashboardName = exercise.name;
+        const dashboardViewName = course.name + " - " + exercise.name;
 
-        const panel = vscode.window.createWebviewPanel(
-            DashboardWebview.viewType,
-            "V4T Dashboard: " + dashboardName,
-            column || vscode.ViewColumn.One,
-            {
-                // Enable javascript in the webview
-                enableScripts: true,
+        const panel = vscode.window.createWebviewPanel(DashboardWebview.viewType, "V4T Dashboard: " + dashboardName, column || vscode.ViewColumn.One, {
+            // Enable javascript in the webview
+            enableScripts: true,
 
-                // And restrict the webview to only loading content from our extension's `resources` directory.
-                localResourceRoots: [vscode.Uri.file(DashboardWebview.resourcesPath)],
-            },
-        );
+            // And restrict the webview to only loading content from our extension's `resources` directory.
+            localResourceRoots: [vscode.Uri.file(DashboardWebview.resourcesPath)],
+        });
 
-        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, euis, course, exercise);
+        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, dashboardViewName, euis, course, exercise);
     }
 
     public readonly panel: vscode.WebviewPanel;
@@ -52,18 +44,22 @@ export class DashboardWebview {
     private ws: WebSocketV4TConnection;
 
     private readonly _dashboardName: string;
+    private readonly _dashboardViewName: string;
     private _euis: ExerciseUserInfo[];
     // private _reloadInterval: NodeJS.Timeout | undefined;
     private lastUpdatedInterval: NodeJS.Timeout;
     private _exercise: Exercise;
     private sortAsc: boolean;
+    private hiddenStudentNames: boolean;
 
-    private constructor(panel: vscode.WebviewPanel, dashboardName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
+    private constructor(panel: vscode.WebviewPanel, dashboardName: string, dashboardViewName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
         this.panel = panel;
         this._dashboardName = dashboardName;
+        this._dashboardViewName = dashboardViewName;
         this._euis = euis;
         this._exercise = exercise;
         this.sortAsc = false;
+        this.hiddenStudentNames = false;
 
         // Set the webview's initial html content
         this.updateHtml();
@@ -80,13 +76,11 @@ export class DashboardWebview {
         });
 
         // Update the content based on view changes
-        this.panel.onDidChangeViewState(
-            (e) => {
-                if (this.panel.visible) {
-                    this.updateHtml();
-                }
-            },
-        );
+        this.panel.onDidChangeViewState((e) => {
+            if (this.panel.visible) {
+                this.updateHtml();
+            }
+        });
         this.panel.webview.onDidReceiveMessage(async (message) => {
             switch (message.type) {
                 case "reload": {
@@ -108,29 +102,33 @@ export class DashboardWebview {
                 //     break;
                 // }
                 case "goToWorkspace": {
-                    this.showQuickPick(message.username, course, exercise).then(async (filePath) => {
-                        if (filePath !== undefined) {
-                            const doc1 = await vscode.workspace.openTextDocument(filePath);
-                            await vscode.window.showTextDocument(doc1);
-                        }
-                        this.panel.webview.postMessage({ type: "openDone", username: message.username });
-                    }).catch((err) => {
-                        console.error(err);
-                        vscode.window.showErrorMessage(err);
-                    });
+                    this.showQuickPick(message.username, course, exercise, message.eui_id)
+                        .then(async (filePath) => {
+                            if (filePath !== undefined) {
+                                const doc1 = await vscode.workspace.openTextDocument(filePath);
+                                await vscode.window.showTextDocument(doc1);
+                            }
+                            this.panel.webview.postMessage({ type: "openDone", username: message.username });
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                            vscode.window.showErrorMessage(err);
+                        });
                     break;
                 }
 
                 case "diff": {
-                    this.showQuickPick(message.username, course, exercise).then(async (filePath) => {
-                        if (filePath !== undefined) {
-                            await vscode.commands.executeCommand("vscode4teaching.diff", filePath);
-                        }
-                        this.panel.webview.postMessage({ type: "openDone", username: message.username });
-                    }).catch((err) => {
-                        console.error(err);
-                        vscode.window.showErrorMessage(err);
-                    });
+                    this.showQuickPick(message.username, course, exercise, message.eui_id)
+                        .then(async (filePath) => {
+                            if (filePath !== undefined) {
+                                await vscode.commands.executeCommand("vscode4teaching.diff", filePath);
+                            }
+                            this.panel.webview.postMessage({ type: "openDone", username: message.username });
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                            vscode.window.showErrorMessage(err);
+                        });
                     break;
                 }
 
@@ -138,50 +136,65 @@ export class DashboardWebview {
                     this.sortAsc = message.desc;
                     const weight = this.sortAsc ? 1 : -1;
                     switch (message.column) {
-                        case 0: {
+                        case "fullName": {
                             this._euis.sort((a, b) => {
-
-                                const aname = ((a.user.name) ? a.user.name : "") + " " + ((a.user.lastName) ? a.user.lastName : "");
-                                const bname = ((b.user.name) ? b.user.name : "") + " " + ((b.user.lastName) ? b.user.lastName : "");
+                                const aname = (a.user.name ? a.user.name : "") + " " + (a.user.lastName ? a.user.lastName : "");
+                                const bname = (b.user.name ? b.user.name : "") + " " + (b.user.lastName ? b.user.lastName : "");
 
                                 if (aname > bname) {
                                     return -1 * weight;
-                                } else if (a.user.username < b.user.username) {
+                                } else if (aname < bname) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
-                        case 1: {
+                        case "exerciseFolder": {
                             this._euis.sort((a, b) => {
-                                if (a.user.username > b.user.username) {
+                                const adirectory = "student_" + a.id;
+                                const bdirectory = "student_" + b.id;
+                                if (adirectory > bdirectory) {
                                     return -1 * weight;
-                                } else if (a.user.username < b.user.username) {
+                                } else if (adirectory < bdirectory) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
-                        case 2: {
+                        case "status": {
                             this._euis.sort((a, b) => {
                                 if (a.status > b.status) {
                                     return -1 * weight;
-                                } else if (a.user.username < b.user.username) {
+                                } else if (a.status < b.status) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
-                        case 3: {
+                        case "lastModification": {
                             this._euis.sort((a, b) => {
                                 if (a.updateDateTime > b.updateDateTime) {
                                     return -1 * weight;
                                 } else if (a.updateDateTime < b.updateDateTime) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                         }
                     }
+                    this.updateHtml();
+                    break;
+                }
+
+                case "changeVisibilityStudentsNames": {
+                    this.hiddenStudentNames = message.value;
                     this.updateHtml();
                     break;
                 }
@@ -214,8 +227,10 @@ export class DashboardWebview {
         this.panel.webview.postMessage({ type: "updateDate", update: message });
     }
 
-    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string): Promise<{ uri: vscode.Uri, relativePath: string }> {
-        if (fileRoute === "null") { return this.findMainFile(folder); }
+    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string): Promise<{ uri: vscode.Uri; relativePath: string }> {
+        if (fileRoute === "null") {
+            return this.findMainFile(folder);
+        }
 
         const fileRegex = /^\/[^\/]+\/[^\/]+\/[^\/]+\/(.+)$/;
         const regexResults = fileRegex.exec(fileRoute);
@@ -228,7 +243,7 @@ export class DashboardWebview {
         return this.findMainFile(folder);
     }
 
-    private async findMainFile(folder: vscode.WorkspaceFolder): Promise<{ uri: vscode.Uri, relativePath: string }> {
+    private async findMainFile(folder: vscode.WorkspaceFolder): Promise<{ uri: vscode.Uri; relativePath: string }> {
         const patterns = ["readme.*", "readme", "Main.*", "main.*", "index.html", "*"];
         let matches: vscode.Uri[] = [];
         let i = 0;
@@ -236,20 +251,22 @@ export class DashboardWebview {
         while (matches.length <= 0 && i < patterns.length) {
             pattern = patterns[i++];
             const file = new vscode.RelativePattern(folder, pattern);
-            matches = (await vscode.workspace.findFiles(file));
+            matches = await vscode.workspace.findFiles(file);
         }
         if (matches.length <= 0) {
-            matches = (await vscode.workspace.findFiles(new vscode.RelativePattern(folder, "*")));
+            matches = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, "*"));
         }
         return { uri: matches[0], relativePath: pattern };
     }
 
     private reloadData() {
-        APIClient.getAllStudentsExerciseUserInfo(this._exercise.id).then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-            console.debug(response);
-            this._euis = response.data;
-            this.updateHtml();
-        }).catch((error) => APIClient.handleAxiosError(error));
+        APIClient.getAllStudentsExerciseUserInfo(this._exercise.id)
+            .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+                console.debug(response);
+                this._euis = response.data;
+                this.updateHtml();
+            })
+            .catch((error) => APIClient.handleAxiosError(error));
     }
 
     private updateHtml() {
@@ -258,16 +275,12 @@ export class DashboardWebview {
 
     private getHtmlForWebview() {
         // Local path to main script run in the webview
-        const scriptPath = vscode.Uri.file(
-            path.join(DashboardWebview.resourcesPath, "dashboard.js"),
-        );
+        const scriptPath = vscode.Uri.file(path.join(DashboardWebview.resourcesPath, "dashboard.js"));
         // And the uri we use to load this script in the webview
         const scriptUri = this.panel.webview.asWebviewUri(scriptPath);
 
         // Local path to styles
-        const cssPath = vscode.Uri.file(
-            path.join(DashboardWebview.resourcesPath, "dashboard.css"),
-        );
+        const cssPath = vscode.Uri.file(path.join(DashboardWebview.resourcesPath, "dashboard.css"));
 
         // Styles uri
         const cssUri = this.panel.webview.asWebviewUri(cssPath);
@@ -276,13 +289,16 @@ export class DashboardWebview {
         let rows: string = "";
         // for (const eui of this._euis) {
         for (const eui of this._euis) {
-            rows = rows + "<tr>\n";
-            if (eui.user.name && eui.user.lastName) {
-                rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
-            } else {
-                rows = rows + "<td></td>";
+            rows = rows + `<tr data-username="${eui.user.username}" data-eui="${eui.id}">\n`;
+
+            if (!this.hiddenStudentNames) {
+                if (eui.user.name && eui.user.lastName) {
+                    rows = rows + "<td>" + eui.user.name + " " + eui.user.lastName + "</td>\n";
+                } else {
+                    rows = rows + "<td></td>";
+                }
             }
-            rows = rows + "<td class='username'>" + eui.user.username + "</td>\n";
+            rows = rows + "<td>student_" + eui.id + "</td>\n";
 
             switch (eui.status) {
                 case 0: {
@@ -302,74 +318,74 @@ export class DashboardWebview {
                 }
             }
             rows = rows + `<td class="button-col">`;
-            const buttons = `<button class='workspace-link'>Open</button><button class='workspace-link-diff'>Diff</button>`;
+            const buttons = `<button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button>`;
             rows += buttons;
             rows = rows + `</td>\n`;
             rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
-
         }
 
         // Use a nonce to whitelist which scripts can be run
         const nonce = this.getNonce();
         return `<!DOCTYPE html>
             <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${this.panel.webview.cspSource} https:; script-src 'nonce-${nonce}'; style-src-elem ${this.panel.webview.cspSource};">
-                <title>V4T Dashboard: ${this._dashboardName}</title>
-                <link rel="stylesheet" type="text/css" href="${cssUri}">
-            </head>
-            <body>
-            <h1>Exercise dashboard</h1>
-            <hr/>
-            <!--<div class="reload-options">
-                    <label for="time-reload">Reload every: </label>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${this.panel.webview.cspSource} https:; script-src 'nonce-${nonce}'; style-src-elem ${this.panel.webview.cspSource};">
+                    <title>V4T Dashboard: ${this._dashboardName}</title>
+                    <link rel="stylesheet" type="text/css" href="${cssUri}">
+                </head>
+                <body>
+                    <h1>VSCode4Teaching Dashboard</h1>
+                    <h2>${this._dashboardViewName}</h2>
+                    <div class="reload-options">
+                        <div class="option">
+                            <div class="name">Hide student's names</div>
+                            <label class="switch">
+                                <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <hr/>
                     <br/>
-                    <select id="time-reload">
-                        <option value="0" selected>Never</option>
-                        <option value="5">5 seconds</option>
-                        <option value="30">30 seconds</option>
-                        <option value="60">1 minute</option>
-                        <option value="300">5 minutes</option>
-                    </select>
-                    <button id="button-reload">Reload</button>
-                </div>
-                -->
-                <br/>
-                <table>
-                    <tr>
-                        <th>Full name
-                            <span class="sorter ${this.sortAsc ? "active" : ""}">
-                                <span></span>
-                                <span></span>
-                            </span>
-                        </th>
-                        <th>Username
-                            <span class="sorter ${this.sortAsc ? "active" : ""}">
-                                <span></span>
-                                <span></span>
-                            </span>
-                        </th>
-                        <th>Exercise status
-                            <span class="sorter ${this.sortAsc ? "active" : ""}">
-                                <span></span>
-                                <span></span>
-                            </span>
-                        </th>
-                        <th>Last modified file</th>
-                        <th>Last modification
-                            <span class="sorter ${this.sortAsc ? "active" : ""}">
-                                <span></span>
-                                <span></span>
-                            </span>
-                        </th>
-                    </tr>
-                    ${rows}
-                </table>
-                <script nonce="${nonce}" src="${scriptUri}"></script>
-            </body>
+                    <table>
+                        <tr>
+                            ${
+                                !this.hiddenStudentNames
+                                    ? `<th>Full name
+                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="fullName">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </th>`
+                                    : ""
+                            }
+                            <th>Exercise folder
+                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="exerciseFolder">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </th>
+                            <th>Exercise status
+                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="status">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </th>
+                            <th>Last modified file</th>
+                            <th>Last modification
+                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="lastModification">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </th>
+                        </tr>
+                        ${rows}
+                    </table>
+                    <script nonce="${nonce}" src="${scriptUri}"></script>
+                </body>
             </html>`;
     }
 
@@ -383,23 +399,33 @@ export class DashboardWebview {
     }
 
     private getElapsedTime(pastDateStr: string) {
-        if (!pastDateStr) { return "-"; }
+        if (!pastDateStr) {
+            return "-";
+        }
         pastDateStr += "Z";
         let elapsedTime = (new Date().getTime() - new Date(pastDateStr).getTime()) / 1000;
-        if (elapsedTime < 0) { elapsedTime = 0; }
+        if (elapsedTime < 0) {
+            elapsedTime = 0;
+        }
         let unit = "s";
         if (elapsedTime > 60) {
-            elapsedTime /= 60;   // convert to minutes
+            elapsedTime /= 60; // convert to minutes
             if (elapsedTime > 60) {
-                elapsedTime /= 60;  // convert to hours
+                elapsedTime /= 60; // convert to hours
                 if (elapsedTime > 24) {
-                    elapsedTime /= 24;  // convert to days
+                    elapsedTime /= 24; // convert to days
                     if (elapsedTime > 365) {
-                        elapsedTime /= 365;  // convert to years
+                        elapsedTime /= 365; // convert to years
                         unit = "yr";
-                    } else { unit = "d"; }
-                } else { unit = "h"; }
-            } else { unit = "min"; }
+                    } else {
+                        unit = "d";
+                    }
+                } else {
+                    unit = "h";
+                }
+            } else {
+                unit = "min";
+            }
         }
 
         return `${Math.floor(elapsedTime)} ${unit}`;
@@ -412,31 +438,35 @@ export class DashboardWebview {
      * @param exercise Exercise exercise
      * @returns Thenable<string|undefined> the selected file
      */
-    private async showQuickPick(username: string, course: Course, exercise: Exercise): Promise<vscode.Uri | undefined> {
+    private async showQuickPick(username: string, course: Course, exercise: Exercise, eui_id: number): Promise<vscode.Uri | undefined> {
         // Download most recent files
         await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise);
-        return vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false,
-            title: "Getting modified files...",
-        }, (progress, token) => this.buildQuickPickItems(username))
-        .then(async (result: OpenQuickPick[]) => {
-            if (result) {
-                const selection = await this.showQuickPickRecursive(result);
-                if (selection) {
-                    return selection;
+        return vscode.window
+            .withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    cancellable: false,
+                    title: "Getting modified files...",
+                },
+                (progress, token) => this.buildQuickPickItems(username, eui_id)
+            )
+            .then(async (result: OpenQuickPick[]) => {
+                if (result) {
+                    const selection = await this.showQuickPickRecursive(result);
+                    if (selection) {
+                        return selection;
+                    }
                 }
-            }
-        });
+            });
     }
 
-    private async buildQuickPickItems(username: string): Promise<OpenQuickPick[]> {
+    private async buildQuickPickItems(username: string, eui_id: number): Promise<OpenQuickPick[]> {
         // Find all modified files URIs (paths)
         const workspaces = vscode.workspace.workspaceFolders;
         if (workspaces) {
-            const wsF = workspaces.find((e) => e.name === username);
+            const wsF = workspaces.find((e) => e.name === "student_" + eui_id.toString());
             if (wsF) {
-                const euis = this._euis.filter((eui) => eui.user.username === username);
+                const euis = this._euis.filter((eui) => eui.id.toString() === eui_id.toString());
                 const uris: vscode.Uri[] = [];
                 const relativePaths: string[] = [];
                 if (euis.length > 0) {
@@ -484,7 +514,7 @@ export class DashboardWebview {
 
     // Combines parent and child as a single path if there is only one child and it is a directory
     private shortenPaths(item: OpenQuickPick) {
-        if ((item.children.length === 1) && (item.children[0].children.length > 0)) {
+        if (item.children.length === 1 && item.children[0].children.length > 0) {
             const child = item.children[0];
             item.name = item.name + "/" + child.name;
             item.children = child.children;

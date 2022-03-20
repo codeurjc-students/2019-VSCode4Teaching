@@ -1,54 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
-    <title>V4T</title>
-    <link rel="icon" href="../img/favicon.ico"/>
-    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+    <meta charset="UTF-8" />
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge"> -->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>VSCode4Teaching</title>
+    <link rel="icon" href="../img/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
 </head>
 
 <body>
 <header>
-    <img class="logo" src="../img/v4ticon.png" alt="V4T logo">
+    <img class="logo" src="../img/v4ticon.png" alt="V4T logo" />
 </header>
 <section>
     <h1 class="title">VSCode 4 Teaching</h1>
     <h3>Extension for Visual Studio Code</h3>
-    <hr>
+    <hr />
     <div class="text-body">
-        <p>
-            Bring the programming exercises of a course directly to the student's editor, so that the teacher of
-            that
-            course can check the progress of the students and help them.
-        </p>
-        <h2>Tutorial</h2>
-        <h3>Install V4T!:</h3>
+        <th:block th:if="${course}">
+            <h2 th:text="|${course.creator.name} ${course.creator.lastName} invited you to join ${course.name} at VSCode4Teaching!|"></h2>
+            <p>If you want to join this course, please follow this steps:</p>
+        </th:block>
+        <th:block th:unless="${course}">
+            <p>Bring the programming exercises of a course directly to the student's editor, so that the teacher of that course can check the progress of the students and help them.</p>
+            <h2>Tutorial</h2>
+        </th:block>
+        <h3>Install Visual Studio Code IDE if you have not installed it previously:</h3>
         <div>
-            <a id="download" href="vscode:extension/VSCode4Teaching.vscode4teaching">
-                <img src="../img/vscode.svg" alt="">
-                <span>Download extension</span>
+            <a class="downloadBtn" id="vsc" href="https://code.visualstudio.com/Download" target="_blank" rel="noopener noreferrer">
+                <img src="../img/vscode.png" alt="" />
+                <span>Download Visual Studio Code</span>
+            </a>
+        </div>
+        <h3>Install VSCode4Teaching extension if you have not installed it previously:</h3>
+        <div>
+            <a class="downloadBtn" id="v4t" href="vscode:extension/VSCode4Teaching.vscode4teaching">
+                <img src="../img/v4ticon.png" alt="" />
+                <span>Download V4T extension</span>
             </a>
         </div>
         <h3>The first time you will have to sign up. After that you can log in:</h3>
-        <img class="demo-gif" src="../img/signup.gif" alt="Students signup demo">
-        <h3>Join a course (the teacher will give you the code!):</h3>
-        <img class="demo-gif" src="../img/student_gets_course.gif" alt="Students code usage demo">
+        <img class="demo-gif" src="../img/signup.gif" alt="Students signup demo" />
+        <th:block th:if="${code == null}">
+            <h3>Join a course (the teacher will give you the code!):</h3>
+        </th:block>
+        <th:block th:unless="${code == null}">
+            <h3>Join the course using this code:</h3>
+            <div class="codeBlock">
+                <input id="givenCodeInput" th:value="${code}" readonly />
+                <button type="button" id="codeCopyBtn">Copy</button>
+            </div>
+            <br />
+        </th:block>
+        <img class="demo-gif" src="../img/student_gets_course.gif" alt="Students code usage demo" />
         <h3>Now you can do the exercise! When you save a file, its contents will be able to be seen by the teachers:</h3>
-        <img class="demo-gif" src="../img/student_solving_exercise.gif" alt="Students edit exercise demo">
+        <img class="demo-gif" src="../img/student_solving_exercise.gif" alt="Students edit exercise demo" />
         <h3>When you finish the exercise, push the Finish button:</h3>
-        <img class="demo-gif" src="../img/student_finish_exercise.gif" alt="Students finish exercise demo">
+        <img class="demo-gif" src="../img/student_finish_exercise.gif" alt="Students finish exercise demo" />
         <h3>New exercise! Refresh the list of exercises in the course:</h3>
-        <img class="demo-gif" src="../img/student_refresh_course.gif" alt="Students new exercise demo">
+        <img class="demo-gif" src="../img/student_refresh_course.gif" alt="Students new exercise demo" />
     </div>
 </section>
 
+<script type="text/javascript" src="../js/script.js"></script>
 <script type="text/javascript">
-    console.log('%cDeveloped by Álvaro Rivas (%carialdev%c)', "color : pink; font-size : 20px", "color:yellow; font-size : 20px", "color:red; font-size : 20px");
-    console.log('%chttps://github.com/arialdev/', "color : red; font-size : 20px");
+    console.log("%cDeveloped by Álvaro Rivas (%carialdev%c)", "color : pink; font-size : 20px", "color:yellow; font-size : 20px", "color:red; font-size : 20px");
+    console.log("%chttps://github.com/arialdev/", "color : red; font-size : 20px");
 </script>
 </body>
-
 </html>

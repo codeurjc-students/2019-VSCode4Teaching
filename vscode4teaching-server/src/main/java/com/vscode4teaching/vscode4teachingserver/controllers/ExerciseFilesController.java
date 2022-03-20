@@ -59,7 +59,7 @@ public class ExerciseFilesController {
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
-        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
+        List<File> files = optFiles.orElseGet(ArrayList::new);
         String zipName = files.get(0).getParentFile().getName().equals(ExerciseFilesController.templateFolderName)
                 ? "template-" + id
                 : "exercise-" + id + "-" + username;
@@ -70,7 +70,7 @@ public class ExerciseFilesController {
         String separator = files.get(0).getAbsolutePath().split(
                 fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern).length > 1
                 ? ExerciseFilesController.templateFolderName
-                : username;
+                : "student_[0-9]*";
         exportToZip(response, files, separator);
     }
 
@@ -84,7 +84,7 @@ public class ExerciseFilesController {
         List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
         List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         String fileSeparatorPattern = Pattern.quote(File.separator);
-        String pattern = fileSeparatorPattern + username + fileSeparatorPattern;
+        String pattern = "student_[0-9]*" + File.separator;
         for (File file : files) {
             String[] filePath = file.getCanonicalPath().split(pattern);
             uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
@@ -153,11 +153,9 @@ public class ExerciseFilesController {
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {
             try {
-                String fileSeparatorPattern = Pattern.quote(File.separator);
-                String pattern = null;
-                String[] filePath = null;
-                pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
-                filePath = file.getCanonicalPath().split(pattern);
+                // pattern = fileSeparatorPattern + parentDirectory + fileSeparatorPattern;
+                String pattern = parentDirectory + File.separator;
+                String[] filePath = file.getCanonicalPath().split(pattern);
                 String zipFilePath = filePath[filePath.length - 1].replace('\\', '/');
                 zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
                 FileInputStream fileInputStream = new FileInputStream(file);
@@ -166,7 +164,7 @@ public class ExerciseFilesController {
                 fileInputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 zipOutputStream.closeEntry();
             }
 
