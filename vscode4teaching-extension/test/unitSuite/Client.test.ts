@@ -50,9 +50,9 @@ describe("Client", () => {
         APIClient.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");
         if (fs.existsSync(v4tPath)) {
-            rimraf(v4tPath, ((error: any) => {
+            rimraf(v4tPath, (error: any) => {
                 // console.error(error);
-            }));
+            });
         }
         mockedAxios.mockReset();
         mockedCoursesTreeProvider.mockClear();
@@ -84,8 +84,7 @@ describe("Client", () => {
             baseURL: newUrl,
             url: "/api/csrf",
             method: "GET",
-            headers: {
-            },
+            headers: {},
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
@@ -96,7 +95,7 @@ describe("Client", () => {
             method: "POST",
             headers: {
                 "X-XSRF-TOKEN": newXsrfToken,
-                "Cookie": "XSRF-TOKEN=" + newXsrfToken,
+                Cookie: "XSRF-TOKEN=" + newXsrfToken,
             },
             data: {
                 username,
@@ -106,20 +105,19 @@ describe("Client", () => {
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"];
         const expectedAxiosResponseLogin: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
-            headers: {
-            },
+            headers: {},
             data: {
                 jwtToken: newJwtToken,
             },
@@ -186,23 +184,23 @@ describe("Client", () => {
             url: "/api/csrf",
             method: "GET",
             headers: {
-                "Authorization": "Bearer " + jwtToken,
+                Authorization: "Bearer " + jwtToken,
                 "X-XSRF-TOKEN": xsrfToken,
-                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                Cookie: "XSRF-TOKEN=" + xsrfToken,
             },
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=29f6caf7-b522-4730-87c4-bfb1b3db0e66; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=29f6caf7-b522-4730-87c4-bfb1b3db0e66; Path=/"];
         mockedAxios
             .mockRejectedValue("Error in test") // default
             .mockResolvedValueOnce(expectedAxiosResponseXSRF);
@@ -286,8 +284,7 @@ describe("Client", () => {
             baseURL,
             url: "/api/csrf",
             method: "GET",
-            headers: {
-            },
+            headers: {},
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
@@ -298,27 +295,26 @@ describe("Client", () => {
             method: "POST",
             headers: {
                 "X-XSRF-TOKEN": newXsrfToken,
-                "Cookie": "XSRF-TOKEN=" + newXsrfToken,
+                Cookie: "XSRF-TOKEN=" + newXsrfToken,
             },
             data: userCredentials,
             responseType: "json",
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        const expectedAxiosResponseXSRF: AxiosResponse<string> = { // XSRF Token call
+        const expectedAxiosResponseXSRF: AxiosResponse<string> = {
+            // XSRF Token call
             status: 200,
             statusText: "OK",
-            headers: {
-                "set-cookie": ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"],
-            },
+            headers: {},
             data: "",
             config: expectedAxiosConfigXSRFRequest,
         };
+        expectedAxiosResponseXSRF.headers["set-cookie"] = ["XSRF-TOKEN=" + newXsrfToken + "; Path=/"];
         const expectedAxiosResponseSignup: AxiosResponse<object> = {
             status: 200,
             statusText: "OK",
-            headers: {
-            },
+            headers: {},
             data: {
                 id: 23,
                 email: "johndoe@john.com",
@@ -369,9 +365,9 @@ describe("Client", () => {
             url: "/api/teachers/invitation",
             method: "POST",
             headers: {
-                "Authorization": "Bearer " + jwtToken,
+                Authorization: "Bearer " + jwtToken,
                 "X-XSRF-TOKEN": xsrfToken,
-                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                Cookie: "XSRF-TOKEN=" + xsrfToken,
             },
             data: invitedTeacherCredentials,
             responseType: "json",
