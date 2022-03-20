@@ -298,8 +298,7 @@ export class DashboardWebview {
                     rows = rows + "<td></td>";
                 }
             }
-            rows = rows + "<td>student_" + eui.id + "</td>\n";
-
+            rows = rows + `<td class="exercise-folder">student_${eui.id}</td>\n`;
             switch (eui.status) {
                 case 0: {
                     // not started
@@ -321,7 +320,7 @@ export class DashboardWebview {
             const buttons = `<button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button>`;
             rows += buttons;
             rows = rows + `</td>\n`;
-            rows = rows + `<td class='last-modification' id='user-lastmod-${eui.user.id}'>${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
+            rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
         }
 
