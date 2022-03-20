@@ -72,13 +72,6 @@ public class CourseController {
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
     }
 
-    @GetMapping("/courses/code/{courseCode}")
-    @JsonView(CourseViews.CreatorView.class)
-    public ResponseEntity<Course> getCourseWithCode(@PathVariable String courseCode)
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
-        return ResponseEntity.ok(courseService.getCourseInformationWithSharingCode(courseCode));
-    }
-
     @PutMapping("/courses/{id}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
@@ -131,5 +124,27 @@ public class CourseController {
     public ResponseEntity<String> getCode(@PathVariable Long courseId, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
         return ResponseEntity.ok(courseService.getCourseCode(courseId, jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
+    @Deprecated // VERSION 2.1 AND LATER ARE NOT USING THIS METHOD, READ DOCS FOR FURTHER INFORMATION
+    @GetMapping("/courses/code/{courseCode}")
+    @JsonView(CourseViews.ExercisesView.class)
+    public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
+    }
+
+    @GetMapping("/v2/courses/code/{courseCode}")
+    @JsonView(CourseViews.CreatorView.class)
+    public ResponseEntity<Course> getCourseInformationBySharingCode(@PathVariable String courseCode)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        return ResponseEntity.ok(courseService.getCourseInformationWithSharingCode(courseCode));
+    }
+
+    @PutMapping("/courses/code/{courseCode}")
+    @JsonView(CourseViews.ExercisesView.class)
+    public ResponseEntity<Course> joinCourse(HttpServletRequest request, @PathVariable String courseCode)
+            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+        return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
 }

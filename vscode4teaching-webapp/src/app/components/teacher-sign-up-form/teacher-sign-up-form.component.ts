@@ -40,7 +40,15 @@ export class TeacherSignUpFormComponent {
      */
     // Step 1 form -> asks for username
     stepOneForm = this.fb.group({
-        username: ["", [Validators.required, Validators.minLength(4), Validators.maxLength(50), Validators.pattern("^(?:(?!template).)+$")]],
+        username: [
+            "",
+            [
+                Validators.required,
+                Validators.minLength(4),
+                Validators.maxLength(50),
+                Validators.pattern("^(?:(?!template).)+$"),
+            ],
+        ],
     });
 
     // Step 2 form -> asks for a new password (two times)
@@ -116,16 +124,15 @@ export class TeacherSignUpFormComponent {
         this.requestSent = true;
         // Password is changed
         this.teacherSignUpService.changePassword(this.user.id ?? 0, this.stepTwoForm.get("password")?.value).subscribe({
-            next: (_) => {
-                this.step = 3;
-                this.error = undefined;
-            },
+            next: (_) => (this.step = 3),
             error: (_) => (this.error = "Unexpected error while saving your password. Please try again."),
         });
     }
 
     // True if a input is valid, false otherwise (used in template)
     getValidationStatusOfField(formGroup: FormGroup, fieldName: string, error?: string): boolean {
-        return error ? !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.hasError(error)) : !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.errors);
+        return error
+            ? !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.hasError(error))
+            : !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.errors);
     }
 }

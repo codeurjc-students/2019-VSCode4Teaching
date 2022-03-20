@@ -44,7 +44,7 @@ public interface CourseService {
     public List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public Course getCourseWithSharingCode(String uuid, String requestUsername)
+    public Course joinCourseWithSharingCode(String uuid, String requestUsername)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException;
 
     public Course getCourseInformationWithSharingCode(String uuid)

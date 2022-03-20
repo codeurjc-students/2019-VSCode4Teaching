@@ -662,7 +662,7 @@ describe("client API calls", () => {
         expectCorrectRequest(expectedOptions, "Saving comments...", false, thenable);
     });
 
-    it("should request get sharing code for exercise correctly", () => {
+    it("should join course with sharing code correctly", () => {
         const code = "testcode";
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
@@ -674,7 +674,7 @@ describe("client API calls", () => {
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
-            method: "GET",
+            method: "PUT",
             responseType: "json",
             url: "/api/courses/code/" + code,
         };

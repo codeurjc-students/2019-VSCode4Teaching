@@ -66,8 +66,19 @@ public class JWTLoginController {
         return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
     }
 
+    @Deprecated // VERSION 2.1 AND LATER ARE NOT USING THIS METHOD, READ DOCS FOR FURTHER INFORMATION
+    @PostMapping("/teachers/register")
+    @JsonView(UserViews.EmailView.class)
+    public ResponseEntity<User> saveTeacher(@Valid @RequestBody UserDTO userDto) {
+        String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
+        User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
+                userDto.getLastName());
+        User saveduser = userDetailsService.save(user, true);
+        return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
+    }
+
     @PostMapping("/teachers/invitation")
-    public ResponseEntity<UserDTO> saveTeacher(@RequestBody UserDTO userDto) {
+    public ResponseEntity<UserDTO> saveTeacherInvitation(@RequestBody UserDTO userDto) {
         String tempPassword = UUID.randomUUID().toString();
         String encodedPassword = bCryptPasswordEncoder.encode(tempPassword);
         userDetailsService.save(new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(), userDto.getLastName()), true);
