@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.8</version>
+		<version>2.5.10</version>
 		<relativePath/>
 		<!-- lookup parent from repository -->
 	</parent>
@@ -44,6 +44,15 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+                        <groupId>org.springframework.security</groupId>
+                        <artifactId>spring-security-test</artifactId>
+                        <scope>test</scope>
+                </dependency>
+		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-starter-websocket</artifactId>
+ 		</dependency>
+		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
@@ -60,7 +69,7 @@
 				</exclusion>
 				<exclusion>
 					<groupId>org.mockito</groupId>
-					<artifactId>mockito-core</artifactId>
+					<artifactId>mockito-inline</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -83,11 +92,6 @@
 			<artifactId>mockito-junit-jupiter</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>2.1.210</version>
@@ -97,10 +101,6 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
 			<version>0.9.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
