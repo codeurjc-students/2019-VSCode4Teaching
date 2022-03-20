@@ -19,7 +19,7 @@ header {
     align-items: center;
     justify-content: center;
     margin: 20px;
-    height: 10vh;
+    height: 100px;
 }
 
 header > img.logo {
@@ -38,12 +38,14 @@ section > h1.title {
 
 .text-body {
     margin: 1rem;
+    font-size: 1.25rem;
+    text-align: center;
     font-family: louis-george-cafe, serif;
 }
 
 .demo-gif {
-    width: 950px;
-    max-width: 85vw;
+    width: 100%;
+    max-width: 1200px;
 }
 
 .downloadBtn {
