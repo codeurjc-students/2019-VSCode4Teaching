@@ -59,7 +59,7 @@ export class DashboardWebview {
         this._euis = euis;
         this._exercise = exercise;
         this.sortAsc = false;
-        this.hiddenStudentNames = false;
+        this.hiddenStudentNames = true;
 
         // Set the webview's initial html content
         this.updateHtml();
