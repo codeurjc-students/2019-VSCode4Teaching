@@ -145,6 +145,10 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.addExercise(item);
     });
 
+    const addMultipleExercises = vscode.commands.registerCommand("vscode4teaching.addmultipleexercises", (item: V4TItem) => {
+        coursesProvider.addMultipleExercises(item);
+    });
+
     const editExercise = vscode.commands.registerCommand("vscode4teaching.editexercise", (item: V4TItem) => {
         coursesProvider.editExercise(item);
     });
@@ -306,6 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
         refreshView,
         refreshCourse,
         addExercise,
+        addMultipleExercises,
         editExercise,
         deleteExercise,
         addUsersToCourse,

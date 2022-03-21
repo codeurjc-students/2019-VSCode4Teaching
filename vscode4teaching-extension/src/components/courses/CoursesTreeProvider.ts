@@ -12,6 +12,8 @@ import { V4TBuildItems } from "./V4TItem/V4TBuiltItems";
 import { V4TItem } from "./V4TItem/V4TItem";
 import { V4TItemType } from "./V4TItem/V4TItemType";
 import { Validators } from "./Validators";
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Tree view that lists extension's basic options like:
@@ -195,7 +197,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             // Only axios requests throw error
             APIClient.handleAxiosError(error);
         }
-
     }
 
     /**
@@ -227,7 +228,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (item.item && instanceOfCourse(item.item)) {
             try {
                 const selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + item.item.name + "?", { modal: true }, "Accept");
-                if ((selectedOption === "Accept") && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
+                if (selectedOption === "Accept" && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
                     const response = await APIClient.deleteCourse(item.item.id);
                     console.debug(response);
                     await CurrentUser.updateUserInfo();
@@ -283,17 +284,17 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     try {
                         this.loading = true;
                         CoursesProvider.triggerTreeReload();
-                        const addExerciseData = await APIClient.addExercise(course.id, { name });
+                        const addExerciseData = await APIClient.addExercises(course.id, [{ name }]);
                         console.debug(addExerciseData);
                         try {
                             // When exercise is createdupload template
                             const zipContent = await FileZipUtil.getZipFromUris(fileUris);
-                            const response = await APIClient.uploadExerciseTemplate(addExerciseData.data.id, zipContent);
+                            const response = await APIClient.uploadExerciseTemplate(addExerciseData.data[0].id, zipContent);
                             console.debug(response);
                         } catch (uploadError) {
                             try {
                                 // If upload fails delete the exercise and show error
-                                const response = await APIClient.deleteExercise(addExerciseData.data.id);
+                                const response = await APIClient.deleteExercise(addExerciseData.data[0].id);
                                 console.debug(response);
                                 APIClient.handleAxiosError(uploadError);
                             } catch (deleteError) {
@@ -302,12 +303,72 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         } finally {
                             this.loading = false;
                             CoursesProvider.triggerTreeReload();
+                            vscode.window.showInformationMessage("Exercise added.");
                         }
                     } catch (error) {
                         APIClient.handleAxiosError(error);
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Prepare and send multiple exercises' creation request
+     * @param item course
+     */
+    public async addMultipleExercises(item: V4TItem) {
+        if (item.item && instanceOfCourse(item.item)) {
+            const course = item.item;
+            // Explain user how to organize their exercises' directory
+            vscode.window.showInformationMessage("To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template. When ready, click 'Accept'.", "Accept").then(async (ans) => {
+                if (ans === "Accept") {
+                    // Ask user to select a directory
+                    // This directory has to contain exercises (1 folder = 1 new exercise)
+                    const parentDirectoryUri = await vscode.window.showOpenDialog({
+                        canSelectFiles: false,
+                        canSelectFolders: true,
+                        canSelectMany: false,
+                        openLabel: "Select directory",
+                    });
+                    if (parentDirectoryUri) {
+                        const fsUri = parentDirectoryUri[0].fsPath;
+                        // Get every folder from a selected directory
+                        const exercisesDirectories = fs.readdirSync(fsUri, { withFileTypes: true }).filter((d) => d.isDirectory());
+                        // Get the number of directories
+                        const availableFolderNumber = exercisesDirectories.length;
+                        // Prepare count of successfully uploaded exercises
+                        let uploadedExercises = 0;
+                        // Unsuccessful responses' control (true if there were any)
+                        let errorCaught = false;
+                        if (exercisesDirectories.length > 1) {
+                            // Exercises are uploaded in batches of 3 exercises
+                            while (exercisesDirectories.length > 0) {
+                                const exercisesDirChunk = exercisesDirectories.splice(0, 3);
+                                // Collect exercises' names from directories' names
+                                const exerciseData = await APIClient.addExercises(
+                                    course.id,
+                                    exercisesDirChunk.map((d) => ({ name: d.name }))
+                                );
+
+                                // When added to DB, templates of each exercise are sent
+                                exerciseData.data.map(async (ex, index) => {
+                                    APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris([vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name)]), false)
+                                        .then((_) => uploadedExercises++)
+                                        .catch((_) => (errorCaught = true));
+                                });
+                            }
+                            if (errorCaught || availableFolderNumber !== uploadedExercises) {
+                                vscode.window.showInformationMessage("All exercises were successfully uploaded.");
+                            } else {
+                                vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
+                            }
+                        } else {
+                            vscode.window.showErrorMessage("No exercises have been uploaded since there were not any to upload in the selected folder.");
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -517,7 +578,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * @param validator validator (check model/Validators.ts)
      * @param options available options for input box
      */
-    private async getInput(prompt: string, validator: ((value: string) => string | undefined | null | Thenable<string | undefined | null>), options?: { value?: string, password?: boolean }) {
+    private async getInput(prompt: string, validator: (value: string) => string | undefined | null | Thenable<string | undefined | null>, options?: { value?: string; password?: boolean }) {
         let inputOptions: vscode.InputBoxOptions = { prompt };
         if (options) {
             if (options.value) {

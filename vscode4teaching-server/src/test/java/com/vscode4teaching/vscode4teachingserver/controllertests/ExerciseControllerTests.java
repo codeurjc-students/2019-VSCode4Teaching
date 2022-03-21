@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.AdditionalAnswers.returnsElementsOf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +38,7 @@ import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -86,11 +88,11 @@ public class ExerciseControllerTests {
         logger.info("Test addExercise_valid() begins.");
 
         Course course = new Course("Spring Boot Course");
-        Long courseId = 1l;
+        Long courseId = 1L;
         course.setId(courseId);
         Exercise expectedExercise = new Exercise();
         expectedExercise.setName("Spring Boot Exercise 1");
-        expectedExercise.setId(2l);
+        expectedExercise.setId(2L);
         expectedExercise.setCourse(course);
         ExerciseDTO exerciseDTO = new ExerciseDTO();
         exerciseDTO.setName("Spring Boot Exercise 1");
@@ -98,8 +100,8 @@ public class ExerciseControllerTests {
                 .thenReturn(expectedExercise);
 
         MvcResult mvcResult = mockMvc
-                .perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
-                        .with(csrf()).content(objectMapper.writeValueAsString(exerciseDTO))
+                .perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json")
+                        .with(csrf()).content(objectMapper.writeValueAsString(List.of(exerciseDTO)))
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
 
@@ -108,7 +110,7 @@ public class ExerciseControllerTests {
         assertThat(exerciseCaptor.getValue().getName()).isEqualTo("Spring Boot Exercise 1");
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
-                .writeValueAsString(expectedExercise);
+                .writeValueAsString(List.of(expectedExercise));
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
         logger.info("Test addExercise_valid() ends.");
@@ -119,11 +121,11 @@ public class ExerciseControllerTests {
         logger.info("Test addExercise_invalid() begins.");
 
         Course course = new Course("Spring Boot Course");
-        Long courseId = 1l;
+        Long courseId = 1L;
         course.setId(courseId);
         ExerciseDTO exercise = new ExerciseDTO();
 
-        mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json").with(csrf())
+        mockMvc.perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json").with(csrf())
                 .header("Authorization", "Bearer " + jwtToken.getJwtToken())
                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
 
@@ -133,19 +135,57 @@ public class ExerciseControllerTests {
     }
 
     @Test
+    public void addMultipleExercises_valid() throws Exception {
+        logger.info("Test addMultipleExercises_valid() begins.");
+        int number = (int) (Math.random() * 11);
+        logger.info("Number: " + number);
+        Course course = new Course("Spring Boot Course");
+        Long courseId = 1L;
+        course.setId(courseId);
+        List<ExerciseDTO> exercisesList = new ArrayList<>();
+        List<Exercise> expectedExercises = new ArrayList<>();
+        for (int i = 1; i <= number; i++){
+            ExerciseDTO dto = new ExerciseDTO();
+            dto.setName("Exercise " + i);
+            Exercise exercise = new Exercise();
+            exercise.setName("Exercise " + i);
+            exercise.setId((long) (1 + i));
+            exercise.setCourse(course);
+            exercisesList.add(dto);
+            expectedExercises.add(exercise);
+        }
+
+        when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
+                .then(returnsElementsOf(expectedExercises));
+
+        MvcResult mvcResult = mockMvc
+                .perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json")
+                        .with(csrf()).content(objectMapper.writeValueAsString(exercisesList.toArray()))
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
+
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
+                .writeValueAsString(expectedExercises.toArray());
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
+        logger.info("Test addMultipleExercises_valid() ends.");
+    }
+
+    @Test
     public void getExercises_valid() throws Exception {
         logger.info("Test getExercises_valid() begins.");
 
         Course course = new Course("Spring Boot Course");
-        Long courseId = 1l;
+        Long courseId = 1L;
         course.setId(courseId);
         Exercise exercise1 = new Exercise();
         exercise1.setName("Spring Boot Exercise 1");
-        exercise1.setId(2l);
+        exercise1.setId(2L);
         exercise1.setCourse(course);
         Exercise exercise2 = new Exercise();
         exercise2.setName("Spring Boot Exercise 2");
-        exercise2.setId(3l);
+        exercise2.setId(3L);
         exercise2.setCourse(course);
         course.addExercise(exercise1);
         course.addExercise(exercise2);
@@ -167,13 +207,13 @@ public class ExerciseControllerTests {
     }
 
     @Test
-    public void editExercise_valid() throws JsonProcessingException, Exception {
+    public void editExercise_valid() throws Exception {
         logger.info("Test editCourse_valid() begins.");
 
         ExerciseDTO exercise = new ExerciseDTO();
         Exercise expectedExercise = new Exercise();
         expectedExercise.setName("Spring Boot Exercise 1 v2");
-        expectedExercise.setId(1l);
+        expectedExercise.setId(1L);
         expectedExercise.setCourse(new Course("Spring Boot Course"));
         exercise.setName("Spring Boot Exercise 1 v2");
         when(courseService.editExercise(anyLong(), any(Exercise.class), anyString())).thenReturn(expectedExercise);
@@ -208,46 +248,45 @@ public class ExerciseControllerTests {
     @Test
     public void getCode_valid() throws Exception {
         Exercise ex = new Exercise("Spring Boot Exercise 1");
-        ex.setId(1l);
+        ex.setId(1L);
         String code = ex.getUuid();
 
-        when(courseService.getExerciseCode(1l, "johndoe")).thenReturn(code);
+        when(courseService.getExerciseCode(1L, "johndoe")).thenReturn(code);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/exercises/1/code").contentType("application/json").with(csrf())
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
-        verify(courseService, times(1)).getExerciseCode(1l, "johndoe");
+        verify(courseService, times(1)).getExerciseCode(1L, "johndoe");
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = code;
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+        assertThat(code).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 
     @Test
     public void getExerciseInfo_valid() throws Exception {
         Exercise ex = new Exercise("Spring Boot Exercise 1");
-        ex.setId(1l);
+        ex.setId(1L);
         Role studentRole = new Role("ROLE_STUDENT");
         Role teacherRole = new Role("ROLE_TEACHER");
         User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe", studentRole);
-        user.setId(4l);
+        user.setId(4L);
         User creator = new User("johndoesr@john.com", "johndoesr", "passwordsr", "John", "Doe Sr", studentRole, teacherRole);
-        creator.setId(15l);
+        creator.setId(15L);
         Course course = new Course("Spring Boot Course");
         course.addExercise(ex);
         ex.setCourse(course);
         course.setCreator(creator);
         course.addUserInCourse(user);
         ExerciseUserInfo eui = new ExerciseUserInfo(ex, user);
-        when(exerciseInfoService.getExerciseUserInfo(1l, "johndoe")).thenReturn(eui);
+        when(exerciseInfoService.getExerciseUserInfo(1L, "johndoe")).thenReturn(eui);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/exercises/1/info").contentType("application/json").with(csrf())
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
-        verify(exerciseInfoService, times(1)).getExerciseUserInfo(1l, "johndoe");
+        verify(exerciseInfoService, times(1)).getExerciseUserInfo(1L, "johndoe");
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(ExerciseUserInfoViews.GeneralView.class)
                 .writeValueAsString(eui);
@@ -257,9 +296,9 @@ public class ExerciseControllerTests {
     @Test
     public void updateExerciseUserInfo_valid() throws Exception {
         Exercise ex = new Exercise("Spring Boot Exercise 1");
-        ex.setId(1l);
+        ex.setId(1L);
         User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
-        user.setId(4l);
+        user.setId(4L);
         ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
         euiDTO.setStatus(1);
         ArrayList<String> euiModifiedFiles = new ArrayList<>();
@@ -286,10 +325,10 @@ public class ExerciseControllerTests {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1", course);
-        exercise.setId(10l);
+        exercise.setId(10L);
         // Set up users
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         User student1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr 1");
         student1.addRole(studentRole);
         student1.addCourse(course);
@@ -305,7 +344,7 @@ public class ExerciseControllerTests {
         List<ExerciseUserInfo> expectedList = new ArrayList<>(2);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);
-        when(exerciseInfoService.getAllStudentExerciseUserInfo(10l, "johndoe")).thenReturn(expectedList);
+        when(exerciseInfoService.getAllStudentExerciseUserInfo(10L, "johndoe")).thenReturn(expectedList);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/exercises/10/info/teacher").contentType("application/json").with(csrf())

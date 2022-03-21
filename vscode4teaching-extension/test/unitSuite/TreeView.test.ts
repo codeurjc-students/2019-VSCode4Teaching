@@ -28,11 +28,14 @@ let coursesProvider = new CoursesProvider();
 const mockedUserTeacherModel: User = {
     id: 1,
     username: "johndoe",
-    roles: [{
-        roleName: "ROLE_STUDENT",
-    }, {
-        roleName: "ROLE_TEACHER",
-    }],
+    roles: [
+        {
+            roleName: "ROLE_STUDENT",
+        },
+        {
+            roleName: "ROLE_TEACHER",
+        },
+    ],
     courses: [],
 };
 const teacherCourses: Course[] = [
@@ -359,15 +362,17 @@ describe("Tree View", () => {
         ];
         mockedVscode.window.showOpenDialog.mockResolvedValueOnce(fileUrisMocks);
 
-        mockedClient.addExercise.mockResolvedValueOnce({
+        mockedClient.addExercises.mockResolvedValueOnce({
             status: 201,
             statusText: "",
             headers: {},
             config: {},
-            data: {
-                id: 10,
-                name: exerciseModel.name,
-            },
+            data: [
+                {
+                    id: 10,
+                    name: exerciseModel.name,
+                },
+            ],
         });
 
         const mockBuffer = Buffer.from("test");
@@ -378,8 +383,7 @@ describe("Tree View", () => {
             statusText: "",
             headers: {},
             config: {},
-            data: {
-            },
+            data: {},
         });
 
         await coursesProvider.addExercise(courseModel);
@@ -388,8 +392,8 @@ describe("Tree View", () => {
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsExercise);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenNthCalledWith(1, openDialogOptions);
-        expect(mockedClient.addExercise).toHaveBeenCalledTimes(1);
-        expect(mockedClient.addExercise).toHaveBeenNthCalledWith(1, teacherCourses[0].id, { name: exerciseModel.name });
+        expect(mockedClient.addExercises).toHaveBeenCalledTimes(1);
+        expect(mockedClient.addExercises).toHaveBeenNthCalledWith(1, teacherCourses[0].id, [{ name: exerciseModel.name }]);
         expect(mockedFileZipUtil.getZipFromUris).toHaveBeenCalledTimes(1);
         expect(mockedFileZipUtil.getZipFromUris).toHaveBeenNthCalledWith(1, fileUrisMocks);
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenCalledTimes(1);

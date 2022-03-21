@@ -30,7 +30,7 @@ public class VS4TApplication {
 		return new Docket(DocumentationType.OAS_30)
 				.select()
 				.apis(RequestHandlerSelectors.basePackage("com.vscode4teaching.vscode4teachingserver"))
-				/* .paths(PathSelectors.ant("/api/**")) */
+				.paths(PathSelectors.ant("/api/**"))
 				.build()
 				.apiInfo(new ApiInfo(
 						"VSCode4Teaching",
