@@ -4,7 +4,7 @@ branches:
         - master
 jobs:
     include:
-        - name: V4T Server
+        - name: V4T Server (Spring Boot)
           language: java
           jdk: oraclejdk11
           services:
@@ -15,12 +15,15 @@ jobs:
           script:
               - "./mvnw clean package -B -q"
           after_script:
+              - cd ..
               - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-              - docker build -t vscode4teaching/vscode4teaching:2.0.2 .
-              - docker build -t vscode4teaching/vscode4teaching:latest .
-              - docker push vscode4teaching/vscode4teaching:2.0.2
-              - docker push vscode4teaching/vscode4teaching:latest
-        - language: node_js
+              - docker build -t vscode4teaching/vscode4teaching:2.1.2-beta .
+              # Beta version: latest won't be changed until 2.1.X is finally released
+              # - docker build -t vscode4teaching/vscode4teaching:latest .
+              - docker push vscode4teaching/vscode4teaching:2.1.2-beta
+              # - docker push vscode4teaching/vscode4teaching:latest
+        - name: V4T Extension (Node.js)
+          language: node_js
           os:
               - linux
               - osx
@@ -38,6 +41,20 @@ jobs:
               - npm test
           cache:
               npm: false
+        # WebApp testing temporarily disabled (not ready yet)
+        # - name: V4T WebApp (Angular)
+        #  language: node_js
+        #  os:
+        #      - linux
+        #      - osx
+        #  node_js: 16.13.2
+        #  before_script:
+        #      - cd ./vscode4teaching-webapp
+        #      - npm install --save-dev
+        #  script:
+        #      - npm test
+        #  cache:
+        #      npm: false
 env:
     global:
         - secure: Xubi//N9TBKtampk7kO3V0rvuhbCIzVJ7ad2oJIoZGVUyCgmt9KdK46jfG2eSUYuvOMKg1xrXia0R0YC+VveoJPiRgCxqNIfqhb605XaY0SLRXAh2cThABs6q3IwFzoFVIG/8/xhZpqSngbystQxm8EflGhYdZYukijqtEEx78VrtuWaPRBcxGBFt8GaaLyzWvy8eY6Fzw4KZntZPHaalLt0t5k+Qt+Dt2AJuUb3YV1IaWyMQIeF0dKM2XLMpUISeRBVzPrqSmRxpbMyR+8iktPY2KYJFmeH1MD8H1imG/OVkHxSRiXsPXkZ8ueqXSzZ1R9cNIR6ZLKRIyo2sMvxRz5Kzr2fhcEtxCtyRW0sXFV4EG7lsUewn9E9MJ7e5OtnwZOKkcIvStydrwd3t9TH+pUdptgVGA+EdL/T4mcIjPkzYWPoUoLn1MYR3YYUezvqsJXrgl4HqQJSSLgaCEso/q/s5+IH+1y4xFYpLNo05+OhMWz0vNCBbPT02VC+6YTQwHAOcGNjOHDwgkwkg1KC46ZMkbdfm4bhNL1oWfAPynuHjNAfinzxc0kE/FataPXVEt7XX+dA3YdQL+KffqKdRLQqDgsQ1ZNvE+oZwJT1NMfIhlsreboBl1C9diQrxfLwaHBZjUXuNpbI6FK8W8iyQvBNfPWvcdKdMmrNdQV7268=

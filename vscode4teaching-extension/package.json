@@ -21,7 +21,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "2.0.2",
+	"version": "2.1.2",
 	"engines": {
 		"vscode": "^1.61.0"
 	},
