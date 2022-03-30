@@ -59,6 +59,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
+        logger.debug("Called ExerciseFilesServiceImpl.getExerciseFiles({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -75,8 +76,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             }
         }
         Map<Exercise, List<File>> returnMap = new HashMap<>();
-        returnMap.put(exercise,
-                exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+        returnMap.put(exercise, exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
         return returnMap;
     }
 
@@ -84,8 +84,11 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file,
                                                        String requestUsername)
             throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
-        ExerciseUserInfo eui = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, requestUsername)
-                .orElseThrow(() -> new NotFoundException(
+        logger.debug("Called ExerciseFilesServiceImpl.saveExerciseFiles({}, (file), {})", exerciseId, requestUsername);
+        ExerciseUserInfo eui = exerciseUserInfoRepository
+                .findByExercise_IdAndUser_Username(exerciseId, requestUsername)
+                .orElseThrow(() ->
+                        new NotFoundException(
                         "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
         if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
@@ -101,6 +104,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
                                                 ExerciseUserInfo eui) throws ExerciseNotFoundException, NotInCourseException, IOException {
+        logger.debug("Called ExerciseFilesServiceImpl.saveFiles({}, (file), {}, {})", exerciseId, requestUsername, eui);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
@@ -143,7 +147,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 fos.close();
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 try {
-                    if (!fileRepository.findByPath(destFile.getCanonicalPath()).isPresent()) {
+                    if (fileRepository.findByPath(destFile.getCanonicalPath()).isEmpty()) {
                         if (eui == null) {
                             ExerciseFile savedFile = fileRepository.save(exFile);
                             exercise.addFileToTemplate(savedFile);
@@ -182,6 +186,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
+        logger.debug("Called ExerciseFilesServiceImpl.getExerciseTemplate({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -199,6 +204,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
+        logger.debug("Called ExerciseFilesServiceImpl.getAllStudentsFiles({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -212,6 +218,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
             throws ExerciseNotFoundException {
+        logger.debug("Called ExerciseFilesServiceImpl.getFileIdsByExerciseAndOwner({}, {})", exerciseId, ownerUsername);
         Exercise ex = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
