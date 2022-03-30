@@ -23,7 +23,6 @@ import * as path from "path";
  * - Exercises actions
  */
 export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
-
     /**
      * Update tree view. Use when there are changes that should be reflected on the view.
      * Calls getChildren() and displays returned elements onto the view
@@ -247,11 +246,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     public refreshCourses() {
         if (CurrentUser.isLoggedIn()) {
             // If not logged refresh shouldn't do anything
-            CurrentUser.updateUserInfo().then(() => {
-                CoursesProvider.triggerTreeReload();
-            }).catch((error) => {
-                APIClient.handleAxiosError(error);
-            });
+            CurrentUser.updateUserInfo()
+                .then(() => {
+                    CoursesProvider.triggerTreeReload();
+                })
+                .catch((error) => {
+                    APIClient.handleAxiosError(error);
+                });
         }
     }
 
@@ -353,12 +354,13 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
                                 // When added to DB, templates of each exercise are sent
                                 exerciseData.data.map(async (ex, index) => {
-                                    APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris([vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name)]), false)
+                                    const directoryFiles = fs.readdirSync(fsUri + path.sep + exercisesDirChunk[index].name).map((e) => vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name + path.sep + e));
+                                    APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris(directoryFiles), false)
                                         .then((_) => uploadedExercises++)
                                         .catch((_) => (errorCaught = true));
                                 });
                             }
-                            if (errorCaught || availableFolderNumber !== uploadedExercises) {
+                            if (!errorCaught || availableFolderNumber !== uploadedExercises) {
                                 vscode.window.showInformationMessage("All exercises were successfully uploaded.");
                             } else {
                                 vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
@@ -429,7 +431,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 console.debug(courseUsersResponse);
                 const courseUsers = courseUsersResponse.data;
                 // Remove from the list the users that are already in the course
-                const showArray = users.filter((user: User) => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
+                const showArray = users
+                    .filter((user: User) => courseUsers.filter((courseUser: User) => courseUser.id === user.id).length === 0)
                     .map((user: User) => {
                         // Get pickable items from users
                         return this.userPickFromUser(user);
@@ -460,10 +463,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 const creator: User = creatorResponse.data;
                 const courseUsers = courseUsersResponse.data;
                 // Remove creator of course from list
-                const showArray = courseUsers.filter((user: User) => user.id !== creator.id).map((user: User) => {
-                    // Get pickable items from users
-                    return this.userPickFromUser(user);
-                });
+                const showArray = courseUsers
+                    .filter((user: User) => user.id !== creator.id)
+                    .map((user: User) => {
+                        // Get pickable items from users
+                        return this.userPickFromUser(user);
+                    });
                 const ids = await this.manageUsersFromCourse(showArray, item);
                 if (ids) {
                     const response = await APIClient.removeUsersFromCourse(item.item.id, { ids });
@@ -518,11 +523,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     type = V4TItemType.ExerciseStudent;
                     commandName = "vscode4teaching.getexercisefiles";
                 }
-                const exerciseItems = course.exercises.map((exercise) => new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
-                    command: commandName,
-                    title: "Get exercise files",
-                    arguments: [course ? course.name : null, exercise],
-                }));
+                const exerciseItems = course.exercises.map(
+                    (exercise) =>
+                        new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
+                            command: commandName,
+                            title: "Get exercise files",
+                            arguments: [course ? course.name : null, exercise],
+                        })
+                );
                 return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
             }
         }
@@ -534,16 +542,18 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      */
     private updateUserInfo(): V4TItem[] {
         this.loading = true;
-        CurrentUser.updateUserInfo().then(() => {
-            // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
-            CoursesProvider.triggerTreeReload();
-        }).catch((error) => {
-            APIClient.handleAxiosError(error);
-            CoursesProvider.triggerTreeReload();
-        },
-        ).finally(() => {
-            this.loading = false;
-        });
+        CurrentUser.updateUserInfo()
+            .then(() => {
+                // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
+                CoursesProvider.triggerTreeReload();
+            })
+            .catch((error) => {
+                APIClient.handleAxiosError(error);
+                CoursesProvider.triggerTreeReload();
+            })
+            .finally(() => {
+                this.loading = false;
+            });
         return [];
     }
 
