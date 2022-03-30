@@ -31,27 +31,21 @@ describe("Dashboard webview", () => {
             username: "student1",
             name: "Student",
             lastName: "1",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const student2: User = {
             id: 3,
             username: "student2",
             name: "Student",
             lastName: "2",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const student3: User = {
             id: 4,
             username: "student3",
             name: "Student",
             lastName: "3",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const euis: ExerciseUserInfo[] = [];
         let now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
@@ -90,8 +84,7 @@ describe("Dashboard webview", () => {
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][2]).toBe(mockedVscode.ViewColumn.One);
             if (mockedVscode.window.createWebviewPanel.mock.calls[0][3]) {
                 expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].enableScripts).toBe(true);
-                expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].localResourceRoots)
-                    .toStrictEqual([mockedVscode.Uri.file(DashboardWebview.resourcesPath)]);
+                expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].localResourceRoots).toStrictEqual([mockedVscode.Uri.file(DashboardWebview.resourcesPath)]);
             } else {
                 fail("Webview options argument missing");
             }
@@ -121,36 +114,32 @@ describe("Dashboard webview", () => {
             // expect(options[4].firstChild.data).toBe("5 minutes");
             // Table headers are correct
             const tableHeaders = $("th").toArray();
-            expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
-            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Exercise folder");
-            expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
-            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modified file");
-            expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
+            expect(tableHeaders[0].firstChild.data?.trim()).toBe("Exercise folder");
+            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Exercise status");
+            expect(tableHeaders[2].firstChild.data?.trim()).toBe("Last modified file");
+            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modification");
             // Table data is correct
             const tableData = $("td").toArray();
-            expect(tableData[0].firstChild.data).toBe("Student 1");
-            expect(tableData[1].firstChild.data).toBe("student_1");
-            expect(tableData[2].firstChild.data).toBe("Not started");
-            expect(tableData[2].attribs.class).toBe("not-started-cell");
-            expect(tableData[3].childNodes[0].name).toBe("button");
-            expect(tableData[3].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[3].childNodes[1].name).toBe("button");
-            expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
-            expect(tableData[5].firstChild.data).toBe("Student 2");
-            expect(tableData[6].firstChild.data).toBe("student_2");
-            expect(tableData[7].firstChild.data).toBe("Finished");
-            expect(tableData[7].attribs.class).toBe("finished-cell");
-            expect(tableData[8].childNodes[0].name).toBe("button");
-            expect(tableData[8].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[8].childNodes[1].name).toBe("button");
-            expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[9].firstChild.data).toBe("13 min");
-            expect(tableData[10].firstChild.data).toBe("Student 3");
-            expect(tableData[11].firstChild.data).toBe("student_3");
-            expect(tableData[12].firstChild.data).toBe("On progress");
-            expect(tableData[12].attribs.class).toBe("onprogress-cell");
-            // expect(tableData[14].firstChild.data).toBe("35 s");
+            expect(tableData[0].firstChild.data).toBe("student_1");
+            expect(tableData[1].firstChild.data).toBe("Not started");
+            expect(tableData[1].attribs.class).toBe("not-started-cell");
+            expect(tableData[2].childNodes[0].name).toBe("button");
+            expect(tableData[2].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[2].childNodes[1].name).toBe("button");
+            expect(tableData[2].childNodes[1].firstChild.data).toBe("Diff");
+            // expect(tableData[].firstChild.data === "1 d" || tableData[].firstChild.data === "24 h").toBe(true);
+            expect(tableData[4].firstChild.data).toBe("student_2");
+            expect(tableData[5].firstChild.data).toBe("Finished");
+            expect(tableData[5].attribs.class).toBe("finished-cell");
+            expect(tableData[6].childNodes[0].name).toBe("button");
+            expect(tableData[6].childNodes[0].firstChild.data).toBe("Open");
+            expect(tableData[6].childNodes[1].name).toBe("button");
+            expect(tableData[6].childNodes[1].firstChild.data).toBe("Diff");
+            // expect(tableData[].firstChild.data).toBe("13 min");
+            expect(tableData[8].firstChild.data).toBe("student_3");
+            expect(tableData[9].firstChild.data).toBe("On progress");
+            expect(tableData[9].attribs.class).toBe("onprogress-cell");
+            // expect(tableData[].firstChild.data).toBe("35 s");
         } else {
             fail("Current panel wasn't created");
         }
