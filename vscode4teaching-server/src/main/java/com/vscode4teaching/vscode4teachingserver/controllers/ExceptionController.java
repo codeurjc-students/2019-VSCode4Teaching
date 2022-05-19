@@ -1,24 +1,9 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.exceptioncontrol.ValidationErrorResponse.ErrorDetail;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyJSONObjectException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyURIException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.MissingPropertyException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,7 +17,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
 
-import io.jsonwebtoken.MalformedJwtException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @RestControllerAdvice
 public class ExceptionController {
@@ -103,7 +92,7 @@ public class ExceptionController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(value = { NotInCourseException.class, CantRemoveCreatorException.class, NotCreatorException.class })
+    @ExceptionHandler(value = {NotInCourseException.class, CantRemoveCreatorException.class, NotCreatorException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<String> handleNotInCourseException(NotInCourseException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
@@ -115,8 +104,8 @@ public class ExceptionController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = { ExerciseFinishedException.class, MultipartException.class,
-        EmptyJSONObjectException.class, EmptyURIException.class, MissingPropertyException.class})
+    @ExceptionHandler(value = {ExerciseFinishedException.class, MultipartException.class,
+            EmptyJSONObjectException.class, EmptyURIException.class, MissingPropertyException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleMultipartException(MultipartException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

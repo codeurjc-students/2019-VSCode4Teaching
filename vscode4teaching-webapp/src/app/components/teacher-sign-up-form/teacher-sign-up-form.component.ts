@@ -88,7 +88,7 @@ export class TeacherSignUpFormComponent {
                     this.common.login({ username, password }).subscribe({
                         next: (resLogin) => {
                             this.auth.jwtToken = resLogin.jwtToken;
-                            // Validación del correo electrónico
+                            // Email validation
                             this.common.getCurrentUserInfo().subscribe({
                                 next: (usuario) => {
                                     if (usuario === undefined) {

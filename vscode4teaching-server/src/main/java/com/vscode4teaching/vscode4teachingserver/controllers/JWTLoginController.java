@@ -9,6 +9,8 @@ import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +37,8 @@ public class JWTLoginController {
     private final JWTUserDetailsService userDetailsService;
     private final PasswordEncoder bCryptPasswordEncoder;
 
+    private final Logger logger = LoggerFactory.getLogger(JWTLoginController.class);
+
     public JWTLoginController(AuthenticationManager authenticationManager, JWTTokenUtil jwtTokenUtil,
                               JWTUserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.authenticationManager = authenticationManager;
@@ -45,6 +49,7 @@ public class JWTLoginController {
 
     @PostMapping("/login")
     public ResponseEntity<JWTResponse> generateLoginToken(@Valid @RequestBody JWTRequest loginRequest) {
+        logger.debug("Request to GET '/api/login'");
         String username = loginRequest.getUsername();
         login(username, loginRequest.getPassword());
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -59,6 +64,7 @@ public class JWTLoginController {
     @PostMapping("/register")
     @JsonView(UserViews.EmailView.class)
     public ResponseEntity<User> saveUser(@Valid @RequestBody UserDTO userDto) {
+        logger.debug("Request to POST '/api/register' with body '{}'", userDto);
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
                 userDto.getLastName());
@@ -70,6 +76,7 @@ public class JWTLoginController {
     @PostMapping("/teachers/register")
     @JsonView(UserViews.EmailView.class)
     public ResponseEntity<User> saveTeacher(@Valid @RequestBody UserDTO userDto) {
+        logger.debug("Request to POST '/api/teachers/register' with body '{}' (deprecated API endpoint)", userDto);
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
                 userDto.getLastName());
@@ -79,6 +86,7 @@ public class JWTLoginController {
 
     @PostMapping("/teachers/invitation")
     public ResponseEntity<UserDTO> saveTeacherInvitation(@RequestBody UserDTO userDto) {
+        logger.debug("Request to POST '/api/teachers/invitation' with body '{}'", userDto);
         String tempPassword = UUID.randomUUID().toString();
         String encodedPassword = bCryptPasswordEncoder.encode(tempPassword);
         userDetailsService.save(new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(), userDto.getLastName()), true);
@@ -89,6 +97,7 @@ public class JWTLoginController {
     @GetMapping("/currentuser")
     @JsonView(UserViews.CourseView.class)
     public ResponseEntity<User> getCurrentUser(HttpServletRequest request) throws NotFoundException {
+        logger.debug("Request to GET '/api/currentuser'");
         User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.ok(user);
     }
@@ -101,12 +110,14 @@ public class JWTLoginController {
     @GetMapping("/users")
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<List<User>> getAllUsers() {
+        logger.debug("Request to GET '/api/users'");
         return ResponseEntity.ok(userDetailsService.findAll());
     }
 
     @PatchMapping("/users/{id}/password")
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<User> changePassword(HttpServletRequest req, @PathVariable Long id, @RequestBody String newPassword) {
+        logger.debug("Request to PATCH '/api/users/{}/password' with body '{}'", id, newPassword);
         // Step 1. User ID coming from request URL and body have to be the same
         User user;
         try {

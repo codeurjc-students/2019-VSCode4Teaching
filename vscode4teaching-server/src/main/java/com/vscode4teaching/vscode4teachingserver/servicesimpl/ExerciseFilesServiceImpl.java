@@ -1,40 +1,33 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.validation.constraints.Min;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.constraints.Min;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Service
 public class ExerciseFilesServiceImpl implements ExerciseFilesService {
@@ -89,7 +82,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 .findByExercise_IdAndUser_Username(exerciseId, requestUsername)
                 .orElseThrow(() ->
                         new NotFoundException(
-                        "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
+                                "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
         if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
         }

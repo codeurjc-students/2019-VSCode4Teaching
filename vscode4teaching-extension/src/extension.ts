@@ -1,9 +1,10 @@
-import { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as fs from "fs";
 import JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
+import winston, { Logger } from "winston";
 import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { WebSocketV4TConnection } from "./client/WebSocketV4TConnection";
@@ -49,7 +50,29 @@ export let uploadTimeout: NodeJS.Timeout | undefined;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
+export let v4tLogger: Logger = winston.createLogger({
+    level: 'debug',
+    levels: winston.config.npm.levels,
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.splat(),
+        winston.format.timestamp(),
+        winston.format.printf(({level, message, timestamp}) =>
+            `${timestamp} [${level}]: ${message}`
+        )
+    ),
+    transports: [
+        new winston.transports.Console()
+    ]
+});
+
 export function activate(context: vscode.ExtensionContext) {
+    // Set Axios automatic logging
+    axios.interceptors.request.use(req => {
+        v4tLogger.info(`Axios request to ${req.url} with params '${req.params}' and timeout '${req.timeout}.`);
+        return req;
+    });
+
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
     const sessionInitialized = APIClient.initializeSessionFromFile();
     if (sessionInitialized) {

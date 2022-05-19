@@ -1,11 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
@@ -14,10 +8,14 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNot
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExerciseInfoServiceImpl implements ExerciseInfoService {
