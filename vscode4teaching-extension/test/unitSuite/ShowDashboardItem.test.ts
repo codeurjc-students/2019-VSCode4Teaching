@@ -26,7 +26,7 @@ describe("ShowDashboardItem", () => {
         expect(mockedVscode.window.createStatusBarItem).toHaveBeenLastCalledWith(mockedVscode.StatusBarAlignment.Left);
         expect(dashboardItem.item.text).toBe("$(dashboard) Dashboard");
         expect(dashboardItem.item.tooltip).toBe("Dashboard");
-        expect(dashboardItem.item.command).toBe("vscode4teaching.showdashboard");
+        expect(dashboardItem.item.command).toBe("vscode4teaching.showcurrentexercisedashboard");
         expect(dashboardItem.dashboardName).toBe("Test name");
         expect(dashboardItem.exercise).toBe(exercise);
         expect(dashboardItem.course).toBe(course);

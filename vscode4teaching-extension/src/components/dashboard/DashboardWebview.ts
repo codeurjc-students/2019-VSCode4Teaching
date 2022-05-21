@@ -39,6 +39,10 @@ export class DashboardWebview {
         DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, dashboardViewName, euis, course, exercise);
     }
 
+    public static exists(): boolean {
+        return DashboardWebview.currentPanel !== undefined;
+    }
+
     public readonly panel: vscode.WebviewPanel;
 
     private ws: WebSocketV4TConnection;

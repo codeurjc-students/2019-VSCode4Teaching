@@ -472,6 +472,9 @@ class APIClientSingleton {
                 clearTimeout(axiosOptions.timeout);
             }
             return result;
+        }).catch(err => {
+            console.error(err);
+            return err;
         });
     }
 

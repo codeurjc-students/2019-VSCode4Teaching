@@ -16,7 +16,8 @@ import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDas
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { ShowLiveshareBoardItem } from "./components/statusBarItems/liveshare/ShowLiveshareBoardItem";
 import { Dictionary } from "./model/Dictionary";
-import { Exercise } from "./model/serverModel/exercise/Exercise";
+import { Course, instanceOfCourse } from "./model/serverModel/course/Course";
+import { Exercise, instanceOfExercise } from "./model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
@@ -172,6 +173,8 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.addMultipleExercises(item);
     });
 
+    // showExerciseDashboard is defined later in this file
+
     const editExercise = vscode.commands.registerCommand("vscode4teaching.editexercise", (item: V4TItem) => {
         coursesProvider.editExercise(item);
     });
@@ -291,16 +294,35 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const showDashboard = vscode.commands.registerCommand("vscode4teaching.showdashboard", () => {
+    const showDashboardFunction = (exercise: Exercise, course: Course) => {
+        if (DashboardWebview.exists()){
+            vscode.window.showWarningMessage("You have to close currently opened dashboard before opening another one.");
+        } else {
+            if (exercise && course) {
+                APIClient.getAllStudentsExerciseUserInfo(exercise.id)
+                    .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+                        console.debug(response);
+                        if (exercise && course) {
+                            DashboardWebview.show(response.data, course, exercise);
+                        }
+                    })
+                    .catch((error) => APIClient.handleAxiosError(error));
+                }
+        }
+    };
+
+    const showExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showexercisedashboard", (item: V4TItem) => {
+        console.log(item);
+        if (item.item && instanceOfExercise(item.item) && item.item.course){
+            showDashboardFunction(item.item, item.item.course);
+        } else {
+            vscode.window.showErrorMessage("Not performabble action. Please try downloading exercise and accessing Dashboard.");
+        }        
+    });
+
+    const showDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {
         if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
-            APIClient.getAllStudentsExerciseUserInfo(showDashboardItem.exercise.id)
-                .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-                    console.debug(response);
-                    if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
-                        DashboardWebview.show(response.data, showDashboardItem.course, showDashboardItem.exercise);
-                    }
-                })
-                .catch((error) => APIClient.handleAxiosError(error));
+            showDashboardFunction(showDashboardItem.exercise, showDashboardItem.course);
         }
     });
 
@@ -334,6 +356,7 @@ export function activate(context: vscode.ExtensionContext) {
         refreshCourse,
         addExercise,
         addMultipleExercises,
+        showExerciseDashboard,
         editExercise,
         deleteExercise,
         addUsersToCourse,
@@ -485,7 +508,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                                         console.debug(value);
                                         if (value === openDashboard) {
                                             console.debug("Opening dashboard");
-                                            return vscode.commands.executeCommand("vscode4teaching.showdashboard");
+                                            return vscode.commands.executeCommand("vscode4teaching.showcurrentexercisedashboard");
                                         }
                                     })
                                     .then(() => console.debug("Message dismissed"));
