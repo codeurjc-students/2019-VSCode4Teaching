@@ -32,7 +32,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
-        logger.debug("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
+        logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         //Changing status from not accessed to accessed but not finished
         if (eui.getStatus() == 0) {
@@ -45,7 +45,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, List<String> modifiedFiles)
             throws NotFoundException {
-        logger.debug("Called ExerciseInfoServiceImpl.updateExerciseUserInfo({}, {}, {}, {})", exerciseId, username, status, modifiedFiles);
+        logger.info("Called ExerciseInfoServiceImpl.updateExerciseUserInfo({}, {}, {}, {})", exerciseId, username, status, modifiedFiles);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         eui.setStatus(status);
         eui.addModifiedFiles(modifiedFiles);
@@ -64,7 +64,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public List<ExerciseUserInfo> getAllStudentExerciseUserInfo(@Min(0) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
-        logger.debug("Called ExerciseInfoServiceImpl.getAllStudentExerciseUserInfo({}, {})", exerciseId, requestUsername);
+        logger.info("Called ExerciseInfoServiceImpl.getAllStudentExerciseUserInfo({}, {})", exerciseId, requestUsername);
         List<ExerciseUserInfo> euis = exerciseUserInfoRepository.findByExercise_Id(exerciseId);
         if (euis.isEmpty()) {
             throw new ExerciseNotFoundException(exerciseId);

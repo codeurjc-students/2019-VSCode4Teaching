@@ -42,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentThread saveCommentThread(Long fileId, CommentThread commentThread) throws FileNotFoundException {
-        logger.debug("Called CommentServiceImpl.saveCommentThread({}, {})", fileId, commentThread);
+        logger.info("Called CommentServiceImpl.saveCommentThread({}, {})", fileId, commentThread);
         ExerciseFile file = exerciseFileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException(Long.toString(fileId)));
         file.addCommentThread(commentThread);
@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentThread> getCommentThreadsByFile(Long fileId) throws FileNotFoundException {
-        logger.debug("Called CommentServiceImpl.getCommentThreadsByFile({})", fileId);
+        logger.info("Called CommentServiceImpl.getCommentThreadsByFile({})", fileId);
         ExerciseFile file = exerciseFileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException(Long.toString(fileId)));
         return file.getComments();
@@ -66,7 +66,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<ExerciseFile> getFilesWithCommentsByUser(Long exerciseId, String username)
             throws ExerciseNotFoundException {
-        logger.debug("Called CommentServiceImpl.getFilesWithCommentsByUser({}, {})", exerciseId, username);
+        logger.info("Called CommentServiceImpl.getFilesWithCommentsByUser({}, {})", exerciseId, username);
         Exercise ex = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         List<ExerciseFile> files = new ArrayList<>(ex.getFilesByOwner(username));
@@ -85,7 +85,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentThread updateCommentThreadLine(@Min(1) Long commentThreadId, @Min(0) Long line, String lineText)
             throws CommentNotFoundException {
-        logger.debug("Called CommentServiceImpl.updateCommentThreadLine({}, {}, {})", commentThreadId, line, lineText);
+        logger.info("Called CommentServiceImpl.updateCommentThreadLine({}, {}, {})", commentThreadId, line, lineText);
         CommentThread commentThread = commentThreadRepository.findById(commentThreadId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment thread not found: " + commentThreadId));
         commentThread.setLine(line);

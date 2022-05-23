@@ -4,7 +4,6 @@ import JSZip from "jszip";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as vscode from "vscode";
-import winston, { Logger } from "winston";
 import { APIClient } from "./client/APIClient";
 import { CurrentUser } from "./client/CurrentUser";
 import { WebSocketV4TConnection } from "./client/WebSocketV4TConnection";
@@ -16,7 +15,7 @@ import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDas
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { ShowLiveshareBoardItem } from "./components/statusBarItems/liveshare/ShowLiveshareBoardItem";
 import { Dictionary } from "./model/Dictionary";
-import { Course, instanceOfCourse } from "./model/serverModel/course/Course";
+import { Course } from "./model/serverModel/course/Course";
 import { Exercise, instanceOfExercise } from "./model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "./model/serverModel/file/FileInfo";
@@ -28,6 +27,7 @@ import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
+import { v4tLogger } from "./services/LoggerService";
 
 // Base URL of server
 const getServerBaseUrl = () => vscode.workspace.getConfiguration("vscode4teaching").get("defaultServer");
@@ -51,27 +51,17 @@ export let uploadTimeout: NodeJS.Timeout | undefined;
 export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
-export let v4tLogger: Logger = winston.createLogger({
-    level: 'debug',
-    levels: winston.config.npm.levels,
-    format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.splat(),
-        winston.format.timestamp(),
-        winston.format.printf(({level, message, timestamp}) =>
-            `${timestamp} [${level}]: ${message}`
-        )
-    ),
-    transports: [
-        new winston.transports.Console()
-    ]
-});
-
 export function activate(context: vscode.ExtensionContext) {
     // Set Axios automatic logging
     axios.interceptors.request.use(req => {
-        v4tLogger.info(`Axios request to ${req.url} with params '${req.params}' and timeout '${req.timeout}.`);
+        v4tLogger.info(`Axios request to ${req.url} with params '${req.params}' and timeout '${req.timeout}'.`);
+        v4tLogger.debug(`Request info:\n${JSON.stringify(req)}`);
         return req;
+    });
+    axios.interceptors.response.use(res => {
+        v4tLogger.info(`Axios response ${res.status} with headers\n${JSON.stringify(res.headers)}.`);
+        v4tLogger.debug(`Response data:\n${JSON.stringify(res.data)}`);
+        return res;
     });
 
     vscode.window.registerTreeDataProvider("vscode4teachingview", coursesProvider);
@@ -94,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
                             showLiveshareBoardItem.show();
                         }
                     } catch (err) {
-                        console.error(err);
+                        v4tLogger.error(err);
                     }
                 }
             });
@@ -241,7 +231,6 @@ export function activate(context: vscode.ExtensionContext) {
             const codeThenable = APIClient.getSharingCode(item.item);
             codeThenable
                 .then((response) => {
-                    console.debug(response);
                     const link = `${getServerBaseUrl()}/app?code=${response.data}`;
                     vscode.window.showInformationMessage("Share this link with your students to give them access to this course:\n" + link, "Copy link").then((clicked) => {
                         if (clicked) {
@@ -273,7 +262,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (selectedOption === "Accept" && finishItem) {
             try {
                 const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
-                console.debug(response);
                 if (response.data.status === 1 && finishItem) {
                     finishItem.dispose();
                     if (changeEvent) {
@@ -301,7 +289,6 @@ export function activate(context: vscode.ExtensionContext) {
             if (exercise && course) {
                 APIClient.getAllStudentsExerciseUserInfo(exercise.id)
                     .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-                        console.debug(response);
                         if (exercise && course) {
                             DashboardWebview.show(response.data, course, exercise);
                         }
@@ -312,7 +299,6 @@ export function activate(context: vscode.ExtensionContext) {
     };
 
     const showExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showexercisedashboard", (item: V4TItem) => {
-        console.log(item);
         if (item.item && instanceOfExercise(item.item) && item.item.course){
             showDashboardFunction(item.item, item.item.course);
         } else {
@@ -338,7 +324,7 @@ export function activate(context: vscode.ExtensionContext) {
                     LiveshareWebview.show(courses);
                 }
             } catch (err) {
-                console.error(err);
+                v4tLogger.error(err);
             }
         } else {
             vscode.window.showErrorMessage("You are not logged in.");
@@ -388,7 +374,7 @@ export function activate(context: vscode.ExtensionContext) {
                                 vscode.commands.executeCommand("workbench.action.reloadWindow");
                             },
                             (error) => {
-                                console.error(error);
+                                v4tLogger.error(error);
                                 vscode.window.showErrorMessage("There was an error updating your configuration: " + error);
                             }
                         );
@@ -441,9 +427,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                 const exerciseId: number = +zipSplit[zipSplit.length - 1].split(".")[0] || +zipSplit[zipSplit.length - 1].split("-")[0];
                 if (CurrentUser.isLoggedIn()) {
                     initializeLiveShare().then(() => {
-                        console.log("LiveShare initialized");
-                        console.log(liveshareService);
-                        console.log(wsLiveshare);
+                        v4tLogger.debug("LiveShare initialized");
                     });
                     try {
                         const courses = CurrentUser.getUserInfo().courses;
@@ -452,7 +436,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                             showLiveshareBoardItem.show();
                         }
                     } catch (err) {
-                        console.error(err);
+                        v4tLogger.error(err);
                     }
 
                     if (!commentProvider) {
@@ -469,7 +453,6 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         commentInterval = global.setInterval(commentProvider.getThreads.bind(commentProvider), 60000, exerciseId, username, cwd, APIClient.handleAxiosError);
                     }
                     const eui = await APIClient.getExerciseUserInfo(exerciseId);
-                    console.debug(eui);
                     // If user is student and exercise is not finished add finish button
                     if (!currentUserIsTeacher && !finishItem) {
                         try {
@@ -498,20 +481,17 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                         if (!hideWelcomeMessage) {
                             if (!currentUserIsTeacher) {
                                 const message = `The exercise has been downloaded! You can start editing its files in the Explorer view. You can mark the exercise as finished using the 'Finish' button in the status bar below.`;
-                                vscode.window.showInformationMessage(message).then(() => console.debug("Message dismissed"));
+                                vscode.window.showInformationMessage(message);
                             } else {
                                 const message = `The exercise has been downloaded! You can see the template files and your students' files in the Explorer view. You can also open the Dashboard to monitor their progress (you can also open it from the status bar's 'Dashboard' button.`;
                                 const openDashboard = "Open dashboard";
                                 vscode.window
                                     .showInformationMessage(message, openDashboard)
                                     .then((value: string | undefined) => {
-                                        console.debug(value);
                                         if (value === openDashboard) {
-                                            console.debug("Opening dashboard");
                                             return vscode.commands.executeCommand("vscode4teaching.showcurrentexercisedashboard");
                                         }
-                                    })
-                                    .then(() => console.debug("Message dismissed"));
+                                    });
                             }
                         }
                     });
@@ -549,7 +529,6 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
         uploadTimeout = global.setTimeout(() => {
             uploadTimeout = undefined;
             FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-                console.debug("File edited: " + e.fsPath);
                 EUIUpdateService.updateExercise(exerciseId);
             });
         }, 500);
@@ -562,7 +541,6 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
         uploadTimeout = global.setTimeout(() => {
             uploadTimeout = undefined;
             FileZipUtil.updateFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-                console.debug("File added: " + e.fsPath);
                 EUIUpdateService.updateExercise(exerciseId);
             });
         }, 500);
@@ -574,7 +552,6 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
         uploadTimeout = global.setTimeout(() => {
             uploadTimeout = undefined;
             FileZipUtil.deleteFile(jszipFile, e.fsPath, cwd.uri.fsPath, ignoredFiles, exerciseId).then(() => {
-                console.debug("File deleted: " + e.fsPath);
             });
         }, 500);
     });
@@ -621,7 +598,6 @@ async function checkCommentLineChanges(document: vscode.TextDocument) {
  * @param exercise exercise
  */
 async function getExerciseFiles(courseName: string, exercise: Exercise) {
-    console.log(`Nos descargamos el ejercicio ${exercise.name} del curso ${courseName}`);
     const zipInfo = FileZipUtil.exerciseZipInfo(courseName, exercise);
     return FileZipUtil.filesFromZip(zipInfo, APIClient.getExerciseFiles(exercise.id));
 }
@@ -705,7 +681,6 @@ async function getFilesInfo(exercise: Exercise, fileInfoPath: string, usernames:
     for (const username of usernames) {
         try {
             const filesInfo = await APIClient.getFilesInfo(username, exercise.id);
-            console.debug(filesInfo);
             fs.writeFileSync(path.resolve(fileInfoPath, username + ".json"), JSON.stringify(filesInfo.data), { encoding: "utf8" });
         } catch (error) {
             APIClient.handleAxiosError(error);

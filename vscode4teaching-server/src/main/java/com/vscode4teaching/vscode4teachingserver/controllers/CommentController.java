@@ -42,7 +42,7 @@ public class CommentController {
     @JsonView(CommentThreadViews.CommentView.class)
     public ResponseEntity<CommentThread> saveCommentThread(@PathVariable @Min(1) Long fileId,
                                                            @Valid @RequestBody CommentThreadDTO commentThread) throws FileNotFoundException {
-        logger.debug("Request to POST '/api/files/{}/comments' with body '{}'", fileId, commentThread);
+        logger.info("Request to POST '/api/files/{}/comments' with body '{}'", fileId, commentThread);
         CommentThread newCommentThread = new CommentThread(commentThread.getLine(), commentThread.getLineText());
         List<Comment> comments = commentThread.getComments().stream()
                 .map((CommentDTO comment) -> new Comment(newCommentThread, comment.getBody(), comment.getAuthor()))
@@ -56,7 +56,7 @@ public class CommentController {
     @JsonView(CommentThreadViews.CommentView.class)
     public ResponseEntity<List<CommentThread>> getCommentThreads(@PathVariable @Min(1) Long fileId)
             throws FileNotFoundException {
-        logger.debug("Request to GET '/api/files/{}/comments'", fileId);
+        logger.info("Request to GET '/api/files/{}/comments'", fileId);
         List<CommentThread> comments = commentService.getCommentThreadsByFile(fileId);
         return comments.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(comments);
     }
@@ -65,7 +65,7 @@ public class CommentController {
     @JsonView(FileViews.CommentView.class)
     public ResponseEntity<List<ExerciseFile>> getCommentsByUser(@PathVariable String username,
                                                                 @PathVariable Long exerciseId) throws ExerciseNotFoundException {
-        logger.debug("Request to GET '/api/users/{}/exercises/{}/comments'", username, exerciseId);
+        logger.info("Request to GET '/api/users/{}/exercises/{}/comments'", username, exerciseId);
         List<ExerciseFile> files = commentService.getFilesWithCommentsByUser(exerciseId, username);
         return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
@@ -74,7 +74,7 @@ public class CommentController {
     @JsonView(CommentThreadViews.GeneralView.class)
     public ResponseEntity<CommentThread> updateCommentThreadLine(@PathVariable Long commentThreadId,
                                                                  @Valid @RequestBody CommentThreadDTO commentThread) throws CommentNotFoundException {
-        logger.debug("Request to PUT '/api/comments/{}/lines' with body '{}'", commentThreadId, commentThread);
+        logger.info("Request to PUT '/api/comments/{}/lines' with body '{}'", commentThreadId, commentThread);
         CommentThread savedCommentThread = commentService.updateCommentThreadLine(commentThreadId, commentThread.getLine(), commentThread.getLineText());
         return new ResponseEntity<>(savedCommentThread, HttpStatus.OK);
     }

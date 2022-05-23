@@ -187,8 +187,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         try {
             const courseName = await this.getInput("Course name", Validators.validateCourseName);
             if (courseName) {
-                const response = await APIClient.addCourse({ name: courseName });
-                console.debug(response);
+                await APIClient.addCourse({ name: courseName });
                 await CurrentUser.updateUserInfo();
                 CoursesProvider.triggerTreeReload();
             }
@@ -207,8 +206,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 const newCourseName = await this.getInput("Course name", Validators.validateCourseName);
                 if (newCourseName && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
-                    const response = await APIClient.editCourse(item.item.id, { name: newCourseName });
-                    console.debug(response);
+                    await APIClient.editCourse(item.item.id, { name: newCourseName });
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
                 }
@@ -228,8 +226,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 const selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + item.item.name + "?", { modal: true }, "Accept");
                 if (selectedOption === "Accept" && CurrentUser.isLoggedIn() && CurrentUser.getUserInfo().courses) {
-                    const response = await APIClient.deleteCourse(item.item.id);
-                    console.debug(response);
+                    await APIClient.deleteCourse(item.item.id);
                     await CurrentUser.updateUserInfo();
                     CoursesProvider.triggerTreeReload();
                 }
@@ -286,17 +283,14 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         this.loading = true;
                         CoursesProvider.triggerTreeReload();
                         const addExerciseData = await APIClient.addExercises(course.id, [{ name }]);
-                        console.debug(addExerciseData);
                         try {
                             // When exercise is createdupload template
                             const zipContent = await FileZipUtil.getZipFromUris(fileUris);
-                            const response = await APIClient.uploadExerciseTemplate(addExerciseData.data[0].id, zipContent);
-                            console.debug(response);
+                            await APIClient.uploadExerciseTemplate(addExerciseData.data[0].id, zipContent);
                         } catch (uploadError) {
                             try {
                                 // If upload fails delete the exercise and show error
-                                const response = await APIClient.deleteExercise(addExerciseData.data[0].id);
-                                console.debug(response);
+                                await APIClient.deleteExercise(addExerciseData.data[0].id);
                                 APIClient.handleAxiosError(uploadError);
                             } catch (deleteError) {
                                 APIClient.handleAxiosError(deleteError);
@@ -383,8 +377,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             const name = await this.getInput("Exercise name", Validators.validateExerciseName);
             if (name) {
                 try {
-                    const response = await APIClient.editExercise(item.item.id, { name });
-                    console.debug(response);
+                    await APIClient.editExercise(item.item.id, { name });
                     CoursesProvider.triggerTreeReload(item.parent);
                     vscode.window.showInformationMessage("Exercise edited successfully");
                 } catch (error) {
@@ -404,7 +397,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                 const selectedOption = await vscode.window.showWarningMessage("Are you sure you want to delete " + item.item.name + "?", { modal: true }, "Accept");
                 if (selectedOption === "Accept") {
                     const response = await APIClient.deleteExercise(item.item.id);
-                    console.debug(response);
                     CoursesProvider.triggerTreeReload(item.parent);
                     vscode.window.showInformationMessage("Exercise deleted successfully");
                 }
@@ -424,11 +416,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 // Get all users available
                 const usersResponse = await APIClient.getAllUsers();
-                console.debug(usersResponse);
                 const users: User[] = usersResponse.data;
                 // Get users currently in course
                 const courseUsersResponse = await APIClient.getUsersInCourse(item.item.id);
-                console.debug(courseUsersResponse);
                 const courseUsers = courseUsersResponse.data;
                 // Remove from the list the users that are already in the course
                 const showArray = users
@@ -439,8 +429,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     });
                 const ids = await this.manageUsersFromCourse(showArray, item);
                 if (ids) {
-                    const response = await APIClient.addUsersToCourse(item.item.id, { ids });
-                    console.debug(response);
+                    await APIClient.addUsersToCourse(item.item.id, { ids });
                 }
             } catch (error) {
                 APIClient.handleAxiosError(error);
@@ -457,9 +446,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             try {
                 // Get users in course
                 const courseUsersResponse = await APIClient.getUsersInCourse(item.item.id);
-                console.debug(courseUsersResponse);
                 const creatorResponse = await APIClient.getCreator(item.item.id);
-                console.debug(creatorResponse);
                 const creator: User = creatorResponse.data;
                 const courseUsers = courseUsersResponse.data;
                 // Remove creator of course from list
@@ -471,8 +458,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     });
                 const ids = await this.manageUsersFromCourse(showArray, item);
                 if (ids) {
-                    const response = await APIClient.removeUsersFromCourse(item.item.id, { ids });
-                    console.debug(response);
+                    await APIClient.removeUsersFromCourse(item.item.id, { ids });
                 }
             } catch (error) {
                 APIClient.handleAxiosError(error);
@@ -488,7 +474,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (code) {
             try {
                 const response = await APIClient.getCourseWithCode(code.trim());
-                console.debug(response);
                 const course: Course = response.data;
                 CurrentUser.addNewCourse(course);
                 CoursesProvider.triggerTreeReload();
@@ -612,7 +597,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             const exercisesThenable = APIClient.getExercises(course.id);
             try {
                 const response = await exercisesThenable;
-                console.debug(response);
                 course.exercises = response.data;
             } catch (error) {
                 APIClient.handleAxiosError(error);

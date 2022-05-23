@@ -6,6 +6,7 @@ import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
 import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
+import { v4tLogger } from "../../services/LoggerService";
 import { OpenQuickPick } from "./OpenQuickPick";
 
 export class DashboardWebview {
@@ -115,7 +116,7 @@ export class DashboardWebview {
                             this.panel.webview.postMessage({ type: "openDone", username: message.username });
                         })
                         .catch((err) => {
-                            console.error(err);
+                            v4tLogger.error(err);
                             vscode.window.showErrorMessage(err);
                         });
                     break;
@@ -130,7 +131,7 @@ export class DashboardWebview {
                             this.panel.webview.postMessage({ type: "openDone", username: message.username });
                         })
                         .catch((err) => {
-                            console.error(err);
+                            v4tLogger.error(err);
                             vscode.window.showErrorMessage(err);
                         });
                     break;
@@ -266,7 +267,6 @@ export class DashboardWebview {
     private reloadData() {
         APIClient.getAllStudentsExerciseUserInfo(this._exercise.id)
             .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-                console.debug(response);
                 this._euis = response.data;
                 this.updateHtml();
             })
@@ -544,7 +544,7 @@ export class DashboardWebview {
             if (selection.children && selection.children.length > 0) {
                 return this.showQuickPickRecursive(selection.children);
             } else {
-                console.log(selection);
+                v4tLogger.debug(selection);
                 return selection.fullPath;
             }
         }

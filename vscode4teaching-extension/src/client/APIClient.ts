@@ -12,6 +12,7 @@ import { ExerciseUserInfo } from "../model/serverModel/exercise/ExerciseUserInfo
 import { FileInfo } from "../model/serverModel/file/FileInfo";
 import { User } from "../model/serverModel/user/User";
 import { UserSignup } from "../model/serverModel/user/UserSignup";
+import { v4tLogger } from "../services/LoggerService";
 import { APIClientSession } from "./APIClientSession";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
@@ -47,7 +48,6 @@ class APIClientSingleton {
             APIClientSession.invalidateSession();
             await APIClient.getXSRFToken();
             const response = await APIClient.login(username, password);
-            console.debug(response);
             vscode.window.showInformationMessage("Logged in");
             APIClientSession.jwtToken = response.data.jwtToken;
             APIClientSession.createSessionFile();
@@ -67,7 +67,6 @@ class APIClientSingleton {
             APIClientSession.invalidateSession();
             await APIClient.getXSRFToken();
             const response = await APIClient.signUp(userCredentials);
-            console.debug(response);
             vscode.window.showInformationMessage("Signed up. Please log in.");
         } catch (error) {
             APIClient.handleAxiosError(error);
@@ -81,9 +80,8 @@ class APIClientSingleton {
     public async signUpTeacher(userCredentials: UserSignup) {
         try {
             const response = await APIClient.inviteTeacher(userCredentials);
-            console.debug(response);
             const link = APIClientSession.baseUrl + "/app/teacher/sign-up/" + response.data.password;
-            const windowMessage = vscode.window.showInformationMessage(
+            vscode.window.showInformationMessage(
                 "The new teacher has been successfully invited! Copy the link and share it with they to finish the process:\n" + link,
                 "Copy link"
             ).then((clicked) => {
@@ -106,13 +104,11 @@ class APIClientSingleton {
      * @param error Error
      */
     public handleAxiosError(error: any) {
-        console.error(error);
+        v4tLogger.error(error);
         if (axios.isCancel(error)) {
             vscode.window.showErrorMessage("Request timeout.");
             // APIClientSession.invalidateSession();
         } else if (error.response) {
-            console.log(error.response);
-            console.log(error.request);
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
@@ -473,7 +469,7 @@ class APIClientSingleton {
             }
             return result;
         }).catch(err => {
-            console.error(err);
+            v4tLogger.error(err);
             return err;
         });
     }
@@ -488,7 +484,6 @@ class APIClientSingleton {
             responseType: "json",
         };
         const response = await APIClient.createRequest(options, "Fetching server info...");
-        console.debug(response);
         const cookiesString: string | undefined = response.headers["set-cookie"]?.[0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");

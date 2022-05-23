@@ -93,7 +93,7 @@ public class SocketHandler extends TextWebSocketHandler {
                     try {
                         t.sendMessage(new TextMessage("{\"handle\":\"refresh\"}"));
                     } catch (IOException e) {
-                        System.out.println("Error sending websocket message: " + e.getMessage());
+                        logger.error("Error sending websocket message: " + e.getMessage());
                     }
                 });
         }

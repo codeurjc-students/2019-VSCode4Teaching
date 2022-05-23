@@ -48,7 +48,7 @@ public class ExerciseFilesController {
     @GetMapping(value = "/exercises/{id}/files", produces = "application/zip")
     public void downloadExerciseFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException {
-        logger.debug("Request to GET '/api/exercises/{}/files'", id);
+        logger.info("Request to GET '/api/exercises/{}/files'", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
@@ -71,7 +71,7 @@ public class ExerciseFilesController {
     public ResponseEntity<List<UploadFileResponse>> uploadZip(@PathVariable Long id,
                                                               @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws NotInCourseException, IOException, ExerciseFinishedException, NotFoundException {
-        logger.debug("Request to POST '/api/exercises/{}/files' with a MultipartFile (ZIP) as body", id);
+        logger.info("Request to POST '/api/exercises/{}/files' with a MultipartFile (ZIP) as body", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
@@ -90,7 +90,7 @@ public class ExerciseFilesController {
     public ResponseEntity<List<UploadFileResponse>> uploadTemplate(@PathVariable Long id,
                                                                    @RequestParam("file") MultipartFile zip, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
-        logger.debug("Request to POST '/api/exercises/{}/files/template' with a MultipartFile (ZIP) as body", id);
+        logger.info("Request to POST '/api/exercises/{}/files/template' with a MultipartFile (ZIP) as body", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
@@ -109,7 +109,7 @@ public class ExerciseFilesController {
     @GetMapping("/exercises/{id}/files/template")
     public void getTemplate(@PathVariable Long id, HttpServletResponse response, HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
-        logger.debug("Request to GET '/api/exercises/{}/files/template'", id);
+        logger.info("Request to GET '/api/exercises/{}/files/template'", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
@@ -123,7 +123,7 @@ public class ExerciseFilesController {
     @GetMapping("/exercises/{id}/teachers/files")
     public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
-        logger.debug("Request to GET '/api/exercises/{}/teachers/files'", id);
+        logger.info("Request to GET '/api/exercises/{}/teachers/files'", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
         Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
@@ -172,7 +172,7 @@ public class ExerciseFilesController {
     @GetMapping("/users/{username}/exercises/{exerciseId}/files")
     public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
                                                                             @PathVariable Long exerciseId) throws ExerciseNotFoundException {
-        logger.debug("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
+        logger.info("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
         List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, username);
         return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }

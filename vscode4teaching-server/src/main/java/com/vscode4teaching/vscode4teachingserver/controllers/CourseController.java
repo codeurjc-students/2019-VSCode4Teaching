@@ -43,7 +43,7 @@ public class CourseController {
     @GetMapping("/courses")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<List<Course>> getAllCourses() {
-        logger.debug("Request to GET '/api/courses'");
+        logger.info("Request to GET '/api/courses'");
         List<Course> courses = courseService.getAllCourses();
         return !courses.isEmpty() ? ResponseEntity.ok(courses) : ResponseEntity.noContent().build();
     }
@@ -51,7 +51,7 @@ public class CourseController {
     @GetMapping("/courses/{courseId}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> getCourse(@PathVariable @Min(1) Long courseId) {
-        logger.debug("Request to GET '/api/courses/{}'", courseId);
+        logger.info("Request to GET '/api/courses/{}'", courseId);
         Optional<Course> course = courseService.getCourseById(courseId);
         return course.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -59,7 +59,7 @@ public class CourseController {
     @GetMapping("/courses/{courseId}/creator")
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<User> getCreator(@PathVariable @Min(1) Long courseId) throws CourseNotFoundException {
-        logger.debug("Request to GET '/api/courses/{}/creator'", courseId);
+        logger.info("Request to GET '/api/courses/{}/creator'", courseId);
         return ResponseEntity.ok(courseService.getCreator(courseId));
     }
 
@@ -67,7 +67,7 @@ public class CourseController {
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> addCourse(HttpServletRequest request, @Valid @RequestBody CourseDTO courseDTO)
             throws TeacherNotFoundException {
-        logger.debug("Request to POST '/api/courses' with body '{}'", courseDTO);
+        logger.info("Request to POST '/api/courses' with body '{}'", courseDTO);
         Course course = new Course(courseDTO.getName());
         Course savedCourse = courseService.registerNewCourse(course, jwtTokenUtil.getUsernameFromToken(request));
         return new ResponseEntity<>(savedCourse, HttpStatus.CREATED);
@@ -77,7 +77,7 @@ public class CourseController {
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> updateCourse(HttpServletRequest request, @PathVariable @Min(1) Long id,
                                                @Valid @RequestBody CourseDTO courseDTO) throws CourseNotFoundException, NotInCourseException {
-        logger.debug("Request to PUT '/api/courses/{}' with body '{}'", id, courseDTO);
+        logger.info("Request to PUT '/api/courses/{}' with body '{}'", id, courseDTO);
         Course course = new Course(courseDTO.getName());
         Course savedCourse = courseService.editCourse(id, course, jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.ok(savedCourse);
@@ -86,7 +86,7 @@ public class CourseController {
     @DeleteMapping("/courses/{id}")
     public ResponseEntity<Void> deleteCourse(HttpServletRequest request, @PathVariable @Min(1) Long id)
             throws CourseNotFoundException, NotInCourseException, NotCreatorException {
-        logger.debug("Request to DELETE '/api/courses/{}'", id);
+        logger.info("Request to DELETE '/api/courses/{}'", id);
         courseService.deleteCourse(id, jwtTokenUtil.getUsernameFromToken(request));
         return ResponseEntity.noContent().build();
     }
@@ -94,7 +94,7 @@ public class CourseController {
     @GetMapping("/users/{id}/courses")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<List<Course>> getUserCourses(@PathVariable @Min(1) Long id) throws UserNotFoundException {
-        logger.debug("Request to GET '/api/users/{}/courses'", id);
+        logger.info("Request to GET '/api/users/{}/courses'", id);
         List<Course> courses = courseService.getUserCourses(id);
         return courses.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(courses);
     }
@@ -103,7 +103,7 @@ public class CourseController {
     @JsonView(UserViews.GeneralView.class)
     public ResponseEntity<Set<User>> getUsersInCourse(@PathVariable @Min(1) Long courseId, HttpServletRequest request)
             throws CourseNotFoundException, NotInCourseException {
-        logger.debug("Request to GET '/api/courses/{}/users'", courseId);
+        logger.info("Request to GET '/api/courses/{}/users'", courseId);
         return ResponseEntity.ok(courseService.getUsersInCourse(courseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
@@ -112,7 +112,7 @@ public class CourseController {
     public ResponseEntity<Course> addUserToCourse(@PathVariable @Min(1) Long courseId,
                                                   @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
-        logger.debug("Request to POST '/api/courses/{}/users' with body '{}'", courseId, userRequest);
+        logger.info("Request to POST '/api/courses/{}/users' with body '{}'", courseId, userRequest);
         return ResponseEntity.ok(courseService.addUsersToCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
     }
@@ -122,7 +122,7 @@ public class CourseController {
     public ResponseEntity<Course> removeUsersFromCourse(@PathVariable @Min(1) Long courseId,
                                                         @Valid @RequestBody UserRequest userRequest, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException {
-        logger.debug("Request to DELETE '/api/courses/{}/users' with body '{}'", courseId, userRequest);
+        logger.info("Request to DELETE '/api/courses/{}/users' with body '{}'", courseId, userRequest);
         return ResponseEntity.ok(courseService.removeUsersFromCourse(courseId, userRequest.getIds(),
                 jwtTokenUtil.getUsernameFromToken(request)));
     }
@@ -130,7 +130,7 @@ public class CourseController {
     @GetMapping("/courses/{courseId}/code")
     public ResponseEntity<String> getCode(@PathVariable Long courseId, HttpServletRequest request)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
-        logger.debug("Request to GET '/api/courses/{}/code'", courseId);
+        logger.info("Request to GET '/api/courses/{}/code'", courseId);
         return ResponseEntity.ok(courseService.getCourseCode(courseId, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
@@ -139,7 +139,7 @@ public class CourseController {
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
-        logger.debug("Request to GET '/api/courses/code/{}' (deprecated API endpoint)", courseCode);
+        logger.info("Request to GET '/api/courses/code/{}' (deprecated API endpoint)", courseCode);
         return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
@@ -147,7 +147,7 @@ public class CourseController {
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> getCourseInformationBySharingCode(@PathVariable String courseCode)
             throws CourseNotFoundException {
-        logger.debug("Request to GET '/api/v2/courses/code/{}'", courseCode);
+        logger.info("Request to GET '/api/v2/courses/code/{}'", courseCode);
         return ResponseEntity.ok(courseService.getCourseInformationWithSharingCode(courseCode));
     }
 
@@ -155,7 +155,7 @@ public class CourseController {
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> joinCourse(HttpServletRequest request, @PathVariable String courseCode)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
-        logger.debug("Request to PUT '/api/courses/code/{}'", courseCode);
+        logger.info("Request to PUT '/api/courses/code/{}'", courseCode);
         return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
 }
