@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,8 +37,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         //Changing status from not accessed to accessed but not finished
         if (eui.getStatus() == 0) {
-            eui.setStatus(2);
-            eui = exerciseUserInfoRepository.save(eui);
+            eui = updateExerciseUserInfo(exerciseId, username, 2, new ArrayList<>());
         }
         return eui;
     }
