@@ -52,6 +52,9 @@ export let wsLiveshare: WebSocketV4TConnection | undefined;
 export let liveshareService: LiveShareService | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
+    // Set timezone
+    process.env.TZ = "UTC";
+    
     // Set Axios automatic logging
     axios.interceptors.request.use(req => {
         v4tLogger.info(`Axios request to ${req.url} with params '${req.params}' and timeout '${req.timeout}'.`);
