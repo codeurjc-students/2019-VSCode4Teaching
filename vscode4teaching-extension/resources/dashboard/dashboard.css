@@ -212,3 +212,14 @@ table th {
 .sorter-ls.active span:last-of-type {
     transform: rotate(45deg);
 }
+
+.alert-info {
+    text-align: center;
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #055160;
+    background-color: #cff4fc;
+    border: 1px solid #b6effb;
+    border-radius: 0.375rem;
+}

@@ -361,6 +361,9 @@ export class DashboardWebview {
                             </label>
                         </div>
                     </div>
+                    ${this._euis.length === 0 ? `
+                    <div class="alert-info"><strong>Warning</strong>: There are no students registered in this course.</div>
+                    ` : `
                     <hr/>
                     <br/>
                     <table>
@@ -401,6 +404,7 @@ export class DashboardWebview {
                         </tr>
                         ${rows}
                     </table>
+                    `}
                     <script nonce="${nonce}" src="${scriptUri}"></script>
                 </body>
             </html>`;
