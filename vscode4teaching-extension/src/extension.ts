@@ -285,7 +285,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const showDashboardFunction = (exercise: Exercise, course: Course) => {
+    const showDashboardFunction = (exercise: Exercise, course: Course, fullMode: boolean) => {
         if (DashboardWebview.exists()){
             vscode.window.showWarningMessage("You have to close currently opened dashboard before opening another one.");
         } else {
@@ -293,7 +293,7 @@ export function activate(context: vscode.ExtensionContext) {
                 APIClient.getAllStudentsExerciseUserInfo(exercise.id)
                     .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
                         if (exercise && course) {
-                            DashboardWebview.show(response.data, course, exercise);
+                            DashboardWebview.show(response.data, course, exercise, fullMode);
                         }
                     })
                     .catch((error) => APIClient.handleAxiosError(error));
@@ -303,7 +303,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const showExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showexercisedashboard", (item: V4TItem) => {
         if (item.item && instanceOfExercise(item.item) && item.item.course){
-            showDashboardFunction(item.item, item.item.course);
+            showDashboardFunction(item.item, item.item.course, false);
         } else {
             vscode.window.showErrorMessage("Not performabble action. Please try downloading exercise and accessing Dashboard.");
         }        
@@ -311,7 +311,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {
         if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
-            showDashboardFunction(showDashboardItem.exercise, showDashboardItem.course);
+            showDashboardFunction(showDashboardItem.exercise, showDashboardItem.course, true);
         }
     });
 

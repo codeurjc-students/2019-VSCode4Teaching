@@ -75,7 +75,7 @@ describe("Dashboard webview", () => {
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
             modifiedFiles: undefined,
         });
-        DashboardWebview.show(euis, course, exercise);
+        DashboardWebview.show(euis, course, exercise, true);
         if (DashboardWebview.currentPanel) {
             expect(global.setInterval).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
@@ -92,26 +92,10 @@ describe("Dashboard webview", () => {
             // Title is correct
             const title = $("title");
             expect(title.text()).toBe("V4T Dashboard: Exercise 1");
-            // // Reload button exists
-            // const reloadButton = $("#button-reload");
-            // expect(reloadButton).toBeTruthy();
-            // // Select and its options are correct
-            // const select = $("#time-reload");
-            // expect(select).toBeTruthy();
-            // const options = $("#time-reload option").toArray();
-            // expect(options.length).toBe(5);
-            // expect(options[0].attribs.value).toBe("0");
-            // expect(options[0].firstChild.data).toBe("Never");
-            // // Selected default is Never
-            // expect(options[0].attribs.selected).toBe("");
-            // expect(options[1].attribs.value).toBe("5");
-            // expect(options[1].firstChild.data).toBe("5 seconds");
-            // expect(options[2].attribs.value).toBe("30");
-            // expect(options[2].firstChild.data).toBe("30 seconds");
-            // expect(options[3].attribs.value).toBe("60");
-            // expect(options[3].firstChild.data).toBe("1 minute");
-            // expect(options[4].attribs.value).toBe("300");
-            // expect(options[4].firstChild.data).toBe("5 minutes");
+            // Hide student's names button exists and is checked on
+            const hideStudentsNames = $("#hideStudentNames");
+            expect(hideStudentsNames).toBeTruthy();
+            expect(hideStudentsNames.val).toBeTruthy();
             // Table headers are correct
             const tableHeaders = $("th").toArray();
             expect(tableHeaders[0].firstChild.data?.trim()).toBe("Exercise folder");
@@ -127,7 +111,6 @@ describe("Dashboard webview", () => {
             expect(tableData[2].childNodes[0].firstChild.data).toBe("Open");
             expect(tableData[2].childNodes[1].name).toBe("button");
             expect(tableData[2].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[].firstChild.data === "1 d" || tableData[].firstChild.data === "24 h").toBe(true);
             expect(tableData[4].firstChild.data).toBe("student_2");
             expect(tableData[5].firstChild.data).toBe("Finished");
             expect(tableData[5].attribs.class).toBe("finished-cell");
@@ -135,11 +118,9 @@ describe("Dashboard webview", () => {
             expect(tableData[6].childNodes[0].firstChild.data).toBe("Open");
             expect(tableData[6].childNodes[1].name).toBe("button");
             expect(tableData[6].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[].firstChild.data).toBe("13 min");
             expect(tableData[8].firstChild.data).toBe("student_3");
             expect(tableData[9].firstChild.data).toBe("On progress");
             expect(tableData[9].attribs.class).toBe("onprogress-cell");
-            // expect(tableData[].firstChild.data).toBe("35 s");
         } else {
             fail("Current panel wasn't created");
         }

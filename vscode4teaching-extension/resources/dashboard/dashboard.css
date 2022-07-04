@@ -17,6 +17,12 @@ th {
     text-align: center;
 }
 
+body.vscode-light td,
+body.vscode-dark td {
+    padding: 0.25rem 0;
+}
+
+
 .not-started-cell {
     background-color: var(--vscode-diffEditor-removedTextBackground);
 }
@@ -33,7 +39,11 @@ button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
-    margin: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+button:last-child {
+    margin-right: 0;
 }
 
 button:hover {
@@ -62,13 +72,14 @@ option:hover {
     margin-top: 2px;
     margin-bottom: 10px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-around;
 }
 
 .option {
     display: flex;
     align-items: center;
     flex-direction: column;
+    text-align: center;
 }
 
 .switch {

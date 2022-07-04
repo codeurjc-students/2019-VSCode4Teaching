@@ -16,7 +16,7 @@ export class DashboardWebview {
 
     public static readonly resourcesPath = __dirname.includes(path.sep + "out") ? path.join(__dirname, "..", "resources", "dashboard") : path.join(__dirname, "..", "..", "..", "resources", "dashboard");
 
-    public static show(euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
+    public static show(euis: ExerciseUserInfo[], course: Course, exercise: Exercise, fullMode: boolean) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         // If we already have a panel, show it.
@@ -37,7 +37,7 @@ export class DashboardWebview {
             localResourceRoots: [vscode.Uri.file(DashboardWebview.resourcesPath)],
         });
 
-        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, dashboardViewName, euis, course, exercise);
+        DashboardWebview.currentPanel = new DashboardWebview(panel, dashboardName, dashboardViewName, euis, course, exercise, fullMode);
     }
 
     public static exists(): boolean {
@@ -56,8 +56,9 @@ export class DashboardWebview {
     private _exercise: Exercise;
     private sortAsc: boolean;
     private hiddenStudentNames: boolean;
+    private fullMode: boolean;
 
-    private constructor(panel: vscode.WebviewPanel, dashboardName: string, dashboardViewName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise) {
+    private constructor(panel: vscode.WebviewPanel, dashboardName: string, dashboardViewName: string, euis: ExerciseUserInfo[], course: Course, exercise: Exercise, fullMode: boolean) {
         this.panel = panel;
         this._dashboardName = dashboardName;
         this._dashboardViewName = dashboardViewName;
@@ -65,6 +66,7 @@ export class DashboardWebview {
         this._exercise = exercise;
         this.sortAsc = false;
         this.hiddenStudentNames = true;
+        this.fullMode = fullMode;
 
         // Set the webview's initial html content
         this.updateHtml();
@@ -320,10 +322,10 @@ export class DashboardWebview {
                     break;
                 }
             }
-            rows = rows + `<td class="button-col">`;
-            const buttons = `<button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button>`;
-            rows += buttons;
-            rows = rows + `</td>\n`;
+            rows = rows + ``;
+            if (this.fullMode){
+                rows += `<td class="button-col"><button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button></td>\n`;
+            }
             rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
             rows = rows + "</tr>\n";
         }
@@ -343,6 +345,14 @@ export class DashboardWebview {
                     <h1>VSCode4Teaching Dashboard</h1>
                     <h2>${this._dashboardViewName}</h2>
                     <div class="reload-options">
+                        ${
+                            this.fullMode
+                            ? ''
+                            :
+                            `<div class="option">
+                                Preview mode.<br/>Download exercise to be able to open students' exercises.
+                            </div>`
+                        }
                         <div class="option">
                             <div class="name">Hide student's names</div>
                             <label class="switch">
@@ -377,7 +387,11 @@ export class DashboardWebview {
                                     <span></span>
                                 </span>
                             </th>
-                            <th>Last modified file</th>
+                            ${
+                                this.fullMode
+                                ? `<th>Last modified file</th>`
+                                : ""
+                            }
                             <th>Last modification
                                 <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="lastModification">
                                     <span></span>
