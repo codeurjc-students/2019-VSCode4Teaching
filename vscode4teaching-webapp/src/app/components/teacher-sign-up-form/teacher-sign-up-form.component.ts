@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from "@angular/forms";
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { User } from "src/app/model/user.model";
 import { AuthTokenService } from "src/app/services/auth/auth-token.service";
@@ -26,7 +26,7 @@ export class TeacherSignUpFormComponent {
      */
     constructor(
         private route: ActivatedRoute,
-        private fb: FormBuilder,
+        private fb: UntypedFormBuilder,
         private common: CommonService, // It includes XSRF and login requests
         private teacherSignUpService: TeacherSignUpService, // Includes the password change request
         private auth: AuthTokenService // It saves login credentials
@@ -130,7 +130,7 @@ export class TeacherSignUpFormComponent {
     }
 
     // True if a input is valid, false otherwise (used in template)
-    getValidationStatusOfField(formGroup: FormGroup, fieldName: string, error?: string): boolean {
+    getValidationStatusOfField(formGroup: UntypedFormGroup, fieldName: string, error?: string): boolean {
         return error
             ? !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.hasError(error))
             : !!(formGroup.get(fieldName)?.touched && formGroup.get(fieldName)?.errors);

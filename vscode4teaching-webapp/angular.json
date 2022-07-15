@@ -112,5 +112,7 @@
       }
     }
   },
-  "defaultProject": "vscode4teaching-webapp"
+  "cli": {
+    "analytics": false
+  }
 }
