@@ -1,6 +1,6 @@
 {
   "name": "vscode4teaching-webapp",
-  "version": "2.1.3-beta",
+  "version": "2.1.3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
