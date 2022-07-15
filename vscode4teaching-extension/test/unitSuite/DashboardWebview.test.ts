@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { parse } from 'node-html-parser';
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
@@ -88,39 +88,54 @@ describe("Dashboard webview", () => {
             } else {
                 fail("Webview options argument missing");
             }
-            const $ = cheerio.load(DashboardWebview.currentPanel.panel.webview.html);
+            const $ = parse(DashboardWebview.currentPanel.panel.webview.html);
             // Title is correct
-            const title = $("title");
-            expect(title.text()).toBe("V4T Dashboard: Exercise 1");
+            const title = $.querySelector("h2");
+            expect(title?.innerText).toBe("Course - Exercise 1");
             // Hide student's names button exists and is checked on
-            const hideStudentsNames = $("#hideStudentNames");
-            expect(hideStudentsNames).toBeTruthy();
-            expect(hideStudentsNames.val).toBeTruthy();
+            const hideStudentsNames = $.querySelector("#hideStudentNames");
+            expect(hideStudentsNames).not.toBeNull();
+            expect(hideStudentsNames?.attributes["checked"]).toBeDefined();
             // Table headers are correct
-            const tableHeaders = $("th").toArray();
-            expect(tableHeaders[0].firstChild.data?.trim()).toBe("Exercise folder");
-            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Exercise status");
-            expect(tableHeaders[2].firstChild.data?.trim()).toBe("Last modified file");
-            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modification");
+            const tableHeaders = $.querySelectorAll("th");
+            expect(tableHeaders.length).toBe(4);
+            expect(tableHeaders[0].innerText.trim()).toBe("Exercise folder");
+            expect(tableHeaders[1].innerText.trim()).toBe("Exercise status");
+            expect(tableHeaders[2].innerText.trim()).toBe("Last modified file");
+            expect(tableHeaders[3].innerText.trim()).toBe("Last modification");
             // Table data is correct
-            const tableData = $("td").toArray();
-            expect(tableData[0].firstChild.data).toBe("student_1");
-            expect(tableData[1].firstChild.data).toBe("Not started");
-            expect(tableData[1].attribs.class).toBe("not-started-cell");
-            expect(tableData[2].childNodes[0].name).toBe("button");
-            expect(tableData[2].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[2].childNodes[1].name).toBe("button");
-            expect(tableData[2].childNodes[1].firstChild.data).toBe("Diff");
-            expect(tableData[4].firstChild.data).toBe("student_2");
-            expect(tableData[5].firstChild.data).toBe("Finished");
-            expect(tableData[5].attribs.class).toBe("finished-cell");
-            expect(tableData[6].childNodes[0].name).toBe("button");
-            expect(tableData[6].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[6].childNodes[1].name).toBe("button");
-            expect(tableData[6].childNodes[1].firstChild.data).toBe("Diff");
-            expect(tableData[8].firstChild.data).toBe("student_3");
-            expect(tableData[9].firstChild.data).toBe("On progress");
-            expect(tableData[9].attribs.class).toBe("onprogress-cell");
+            const tableData = $.querySelectorAll("td");
+            expect(tableData.length).toBe(4 * 3); // 4 columns * 3 students;
+            // Cell 0: exercise folder
+            expect(tableData[0].innerText).toBe("student_1");
+            // Cell 1: exercise status
+            expect(tableData[1].innerText).toBe("Not started");
+            expect(tableData[1].classNames).toBe("not-started-cell");
+            // Cell 2: last modified file
+            expect(tableData[2].childNodes.length).toBe(2);
+            expect(tableData[2].childNodes[0].innerText).toBe("Open");
+            expect(tableData[2].childNodes[1].innerText).toBe("Diff");
+            // Cell 3: last modification
+            // Cell 4: exercise folder
+            expect(tableData[4].innerText).toBe("student_2");
+            // Cell 5: exercise status
+            expect(tableData[5].innerText).toBe("Finished");
+            expect(tableData[5].classNames).toBe("finished-cell");
+            // Cell 6: last modified file
+            expect(tableData[6].childNodes.length).toBe(2);
+            expect(tableData[6].childNodes[0].innerText).toBe("Open");
+            expect(tableData[6].childNodes[1].innerText).toBe("Diff");
+            // Cell 7: last modification
+            // Cell 8: exercise folder
+            expect(tableData[8].innerText).toBe("student_3");
+            // Cell 9: exercise status
+            expect(tableData[9].innerText).toBe("On progress");
+            expect(tableData[9].classNames).toBe("onprogress-cell");
+            // Cell 10: last modified file
+            expect(tableData[10].childNodes.length).toBe(2);
+            expect(tableData[10].childNodes[0].innerText).toBe("Open");
+            expect(tableData[10].childNodes[1].innerText).toBe("Diff");
+            // Cell 11: last modification
         } else {
             fail("Current panel wasn't created");
         }

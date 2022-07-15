@@ -75,7 +75,7 @@ describe("Current user", () => {
         try {
             CurrentUser.getUserInfo();
             fail("Get user info should throw error");
-        } catch (error) {
+        } catch (error: any) {
             expect(error.message).toBe("No user logged in");
         }
     });
