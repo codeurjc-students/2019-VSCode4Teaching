@@ -71,7 +71,7 @@
 		"commands": [
 			{
 				"command": "vscode4teaching.editcourse",
-				"title": "Edit Course",
+				"title": "Edit course",
 				"icon": {
 					"light": "resources/light/edit.png",
 					"dark": "resources/dark/edit.png"
@@ -79,7 +79,7 @@
 			},
 			{
 				"command": "vscode4teaching.deletecourse",
-				"title": "Delete Course",
+				"title": "Delete course",
 				"icon": {
 					"light": "resources/light/delete.png",
 					"dark": "resources/dark/delete.png"
@@ -87,7 +87,7 @@
 			},
 			{
 				"command": "vscode4teaching.refreshcourses",
-				"title": "Refresh Courses",
+				"title": "Refresh courses",
 				"icon": {
 					"light": "resources/light/refresh.png",
 					"dark": "resources/dark/refresh.png"
@@ -95,7 +95,7 @@
 			},
 			{
 				"command": "vscode4teaching.refreshexercises",
-				"title": "Refresh Exercises",
+				"title": "Refresh exercises",
 				"icon": {
 					"light": "resources/light/refresh.png",
 					"dark": "resources/dark/refresh.png"
@@ -103,7 +103,7 @@
 			},
 			{
 				"command": "vscode4teaching.addexercise",
-				"title": "Add Exercise",
+				"title": "Add exercise",
 				"icon": {
 					"light": "resources/light/add.png",
 					"dark": "resources/dark/add.png"
@@ -111,7 +111,7 @@
 			},
 			{
 				"command": "vscode4teaching.addmultipleexercises",
-				"title": "Add Multiple Exercises",
+				"title": "Add multiple exercises",
 				"icon": {
 					"light": "resources/light/add_multiple.png",
 					"dark": "resources/dark/add_multiple.png"
@@ -127,7 +127,7 @@
 			},
 			{
 				"command": "vscode4teaching.editexercise",
-				"title": "Edit Exercise",
+				"title": "Edit exercise",
 				"icon": {
 					"light": "resources/light/edit.png",
 					"dark": "resources/dark/edit.png"
@@ -135,7 +135,7 @@
 			},
 			{
 				"command": "vscode4teaching.deleteexercise",
-				"title": "Delete Exercise",
+				"title": "Delete exercise",
 				"icon": {
 					"light": "resources/light/delete.png",
 					"dark": "resources/dark/delete.png"
@@ -169,7 +169,7 @@
 			},
 			{
 				"command": "vscode4teaching.share",
-				"title": "Get Sharing Code",
+				"title": "Get sharing link",
 				"icon": {
 					"light": "resources/light/share.png",
 					"dark": "resources/dark/share.png"
@@ -212,10 +212,70 @@
 				{
 					"command": "vscode4teaching.refreshexercises",
 					"when": "view == vscode4teachingview && viewItem == coursestudent",
-					"group": "inline@1"
+					"group": "coursestudent_secondarygroup@1"
+				},
+				{
+					"command": "vscode4teaching.share",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup1@1"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup2@1"
+				},
+				{
+					"command": "vscode4teaching.addmultipleexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup2@2"
+				},
+				{
+					"command": "vscode4teaching.adduserstocourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup3@1"
+				},
+				{
+					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup3@2"
 				},
 				{
 					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@1"
+				},
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@2"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@3"
+				},
+				{
+					"command": "vscode4teaching.showexercisedashboard",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup1@1"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup2@1"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup2@2"
+				},
+				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.share",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@1"
 				},
@@ -230,27 +290,27 @@
 					"group": "inline@3"
 				},
 				{
-					"command": "vscode4teaching.editcourse",
+					"command": "vscode4teaching.adduserstocourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@4"
 				},
 				{
-					"command": "vscode4teaching.deletecourse",
+					"command": "vscode4teaching.removeusersfromcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@5"
 				},
 				{
-					"command": "vscode4teaching.adduserstocourse",
+					"command": "vscode4teaching.refreshexercises",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@6"
 				},
 				{
-					"command": "vscode4teaching.removeusersfromcourse",
+					"command": "vscode4teaching.editcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@7"
 				},
 				{
-					"command": "vscode4teaching.share",
+					"command": "vscode4teaching.deletecourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@8"
 				},
