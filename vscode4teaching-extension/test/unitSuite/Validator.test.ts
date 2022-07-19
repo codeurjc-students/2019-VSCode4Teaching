@@ -84,7 +84,7 @@ describe("Validators", () => {
 
     it("should validate course correctly", () => {
         const emptyError = "Please enter a name";
-        const lengthError = "Name must be between 10 and 100 characters";
+        const lengthError = "Name must contain between 10 and 100 characters";
         expect(Validators.validateCourseName("New course")).toBeUndefined();
         const longName = "Course".repeat(1000);
         expect(Validators.validateCourseName(longName)).toBe(lengthError);
@@ -94,7 +94,7 @@ describe("Validators", () => {
 
     it("should validate exercise correctly", () => {
         const emptyError = "Please enter a name";
-        const lengthError = "Name must be between 10 and 100 characters";
+        const lengthError = "Name must contain between 3 and 100 characters";
         expect(Validators.validateExerciseName("New exercise")).toBeUndefined();
         const longName = "Exercise".repeat(1000);
         expect(Validators.validateExerciseName(longName)).toBe(lengthError);
