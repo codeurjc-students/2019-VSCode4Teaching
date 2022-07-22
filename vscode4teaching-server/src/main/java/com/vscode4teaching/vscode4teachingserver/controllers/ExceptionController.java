@@ -10,50 +10,46 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionController {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Set<ConstraintViolation<?>>> handleConstraintViolationException(
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolationException(
             ConstraintViolationException e) {
-        Set<ConstraintViolation<?>> errors = e.getConstraintViolations();
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        List<ErrorDetail> errors = e.getConstraintViolations().stream()
+                .map(f -> new ErrorDetail(f.getPropertyPath().toString(), f.getInvalidValue().toString()))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(new ValidationErrorResponse(errors), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e) {
-        List<FieldError> errors = e.getBindingResult().getFieldErrors();
-        List<ErrorDetail> errorDetails = new ArrayList<>();
-        for (FieldError fieldError : errors) {
-            ErrorDetail error = new ErrorDetail(fieldError.getField(), fieldError.getDefaultMessage());
-            errorDetails.add(error);
-        }
-
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse(errorDetails);
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        List<ErrorDetail> errorDetails = e.getBindingResult().getFieldErrors().stream()
+                .map(fe -> new ErrorDetail(fe.getField(), fe.getDefaultMessage()))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(new ValidationErrorResponse(errorDetails), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleHibernateConstraintViolationException(
             org.hibernate.exception.ConstraintViolationException e) {
-        return new ResponseEntity<>(e.getSQLException().getMessage().split(" for key ")[0] + ".",
-                HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(
+                e.getSQLException().getMessage().split(" for key ")[0] + ".",
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     @ExceptionHandler(NotFoundException.class)

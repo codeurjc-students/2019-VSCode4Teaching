@@ -469,8 +469,8 @@ class APIClientSingleton {
             }
             return result;
         }).catch(err => {
-            v4tLogger.error(err);
-            return err;
+            // TBD Better error handling
+            throw err;
         });
     }
 

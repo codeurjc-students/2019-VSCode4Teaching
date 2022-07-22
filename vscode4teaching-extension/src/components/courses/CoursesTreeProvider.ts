@@ -338,25 +338,30 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         let errorCaught = false;
                         if (exercisesDirectories.length > 1) {
                             // Exercises are uploaded in batches of 3 exercises
-                            while (exercisesDirectories.length > 0) {
+                            while (!errorCaught && exercisesDirectories.length > 0) {
                                 const exercisesDirChunk = exercisesDirectories.splice(0, 3);
                                 // Collect exercises' names from directories' names
-                                const exerciseData = await APIClient.addExercises(
-                                    course.id,
-                                    exercisesDirChunk.map((d) => ({ name: d.name }))
-                                );
-
-                                // When added to DB, templates of each exercise are sent
-                                exerciseData.data.map(async (ex, index) => {
-                                    const directoryFiles = fs.readdirSync(fsUri + path.sep + exercisesDirChunk[index].name).map((e) => vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name + path.sep + e));
-                                    APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris(directoryFiles), false)
-                                        .then((_) => uploadedExercises++)
-                                        .catch((_) => (errorCaught = true));
-                                });
+                                try {
+                                    const exerciseData = await APIClient.addExercises(course.id, exercisesDirChunk.map((d) => ({ name: d.name })));
+                                    exerciseData.data.map(async (ex, index) => {
+                                        const directoryFiles = fs.readdirSync(fsUri + path.sep + exercisesDirChunk[index].name).map((e) => vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name + path.sep + e));
+                                        APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris(directoryFiles), false)
+                                            .then((_) => {
+                                                uploadedExercises++;
+                                                if (!errorCaught && availableFolderNumber === uploadedExercises) {
+                                                    vscode.window.showInformationMessage("All exercises were successfully uploaded.");
+                                                    CoursesProvider.triggerTreeReload();
+                                                    item.collapsibleState
+                                                    return;
+                                                }
+                                            })
+                                            .catch((_) => (errorCaught = true));
+                                    });
+                                } catch(e: any) {
+                                    errorCaught = true;
+                                }
                             }
-                            if (!errorCaught || availableFolderNumber !== uploadedExercises) {
-                                vscode.window.showInformationMessage("All exercises were successfully uploaded.");
-                            } else {
+                            if (errorCaught) {
                                 vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
                             }
                         } else {
