@@ -61,6 +61,15 @@ public class ExerciseUserInfo {
         this.user = user;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+        this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
+    }
+
     public Exercise getExercise() {
         return exercise;
     }

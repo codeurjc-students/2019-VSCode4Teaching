@@ -14,8 +14,7 @@ import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit"
 
 jest.mock("axios");
 const mockedAxios = mocked(axios, true);
-mockedAxios.mockResolvedValue({
-    data: undefined,
+mockedAxios.mockResolvedValue(<any>{
     status: 200,
     statusText: "",
     headers: {},
@@ -217,7 +216,7 @@ describe("client API calls", () => {
 
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
-            data: exercise,
+            data: [exercise],
             headers: {
                 "Authorization": "Bearer " + jwtToken,
                 "Cookie": "XSRF-TOKEN=" + xsrfToken,
@@ -227,12 +226,42 @@ describe("client API calls", () => {
             maxBodyLength: Infinity,
             method: "POST",
             responseType: "json",
-            url: "/api/courses/" + courseId + "/exercises",
+            url: "/api/v2/courses/" + courseId + "/exercises",
         };
 
-        const thenable = APIClient.addExercise(courseId, exercise);
+        const thenable = APIClient.addExercises(courseId, [exercise]);
 
-        expectCorrectRequest(expectedOptions, "Adding exercise...", false, thenable);
+        expectCorrectRequest(expectedOptions, "Adding new exercises...", false, thenable);
+    });
+
+    it("should request add multiple exercises correctly", () => {
+        const courseId = 1;
+        const exercises: ExerciseEdit[] = [
+            { name: "Exercise 1", },
+            { name: "Exercise 2", },
+            { name: "Exercise 3", },
+            { name: "Exercise 4", },
+            { name: "Exercise 5", },
+        ];
+
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: exercises,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "POST",
+            responseType: "json",
+            url: "/api/v2/courses/" + courseId + "/exercises",
+        };
+
+        const thenable = APIClient.addExercises(courseId, exercises);
+
+        expectCorrectRequest(expectedOptions, "Adding new exercises...", false, thenable);
     });
 
     it("should request edit exercise correctly", () => {
@@ -663,7 +692,7 @@ describe("client API calls", () => {
         expectCorrectRequest(expectedOptions, "Saving comments...", false, thenable);
     });
 
-    it("should request get sharing code for exercise correctly", () => {
+    it("should join course with sharing code correctly", () => {
         const code = "testcode";
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
@@ -675,7 +704,7 @@ describe("client API calls", () => {
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
-            method: "GET",
+            method: "PUT",
             responseType: "json",
             url: "/api/courses/code/" + code,
         };

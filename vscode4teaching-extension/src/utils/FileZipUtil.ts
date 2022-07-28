@@ -12,6 +12,7 @@ import { ModelUtils } from "../model/serverModel/ModelUtils";
 import { V4TExerciseFile } from "../model/V4TExerciseFile";
 import { FileIgnoreUtil } from "./FileIgnoreUtil";
 import { ZipInfo } from "./ZipInfo";
+import { v4tLogger } from "../services/LoggerService";
 
 /**
  * Utility class used for zipping files
@@ -98,9 +99,7 @@ export class FileZipUtil {
         }
         try {
             const response = await requestThenable;
-            console.debug(response);
             const zip = await JSZip.loadAsync(response.data);
-            console.debug(zip);
             // Save ZIP for FSW operations
             if (!fs.existsSync(zipInfo.zipDir)) {
                 mkdirp.sync(zipInfo.zipDir);
@@ -129,7 +128,7 @@ export class FileZipUtil {
                     const v4tpath = v4tpathArray[i];
                     fs.writeFileSync(v4tpath, fileData);
                 } catch (error) {
-                    console.error(error);
+                    v4tLogger.error(error);
                     vscode.window.showErrorMessage(error as string);
                 }
             }
@@ -143,7 +142,7 @@ export class FileZipUtil {
             fs.writeFileSync(path.resolve(zipInfo.dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
             return zipInfo.dir;
         } catch (error) {
-            console.error(error);
+            v4tLogger.error(error);
             vscode.window.showErrorMessage(error as string);
         }
     }
@@ -164,7 +163,6 @@ export class FileZipUtil {
                 zip.file(path.relative(path.dirname(uriPath), uriPath), filedata);
             }
         });
-        console.debug(zip);
         return await zip.generateAsync({
             type: "nodebuffer",
         });
@@ -189,16 +187,14 @@ export class FileZipUtil {
                     jszipFile.file(relativeFilePath, data);
                     const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                     vscode.window.setStatusBarMessage("Compressing files...", thenable);
-                    console.debug(jszipFile);
                     return thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
-                        .then((response) => console.debug(response))
                         .catch((axiosError) => APIClient.handleAxiosError(axiosError));
                 }
             } catch (err) {
                 if (filePath.includes("v4texercise.v4t")) {
                     throw err;
                 } else {
-                    console.error(err);
+                    v4tLogger.error(err);
                 }
             }
         }
@@ -220,7 +216,6 @@ export class FileZipUtil {
             const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
             vscode.window.setStatusBarMessage("Compressing files...", thenable);
             return thenable.then((zipData) => { APIClient.uploadFiles(exerciseId, zipData); })
-                .then((response) => console.debug(response))
                 .catch((err) => APIClient.handleAxiosError(err));
         }
     }

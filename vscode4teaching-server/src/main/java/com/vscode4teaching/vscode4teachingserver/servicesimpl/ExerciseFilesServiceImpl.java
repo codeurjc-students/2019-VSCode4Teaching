@@ -1,40 +1,33 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.validation.constraints.Min;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.constraints.Min;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Service
 public class ExerciseFilesServiceImpl implements ExerciseFilesService {
@@ -59,6 +52,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getExerciseFiles(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
+        logger.info("Called ExerciseFilesServiceImpl.getExerciseFiles({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -75,8 +69,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             }
         }
         Map<Exercise, List<File>> returnMap = new HashMap<>();
-        returnMap.put(exercise,
-                exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
+        returnMap.put(exercise, exerciseFiles.stream().map(file -> Paths.get(file.getPath()).toFile()).collect(Collectors.toList()));
         return returnMap;
     }
 
@@ -84,30 +77,35 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     public Map<Exercise, List<File>> saveExerciseFiles(@Min(1) Long exerciseId, MultipartFile file,
                                                        String requestUsername)
             throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
-        ExerciseUserInfo eui = exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, requestUsername)
-                .orElseThrow(() -> new NotFoundException(
-                        "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
+        logger.info("Called ExerciseFilesServiceImpl.saveExerciseFiles({}, (file), {})", exerciseId, requestUsername);
+        ExerciseUserInfo eui = exerciseUserInfoRepository
+                .findByExercise_IdAndUser_Username(exerciseId, requestUsername)
+                .orElseThrow(() ->
+                        new NotFoundException(
+                                "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
         if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
         }
-        return saveFiles(exerciseId, file, requestUsername, false);
+        return saveFiles(exerciseId, file, requestUsername, eui);
     }
 
     @Override
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file,
                                                           String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
-        return saveFiles(exerciseId, file, requestUsername, true);
+        return saveFiles(exerciseId, file, requestUsername, null);
     }
 
     private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
-                                                boolean isTemplate) throws ExerciseNotFoundException, NotInCourseException, IOException {
+                                                ExerciseUserInfo eui) throws ExerciseNotFoundException, NotInCourseException, IOException {
+        logger.info("Called ExerciseFilesServiceImpl.saveFiles({}, (file), {}, {})", exerciseId, requestUsername, eui);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
         User user = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
-        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, isTemplate);
-        String lastFolderPath = isTemplate ? "template" : requestUsername;
+        ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, (eui == null));
+        // eui is null if file is a template, otherwise it'll be a normal eui
+        String lastFolderPath = (eui == null) ? "template" : "student_" + eui.getId();
         // For example, for root path "v4t_courses", a course "Course 1" with id 34, an exercise "Exercise 1" with id 77
         // and a user "john.doe" the final directory path would be
         // v4t_courses/course_1_34/exercise_1_77/john.doe
@@ -142,8 +140,8 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 fos.close();
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 try {
-                    if (!fileRepository.findByPath(destFile.getCanonicalPath()).isPresent()) {
-                        if (isTemplate) {
+                    if (fileRepository.findByPath(destFile.getCanonicalPath()).isEmpty()) {
+                        if (eui == null) {
                             ExerciseFile savedFile = fileRepository.save(exFile);
                             exercise.addFileToTemplate(savedFile);
                         } else {
@@ -181,6 +179,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException {
+        logger.info("Called ExerciseFilesServiceImpl.getExerciseTemplate({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -198,6 +197,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public Map<Exercise, List<File>> getAllStudentsFiles(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
+        logger.info("Called ExerciseFilesServiceImpl.getAllStudentsFiles({}, {})", exerciseId, requestUsername);
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, false);
@@ -211,6 +211,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
     @Override
     public List<ExerciseFile> getFileIdsByExerciseAndOwner(@Min(1) Long exerciseId, String ownerUsername)
             throws ExerciseNotFoundException {
+        logger.info("Called ExerciseFilesServiceImpl.getFileIdsByExerciseAndOwner({}, {})", exerciseId, ownerUsername);
         Exercise ex = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         List<ExerciseFile> files = ex.getFilesByOwner(ownerUsername);
@@ -218,13 +219,13 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
             String username = files.get(0).getOwner().getUsername();
             List<ExerciseFile> copyFiles = new ArrayList<>(files);
 
-            // Change paths to be relative to username
+            // Change paths to be relative to student's folder (named "student_{number}")
             copyFiles.forEach((ExerciseFile file) -> {
                 String separator = File.separator;
                 if (File.separator.contains("\\")) {
                     separator = "\\" + File.separator;
                 }
-                file.setPath(file.getPath().split(username + separator)[1]);
+                file.setPath(file.getPath().split("student_[0-9]*" + separator)[1]);
             });
             return copyFiles;
         } else {

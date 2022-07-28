@@ -1,13 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.Min;
-
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
@@ -17,17 +9,19 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepo
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.constraints.Min;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -39,8 +33,10 @@ public class CourseServiceImpl implements CourseService {
     private final ExerciseUserInfoRepository exerciseUserInfoRepo;
     private final SocketHandler websocketHandler;
 
+    private final Logger logger = LoggerFactory.getLogger(CourseServiceImpl.class);
+
     public CourseServiceImpl(CourseRepository courseRepo, ExerciseRepository exerciseRepo, UserRepository userRepo,
-            ExerciseUserInfoRepository exerciseUserInfoRepo, SocketHandler websocketHandler) {
+                             ExerciseUserInfoRepository exerciseUserInfoRepo, SocketHandler websocketHandler) {
         this.courseRepo = courseRepo;
         this.exerciseRepo = exerciseRepo;
         this.userRepo = userRepo;
@@ -51,6 +47,11 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<Course> getAllCourses() {
         return this.courseRepo.findAll();
+    }
+
+    @Override
+    public Optional<Course> getCourseById(Long courseId) {
+        return this.courseRepo.findById(courseId);
     }
 
     @Override
@@ -116,7 +117,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course getCourseWithSharingCode(String uuid, String requestUsername)
+    public Course joinCourseWithSharingCode(String uuid, String requestUsername)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
         Course course = this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
         User user = userRepo.findByUsername(requestUsername)
@@ -128,6 +129,12 @@ public class CourseServiceImpl implements CourseService {
         }
         this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return courseRepo.save(course);
+    }
+
+    @Override
+    public Course getCourseInformationWithSharingCode(String uuid)
+            throws CourseNotFoundException {
+        return this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
     }
 
     @Override

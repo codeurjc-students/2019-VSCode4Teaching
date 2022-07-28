@@ -28,11 +28,14 @@ let coursesProvider = new CoursesProvider();
 const mockedUserTeacherModel: User = {
     id: 1,
     username: "johndoe",
-    roles: [{
-        roleName: "ROLE_STUDENT",
-    }, {
-        roleName: "ROLE_TEACHER",
-    }],
+    roles: [
+        {
+            roleName: "ROLE_STUDENT",
+        },
+        {
+            roleName: "ROLE_TEACHER",
+        },
+    ],
     courses: [],
 };
 const teacherCourses: Course[] = [
@@ -237,7 +240,7 @@ describe("Tree View", () => {
             },
             status: 201,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
         mockedCurrentUser.updateUserInfo.mockResolvedValueOnce(
@@ -276,7 +279,7 @@ describe("Tree View", () => {
             },
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
         mockedCurrentUser.isLoggedIn.mockReturnValueOnce(true);
@@ -305,7 +308,7 @@ describe("Tree View", () => {
         mockedClient.deleteCourse.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: undefined,
         });
@@ -359,15 +362,17 @@ describe("Tree View", () => {
         ];
         mockedVscode.window.showOpenDialog.mockResolvedValueOnce(fileUrisMocks);
 
-        mockedClient.addExercise.mockResolvedValueOnce({
+        mockedClient.addExercises.mockResolvedValueOnce({
             status: 201,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
-            data: {
-                id: 10,
-                name: exerciseModel.name,
-            },
+            data: [
+                {
+                    id: 10,
+                    name: exerciseModel.name,
+                },
+            ],
         });
 
         const mockBuffer = Buffer.from("test");
@@ -376,10 +381,9 @@ describe("Tree View", () => {
         mockedClient.uploadExerciseTemplate.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
-            data: {
-            },
+            data: {},
         });
 
         await coursesProvider.addExercise(courseModel);
@@ -388,8 +392,8 @@ describe("Tree View", () => {
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsExercise);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenNthCalledWith(1, openDialogOptions);
-        expect(mockedClient.addExercise).toHaveBeenCalledTimes(1);
-        expect(mockedClient.addExercise).toHaveBeenNthCalledWith(1, teacherCourses[0].id, { name: exerciseModel.name });
+        expect(mockedClient.addExercises).toHaveBeenCalledTimes(1);
+        expect(mockedClient.addExercises).toHaveBeenNthCalledWith(1, teacherCourses[0].id, [{ name: exerciseModel.name }]);
         expect(mockedFileZipUtil.getZipFromUris).toHaveBeenCalledTimes(1);
         expect(mockedFileZipUtil.getZipFromUris).toHaveBeenNthCalledWith(1, fileUrisMocks);
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenCalledTimes(1);
@@ -418,7 +422,7 @@ describe("Tree View", () => {
             },
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         });
 
@@ -444,7 +448,7 @@ describe("Tree View", () => {
         mockedClient.deleteExercise.mockResolvedValueOnce({
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
             data: undefined,
         });
@@ -475,9 +479,9 @@ describe("Tree View", () => {
         const inputOptionsName = mockGetInput("Name", Validators.validateName, userData.name);
         const inputOptionsLastName = mockGetInput("Last name", Validators.validateLastName, userData.lastName);
 
-        mockedClient.signUpV4T.mockResolvedValueOnce();
+        mockedClient.signUpStudent.mockResolvedValueOnce();
 
-        await coursesProvider.signup(false);
+        await coursesProvider.signup();
 
         expect(mockedVscode.window.showInputBox).toHaveBeenCalledTimes(6);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(1, inputOptionsUsername);
@@ -486,8 +490,8 @@ describe("Tree View", () => {
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(4, inputOptionsEmail);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(5, inputOptionsName);
         expect(mockedVscode.window.showInputBox).toHaveBeenNthCalledWith(6, inputOptionsLastName);
-        expect(mockedClient.signUpV4T).toHaveBeenCalledTimes(1);
-        expect(mockedClient.signUpV4T).toHaveBeenNthCalledWith(1, userData, false);
+        expect(mockedClient.signUpStudent).toHaveBeenCalledTimes(1);
+        expect(mockedClient.signUpStudent).toHaveBeenNthCalledWith(1, userData);
     });
 
     it("should get course from code", async () => {
@@ -502,7 +506,7 @@ describe("Tree View", () => {
             data: course,
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getCourseWithCode.mockResolvedValueOnce(response);
@@ -546,14 +550,14 @@ describe("Tree View", () => {
             ],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         const responseUsersCourse: AxiosResponse<User[]> = {
             data: [mockedUserTeacherModel, mockedUserStudentModel],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getAllUsers.mockResolvedValueOnce(responseUsers);
@@ -603,7 +607,7 @@ describe("Tree View", () => {
                 }],
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getUsersInCourse.mockResolvedValueOnce(responseUsersCourse);
@@ -611,7 +615,7 @@ describe("Tree View", () => {
             data: mockedUserTeacherModel,
             status: 200,
             statusText: "2",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getCreator.mockResolvedValueOnce(responseCreator);

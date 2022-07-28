@@ -1,25 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserDTO;
@@ -29,9 +9,9 @@ import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +27,22 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
@@ -83,7 +79,7 @@ public class JWTLoginControllerTests {
         jwtRequest.setPassword("teacherpassword");
 
         mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
-                .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.jwtToken", equalTo("mockToken")));
 
         ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
@@ -118,7 +114,7 @@ public class JWTLoginControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = { "STUDENT", "TEACHER" })
+    @WithMockUser(roles = {"STUDENT", "TEACHER"})
     public void registerTeacher() throws Exception {
         Role studentRole = new Role("ROLE_STUDENT");
         studentRole.setId(2l);
@@ -131,24 +127,34 @@ public class JWTLoginControllerTests {
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail("johndoe@gmail.com");
         userDTO.setUsername("johndoe");
-        userDTO.setPassword("password");
         userDTO.setName("John");
         userDTO.setLastName("Doe");
         when(userService.save(any(com.vscode4teaching.vscode4teachingserver.model.User.class), eq(true)))
                 .thenReturn(expectedUser);
 
-        MvcResult mvcResult = mockMvc.perform(post("/api/teachers/register").contentType("application/json")
-                .with(csrf()).content(objectMapper.writeValueAsString(userDTO))).andExpect(status().isCreated())
-                .andReturn();
+        UUID randomPassword = UUID.randomUUID();
 
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(UserViews.EmailView.class)
-                .writeValueAsString(expectedUser);
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+        try (MockedStatic<UUID> mockedUUID = mockStatic(UUID.class)) {
+            // UUID random generation is mocked and a prefixed value is returned
+            mockedUUID.when(UUID::randomUUID).thenReturn(randomPassword);
+
+            MvcResult mvcResult = mockMvc.perform(post("/api/teachers/invitation")
+                            .contentType("application/json")
+                            .with(csrf()).content(objectMapper.writeValueAsString(userDTO)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            // Server is returning the new random password unencrypted in response
+            userDTO.setPassword(randomPassword.toString());
+
+            String actualResponseBody = mvcResult.getResponse().getContentAsString();
+            String expectedResponseBody = objectMapper.writeValueAsString(userDTO);
+            assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+        }
     }
 
     @Test
-    @WithMockUser(roles = { "STUDENT", "TEACHER" })
+    @WithMockUser(roles = {"STUDENT", "TEACHER"})
     public void getCurrentUser() throws Exception {
 
         Role studentRole = new Role("ROLE_STUDENT");

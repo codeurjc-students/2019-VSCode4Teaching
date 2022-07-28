@@ -3,15 +3,25 @@ table {
     width: 100%;
 }
 
-body.vscode-light td, body.vscode-light th, body.vscode-dark td, body.vscode-dark th {
+body.vscode-light td,
+body.vscode-light th,
+body.vscode-dark td,
+body.vscode-dark th {
     border: 1px solid;
     text-align: center;
 }
 
-body.vscode-high-contrast td, th {
+body.vscode-high-contrast td,
+th {
     border: 1px solid;
     text-align: center;
 }
+
+body.vscode-light td,
+body.vscode-dark td {
+    padding: 0.25rem 0;
+}
+
 
 .not-started-cell {
     background-color: var(--vscode-diffEditor-removedTextBackground);
@@ -23,13 +33,17 @@ body.vscode-high-contrast td, th {
 
 .onprogress-cell {
     background-color: rgba(76, 149, 218, 0.644);
-    ;
 }
 
 button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
+    margin-right: 0.5rem;
+}
+
+button:last-child {
+    margin-right: 0;
 }
 
 button:hover {
@@ -51,9 +65,72 @@ option:hover {
 }
 
 .reload-options {
-    border: 1px solid;
-    padding: 2px;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    border-color: var(--vscode-button-background);
+    padding: 5px;
     margin-top: 2px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    outline: none;
+    background-color: #ccc;
+    transition: 0.25s;
+    border-radius: 17px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: 0.25s;
+    transition: 0.25s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--vscode-button-background);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--vscode-button-background);
+}
+
+input:checked + .slider:before {
+    transform: translateX(13px);
 }
 
 table th {
@@ -136,6 +213,13 @@ table th {
     transform: rotate(45deg);
 }
 
-.workspace-link {
-    margin-right: 4px;
+.alert-info {
+    text-align: center;
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #055160;
+    background-color: #cff4fc;
+    border: 1px solid #b6effb;
+    border-radius: 0.375rem;
 }

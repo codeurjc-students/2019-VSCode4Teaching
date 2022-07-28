@@ -137,7 +137,7 @@ describe("Comment Service", () => {
             data: Object.assign({ id: 10 }, savedCommentResponseData),
             status: 201,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
 
@@ -193,7 +193,7 @@ describe("Comment Service", () => {
             data,
             status: 200,
             statusText: "",
-            headers: [],
+            headers: {},
             config: {},
         };
         mockedClient.getAllComments.mockResolvedValueOnce(commentsResponse);

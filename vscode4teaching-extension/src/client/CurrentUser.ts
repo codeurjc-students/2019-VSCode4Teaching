@@ -16,7 +16,6 @@ export class CurrentUser {
     public static async updateUserInfo(): Promise<User> {
         // Errors have to be controlled in the caller function
         const userResponse = await APIClient.getServerUserInfo();
-        console.debug(userResponse);
         if (userResponse.data.courses && userResponse.data.courses.length > 0) {
             userResponse.data.courses.forEach((course) => {
                 if (!course.exercises) {

@@ -1,0 +1,59 @@
+<div class="container-big d-flex flex-column">
+    <header>
+        <img class="logo" src="/assets/img/v4ticon.png" alt="V4T logo" />
+    </header>
+    <section>
+        <h1 class="title">VSCode 4 Teaching</h1>
+        <h3>Extension for Visual Studio Code</h3>
+        <hr/>
+        <ng-container *ngIf="this.loading">
+            <div class="alert alert-secondary" *ngIf="!this.error"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+            <div class="alert alert-danger" *ngIf="this.error"><i class="fas fa-exclamation-triangle"></i> The code you entered could not be related to a course.</div>
+        </ng-container>
+        <ng-container *ngIf="!this.loading">
+            <ng-container *ngIf="this.code !== undefined">
+                <h2>{{ this.course?.creator?.name }} {{ this.course?.creator?.lastName }} invited you to join {{ this.course?.name }} at VSCode4Teaching!</h2>
+                <div>If you want to join this course, please follow this steps:</div>
+            </ng-container>
+            <ng-container *ngIf="this.code === undefined">
+                <div class="text-body">Bring the programming exercises of a course directly to the student's editor, so that the teacher of that course can check the progress of the students and help them.</div>
+                <h2>Tutorial</h2>
+            </ng-container>
+            <h3>Install Visual Studio Code IDE if you have not installed it previously:</h3>
+            <div>
+                <a class="downloadBtn" id="vsc" href="https://code.visualstudio.com/Download" target="_blank" rel="noopener noreferrer">
+                    <img src="/assets/img/vscode.png" alt="" />
+                    <span>Download Visual Studio Code</span>
+                </a>
+            </div>
+            <h3>Install VSCode4Teaching extension if you have not installed it previously:</h3>
+            <div>
+                <a class="downloadBtn" id="v4t" href="vscode:extension/VSCode4Teaching.vscode4teaching">
+                    <img src="/assets/img/v4ticon.png" alt="" />
+                    <span>Download V4T extension</span>
+                </a>
+            </div>
+            <h3>You will have to sign up if you did not previously:</h3>
+            <img class="demo-gif" src="/assets/img/gif1_signup.gif" alt="Animated image of demo student registering" />
+            <h3>If you signed up successfully, now you can log in:</h3>
+            <img class="demo-gif" src="/assets/img/gif2_login.gif" alt="Animated image of demo student logging in">
+            <ng-container *ngIf="this.code === undefined">
+                <h3>Join a course (the teacher will give you the code!):</h3>
+            </ng-container>
+            <ng-container *ngIf="this.code !== undefined">
+                <h3>Join the course using this code:</h3>
+                <div class="codeBlock">
+                    <input id="givenCodeInput" [value]="this.code" readonly #codeCopyInput (focus)="copyCode()" />
+                    <button type="button" id="codeCopyBtn" #codeCopyBtn (click)="copyCode()">Copy</button>
+                </div>
+            </ng-container>
+            <img class="demo-gif" src="/assets/img/gif3_joincourse.gif" alt="Animated image of demo student enrolling in a course using an enrollment code" />
+            <h3>Now you can do the exercise! When you save a file, its contents will be able to be seen by the teachers:</h3>
+            <img class="demo-gif" src="/assets/img/gif4_doingexercise.gif" alt="Animated image of demo student editing an exercise" />
+            <h3>When you finish the exercise, press the Finish button:</h3>
+            <img class="demo-gif" src="/assets/img/gif5_finishexercise.gif" alt="Animated image of a demo student marking an exercise as finished" />
+            <h3>New exercise! Refresh the list of exercises in the course:</h3>
+            <img class="demo-gif" src="/assets/img/gif6_newexercise.gif" alt="Animated image of demo student refreshing exercise list" />
+        </ng-container>
+    </section>
+</div>

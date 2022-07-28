@@ -14,11 +14,9 @@ export class EUIUpdateService {
 
     public static async updateExercise(exerciseId: number) {
         const response = await APIClient.getExerciseUserInfo(exerciseId);
-        console.debug(response);
         const originalStatus = response.data.status;
-        const responseEui = await APIClient.updateExerciseUserInfo(exerciseId, originalStatus, Array.from(this.modifiedPaths));
+        await APIClient.updateExerciseUserInfo(exerciseId, originalStatus, Array.from(this.modifiedPaths));
         this.modifiedPaths.clear();
-        console.debug(responseEui);
     }
 
     // Regex to extract the path for the file.

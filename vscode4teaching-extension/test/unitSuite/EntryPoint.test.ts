@@ -71,6 +71,7 @@ describe("Extension entry point", () => {
         "vscode4teaching.refreshcourses",
         "vscode4teaching.refreshexercises",
         "vscode4teaching.addexercise",
+        "vscode4teaching.addmultipleexercises",
         "vscode4teaching.editexercise",
         "vscode4teaching.deleteexercise",
         "vscode4teaching.adduserstocourse",
@@ -82,18 +83,20 @@ describe("Extension entry point", () => {
         "vscode4teaching.signupteacher",
         "vscode4teaching.getwithcode",
         "vscode4teaching.finishexercise",
-        "vscode4teaching.showdashboard",
+        "vscode4teaching.showexercisedashboard",
+        "vscode4teaching.showcurrentexercisedashboard",
         "vscode4teaching.showliveshareboard",
     ];
+
     function expectAllCommandsToBeRegistered(subscriptions: any[]) {
         expect(subscriptions).toHaveLength(commandIds.length);
         expect(mockedVscode.commands.registerCommand).toHaveBeenCalledTimes(commandIds.length);
         for (let i = 0; i < commandIds.length; i++) {
-            expect(mockedVscode.commands.registerCommand.mock.calls[i][0]).toBe(commandIds[i]);
+            expect(commandIds).toContain(mockedVscode.commands.registerCommand.mock.calls[i][0]);
         }
     }
-    it("should activate correctly", () => {
 
+    it("should activate correctly", () => {
         mockedClient.initializeSessionFromFile.mockReturnValueOnce(false); // Initialization will be covered in another test
 
         extension.activate(ec);
@@ -128,6 +131,7 @@ describe("Extension entry point", () => {
         };
         mockedCurrentUser.getUserInfo.mockReturnValue(user);
         const eui: ExerciseUserInfo = {
+            id: 1,
             exercise,
             user,
             status: 0,

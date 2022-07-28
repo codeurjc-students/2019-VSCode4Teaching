@@ -6,6 +6,7 @@ import { CurrentUser } from "../../client/CurrentUser";
 import { initializeLiveShare, liveshareService, wsLiveshare } from "../../extension";
 import { Course } from "../../model/serverModel/course/Course";
 import { User } from "../../model/serverModel/user/User";
+import { v4tLogger } from "../../services/LoggerService";
 
 export class LiveshareWebview {
     public static currentPanel: LiveshareWebview | undefined;
@@ -71,7 +72,7 @@ export class LiveshareWebview {
                 (data) => {
                     this.panel.webview.html = data;
                 },
-                (err) => { console.error(err); },
+                (err) => { v4tLogger.error(err); },
             );
         });
 
@@ -87,7 +88,7 @@ export class LiveshareWebview {
                         (data) => {
                             this.panel.webview.html = data;
                         },
-                        (err) => { console.error(err); },
+                        (err) => { v4tLogger.error(err); },
                     );
                 }
             },
@@ -172,14 +173,13 @@ export class LiveshareWebview {
 
     private async getUsersFromCourse(course: Course): Promise<User[]> {
         const users = await APIClient.getUsersInCourse(course.id);
-        console.debug(users);
         if (!users?.data) { return []; }
 
         let currentUsername: string;
         try {
             currentUsername = CurrentUser.getUserInfo().username;
         } catch (err) {
-            console.error(err);
+            v4tLogger.error(err);
         }
         const filteredUsers = users.data
             .filter((user) => currentUsername && currentUsername !== user.username)
@@ -198,7 +198,7 @@ export class LiveshareWebview {
         if (!username) {
             const errorMsg = "Error sending Live Share code: username is null";
             vscode.window.showErrorMessage(errorMsg);
-            console.error(errorMsg);
+            v4tLogger.error(errorMsg);
             return;
         }
         if (liveshareService) {
@@ -225,7 +225,7 @@ export class LiveshareWebview {
                 (err) => {
                     if (err) {
                         vscode.window.showErrorMessage("Error sending code. Please, try opening another view to refresh the context.");
-                        console.error(err);
+                        v4tLogger.error(err);
                     }
                     // TODO: Se podría incluir un botón que llame a initializeExtension, y que así se recargue todo
                 });

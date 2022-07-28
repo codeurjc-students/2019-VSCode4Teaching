@@ -75,7 +75,6 @@ export class TeacherCommentService {
             }),
         };
         const response = await APIClient.saveComment(fileId, serverCommentThread);
-        console.debug(response);
         // If saved correctly then add thread to the map
         if (response.data.id) {
             this.threads.set(response.data.id, thread);
@@ -92,7 +91,6 @@ export class TeacherCommentService {
     public async getThreads(exerciseId: number, username: string, cwd: vscode.WorkspaceFolder, errorCallback: (err: any) => void) {
         try {
             const response = await APIClient.getAllComments(username, exerciseId);
-            console.debug(response);
             if (response.data) {
                 const fileInfoArray = response.data;
                 for (const fileInfo of fileInfoArray) {
@@ -134,7 +132,6 @@ export class TeacherCommentService {
      */
     public async updateThreadLine(threadId: number, line: number, lineText: string) {
         const response = await APIClient.updateCommentThreadLine(threadId, line, lineText);
-        console.debug(response);
         const commentThread = response.data;
         const oldThread = this.threads.get(threadId);
         if (oldThread) {

@@ -12,6 +12,7 @@ import { ExerciseUserInfo } from "../model/serverModel/exercise/ExerciseUserInfo
 import { FileInfo } from "../model/serverModel/file/FileInfo";
 import { User } from "../model/serverModel/user/User";
 import { UserSignup } from "../model/serverModel/user/UserSignup";
+import { v4tLogger } from "../services/LoggerService";
 import { APIClientSession } from "./APIClientSession";
 import { AxiosBuildOptions } from "./AxiosBuildOptions";
 import { CurrentUser } from "./CurrentUser";
@@ -47,7 +48,6 @@ class APIClientSingleton {
             APIClientSession.invalidateSession();
             await APIClient.getXSRFToken();
             const response = await APIClient.login(username, password);
-            console.debug(response);
             vscode.window.showInformationMessage("Logged in");
             APIClientSession.jwtToken = response.data.jwtToken;
             APIClientSession.createSessionFile();
@@ -59,30 +59,38 @@ class APIClientSingleton {
     }
 
     /**
-     * Signs up in V4T server.
-     * @param userCredentials User to sign up
-     * @param url Server URL. Ignored if trying to sign up a teacher.
-     * @param isTeacher Sign up as teacher (or not)
+     * Sign up in V4T server for students.
+     * @param userCredentials User to sign up.
      */
-    public async signUpV4T(userCredentials: UserSignup, isTeacher?: boolean) {
+    public async signUpStudent(userCredentials: UserSignup) {
         try {
-            if (!isTeacher) {
-                APIClientSession.invalidateSession();
-                await APIClient.getXSRFToken();
-            }
-            let signupThenable;
-            if (isTeacher) {
-                signupThenable = APIClient.signUpTeacher(userCredentials);
-            } else {
-                signupThenable = APIClient.signUp(userCredentials);
-            }
-            const response = await signupThenable;
-            console.debug(response);
-            if (isTeacher) {
-                vscode.window.showInformationMessage("Teacher signed up successfully.");
-            } else {
-                vscode.window.showInformationMessage("Signed up. Please log in.");
-            }
+            APIClientSession.invalidateSession();
+            await APIClient.getXSRFToken();
+            const response = await APIClient.signUp(userCredentials);
+            vscode.window.showInformationMessage("Signed up. Please log in.");
+        } catch (error) {
+            APIClient.handleAxiosError(error);
+        }
+    }
+
+    /**
+     * Invitation for new teachers in V4T Server.
+     * @param userCredentials Invited teacher's credentials.
+     */
+    public async signUpTeacher(userCredentials: UserSignup) {
+        try {
+            const response = await APIClient.inviteTeacher(userCredentials);
+            const link = APIClientSession.baseUrl + "/app/teacher/sign-up/" + response.data.password;
+            vscode.window.showInformationMessage(
+                "The new teacher has been successfully invited! Copy the link and share it with they to finish the process:\n" + link,
+                "Copy link"
+            ).then((clicked) => {
+                if (clicked) {
+                    vscode.env.clipboard.writeText(link).then(() => {
+                        vscode.window.showInformationMessage("Copied to clipboard.");
+                    });
+                }
+            });
         } catch (error) {
             APIClient.handleAxiosError(error);
         }
@@ -96,13 +104,11 @@ class APIClientSingleton {
      * @param error Error
      */
     public handleAxiosError(error: any) {
-        console.error(error);
+        v4tLogger.error(error);
         if (axios.isCancel(error)) {
             vscode.window.showErrorMessage("Request timeout.");
             // APIClientSession.invalidateSession();
         } else if (error.response) {
-            console.log(error.response);
-            console.log(error.request);
             if (error.response.status === 401 && !APIClient.error401thrown) {
                 vscode.window.showWarningMessage("It seems that we couldn't log in, please log in.");
                 APIClient.error401thrown = true;
@@ -201,14 +207,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Deleting course...");
     }
 
-    public addExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
+    public addExercises(courseId: number, exercisesData: ExerciseEdit[]): AxiosPromise<Exercise[]> {
         const options: AxiosBuildOptions = {
-            url: "/api/courses/" + id + "/exercises",
+            url: "/api/v2/courses/" + courseId + "/exercises",
             method: "POST",
             responseType: "json",
-            data,
+            data: exercisesData,
         };
-        return APIClient.createRequest(options, "Adding exercise...");
+        return APIClient.createRequest(options, "Adding new exercises...");
     }
 
     public editExercise(id: number, data: ExerciseEdit): AxiosPromise<Exercise> {
@@ -221,7 +227,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Sending exercise info...");
     }
 
-    public uploadExerciseTemplate(id: number, data: Buffer): AxiosPromise<any> {
+    public uploadExerciseTemplate(id: number, data: Buffer, showNotification?: boolean): AxiosPromise<any> {
         const dataForm = new FormData();
         dataForm.append("file", data, { filename: "template.zip" });
         const options: AxiosBuildOptions = {
@@ -230,7 +236,7 @@ class APIClientSingleton {
             responseType: "json",
             data: dataForm,
         };
-        return APIClient.createRequest(options, "Uploading template...", true);
+        return APIClient.createRequest(options, "Uploading template...", showNotification ?? true);
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {
@@ -383,7 +389,7 @@ class APIClientSingleton {
     public getCourseWithCode(code: string): AxiosPromise<Course> {
         const options: AxiosBuildOptions = {
             url: "/api/courses/code/" + code,
-            method: "GET",
+            method: "PUT",
             responseType: "json",
         };
         return APIClient.createRequest(options, "Fetching course data...");
@@ -430,14 +436,14 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Signing up to VS Code 4 Teaching...");
     }
 
-    private signUpTeacher(credentials: UserSignup): AxiosPromise<User> {
+    private inviteTeacher(credentials: UserSignup): AxiosPromise<UserSignup> {
         const options: AxiosBuildOptions = {
-            url: "/api/teachers/register",
+            url: "/api/teachers/invitation",
             method: "POST",
             responseType: "json",
             data: credentials,
         };
-        return APIClient.createRequest(options, "Signing teacher up to VS Code 4 Teaching...");
+        return APIClient.createRequest(options, "Inviting teacher to VS Code 4 Teaching...");
     }
 
     /**
@@ -462,6 +468,9 @@ class APIClientSingleton {
                 clearTimeout(axiosOptions.timeout);
             }
             return result;
+        }).catch(err => {
+            // TBD Better error handling
+            throw err;
         });
     }
 
@@ -475,8 +484,7 @@ class APIClientSingleton {
             responseType: "json",
         };
         const response = await APIClient.createRequest(options, "Fetching server info...");
-        console.debug(response);
-        const cookiesString: string | undefined = response.headers["set-cookie"][0];
+        const cookiesString: string | undefined = response.headers["set-cookie"]?.[0];
         if (cookiesString) {
             const cookies = cookiesString.split(";");
             const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));

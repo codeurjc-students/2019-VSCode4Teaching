@@ -6,7 +6,7 @@ import org.hibernate.validator.constraints.Length;
 
 public class ExerciseDTO {
     @NotEmpty(message = "Name cannot be empty")
-    @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters")
+    @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters")
     public String name;
 
     public String getName() {
@@ -16,5 +16,4 @@ public class ExerciseDTO {
     public void setName(String name) {
         this.name = name;
     }
-
 }

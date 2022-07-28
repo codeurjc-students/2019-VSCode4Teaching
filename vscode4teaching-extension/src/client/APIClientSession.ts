@@ -78,24 +78,26 @@ class APIClientSessionSingleton {
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
-        if (this.jwtToken) {
-            Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
-        }
-        if (this.xsrfToken) {
-            Object.assign(axiosConfig.headers, { "X-XSRF-TOKEN": this.xsrfToken });
-            Object.assign(axiosConfig.headers, { Cookie: "XSRF-TOKEN=" + this.xsrfToken });
-        }
         let timeout;
-        if (options.data instanceof FormData) {
-            Object.assign(axiosConfig.headers, options.data.getHeaders());
-        } else {
-            const CancelToken = axios.CancelToken;
-            const source = CancelToken.source();
-            if (source) {
-                axiosConfig.cancelToken = source.token;
-                timeout = setTimeout(() => {
-                    source.cancel();
-                }, 10000);
+        if (axiosConfig.headers !== undefined){
+            if (this.jwtToken) {
+                Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
+            }
+            if (this.xsrfToken) {
+                Object.assign(axiosConfig.headers, { "X-XSRF-TOKEN": this.xsrfToken });
+                Object.assign(axiosConfig.headers, { Cookie: "XSRF-TOKEN=" + this.xsrfToken });
+            }
+            if (options.data instanceof FormData) {
+                Object.assign(axiosConfig.headers, options.data.getHeaders());
+            } else {
+                const CancelToken = axios.CancelToken;
+                const source = CancelToken.source();
+                if (source) {
+                    axiosConfig.cancelToken = source.token;
+                    timeout = setTimeout(() => {
+                        source.cancel();
+                    }, 10000);
+                }
             }
         }
         return { axiosOptions: axiosConfig, timeout };

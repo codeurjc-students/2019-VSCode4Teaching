@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { parse } from 'node-html-parser';
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
 import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
@@ -31,31 +31,26 @@ describe("Dashboard webview", () => {
             username: "student1",
             name: "Student",
             lastName: "1",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const student2: User = {
             id: 3,
             username: "student2",
             name: "Student",
             lastName: "2",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const student3: User = {
             id: 4,
             username: "student3",
             name: "Student",
             lastName: "3",
-            roles: [
-                { roleName: "ROLE_STUDENT" },
-            ],
+            roles: [{ roleName: "ROLE_STUDENT" }],
         };
         const euis: ExerciseUserInfo[] = [];
         let now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 1,
             exercise,
             user: student1,
             status: 0,
@@ -64,6 +59,7 @@ describe("Dashboard webview", () => {
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 2,
             exercise,
             user: student2,
             status: 1,
@@ -72,13 +68,14 @@ describe("Dashboard webview", () => {
         });
         now = new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }));
         euis.push({
+            id: 3,
             exercise,
             user: student3,
             status: 2,
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
             modifiedFiles: undefined,
         });
-        DashboardWebview.show(euis, course, exercise);
+        DashboardWebview.show(euis, course, exercise, true);
         if (DashboardWebview.currentPanel) {
             expect(global.setInterval).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
@@ -87,67 +84,58 @@ describe("Dashboard webview", () => {
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][2]).toBe(mockedVscode.ViewColumn.One);
             if (mockedVscode.window.createWebviewPanel.mock.calls[0][3]) {
                 expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].enableScripts).toBe(true);
-                expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].localResourceRoots)
-                    .toStrictEqual([mockedVscode.Uri.file(DashboardWebview.resourcesPath)]);
+                expect(mockedVscode.window.createWebviewPanel.mock.calls[0][3].localResourceRoots).toStrictEqual([mockedVscode.Uri.file(DashboardWebview.resourcesPath)]);
             } else {
                 fail("Webview options argument missing");
             }
-            const $ = cheerio.load(DashboardWebview.currentPanel.panel.webview.html);
+            const $ = parse(DashboardWebview.currentPanel.panel.webview.html);
             // Title is correct
-            const title = $("title");
-            expect(title.text()).toBe("V4T Dashboard: Exercise 1");
-            // // Reload button exists
-            // const reloadButton = $("#button-reload");
-            // expect(reloadButton).toBeTruthy();
-            // // Select and its options are correct
-            // const select = $("#time-reload");
-            // expect(select).toBeTruthy();
-            // const options = $("#time-reload option").toArray();
-            // expect(options.length).toBe(5);
-            // expect(options[0].attribs.value).toBe("0");
-            // expect(options[0].firstChild.data).toBe("Never");
-            // // Selected default is Never
-            // expect(options[0].attribs.selected).toBe("");
-            // expect(options[1].attribs.value).toBe("5");
-            // expect(options[1].firstChild.data).toBe("5 seconds");
-            // expect(options[2].attribs.value).toBe("30");
-            // expect(options[2].firstChild.data).toBe("30 seconds");
-            // expect(options[3].attribs.value).toBe("60");
-            // expect(options[3].firstChild.data).toBe("1 minute");
-            // expect(options[4].attribs.value).toBe("300");
-            // expect(options[4].firstChild.data).toBe("5 minutes");
+            const title = $.querySelector("h2");
+            expect(title?.innerText).toBe("Course - Exercise 1");
+            // Hide student's names button exists and is checked on
+            const hideStudentsNames = $.querySelector("#hideStudentNames");
+            expect(hideStudentsNames).not.toBeNull();
+            expect(hideStudentsNames?.attributes["checked"]).toBeDefined();
             // Table headers are correct
-            const tableHeaders = $("th").toArray();
-            expect(tableHeaders[0].firstChild.data?.trim()).toBe("Full name");
-            expect(tableHeaders[1].firstChild.data?.trim()).toBe("Username");
-            expect(tableHeaders[2].firstChild.data?.trim()).toBe("Exercise status");
-            expect(tableHeaders[3].firstChild.data?.trim()).toBe("Last modified file");
-            expect(tableHeaders[4].firstChild.data?.trim()).toBe("Last modification");
+            const tableHeaders = $.querySelectorAll("th");
+            expect(tableHeaders.length).toBe(4);
+            expect(tableHeaders[0].innerText.trim()).toBe("Exercise folder");
+            expect(tableHeaders[1].innerText.trim()).toBe("Exercise status");
+            expect(tableHeaders[2].innerText.trim()).toBe("Last modified file");
+            expect(tableHeaders[3].innerText.trim()).toBe("Last modification");
             // Table data is correct
-            const tableData = $("td").toArray();
-            expect(tableData[0].firstChild.data).toBe("Student 1");
-            expect(tableData[1].firstChild.data).toBe("student1");
-            expect(tableData[2].firstChild.data).toBe("Not started");
-            expect(tableData[2].attribs.class).toBe("not-started-cell");
-            expect(tableData[3].childNodes[0].name).toBe("button");
-            expect(tableData[3].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[3].childNodes[1].name).toBe("button");
-            expect(tableData[3].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[4].firstChild.data === "1 d" || tableData[4].firstChild.data === "24 h").toBe(true);
-            expect(tableData[5].firstChild.data).toBe("Student 2");
-            expect(tableData[6].firstChild.data).toBe("student2");
-            expect(tableData[7].firstChild.data).toBe("Finished");
-            expect(tableData[7].attribs.class).toBe("finished-cell");
-            expect(tableData[8].childNodes[0].name).toBe("button");
-            expect(tableData[8].childNodes[0].firstChild.data).toBe("Open");
-            expect(tableData[8].childNodes[1].name).toBe("button");
-            expect(tableData[8].childNodes[1].firstChild.data).toBe("Diff");
-            // expect(tableData[9].firstChild.data).toBe("13 min");
-            expect(tableData[10].firstChild.data).toBe("Student 3");
-            expect(tableData[11].firstChild.data).toBe("student3");
-            expect(tableData[12].firstChild.data).toBe("On progress");
-            expect(tableData[12].attribs.class).toBe("onprogress-cell");
-            // expect(tableData[14].firstChild.data).toBe("35 s");
+            const tableData = $.querySelectorAll("td");
+            expect(tableData.length).toBe(4 * 3); // 4 columns * 3 students;
+            // Cell 0: exercise folder
+            expect(tableData[0].innerText).toBe("student_1");
+            // Cell 1: exercise status
+            expect(tableData[1].innerText).toBe("Not started");
+            expect(tableData[1].classNames).toBe("not-started-cell");
+            // Cell 2: last modified file
+            expect(tableData[2].childNodes.length).toBe(2);
+            expect(tableData[2].childNodes[0].innerText).toBe("Open");
+            expect(tableData[2].childNodes[1].innerText).toBe("Diff");
+            // Cell 3: last modification
+            // Cell 4: exercise folder
+            expect(tableData[4].innerText).toBe("student_2");
+            // Cell 5: exercise status
+            expect(tableData[5].innerText).toBe("Finished");
+            expect(tableData[5].classNames).toBe("finished-cell");
+            // Cell 6: last modified file
+            expect(tableData[6].childNodes.length).toBe(2);
+            expect(tableData[6].childNodes[0].innerText).toBe("Open");
+            expect(tableData[6].childNodes[1].innerText).toBe("Diff");
+            // Cell 7: last modification
+            // Cell 8: exercise folder
+            expect(tableData[8].innerText).toBe("student_3");
+            // Cell 9: exercise status
+            expect(tableData[9].innerText).toBe("On progress");
+            expect(tableData[9].classNames).toBe("onprogress-cell");
+            // Cell 10: last modified file
+            expect(tableData[10].childNodes.length).toBe(2);
+            expect(tableData[10].childNodes[0].innerText).toBe("Open");
+            expect(tableData[10].childNodes[1].innerText).toBe("Diff");
+            // Cell 11: last modification
         } else {
             fail("Current panel wasn't created");
         }

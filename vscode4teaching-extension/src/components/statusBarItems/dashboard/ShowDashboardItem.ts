@@ -4,7 +4,7 @@ import { V4TStatusBarItem } from "../V4TStatusBarItem";
 
 export class ShowDashboardItem extends V4TStatusBarItem {
     constructor(private _dashboardName: string, private _course: Course | undefined, private _exercise: Exercise | undefined) {
-        super("Dashboard", "dashboard", "vscode4teaching.showdashboard");
+        super("Dashboard", "dashboard", "vscode4teaching.showcurrentexercisedashboard");
     }
 
     get dashboardName() {

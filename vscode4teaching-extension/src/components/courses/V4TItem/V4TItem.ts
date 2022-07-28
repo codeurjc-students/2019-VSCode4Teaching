@@ -12,6 +12,10 @@ export class V4TItem extends vscode.TreeItem {
     private resourcesPath = __dirname.includes(path.sep + "out") ?
         path.join(__dirname, "..", "resources") :
         path.join(__dirname, "..", "..", "..", "..", "resources");
+
+    public iconPath = this.getIconPath();
+    public contextValue = this.type.toString();
+
     constructor(
         readonly label: string,
         readonly type: V4TItemType,
@@ -23,7 +27,7 @@ export class V4TItem extends vscode.TreeItem {
         super(label, collapsibleState);
     }
 
-    get iconPath() {
+    private getIconPath() {
         switch (this.type) {
             case V4TItemType.Login: {
                 return this.iconPaths("login.png");
@@ -47,13 +51,11 @@ export class V4TItem extends vscode.TreeItem {
             }
         }
     }
+
     private iconPaths(iconPath: string) {
         return {
             light: path.join(this.resourcesPath, "light", iconPath),
             dark: path.join(this.resourcesPath, "dark", iconPath),
         };
-    }
-    get contextValue() {
-        return this.type.toString();
     }
 }

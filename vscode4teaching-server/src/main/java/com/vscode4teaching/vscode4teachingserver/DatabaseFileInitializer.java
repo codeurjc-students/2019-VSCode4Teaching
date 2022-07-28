@@ -14,10 +14,7 @@ import java.util.stream.Stream;
 
 import javax.transaction.Transactional;
 
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
@@ -59,9 +56,9 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                     // Find course, exercise and user
                     String absolutePath = filePath.toAbsolutePath().toString();
                     int i = absolutePath.lastIndexOf(rootPath);
-                    String[] parts = absolutePath.substring(i).split(Pattern.quote(File.separator));
+                    String[] parts = absolutePath.substring(i + rootPath.length()).split(Pattern.quote(File.separator));
                     String[] courseParts = parts[1].split("_");
-                    long course_id = Long.valueOf(courseParts[courseParts.length - 1]);
+                    long course_id = Long.parseLong(courseParts[courseParts.length - 1]);
                     Optional<Course> courseOpt = courseRepository.findById(course_id);
                     // If not found build course name and try to find it
                     if (!courseOpt.isPresent()) {
@@ -83,7 +80,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                         Course course = courseOpt.get();
                         List<Exercise> exercises = course.getExercises();
                         String[] exerciseParts = parts[2].split("_");
-                        long exercise_id = Long.valueOf(exerciseParts[exerciseParts.length - 1]);
+                        long exercise_id = Long.parseLong(exerciseParts[exerciseParts.length - 1]);
                         List<String> exercisePartsList = new ArrayList<>(Arrays.asList(exerciseParts));
                         exercisePartsList.remove(exerciseParts[exerciseParts.length - 1]);
                         String exerciseName = String.join(" ", exercisePartsList);
@@ -113,10 +110,16 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                                 exercise.addFileToTemplate(file);
                                 exerciseRepository.save(exercise);
                             } else {
-                                Optional<User> userOpt = course.getUsersInCourse().stream()
-                                        .filter(user -> user.getUsername().equals(parts[3])).findFirst();
-                                if (userOpt.isPresent()) {
-                                    User user = userOpt.get();
+                                String[] userParts = parts[3].split("_");
+                                Optional<ExerciseUserInfo> userInfoOpt = Optional.empty();
+                                try {
+                                    long userInfoId = Integer.parseInt(userParts[userParts.length - 1]);
+                                    userInfoOpt = exercise.getUserInfo().stream().filter(eui -> eui.getId().equals(userInfoId)).findFirst();
+                                } catch(NumberFormatException nfe) {
+                                    logger.error("File initialization for exercise " + exercise_id + " and user " + parts[3] + " went wrong.");
+                                }
+                                if (userInfoOpt.isPresent()) {
+                                    User user = userInfoOpt.get().getUser();
                                     // When everything is found, save file to database
                                     ExerciseFile file = new ExerciseFile(absolutePath, user);
                                     fileRepository.save(file);

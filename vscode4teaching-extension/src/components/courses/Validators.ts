@@ -65,18 +65,22 @@ export class Validators {
         return Validators.validateNotEmpty(value, "Please enter your last name");
     }
 
-    public static validateCourseName(value: string): string | undefined {
+    private static validateStringWithLength(value: string, minLength: number, maxLength: number): string | undefined {
         const empty = Validators.validateNotEmpty(value, "Please enter a name");
         if (empty) {
             return empty;
         }
-        if (value.length < 10 || value.length > 100) {
-            return "Name must be between 10 and 100 characters";
+        if (value.length < minLength || value.length > maxLength) {
+            return "Name must contain between " + minLength + " and " + maxLength + " characters";
         }
     }
 
+    public static validateCourseName(value: string): string | undefined {
+        return Validators.validateStringWithLength(value, 10, 100);
+    }
+
     public static validateExerciseName(value: string): string | undefined {
-        return Validators.validateCourseName(value); // Same conditions as a course name
+        return Validators.validateStringWithLength(value, 3, 100);
     }
 
     public static validateSharingCode(value: string): string | undefined {

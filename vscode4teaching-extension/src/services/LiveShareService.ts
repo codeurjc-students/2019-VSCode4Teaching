@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as vsls from "vsls";
+import { v4tLogger } from "./LoggerService";
 
 export class LiveShareService {
 
@@ -16,7 +17,7 @@ export class LiveShareService {
                     throw new Error();
                 }
             } catch (err) {
-                console.error("Error while activating Liveshare.");
+                v4tLogger.error("Error while activating Liveshare.");
                 vscode.window.showErrorMessage("Error while activating Liveshare.");
             }
         }

@@ -1,11 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
@@ -14,14 +8,22 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNot
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExerciseInfoServiceImpl implements ExerciseInfoService {
 
     private final ExerciseUserInfoRepository exerciseUserInfoRepository;
     private final SocketHandler websocketHandler;
+    private final Logger logger = LoggerFactory.getLogger(ExerciseInfoServiceImpl.class);
 
     public ExerciseInfoServiceImpl(ExerciseUserInfoRepository exerciseUserInfoRepository, SocketHandler websocketHandler) {
         this.exerciseUserInfoRepository = exerciseUserInfoRepository;
@@ -31,11 +33,11 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
+        logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         //Changing status from not accessed to accessed but not finished
         if (eui.getStatus() == 0) {
-            eui.setStatus(2);
-            eui = exerciseUserInfoRepository.save(eui);
+            eui = updateExerciseUserInfo(exerciseId, username, 2, new ArrayList<>());
         }
         return eui;
     }
@@ -43,6 +45,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, List<String> modifiedFiles)
             throws NotFoundException {
+        logger.info("Called ExerciseInfoServiceImpl.updateExerciseUserInfo({}, {}, {}, {})", exerciseId, username, status, modifiedFiles);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
         eui.setStatus(status);
         eui.addModifiedFiles(modifiedFiles);
@@ -61,6 +64,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     @Override
     public List<ExerciseUserInfo> getAllStudentExerciseUserInfo(@Min(0) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
+        logger.info("Called ExerciseInfoServiceImpl.getAllStudentExerciseUserInfo({}, {})", exerciseId, requestUsername);
         List<ExerciseUserInfo> euis = exerciseUserInfoRepository.findByExercise_Id(exerciseId);
         if (euis.isEmpty()) {
             throw new ExerciseNotFoundException(exerciseId);

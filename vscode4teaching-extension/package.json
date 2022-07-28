@@ -1,10 +1,19 @@
 {
 	"name": "vscode4teaching",
 	"publisher": "VSCode4Teaching",
-	"author": {
-		"name": "Iván Chicano Capelo",
-		"email": "ivchicano@gmail.com"
-	},
+	"contributors": [
+		{
+			"name": "Iván Chicano Capelo",
+			"email": "ivchicano@gmail.com"
+		},
+		{
+			"name": "Álvaro Justo Rivas Alcobendas"
+		},
+		{
+			"name": "Diego Guerrero Carrasco",
+			"email": "d.guerrero.2018@alumnos.urjc.es"
+		}
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/codeurjc-students/2019-VSCode4Teaching.git",
@@ -12,7 +21,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "2.0.2",
+	"version": "2.1.3",
 	"engines": {
 		"vscode": "^1.61.0"
 	},
@@ -62,7 +71,7 @@
 		"commands": [
 			{
 				"command": "vscode4teaching.editcourse",
-				"title": "Edit Course",
+				"title": "Edit course",
 				"icon": {
 					"light": "resources/light/edit.png",
 					"dark": "resources/dark/edit.png"
@@ -70,7 +79,7 @@
 			},
 			{
 				"command": "vscode4teaching.deletecourse",
-				"title": "Delete Course",
+				"title": "Delete course",
 				"icon": {
 					"light": "resources/light/delete.png",
 					"dark": "resources/dark/delete.png"
@@ -78,7 +87,7 @@
 			},
 			{
 				"command": "vscode4teaching.refreshcourses",
-				"title": "Refresh Courses",
+				"title": "Refresh courses",
 				"icon": {
 					"light": "resources/light/refresh.png",
 					"dark": "resources/dark/refresh.png"
@@ -86,7 +95,7 @@
 			},
 			{
 				"command": "vscode4teaching.refreshexercises",
-				"title": "Refresh Exercises",
+				"title": "Refresh exercises",
 				"icon": {
 					"light": "resources/light/refresh.png",
 					"dark": "resources/dark/refresh.png"
@@ -94,15 +103,31 @@
 			},
 			{
 				"command": "vscode4teaching.addexercise",
-				"title": "Add Exercise",
+				"title": "Add exercise",
 				"icon": {
 					"light": "resources/light/add.png",
 					"dark": "resources/dark/add.png"
 				}
 			},
 			{
+				"command": "vscode4teaching.addmultipleexercises",
+				"title": "Add multiple exercises",
+				"icon": {
+					"light": "resources/light/add_multiple.png",
+					"dark": "resources/dark/add_multiple.png"
+				}
+			},
+			{
+				"command": "vscode4teaching.showexercisedashboard",
+				"title": "Open dashboard",
+				"icon": {
+					"light": "resources/light/dashboard.png",
+					"dark": "resources/dark/dashboard.png"
+				}
+			},
+			{
 				"command": "vscode4teaching.editexercise",
-				"title": "Edit Exercise",
+				"title": "Edit exercise",
 				"icon": {
 					"light": "resources/light/edit.png",
 					"dark": "resources/dark/edit.png"
@@ -110,7 +135,7 @@
 			},
 			{
 				"command": "vscode4teaching.deleteexercise",
-				"title": "Delete Exercise",
+				"title": "Delete exercise",
 				"icon": {
 					"light": "resources/light/delete.png",
 					"dark": "resources/dark/delete.png"
@@ -144,7 +169,7 @@
 			},
 			{
 				"command": "vscode4teaching.share",
-				"title": "Get Sharing Code",
+				"title": "Get sharing link",
 				"icon": {
 					"light": "resources/light/share.png",
 					"dark": "resources/dark/share.png"
@@ -187,10 +212,70 @@
 				{
 					"command": "vscode4teaching.refreshexercises",
 					"when": "view == vscode4teachingview && viewItem == coursestudent",
-					"group": "inline@1"
+					"group": "coursestudent_secondarygroup@1"
+				},
+				{
+					"command": "vscode4teaching.share",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup1@1"
+				},
+				{
+					"command": "vscode4teaching.addexercise",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup2@1"
+				},
+				{
+					"command": "vscode4teaching.addmultipleexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup2@2"
+				},
+				{
+					"command": "vscode4teaching.adduserstocourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup3@1"
+				},
+				{
+					"command": "vscode4teaching.removeusersfromcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup3@2"
 				},
 				{
 					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@1"
+				},
+				{
+					"command": "vscode4teaching.editcourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@2"
+				},
+				{
+					"command": "vscode4teaching.deletecourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "courseteacher_secondarygroup4@3"
+				},
+				{
+					"command": "vscode4teaching.showexercisedashboard",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup1@1"
+				},
+				{
+					"command": "vscode4teaching.editexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup2@1"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "exerciseteacher_secondarygroup2@2"
+				},
+				{
+					"command": "vscode4teaching.refreshexercises",
+					"when": "view == vscode4teachingview && viewItem == coursestudent",
+					"group": "inline@1"
+				},
+				{
+					"command": "vscode4teaching.share",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@1"
 				},
@@ -200,39 +285,49 @@
 					"group": "inline@2"
 				},
 				{
-					"command": "vscode4teaching.editcourse",
+					"command": "vscode4teaching.addmultipleexercises",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@3"
 				},
 				{
-					"command": "vscode4teaching.deletecourse",
+					"command": "vscode4teaching.adduserstocourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@4"
 				},
 				{
-					"command": "vscode4teaching.adduserstocourse",
+					"command": "vscode4teaching.removeusersfromcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@5"
 				},
 				{
-					"command": "vscode4teaching.removeusersfromcourse",
+					"command": "vscode4teaching.refreshexercises",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@6"
 				},
 				{
-					"command": "vscode4teaching.share",
+					"command": "vscode4teaching.editcourse",
 					"when": "view == vscode4teachingview && viewItem == courseteacher",
 					"group": "inline@7"
 				},
 				{
-					"command": "vscode4teaching.editexercise",
+					"command": "vscode4teaching.deletecourse",
+					"when": "view == vscode4teachingview && viewItem == courseteacher",
+					"group": "inline@8"
+				},
+				{
+					"command": "vscode4teaching.showexercisedashboard",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@1"
 				},
 				{
-					"command": "vscode4teaching.deleteexercise",
+					"command": "vscode4teaching.editexercise",
 					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
 					"group": "inline@2"
+				},
+				{
+					"command": "vscode4teaching.deleteexercise",
+					"when": "view == vscode4teachingview && viewItem == exerciseteacher",
+					"group": "inline@3"
 				}
 			],
 			"comments/commentThread/context": [
@@ -304,39 +399,32 @@
 		"vsce": "vsce package"
 	},
 	"devDependencies": {
-		"@babel/preset-env": "^7.9.6",
-		"@types/cheerio": "^0.22.18",
-		"@types/form-data": "^2.5.0",
-		"@types/glob": "^7.1.1",
-		"@types/jest": "^25.2.3",
-		"@types/jest-cli": "^24.3.0",
-		"@types/lodash.escaperegexp": "^4.1.6",
-		"@types/mkdirp": "^1.0.0",
-		"@types/node": "^10.15.1",
-		"@types/rimraf": "^3.0.0",
+		"@types/jest": "^26.0.24",
+		"@types/lodash.escaperegexp": "^4.1.7",
+		"@types/mkdirp": "^1.0.2",
+		"@types/node": "^10.17.60",
+		"@types/rimraf": "^3.0.2",
 		"@types/vscode": "^1.45.1",
-		"@types/ws": "^7.4.4",
-		"cheerio": "^1.0.0-rc.3",
-		"esbuild": "^0.12.20",
-		"glob": "^7.1.6",
-		"jest": "^26.0.1",
+		"@types/ws": "^8.5.3",
+		"esbuild": "^0.14.49",
+		"eslint": "^8.19.0",
+		"jest": "^26.6.3",
 		"jest-sonar-reporter": "^2.0.0",
+		"node-html-parser": "^5.3.3",
 		"rimraf": "^3.0.2",
-		"ts-jest": "^26.0.0",
-		"ts-node": "^8.10.1",
-		"tslint": "^5.20.1",
-		"typescript": "^3.9.3",
-		"vscode-test": "^1.3.0"
+		"ts-jest": "^26.5.6",
+		"typescript": "^4.7.4"
 	},
 	"dependencies": {
-		"axios": "^0.21.1",
-		"form-data": "^3.0.0",
+		"axios": "^0.27.2",
+		"form-data": "^4.0.0",
 		"ignore": "^5.1.6",
 		"jszip": "^3.4.0",
 		"lodash.escaperegexp": "^4.1.2",
 		"mkdirp": "^1.0.4",
-		"vsls": "^1.0.3015",
-		"ws": "^7.4.6"
+		"vsls": "^1.0.4753",
+		"winston": "^3.8.1",
+		"ws": "^8.8.0"
 	},
 	"jestSonar": {
 		"reportPath": "coverage",

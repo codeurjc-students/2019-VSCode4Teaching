@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -25,6 +26,8 @@ import org.springframework.validation.annotation.Validated;
 public interface CourseService {
     public List<Course> getAllCourses();
 
+    public Optional<Course> getCourseById(Long courseId);
+
     public Course registerNewCourse(@Valid Course course, String requestUsername) throws TeacherNotFoundException;
 
     public User getCreator(@Min(1) Long courseId) throws CourseNotFoundException;
@@ -41,8 +44,11 @@ public interface CourseService {
     public List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public Course getCourseWithSharingCode(String uuid, String requestUsername)
+    public Course joinCourseWithSharingCode(String uuid, String requestUsername)
             throws CourseNotFoundException, NotInCourseException, UserNotFoundException;
+
+    public Course getCourseInformationWithSharingCode(String uuid)
+            throws CourseNotFoundException;
 
     public Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData, String requestUsername)
             throws NotInCourseException, ExerciseNotFoundException;

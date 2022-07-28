@@ -36,7 +36,7 @@ public class Exercise {
 
     @JsonView(ExerciseViews.GeneralView.class)
     @NotEmpty(message = "Name cannot be empty")
-    @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters")
+    @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters")
     private String name;
 
     @ManyToOne
@@ -67,12 +67,12 @@ public class Exercise {
     private LocalDateTime updateDateTime;
 
     public Exercise(
-            @NotEmpty(message = "Name cannot be empty") @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters") String name) {
+            @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name contain be between 3 and 100 characters") String name) {
         this.name = name;
     }
 
     public Exercise(
-            @NotEmpty(message = "Name cannot be empty") @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters") String name,
+            @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters") String name,
             @Valid Course course, @Valid List<ExerciseFile> template) {
         this.name = name;
         this.course = course;
@@ -80,7 +80,7 @@ public class Exercise {
     }
 
     public Exercise(
-            @NotEmpty(message = "Name cannot be empty") @Length(min = 10, max = 100, message = "Exercise name should be between 10 and 100 characters") String name,
+            @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters") String name,
             @Valid Course course, @Valid ExerciseFile... template) {
         this.name = name;
         this.course = course;

@@ -190,6 +190,7 @@ describe("Command implementations", () => {
             name: "Test exercise",
         };
         const eui: ExerciseUserInfo = {
+            id: 3,
             status: 1,
             user,
             exercise,
@@ -408,11 +409,11 @@ describe("Command implementations", () => {
     });
 
     it("should run diff", async () => {
-        const file = mockedVscode.Uri.file("johndoejr/file.txt");
+        const file = mockedVscode.Uri.file("student_11/file.txt");
         const wf: vscode.WorkspaceFolder = {
             index: 0,
-            name: "johndoejr",
-            uri: mockedVscode.Uri.file("johndoejr"),
+            name: "student_11",
+            uri: mockedVscode.Uri.file("student_11"),
         };
         mockedVscode.workspace.getWorkspaceFolder.mockReturnValueOnce(wf);
         mockedPath.relative.mockReturnValueOnce("file.txt");
@@ -429,8 +430,8 @@ describe("Command implementations", () => {
         expect(mockedPath.relative).toHaveBeenCalledTimes(1);
         expect(mockedPath.relative).toHaveBeenNthCalledWith(1, wf.uri.fsPath, file.fsPath);
         expect(mockedPath.resolve).toHaveBeenCalledTimes(2);
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "johndoejr", "..");
-        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "template", "file.txt");
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(1, "student_11", "..");
+        expect(mockedPath.resolve).toHaveBeenNthCalledWith(2, "parentdir", "template", "file.txt");
         expect(mockedFs.existsSync).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenCalledTimes(1);
         expect(mockedVscode.commands.executeCommand).toHaveBeenNthCalledWith(1, "vscode.diff", mockedVscode.Uri.file("template/file.txt"), file);
