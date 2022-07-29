@@ -1,6 +1,6 @@
 # VSCode4Teaching - Server
 
-## Tabla de contenidos
+## Table of contents
 - [Development](#development)
   - [Involved technologies](#involved-technologies)
   - [REST API documentation](#rest-api-documentation)
