@@ -129,8 +129,8 @@ describe("Dashboard webview", () => {
             // Cell 8: exercise folder
             expect(tableData[8].innerText).toBe("student_3");
             // Cell 9: exercise status
-            expect(tableData[9].innerText).toBe("On progress");
-            expect(tableData[9].classNames).toBe("onprogress-cell");
+            expect(tableData[9].innerText).toBe("In progress");
+            expect(tableData[9].classNames).toBe("inprogress-cell");
             // Cell 10: last modified file
             expect(tableData[10].childNodes.length).toBe(2);
             expect(tableData[10].childNodes[0].innerText).toBe("Open");

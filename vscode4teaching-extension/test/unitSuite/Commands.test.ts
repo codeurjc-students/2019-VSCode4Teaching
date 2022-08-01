@@ -253,6 +253,20 @@ describe("Command implementations", () => {
             statusText: "",
         };
         mockedClient.getFilesInfo.mockResolvedValueOnce(fileInfoResponse);
+        const exerciseUpdateResponse: AxiosResponse<ExerciseUserInfo> = {
+            data: {
+                exercise: exercise,
+                status: 2,
+                user: user,
+                id: 11,
+                updateDateTime: ""
+            },
+            config: {},
+            headers: {},
+            status: 200,
+            statusText: "",
+        };
+        mockedClient.updateExerciseUserInfo.mockResolvedValueOnce(exerciseUpdateResponse);
         mockedVscode.workspace.updateWorkspaceFolders.mockReturnValueOnce(true);
 
         await commandFunctions["vscode4teaching.getexercisefiles"](courseName, exercise);

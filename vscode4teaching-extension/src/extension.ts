@@ -123,7 +123,10 @@ export function activate(context: vscode.ExtensionContext) {
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
         coursesProvider.changeLoading(true);
         try {
-            await getSingleStudentExerciseFiles(courseName, exercise);
+            const response = await APIClient.updateExerciseUserInfo(exercise.id, 2);
+            if (response.data.status === 2){
+                await getSingleStudentExerciseFiles(courseName, exercise);
+            }
         } finally {
             coursesProvider.changeLoading(false);
         }
@@ -279,6 +282,7 @@ export function activate(context: vscode.ExtensionContext) {
                 } else {
                     vscode.window.showErrorMessage("An unexpected error has occurred. The exercise has not been marked as finished. Please try again.");
                 }
+                CoursesProvider.triggerTreeReload();
             } catch (error) {
                 APIClient.handleAxiosError(error);
             }

@@ -14,6 +14,7 @@ import { V4TItemType } from "./V4TItem/V4TItemType";
 import { Validators } from "./Validators";
 import * as fs from "fs";
 import * as path from "path";
+import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 
 /**
  * Tree view that lists extension's basic options like:
@@ -513,15 +514,29 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     type = V4TItemType.ExerciseStudent;
                     commandName = "vscode4teaching.getexercisefiles";
                 }
-                const exerciseItems = course.exercises.map(
-                    (exercise) =>
-                        new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
-                            command: commandName,
-                            title: "Get exercise files",
-                            arguments: [course ? course.name : null, exercise],
-                        })
-                );
-                return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
+                if (course.exercises.length > 0){
+                    if (ModelUtils.isStudent(CurrentUser.getUserInfo())){
+                        return await Promise.all(course.exercises.map(
+                            async (exercise) => {
+                                const eui: ExerciseUserInfo = (await APIClient.getExerciseUserInfo(exercise.id)).data;
+                                return new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
+                                    command: commandName,
+                                    title: "Get exercise files",
+                                    arguments: [course ? course.name : null, exercise],
+                                }, eui.status);
+                            }
+                        ));
+                    } else {
+                        return course.exercises.map(
+                            (exercise) =>
+                                new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
+                                    command: commandName,
+                                    title: "Get exercise files",
+                                    arguments: [course ? course.name : null, exercise],
+                                })
+                        );
+                    }
+                }
             }
         }
         return [V4TBuildItems.NO_EXERCISES_ITEM];

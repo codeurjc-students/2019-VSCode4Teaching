@@ -287,9 +287,11 @@ export class DashboardWebview {
 
         // Local path to styles
         const cssPath = vscode.Uri.file(path.join(DashboardWebview.resourcesPath, "dashboard.css"));
-
         // Styles uri
         const cssUri = this.panel.webview.asWebviewUri(cssPath);
+
+        // Local URI to images (function)
+        const imgUri = (imgName: string) => this.panel.webview.asWebviewUri(vscode.Uri.file(path.join(DashboardWebview.resourcesPath, "img", imgName + ".png")));
 
         // Transform EUIs to html table data
         let rows: string = "";
@@ -308,17 +310,17 @@ export class DashboardWebview {
             switch (eui.status) {
                 case 0: {
                     // not started
-                    rows = rows + '<td class="not-started-cell">Not started</td>\n';
+                    rows = rows + `<td class="not-started-cell"><img src="${imgUri("exercise_not_started")}" alt="Not started icon" class="status-icon-img"><div>Not started</div></td>\n`;
                     break;
                 }
                 case 1: {
                     // finished
-                    rows = rows + '<td class="finished-cell">Finished</td>\n';
+                    rows = rows + `<td class="finished-cell"><img src="${imgUri("exercise_finished")}" alt="Finished icon" class="status-icon-img"><div>Finished</div></td>\n`;
                     break;
                 }
                 case 2: {
                     // started but not finished
-                    rows = rows + '<td class="onprogress-cell">On progress</td>\n';
+                    rows = rows + `<td class="inprogress-cell"><img src="${imgUri("exercise_in_progress")}" alt="In progress icon" class="status-icon-img"><div>In progress</div></td>\n`;
                     break;
                 }
             }
@@ -365,7 +367,6 @@ export class DashboardWebview {
                     <div class="alert-info"><strong>Warning</strong>: There are no students registered in this course.</div>
                     ` : `
                     <hr/>
-                    <br/>
                     <table>
                         <tr>
                             ${

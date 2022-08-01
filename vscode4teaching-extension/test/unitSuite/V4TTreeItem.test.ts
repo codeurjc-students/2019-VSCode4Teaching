@@ -23,11 +23,11 @@ describe("V4TItem", () => {
         failIfItemsAreWrong();
         for (const item of items) {
             const iconPaths = item.iconPath;
-            if (iconPaths) {
+            if (typeof iconPaths === "string") {
+                expect(fs.existsSync(iconPaths)).toBeTruthy();
+            } else if (typeof iconPaths === "object") {
                 expect(fs.existsSync(iconPaths.dark)).toBeTruthy();
                 expect(fs.existsSync(iconPaths.light)).toBeTruthy();
-            } else {
-                fail(item.contextValue + " missing icons.");
             }
         }
     });

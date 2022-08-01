@@ -35,10 +35,6 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
             throws NotFoundException {
         logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
-        //Changing status from not accessed to accessed but not finished
-        if (eui.getStatus() == 0) {
-            eui = updateExerciseUserInfo(exerciseId, username, 2, new ArrayList<>());
-        }
         return eui;
     }
 

@@ -1,3 +1,8 @@
+hr {
+    border: 1px solid var(--vscode-button-background);
+    margin: 1rem 0;
+}
+
 table {
     border-collapse: collapse;
     width: 100%;
@@ -23,22 +28,28 @@ body.vscode-dark td {
 }
 
 
+.status-icon-img {
+    height: 32px;
+}
+
 .not-started-cell {
-    background-color: var(--vscode-diffEditor-removedTextBackground);
+    background-color: rgba(239, 83, 80, 0.2);
 }
 
 .finished-cell {
-    background-color: var(--vscode-diffEditor-insertedTextBackground);
+    background-color: rgba(102, 187, 106, 0.2);
 }
 
-.onprogress-cell {
-    background-color: rgba(76, 149, 218, 0.644);
+.inprogress-cell {
+    background-color: rgba(249, 168, 37, 0.2);
 }
+
 
 button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
+    padding: 0.25rem 1rem;
     margin-right: 0.5rem;
 }
 
