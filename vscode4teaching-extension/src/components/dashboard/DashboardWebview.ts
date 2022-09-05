@@ -325,7 +325,7 @@ export class DashboardWebview {
                 }
             }
             rows = rows + ``;
-            if (this.fullMode) {
+            if (this.fullMode){
                 rows += `<td class="button-col"><button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button></td>\n`;
             }
             rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
@@ -346,29 +346,31 @@ export class DashboardWebview {
                 <body>
                     <h1>VSCode4Teaching Dashboard</h1>
                     <h2>${this._dashboardViewName}</h2>
+                    ${
+                        this.fullMode
+                        ? ''
+                        :
+                        `<div class="option">
+                            <div class="alert-info"><strong>Preview mode.</strong> Some features, such as downloading student files or reviewing them, are disabled and are only accessible in full mode.</div>
+                        </div>`
+                    }
                     <div class="reload-options">
-                        ${
-                            this.fullMode
-                            ? ''
-                            :
-                            `<div class="option">
-                                Preview mode.<br/>Download exercise to be able to open students' exercises.
-                            </div>`
-                        }
                         ${
                             this._exercise.includesTeacherSolution
                             ?
                             `<div class="option">
                                 <div class="name">Publish solution to students</div>
-                                <label>
+                                <label class="control checkbox_label">
                                     <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                    <div class="checkbox_switch"></div>
                                 </label>
                             </div>`
                         : '' }
                         <div class="option">
                             <div class="name">Hide student's names</div>
-                            <label>
+                            <label class="control checkbox_label">
                                 <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}/>
+                                <div class="checkbox_switch"></div>
                             </label>
                         </div>
                     </div>

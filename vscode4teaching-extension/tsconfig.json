@@ -5,7 +5,7 @@
 		"outDir": "out",
 		"lib": [
 			"dom",
-			"es6"
+			"es2019"
 		],
 		"sourceMap": true,
 		"strict": true, /* enable all strict type-checking options */
