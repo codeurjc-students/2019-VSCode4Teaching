@@ -86,41 +86,66 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         if (eui.getStatus() == 1) {
             throw new ExerciseFinishedException(exerciseId);
         }
-        return saveFiles(exerciseId, file, requestUsername, eui);
+        return saveFiles(file, exerciseId, requestUsername, eui, false, false);
     }
 
     @Override
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile file,
                                                           String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
-        return saveFiles(exerciseId, file, requestUsername, null);
+        return saveFiles(file, exerciseId, requestUsername, null, true, false);
     }
 
-    private Map<Exercise, List<File>> saveFiles(Long exerciseId, MultipartFile file, String requestUsername,
-                                                ExerciseUserInfo eui) throws ExerciseNotFoundException, NotInCourseException, IOException {
-        logger.info("Called ExerciseFilesServiceImpl.saveFiles({}, (file), {}, {})", exerciseId, requestUsername, eui);
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+    @Override
+    public Map<Exercise, List<File>> saveExerciseSolution(@Min(1) Long exerciseId, MultipartFile file,
+                                                          String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException {
+        return saveFiles(file, exerciseId, requestUsername, null, false, true);
+    }
+
+    private Map<Exercise, List<File>> saveFiles(MultipartFile zippedFile, Long exerciseId, String requestUsername,
+                                                ExerciseUserInfo eui, boolean isTemplate, boolean isSolution)
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
+        logger.info("Called ExerciseFilesServiceImpl.saveFiles({}, (file), {}, {}, {}, {})", exerciseId, requestUsername, eui, isTemplate, isSolution);
+
+        // Stage 1: all the information necessary to execute the process is obtained from function parameters.
+        Exercise exercise = exerciseRepository.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         Course course = exercise.getCourse();
-        User user = userRepository.findByUsername(requestUsername)
-                .orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
+        User user = userRepository.findByUsername(requestUsername).orElseThrow(() -> new NotInCourseException("User not in course: " + requestUsername));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, (eui == null));
-        // eui is null if file is a template, otherwise it'll be a normal eui
-        String lastFolderPath = (eui == null) ? "template" : "student_" + eui.getId();
-        // For example, for root path "v4t_courses", a course "Course 1" with id 34, an exercise "Exercise 1" with id 77
-        // and a user "john.doe" the final directory path would be
-        // v4t_courses/course_1_34/exercise_1_77/john.doe
-        Path targetDirectory = Paths.get(rootPath + File.separator + course.getName().toLowerCase().replace(" ", "_")
-                + "_" + course.getId() + File.separator + exercise.getName().toLowerCase().replace(" ", "_") + "_"
-                + exercise.getId() + File.separator + lastFolderPath).toAbsolutePath().normalize();
-        if (!Files.exists(targetDirectory)) {
-            Files.createDirectories(targetDirectory);
+
+        // Stage 2: the path where the provided resources will be saved is dynamically generated.
+        // To do this, it is necessary to detect what type of upload is being performed:
+        // - Upload of an answer to an exercise (created by a student) -> eui parameter is not null and booleans are false.
+        // - Upload of an exercise template -> eui is null, isTemplate is true and isSolution is false.
+        // - Upload of an exercise solution (proposed by teacher) -> eui is null, isTemplate is false and isSolution is true.
+        // According to this information, the necessary directories are generated.
+        // The first part of the generated path is always the same: root path (specified in application properties) + course + exercise.
+        StringBuilder destinationPath = new StringBuilder()
+                .append(rootPath)
+                .append(File.separator)
+                .append(course.getName().toLowerCase().replace(" ", "_")).append("_").append(course.getId()) // Course (name + _ + i)
+                .append(File.separator)
+                .append(exercise.getName().toLowerCase().replace(" ", "_")).append("_").append(exercise.getId()) // Exercise (name + _ + i)
+                .append(File.separator);
+        if (eui != null) {
+            destinationPath.append("student_").append(eui.getId());
+        } else if (isTemplate) {
+            destinationPath.append("template");
+        } else if (isSolution) {
+            destinationPath.append("solution");
         }
+        Path destinationAbsolutePath = Paths.get(destinationPath.toString()).toAbsolutePath().normalize();
+        if (!Files.exists(destinationAbsolutePath)) {
+            Files.createDirectories(destinationAbsolutePath);
+        }
+
+        // Stage 3: the ZIP file sent is decompressed and inserted into the directory generated in previous stage.
+        // The new information available on the added exercise is also persisted during this process.
         byte[] buffer = new byte[1024];
-        ZipInputStream zis = new ZipInputStream(file.getInputStream());
+        ZipInputStream zis = new ZipInputStream(zippedFile.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
         List<File> files = new ArrayList<>();
         while (zipEntry != null) {
-            File destFile = newFile(targetDirectory.toFile(), zipEntry);
+            File destFile = newFile(destinationAbsolutePath.toFile(), zipEntry);
             if (zipEntry.isDirectory()) {
                 if (!destFile.isDirectory() && !destFile.mkdirs()) {
                     throw new IOException("Failed to create directory " + destFile);

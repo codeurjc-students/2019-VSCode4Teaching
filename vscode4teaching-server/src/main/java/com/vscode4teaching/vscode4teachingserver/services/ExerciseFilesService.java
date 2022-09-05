@@ -32,6 +32,9 @@ public interface ExerciseFilesService {
     public Map<Exercise, List<File>> saveExerciseTemplate(@Min(1) Long exerciseId, MultipartFile zip,
             String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
 
+    public Map<Exercise, List<File>> saveExerciseSolution(@Min(1) Long exerciseId, MultipartFile zip,
+            String requestUsername) throws ExerciseNotFoundException, NotInCourseException, IOException;
+
     public Map<Exercise, List<File>> getExerciseTemplate(@Min(1) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException, NoTemplateException;
 

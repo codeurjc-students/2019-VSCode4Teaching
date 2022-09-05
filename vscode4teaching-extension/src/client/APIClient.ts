@@ -239,6 +239,18 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Uploading template...", showNotification ?? true);
     }
 
+    public uploadExerciseSolution(id: number, data: Buffer, showNotification?: boolean): AxiosPromise<any> {
+        const dataForm = new FormData();
+        dataForm.append("file", data, { filename: "solution.zip" });
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + id + "/files/solution",
+            method: "POST",
+            responseType: "json",
+            data: dataForm,
+        };
+        return APIClient.createRequest(options, "Uploading solution...", showNotification ?? true);
+    }
+
     public deleteExercise(id: number): AxiosPromise<void> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + id,

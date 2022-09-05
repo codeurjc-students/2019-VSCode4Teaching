@@ -21,10 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -35,6 +32,8 @@ import java.util.zip.ZipOutputStream;
 @RequestMapping("/api")
 public class ExerciseFilesController {
     private static final String templateFolderName = "template";
+    private static final String solutionFolderName = "solution";
+
     private final ExerciseFilesService filesService;
     private final JWTTokenUtil jwtTokenUtil;
 
@@ -67,37 +66,37 @@ public class ExerciseFilesController {
         exportToZip(response, files, separator);
     }
 
-    @PostMapping("/exercises/{id}/files")
-    public ResponseEntity<List<UploadFileResponse>> uploadZip(@PathVariable Long id,
-                                                              @RequestParam("file") MultipartFile zip, HttpServletRequest request)
-            throws NotInCourseException, IOException, ExerciseFinishedException, NotFoundException {
-        logger.info("Request to POST '/api/exercises/{}/files' with a MultipartFile (ZIP) as body", id);
-        String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(id, zip, username);
-        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
-        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
-        List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
-        String pattern = "student_[0-9]*" + File.separator;
-        for (File file : files) {
-            String[] filePath = file.getCanonicalPath().split(pattern);
-            uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
-                    file.toURI().toURL().openConnection().getContentType(), file.length()));
-        }
-        return ResponseEntity.ok(uploadResponse);
-    }
+    @PostMapping(value = {"/exercises/{id}/files", "/exercises/{id}/files/{type:template|solution}"})
+    public ResponseEntity<List<UploadFileResponse>> uploadFiles(@PathVariable Long id, @PathVariable(required = false) String type,
+                                                                @RequestParam("file") MultipartFile zip, HttpServletRequest request)
+            throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
+        logger.info("Request to POST '/api/exercises/{}/files/{}' with a MultipartFile (ZIP) as body", id, type);
 
-    @PostMapping("/exercises/{id}/files/template")
-    public ResponseEntity<List<UploadFileResponse>> uploadTemplate(@PathVariable Long id,
-                                                                   @RequestParam("file") MultipartFile zip, HttpServletRequest request)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
-        logger.info("Request to POST '/api/exercises/{}/files/template' with a MultipartFile (ZIP) as body", id);
+        // Stage 1: All the information necessary to execute the process is obtained and files are saved using
+        // filesService specific methods. This process distinguishes between the different possible cases:
+        // - Uploading of individual files for each student's exercise
+        // - Uploading of an exercise template.
+        // - Uploading of the proposed solution to an exercise (if existing).
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(id, zip, username);
-        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
-        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
-        List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
+
+        Map<Exercise, List<File>> filesMap;
         String fileSeparatorPattern = Pattern.quote(File.separator);
-        String pattern = fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern;
+        String pattern;
+        if (Objects.equals(type, "template")) {
+            filesMap = filesService.saveExerciseTemplate(id, zip, username);
+            pattern = fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern;
+        } else if (Objects.equals(type, "solution")) {
+            filesMap = filesService.saveExerciseSolution(id, zip, username);
+            pattern = fileSeparatorPattern + ExerciseFilesController.solutionFolderName + fileSeparatorPattern;
+        } else {
+            filesMap = filesService.saveExerciseFiles(id, zip, username);
+            pattern = fileSeparatorPattern + "student_[0-9]*" + fileSeparatorPattern;
+        }
+
+        // Stage 2: saved files in previous stage are now collected and response is prepared and sent.
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
+        List<File> files = optFiles.orElseGet(ArrayList::new);
+        List<UploadFileResponse> uploadResponse = new ArrayList<>(files.size());
         for (File file : files) {
             String[] filePath = file.getCanonicalPath().split(pattern);
             uploadResponse.add(new UploadFileResponse(filePath[filePath.length - 1],
@@ -162,8 +161,6 @@ public class ExerciseFilesController {
             } finally {
                 zipOutputStream.closeEntry();
             }
-
-
         }
         zipOutputStream.close();
     }

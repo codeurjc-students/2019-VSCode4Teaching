@@ -74,6 +74,8 @@ public class ExerciseController {
         ArrayList<Exercise> savedExercises = new ArrayList<>();
         for (ExerciseDTO exerciseDTO : exercisesDTO) {
             Exercise exercise = new Exercise(exerciseDTO.name);
+            exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
+            exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
             savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
         }
         return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);

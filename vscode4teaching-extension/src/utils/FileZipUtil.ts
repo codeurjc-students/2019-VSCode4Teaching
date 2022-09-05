@@ -153,8 +153,8 @@ export class FileZipUtil {
      */
     public static async getZipFromUris(fileUris: vscode.Uri[]) {
         const zip = new JSZip();
-        fileUris.forEach((uri) => {
-            const uriPath = path.resolve(uri.fsPath)?.replace(/\\/g, "/");
+        fs.readdirSync(fileUris[0].fsPath).forEach((uri) => {
+            const uriPath = path.resolve(fileUris[0].fsPath, uri)?.replace(/\\/g, "/");
             const stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
                 FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));

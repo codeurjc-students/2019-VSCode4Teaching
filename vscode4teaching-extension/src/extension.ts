@@ -162,11 +162,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const addExercise = vscode.commands.registerCommand("vscode4teaching.addexercise", (item: V4TItem) => {
-        coursesProvider.addExercise(item);
+        coursesProvider.addExercises(item, false);
     });
 
     const addMultipleExercises = vscode.commands.registerCommand("vscode4teaching.addmultipleexercises", (item: V4TItem) => {
-        coursesProvider.addMultipleExercises(item);
+        coursesProvider.addExercises(item, true);
     });
 
     // showExerciseDashboard is defined later in this file
@@ -291,7 +291,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const showDashboardFunction = (exercise: Exercise, course: Course, fullMode: boolean) => {
         if (DashboardWebview.exists()){
-            vscode.window.showWarningMessage("You have to close currently opened dashboard before opening another one.");
+            vscode.window.showWarningMessage("Currently opened dashboard has to be closed before opening another one.");
         } else {
             if (exercise && course) {
                 APIClient.getAllStudentsExerciseUserInfo(exercise.id)
@@ -301,7 +301,7 @@ export function activate(context: vscode.ExtensionContext) {
                         }
                     })
                     .catch((error) => APIClient.handleAxiosError(error));
-                }
+            }
         }
     };
 
@@ -310,7 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
             showDashboardFunction(item.item, item.item.course, false);
         } else {
             vscode.window.showErrorMessage("Not performabble action. Please try downloading exercise and accessing Dashboard.");
-        }        
+        }      
     });
 
     const showDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {

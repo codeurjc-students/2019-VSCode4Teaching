@@ -325,7 +325,7 @@ export class DashboardWebview {
                 }
             }
             rows = rows + ``;
-            if (this.fullMode){
+            if (this.fullMode) {
                 rows += `<td class="button-col"><button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button></td>\n`;
             }
             rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
@@ -355,11 +355,20 @@ export class DashboardWebview {
                                 Preview mode.<br/>Download exercise to be able to open students' exercises.
                             </div>`
                         }
+                        ${
+                            this._exercise.includesTeacherSolution
+                            ?
+                            `<div class="option">
+                                <div class="name">Publish solution to students</div>
+                                <label>
+                                    <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                </label>
+                            </div>`
+                        : '' }
                         <div class="option">
                             <div class="name">Hide student's names</div>
-                            <label class="switch">
-                                <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}>
-                                <span class="slider"></span>
+                            <label>
+                                <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}/>
                             </label>
                         </div>
                     </div>

@@ -100,7 +100,8 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         for (Course course : courses) {
             for (int j = 1; j < 6; j++) {
-                Exercise exercise = new Exercise("Exercise " + j, course);
+                Exercise exercise = new Exercise("Exercise " + j);
+                exercise.setCourse(course);
                 course.addExercise(exercise);
                 Exercise savedExercise = exerciseRepository.save(exercise);
                 for (User user : users) {
