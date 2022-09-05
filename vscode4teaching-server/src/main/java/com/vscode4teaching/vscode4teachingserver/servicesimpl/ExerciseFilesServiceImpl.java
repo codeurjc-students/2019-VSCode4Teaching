@@ -166,13 +166,16 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 ExerciseFile exFile = new ExerciseFile(destFile.getCanonicalPath());
                 try {
                     if (fileRepository.findByPath(destFile.getCanonicalPath()).isEmpty()) {
-                        if (eui == null) {
-                            ExerciseFile savedFile = fileRepository.save(exFile);
-                            exercise.addFileToTemplate(savedFile);
-                        } else {
+                        if (eui != null){
                             exFile.setOwner(user);
                             ExerciseFile savedFile = fileRepository.save(exFile);
                             exercise.addUserFile(savedFile);
+                        } else if (isTemplate) {
+                            ExerciseFile savedFile = fileRepository.save(exFile);
+                            exercise.addFileToTemplate(savedFile);
+                        } else if (isSolution) {
+                            ExerciseFile savedFile = fileRepository.save(exFile);
+                            exercise.addFileToSolution(savedFile);
                         }
                     }
                 } catch (ConstraintViolationException ex) {

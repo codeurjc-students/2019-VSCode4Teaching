@@ -40,6 +40,10 @@ public class Exercise {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    private List<ExerciseFile> solution = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
 
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -121,6 +125,18 @@ public class Exercise {
 
     public void addFileToTemplate(@Valid ExerciseFile templateFile) {
         this.template.add(templateFile);
+    }
+
+    public List<ExerciseFile> getSolution() {
+        return solution;
+    }
+
+    public void setSolution(@Valid List<ExerciseFile> solution) {
+        this.solution = solution;
+    }
+
+    public void addFileToSolution(@Valid ExerciseFile solutionFile) {
+        this.solution.add(solutionFile);
     }
 
     public boolean includesTeacherSolution() {
