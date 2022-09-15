@@ -25,6 +25,8 @@ describe("Dashboard webview", () => {
         const exercise: Exercise = {
             id: 1,
             name: "Exercise 1",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const student1: User = {
             id: 2,

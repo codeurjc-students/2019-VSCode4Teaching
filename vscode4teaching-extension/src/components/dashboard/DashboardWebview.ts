@@ -7,6 +7,7 @@ import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 import { v4tLogger } from "../../services/LoggerService";
+import { CoursesProvider } from "../courses/CoursesTreeProvider";
 import { OpenQuickPick } from "./OpenQuickPick";
 
 export class DashboardWebview {
@@ -94,20 +95,7 @@ export class DashboardWebview {
                     this.reloadData();
                     break;
                 }
-                // case "changeReloadTime": {
-                //     // reloadTime comes in seconds
-                //     const reloadTime = message.reloadTime;
-                //     if (this._reloadInterval) {
-                //         global.clearInterval(this._reloadInterval);
-                //         this._reloadInterval = undefined;
-                //     }
-                //     if (reloadTime > 0) {
-                //         this._reloadInterval = global.setInterval(() => {
-                //             this.reloadData();
-                //         }, reloadTime * 1000);
-                //     }
-                //     break;
-                // }
+
                 case "goToWorkspace": {
                     this.showQuickPick(message.username, course, exercise, message.eui_id)
                         .then(async (filePath) => {
@@ -203,6 +191,24 @@ export class DashboardWebview {
                 case "changeVisibilityStudentsNames": {
                     this.hiddenStudentNames = message.value;
                     this.updateHtml();
+                    break;
+                }
+
+                case "publishSolution": {
+                    if (exercise.includesTeacherSolution) {
+                        exercise.solutionIsPublic = true;
+                        APIClient.editExercise(exercise.id, exercise)
+                            .then(ex => {
+                                this._exercise = ex.data;
+                                this.updateHtml();
+                                CoursesProvider.triggerTreeReload();
+                                vscode.window.showInformationMessage("The solution was published to students successfully.");
+                            })
+                            .catch(err => {
+                                APIClient.handleAxiosError(err);
+                                vscode.window.showErrorMessage("The solution could not be published.");
+                            });
+                    }
                     break;
                 }
             }

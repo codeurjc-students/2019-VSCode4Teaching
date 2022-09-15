@@ -86,6 +86,7 @@ describe("Extension entry point", () => {
         "vscode4teaching.showexercisedashboard",
         "vscode4teaching.showcurrentexercisedashboard",
         "vscode4teaching.showliveshareboard",
+        "vscode4teaching.downloadteachersolution"
     ];
 
     function expectAllCommandsToBeRegistered(subscriptions: any[]) {
@@ -110,6 +111,8 @@ describe("Extension entry point", () => {
         const exercise: Exercise = {
             id: 50,
             name: "Exercise test",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const cwds: vscode.WorkspaceFolder[] = [
             {

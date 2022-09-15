@@ -16,6 +16,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +35,14 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
         logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
-        ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
-        return eui;
+        return this.getAndCheckExerciseUserInfo(exerciseId, username);
+    }
+
+    @Override
+    public ExerciseUserInfo getExerciseUserInfo(@Min(1) Long euiId) throws NotFoundException {
+        logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({})", euiId);
+        Optional<ExerciseUserInfo> eui = exerciseUserInfoRepository.findById(euiId);
+        return eui.orElseThrow(() -> new NotFoundException(euiId.toString()));
     }
 
     @Override

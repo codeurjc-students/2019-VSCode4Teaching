@@ -360,14 +360,14 @@ public class ExerciseFilesControllerTests {
         ExerciseFile ex1 = new ExerciseFile("test1");
         List<ExerciseFile> exFiles = new ArrayList<>();
         exFiles.add(ex1);
-        when(filesService.getFileIdsByExerciseAndOwner(anyLong(), any(String.class))).thenReturn(exFiles);
+        when(filesService.getFileIdsByExerciseAndId(anyLong(), any(String.class))).thenReturn(exFiles);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/users/johndoejr1/exercises/2/files").contentType("application/json")
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
                 .andExpect(status().isOk()).andReturn();
 
-        verify(filesService, times(1)).getFileIdsByExerciseAndOwner(anyLong(), any(String.class));
+        verify(filesService, times(1)).getFileIdsByExerciseAndId(anyLong(), any(String.class));
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
         String expectedResponseBody = objectMapper.writerWithView(FileViews.GeneralView.class)
                 .writeValueAsString(exFiles);

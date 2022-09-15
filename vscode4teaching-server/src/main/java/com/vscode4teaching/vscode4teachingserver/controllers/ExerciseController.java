@@ -86,9 +86,10 @@ public class ExerciseController {
     public ResponseEntity<Exercise> updateExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId,
                                                    @RequestBody ExerciseDTO exerciseDTO) throws ExerciseNotFoundException, NotInCourseException {
         logger.info("Request to PUT '/api/exercises/{}' with body '{}'", exerciseId, exerciseDTO);
-        Exercise exercise = new Exercise(exerciseDTO.getName());
-        return ResponseEntity
-                .ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
+        Exercise exercise = new Exercise(exerciseDTO.name);
+        exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
+        exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+        return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
     @DeleteMapping("/exercises/{exerciseId}")

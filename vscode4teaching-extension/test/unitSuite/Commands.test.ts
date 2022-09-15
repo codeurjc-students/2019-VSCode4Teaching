@@ -188,6 +188,8 @@ describe("Command implementations", () => {
         const exercise: Exercise = {
             id: 2,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const eui: ExerciseUserInfo = {
             id: 3,
@@ -219,6 +221,8 @@ describe("Command implementations", () => {
         const exercise: Exercise = {
             id: 10,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const zipInfo: ZipInfo = {
             dir: "newWorkspace",
@@ -293,6 +297,8 @@ describe("Command implementations", () => {
         const exercise: Exercise = {
             id: 10,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const zipInfo: ZipInfo = {
             dir: "newWorkspace",

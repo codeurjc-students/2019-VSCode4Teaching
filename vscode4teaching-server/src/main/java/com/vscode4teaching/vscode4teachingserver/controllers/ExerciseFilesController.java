@@ -44,27 +44,106 @@ public class ExerciseFilesController {
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
-    @GetMapping(value = "/exercises/{id}/files", produces = "application/zip")
-    public void downloadExerciseFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
-            throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException {
-        logger.info("Request to GET '/api/exercises/{}/files'", id);
+
+    // GET endpoint
+
+    @GetMapping(value = {"/exercises/{id}/files", "/exercises/{id}/files/{resourceType:template|solution}"}, produces = "application/zip")
+    public void downloadFiles(@PathVariable Long id, @PathVariable(required = false) Optional<String> resourceType,
+                              HttpServletRequest request, HttpServletResponse response)
+            throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException, NoSolutionException {
+        logger.info("Request to GET '/api/exercises/{}/files/{}'", id, resourceType);
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(id, username);
+
+        // Stage 1: All the information required to execute the process is obtained and file paths are returned from
+        // database using filesService specific methods. This process distinguishes between the different possible cases:
+        // - Downloading individual files for each student's exercise
+        // - Downloading an exercise template
+        // - Downloading a proposed solution for an exercise (if exists)
+        Map<Exercise, List<File>> filesMap;
+        String zipName;
+        String separator;
+        if (resourceType.isPresent() && resourceType.get().equals("template")) {
+            zipName = "template-" + id;
+            separator = ExerciseFilesController.templateFolderName;
+            filesMap = filesService.getExerciseTemplate(id, username);
+        } else if (resourceType.isPresent() && resourceType.get().equals("solution")) {
+            zipName = "solution-" + id;
+            separator = ExerciseFilesController.solutionFolderName;
+            filesMap = filesService.getExerciseSolution(id, username);
+        } else {
+            zipName = "exercise-" + id + "-" + username;
+            separator = (filesService.existsExerciseFilesForUser(id, username)) ? "student_[0-9]*" : "template";
+            // Order matters here: if checked existence of files after generating them, this method will fail
+            filesMap = filesService.getExerciseFiles(id, username);
+        }
+
+        // Stage 2: files from returned paths are zipped and sent as response to client (method exportToZip())
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.orElseGet(ArrayList::new);
-        String zipName = files.get(0).getParentFile().getName().equals(ExerciseFilesController.templateFolderName)
-                ? "template-" + id
-                : "exercise-" + id + "-" + username;
+
         response.setStatus(HttpServletResponse.SC_OK);
         String[] header = headerFilename(zipName + ".zip");
         response.addHeader(header[0], header[1]);
-        String fileSeparatorPattern = Pattern.quote(File.separator);
-        String separator = files.get(0).getAbsolutePath().split(
-                fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern).length > 1
-                ? ExerciseFilesController.templateFolderName
-                : "student_[0-9]*";
+
         exportToZip(response, files, separator);
     }
+
+    @GetMapping("/exercises/{id}/teachers/files")
+    public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
+            throws ExerciseNotFoundException, NotInCourseException, IOException {
+        logger.info("Request to GET '/api/exercises/{}/teachers/files'", id);
+        String username = jwtTokenUtil.getUsernameFromToken(request);
+        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
+        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
+        List<File> files = optFiles.orElseGet(ArrayList::new);
+        response.setStatus(HttpServletResponse.SC_OK);
+        String[] header = headerFilename("exercise-" + id + "-files.zip");
+        response.addHeader(header[0], header[1]);
+        Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
+        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ", "_") + "_" + id
+                : "";
+        exportToZip(response, files, exerciseDirectory);
+    }
+
+    @JsonView(FileViews.GeneralView.class)
+    @GetMapping("/users/{username}/exercises/{exerciseId}/files")
+    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
+                                                                            @PathVariable Long exerciseId) throws NotFoundException {
+        logger.info("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndId(exerciseId, username);
+        return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
+    }
+
+    private String[] headerFilename(String filename) {
+        String[] headerElements = new String[2];
+        headerElements[0] = "Content-Disposition";
+        headerElements[1] = "attachment; filename=\"" + filename + "\"";
+        return headerElements;
+    }
+
+    private void exportToZip(HttpServletResponse response, List<File> files, String parentDirectory)
+            throws IOException {
+        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+        for (File file : files) {
+            try {
+                String[] filePath = file.getCanonicalPath().split(parentDirectory);
+                String zipFilePath = filePath[filePath.length - 1].substring(1).replace('\\', '/');
+                zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
+                FileInputStream fileInputStream = new FileInputStream(file);
+
+                IOUtils.copy(fileInputStream, zipOutputStream);
+                fileInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                zipOutputStream.closeEntry();
+            }
+        }
+        zipOutputStream.close();
+    }
+
+
+    // POST endpoint
 
     @PostMapping(value = {"/exercises/{id}/files", "/exercises/{id}/files/{type:template|solution}"})
     public ResponseEntity<List<UploadFileResponse>> uploadFiles(@PathVariable Long id, @PathVariable(required = false) String type,
@@ -103,74 +182,5 @@ public class ExerciseFilesController {
                     file.toURI().toURL().openConnection().getContentType(), file.length()));
         }
         return ResponseEntity.ok(uploadResponse);
-    }
-
-    @GetMapping("/exercises/{id}/files/template")
-    public void getTemplate(@PathVariable Long id, HttpServletResponse response, HttpServletRequest request)
-            throws ExerciseNotFoundException, NotInCourseException, NoTemplateException, IOException {
-        logger.info("Request to GET '/api/exercises/{}/files/template'", id);
-        String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(id, username);
-        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
-        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
-        response.setStatus(HttpServletResponse.SC_OK);
-        String[] header = headerFilename("template-" + id + ".zip");
-        response.addHeader(header[0], header[1]);
-        exportToZip(response, files, ExerciseFilesController.templateFolderName);
-    }
-
-    @GetMapping("/exercises/{id}/teachers/files")
-    public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
-            throws ExerciseNotFoundException, NotInCourseException, IOException {
-        logger.info("Request to GET '/api/exercises/{}/teachers/files'", id);
-        String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
-        Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
-        List<File> files = optFiles.isPresent() ? optFiles.get() : new ArrayList<>();
-        response.setStatus(HttpServletResponse.SC_OK);
-        String[] header = headerFilename("exercise-" + id + "-files.zip");
-        response.addHeader(header[0], header[1]);
-        Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
-        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ", "_") + "_" + id
-                : "";
-        exportToZip(response, files, exerciseDirectory);
-    }
-
-    private String[] headerFilename(String filename) {
-        String[] headerElements = new String[2];
-        headerElements[0] = "Content-Disposition";
-        headerElements[1] = "attachment; filename=\"" + filename + "\"";
-        return headerElements;
-    }
-
-    private void exportToZip(HttpServletResponse response, List<File> files, String parentDirectory)
-            throws IOException {
-        ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-        for (File file : files) {
-            try {
-                String pattern = parentDirectory + File.separator;
-                String[] filePath = file.getCanonicalPath().split(pattern);
-                String zipFilePath = filePath[filePath.length - 1].replace('\\', '/');
-                zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
-                FileInputStream fileInputStream = new FileInputStream(file);
-
-                IOUtils.copy(fileInputStream, zipOutputStream);
-                fileInputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                zipOutputStream.closeEntry();
-            }
-        }
-        zipOutputStream.close();
-    }
-
-    @JsonView(FileViews.GeneralView.class)
-    @GetMapping("/users/{username}/exercises/{exerciseId}/files")
-    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
-                                                                            @PathVariable Long exerciseId) throws ExerciseNotFoundException {
-        logger.info("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(exerciseId, username);
-        return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
 }

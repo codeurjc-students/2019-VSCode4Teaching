@@ -16,6 +16,8 @@ const exercise: Exercise = {
     id: 2,
     name: "Test exercise",
     course,
+    includesTeacherSolution: false,
+    solutionIsPublic: false
 };
 course.exercises.push(exercise);
 

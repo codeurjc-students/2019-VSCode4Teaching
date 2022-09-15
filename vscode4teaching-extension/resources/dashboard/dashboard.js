@@ -65,4 +65,11 @@
             value: event.target.checked,
         });
     });
+
+    document.getElementById("publishSolution").addEventListener("click", (event) => {
+        vscode.postMessage({
+            type: "publishSolution",
+            value: event.target.checked,
+        });
+    });
 })();

@@ -212,6 +212,8 @@ describe("client API calls", () => {
         const courseId = 1;
         const exercise: ExerciseEdit = {
             name: "New exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
 
         const expectedOptions: AxiosRequestConfig = {
@@ -237,11 +239,11 @@ describe("client API calls", () => {
     it("should request add multiple exercises correctly", () => {
         const courseId = 1;
         const exercises: ExerciseEdit[] = [
-            { name: "Exercise 1", },
-            { name: "Exercise 2", },
-            { name: "Exercise 3", },
-            { name: "Exercise 4", },
-            { name: "Exercise 5", },
+            { name: "Exercise 1", includesTeacherSolution: false, solutionIsPublic: false },
+            { name: "Exercise 2", includesTeacherSolution: false, solutionIsPublic: false },
+            { name: "Exercise 3", includesTeacherSolution: false, solutionIsPublic: false },
+            { name: "Exercise 4", includesTeacherSolution: false, solutionIsPublic: false },
+            { name: "Exercise 5", includesTeacherSolution: false, solutionIsPublic: false },
         ];
 
         const expectedOptions: AxiosRequestConfig = {
@@ -268,6 +270,8 @@ describe("client API calls", () => {
         const exerciseId = 1;
         const exercise: ExerciseEdit = {
             name: "New exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
 
         const expectedOptions: AxiosRequestConfig = {
@@ -516,7 +520,7 @@ describe("client API calls", () => {
             url: "/api/exercises/" + exerciseId + "/files/template",
         };
 
-        const thenable = APIClient.getTemplate(exerciseId);
+        const thenable = APIClient.getExerciseResourceById(exerciseId);
 
         expectCorrectRequest(expectedOptions, "Downloading exercise template...", true, thenable);
     });
@@ -645,6 +649,8 @@ describe("client API calls", () => {
         const exercise: Exercise = {
             name: "Exercise",
             id: 2,
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,

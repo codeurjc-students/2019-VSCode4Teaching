@@ -49,9 +49,10 @@ public class ExerciseInfoServiceImplTests {
     @Test
     public void getExerciseUserInfo_existing() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         Long exerciseId = 2l;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
@@ -82,9 +83,10 @@ public class ExerciseInfoServiceImplTests {
     @Test
     public void updateExerciseUserInfo_valid() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         Long exerciseId = 2l;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
@@ -122,9 +124,10 @@ public class ExerciseInfoServiceImplTests {
     @Test
     public void updateExerciseUserInfo_valid_no_file() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         Long exerciseId = 2l;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
@@ -151,8 +154,9 @@ public class ExerciseInfoServiceImplTests {
     public void getStudentUserInfo() throws ExerciseNotFoundException, NotInCourseException {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(10l);
+        exercise.setCourse(course);
         // Set up users
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
         Role studentRole = new Role("ROLE_STUDENT");

@@ -84,9 +84,13 @@ describe("Current user", () => {
         const exercises: Exercise[] = [{
             id: 21,
             name: "Test exercise 1",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         }, {
             id: 22,
             name: "Test exercise 2",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         }];
         const newCourse: Course = {
             id: 20,

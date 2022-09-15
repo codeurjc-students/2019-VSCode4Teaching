@@ -102,6 +102,8 @@ describe("FileZipUtil", () => {
         const exercise: Exercise = {
             id: 2,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const ignoredPaths: string[] = [];
         // Create file to add
@@ -122,6 +124,8 @@ describe("FileZipUtil", () => {
         const exercise: Exercise = {
             id: 2,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
         const ignoredPaths: string[] = [];
         const filePath = path.relative(rootPath, path.resolve(rootPath, "exs", "ex3.html"));

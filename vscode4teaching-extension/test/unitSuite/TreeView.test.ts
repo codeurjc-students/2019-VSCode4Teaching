@@ -11,6 +11,7 @@ import { V4TItemType } from "../../src/components/courses/V4TItem/V4TItemType";
 import { Validators } from "../../src/components/courses/Validators";
 import { Course } from "../../src/model/serverModel/course/Course";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
+import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit";
 import { User } from "../../src/model/serverModel/user/User";
 import { FileZipUtil } from "../../src/utils/FileZipUtil";
 
@@ -46,10 +47,14 @@ const teacherCourses: Course[] = [
             {
                 id: 4,
                 name: "Exercise 1",
+                includesTeacherSolution: false,
+                solutionIsPublic: false
             },
             {
                 id: 40,
                 name: "Exercise 2",
+                includesTeacherSolution: false,
+                solutionIsPublic: false
             },
         ],
         creator: mockedUserTeacherModel,
@@ -61,6 +66,8 @@ const teacherCourses: Course[] = [
             {
                 id: 5,
                 name: "Exercise 1",
+                includesTeacherSolution: false,
+                solutionIsPublic: false
             },
         ],
     },
@@ -164,9 +171,13 @@ describe("Tree View", () => {
         const exercises: Exercise[] = [{
             id: 2,
             name: "Test exercise 1",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         }, {
             id: 3,
             name: "Test exercise 2",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         }];
         const courseItem = new V4TItem("Test course", V4TItemType.CourseTeacher, mockedVscode.TreeItemCollapsibleState.Collapsed, undefined, course, undefined);
 
@@ -194,7 +205,7 @@ describe("Tree View", () => {
             command: "vscode4teaching.getstudentfiles",
             title: "Get exercise files",
             arguments: [course.name, exercise],
-        }));
+        }, 0));
 
         const exerciseElements = await coursesProvider.getChildren(courseItem);
 
@@ -351,9 +362,10 @@ describe("Tree View", () => {
         const inputOptionsExercise = mockGetInput("Exercise name", Validators.validateExerciseName, exerciseModel.name);
 
         const openDialogOptions = {
-            canSelectFiles: true,
+            canSelectFiles: false,
             canSelectFolders: true,
-            canSelectMany: true,
+            canSelectMany: false,
+            openLabel: "Select a directory"
         };
         const fileUrisMocks = [
             mockedVscode.Uri.file("testFile1"),
@@ -371,6 +383,8 @@ describe("Tree View", () => {
                 {
                     id: 10,
                     name: exerciseModel.name,
+                    includesTeacherSolution: false,
+                    solutionIsPublic: false
                 },
             ],
         });
@@ -411,6 +425,8 @@ describe("Tree View", () => {
         );
         const newExerciseModel = {
             name: "Test course 1 edited",
+            includesTeacherSolution: false,
+            solutionIsPublic: false
         };
 
         const inputOptionsCourse = mockGetInput("Exercise name", Validators.validateExerciseName, newExerciseModel.name);
@@ -419,6 +435,8 @@ describe("Tree View", () => {
             data: {
                 id: teacherCourses[0].exercises[0].id,
                 name: newExerciseModel.name,
+                includesTeacherSolution: false,
+                solutionIsPublic: false
             },
             status: 200,
             statusText: "",

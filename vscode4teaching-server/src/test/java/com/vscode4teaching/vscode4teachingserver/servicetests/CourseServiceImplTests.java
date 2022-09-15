@@ -374,7 +374,8 @@ public class CourseServiceImplTests {
         Course course = new Course("Spring Boot Course");
         course.setId(5l);
         course.addUserInCourse(teacher);
-        Exercise ex = new Exercise("Exercise 1", course);
+        Exercise ex = new Exercise("Exercise 1");
+        ex.setCourse(course);
         course.addExercise(ex);
         Optional<User> userOpt1 = Optional.of(newUser1);
         Optional<User> userOpt2 = Optional.of(newUser2);

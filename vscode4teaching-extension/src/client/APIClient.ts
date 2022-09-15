@@ -328,13 +328,13 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Downloading student files...", true);
     }
 
-    public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
+    public getExerciseResourceById(exerciseId: number, resourceType: "template" | "solution"): AxiosPromise<ArrayBuffer> {
         const options: AxiosBuildOptions = {
-            url: "/api/exercises/" + exerciseId + "/files/template",
+            url: "/api/exercises/" + exerciseId + "/files/" + resourceType,
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise template...", true);
+        return APIClient.createRequest(options, "Downloading exercise " + resourceType + "...", true);
     }
 
     public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {

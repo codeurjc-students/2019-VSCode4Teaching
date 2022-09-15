@@ -95,7 +95,7 @@ public class ExerciseControllerTests {
         expectedExercise.setId(2L);
         expectedExercise.setCourse(course);
         ExerciseDTO exerciseDTO = new ExerciseDTO();
-        exerciseDTO.setName("Spring Boot Exercise 1");
+        exerciseDTO.name = "Spring Boot Exercise 1";
         when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
                 .thenReturn(expectedExercise);
 
@@ -146,7 +146,7 @@ public class ExerciseControllerTests {
         List<Exercise> expectedExercises = new ArrayList<>();
         for (int i = 1; i <= number; i++){
             ExerciseDTO dto = new ExerciseDTO();
-            dto.setName("Exercise " + i);
+            dto.name = "Exercise " + i;
             Exercise exercise = new Exercise();
             exercise.setName("Exercise " + i);
             exercise.setId((long) (1 + i));
@@ -215,7 +215,7 @@ public class ExerciseControllerTests {
         expectedExercise.setName("Spring Boot Exercise 1 v2");
         expectedExercise.setId(1L);
         expectedExercise.setCourse(new Course("Spring Boot Course"));
-        exercise.setName("Spring Boot Exercise 1 v2");
+        exercise.name = "Spring Boot Exercise 1 v2";
         when(courseService.editExercise(anyLong(), any(Exercise.class), anyString())).thenReturn(expectedExercise);
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1").contentType("application/json").with(csrf())
@@ -324,8 +324,9 @@ public class ExerciseControllerTests {
     public void getAllStudentExerciseUserInfo_valid() throws Exception {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(10L);
+        exercise.setCourse(course);
         // Set up users
         Role studentRole = new Role("ROLE_STUDENT");
         studentRole.setId(2L);

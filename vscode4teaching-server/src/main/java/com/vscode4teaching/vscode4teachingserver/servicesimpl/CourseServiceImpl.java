@@ -144,6 +144,8 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
         exercise.setName(exerciseData.getName());
+        exercise.setIncludesTeacherSolution(exerciseData.includesTeacherSolution());
+        exercise.setSolutionIsPublic(exerciseData.solutionIsPublic());
         return exerciseRepo.save(exercise);
     }
 

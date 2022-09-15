@@ -31,10 +31,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFile
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseFilesServiceImpl;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -516,7 +513,7 @@ public class ExerciseFilesServiceImplTests {
     }
 
     @Test
-    public void getFileIds() throws ExerciseNotFoundException {
+    public void getFileIds() throws NotFoundException {
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
         teacher.setId(3l);
         Role studentRole = new Role("ROLE_STUDENT");
@@ -559,7 +556,7 @@ public class ExerciseFilesServiceImplTests {
         exercise.addUserFile(ex3);
         when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
 
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(1l, "johndoejr1");
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndId(1l, "johndoejr1");
 
         verify(exerciseRepository, times(1)).findById(anyLong());
         assertThat(files.size()).isEqualTo(1);
