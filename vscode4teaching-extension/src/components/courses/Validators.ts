@@ -40,10 +40,10 @@ export class Validators {
         if (value.length < 4 || value.length > 50) {
             return "Username must have between 4 and 50 characters";
         }
-        const regexp = /^(?:(?!template).)+$/;
+        const regexp = /^(?:(?!(template)|(solution)|(student)).)+$/;
         const pattern = new RegExp(regexp);
         if (!pattern.test(value)) {
-            return "Username is not valid (cannot contain the word template)";
+            return `Username is not valid (cannot contain the words "template", "solution" or "student")`;
         }
     }
 

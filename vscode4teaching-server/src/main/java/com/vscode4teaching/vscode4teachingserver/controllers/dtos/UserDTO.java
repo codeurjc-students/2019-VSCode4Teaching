@@ -12,12 +12,12 @@ public class UserDTO {
     @NotEmpty(message = "Please provide an email")
     private String email;
 
-    @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
-    @Pattern(regexp = "^(?:(?!template).)+$", message = "Username is not valid")
+    @Length(min = 4, max = 50, message = "Username must have between 4 and 50 characters")
+    @Pattern(regexp = "^(?:(?!(template)|(solution)|(student)).)+$", message = "Username is not valid (cannot contain the words \"template\", \"solution\" or \"student\")")
     private String username;
 
     @NotEmpty(message = "Please provide a password")
-    @Length(min = 8, message = "Your password must have at least 8 characters")
+    @Length(min = 8, message = "Password must have at least 8 characters")
     private String password;
 
     @NotEmpty(message = "Please provide your name")
