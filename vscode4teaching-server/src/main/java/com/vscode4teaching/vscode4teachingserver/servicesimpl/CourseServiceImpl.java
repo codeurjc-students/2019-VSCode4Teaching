@@ -146,6 +146,7 @@ public class CourseServiceImpl implements CourseService {
         exercise.setName(exerciseData.getName());
         exercise.setIncludesTeacherSolution(exerciseData.includesTeacherSolution());
         exercise.setSolutionIsPublic(exerciseData.solutionIsPublic());
+        exercise.setAllowEditionAfterSolutionDownloaded(exerciseData.isEditionAfterSolutionDownloadedAllowed());
         return exerciseRepo.save(exercise);
     }
 

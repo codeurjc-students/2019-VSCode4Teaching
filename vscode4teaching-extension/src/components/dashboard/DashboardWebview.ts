@@ -212,6 +212,24 @@ export class DashboardWebview {
                     }
                     break;
                 }
+
+                case "allowEditionAfterSolutionDownloaded": {
+                    if (exercise.includesTeacherSolution) {
+                        exercise.allowEditionAfterSolutionDownloaded = !exercise.allowEditionAfterSolutionDownloaded;
+                        APIClient.editExercise(exercise.id, exercise)
+                            .then(ex => {
+                                this._exercise = ex.data;
+                                this.updateHtml();
+                                CoursesProvider.triggerTreeReload();
+                                vscode.window.showInformationMessage(`Edition after downloading solution was ${this._exercise.allowEditionAfterSolutionDownloaded ? "enabled" : "disabled"}.\nThis parameter can be changed while solution is not published to students.`);
+                            })
+                            .catch (err => {
+                                APIClient.handleAxiosError(err);
+                                vscode.window.showErrorMessage("This parameter could not be changed.");
+                            })
+                    }
+                    break;
+                }
             }
         });
         this.ws = new WebSocketV4TConnection("dashboard-refresh", (dataStringified) => {
@@ -366,6 +384,13 @@ export class DashboardWebview {
                                 <div class="name">Publish solution to students</div>
                                 <label class="control checkbox_label">
                                     <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                    <div class="checkbox_switch"></div>
+                                </label>
+                            </div>
+                            <div class="option">
+                                <div class="name">Allow edition after downloading solution</div>
+                                <label class="control checkbox_label">
+                                    <input type="checkbox" name="allowEditionAfterSolutionDownloaded" id="allowEditionAfterSolutionDownloaded"${this._exercise.solutionIsPublic ? " disabled" : ""}${this._exercise.allowEditionAfterSolutionDownloaded ? " checked" : ""}/>
                                     <div class="checkbox_switch"></div>
                                 </label>
                             </div>`

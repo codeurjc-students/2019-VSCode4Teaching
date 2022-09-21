@@ -268,30 +268,32 @@ export function activate(context: vscode.ExtensionContext) {
         await coursesProvider.getCourseWithCode();
     });
 
+    const setExerciseFinished = async (finishItem: FinishItem) => {
+        try {
+            const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), ExerciseStatus.StatusEnum.FINISHED);
+            if (response.data.status === ExerciseStatus.StatusEnum.FINISHED && finishItem) {
+                finishItem.dispose();
+                if (changeEvent)
+                    changeEvent.dispose();
+                if (createEvent)
+                    createEvent.dispose();
+                if (deleteEvent)
+                    deleteEvent.dispose();
+            } else {
+                vscode.window.showErrorMessage("The exercise has not been marked as finished.");
+            }
+        } catch (error) {
+            APIClient.handleAxiosError(error);
+        }
+    };
+
     const finishExercise = vscode.commands.registerCommand("vscode4teaching.finishexercise", async () => {
-        const warnMessage = "Finish exercise? Exercise will be marked as finished and you will not be able to upload any more updates";
+        const warnMessage = "Finish exercise? When the exercise is marked as completed, it will not be possible to send new updates.";
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
         if (selectedOption === "Accept" && finishItem) {
-            try {
-                const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), ExerciseStatus.StatusEnum.FINISHED);
-                if (response.data.status === ExerciseStatus.StatusEnum.FINISHED && finishItem) {
-                    finishItem.dispose();
-                    if (changeEvent) {
-                        changeEvent.dispose();
-                    }
-                    if (createEvent) {
-                        createEvent.dispose();
-                    }
-                    if (deleteEvent) {
-                        deleteEvent.dispose();
-                    }
-                } else {
-                    vscode.window.showErrorMessage("An unexpected error has occurred. The exercise has not been marked as finished. Please try again.");
-                }
-                CoursesProvider.triggerTreeReload();
-            } catch (error) {
-                APIClient.handleAxiosError(error);
-            }
+            await setExerciseFinished(finishItem);
+            vscode.window.showInformationMessage("The exercise has been successfully finished.");
+            CoursesProvider.triggerTreeReload();
         }
     });
 
@@ -346,10 +348,36 @@ export function activate(context: vscode.ExtensionContext) {
 
     const downloadTeacherSolution = vscode.commands.registerCommand("vscode4teaching.downloadteachersolution", async () => {
         if (CurrentUser.isLoggedIn() && downloadTeacherSolutionItem) {
+            // Get current exercise info
             const exercise = downloadTeacherSolutionItem.getExerciseInfo();
+            // Interaction with the user: he or she is told of the changes to be made and confirmation is requested and command will only continue if user confirms.
+            let avisoInicial = await vscode.window.showInformationMessage(
+                exercise.allowEditionAfterSolutionDownloaded
+                    ? "The solution will then be downloaded. Once downloaded, you can continue editing the exercise."
+                    : "The solution will then be downloaded. Once downloaded, the exercise will be marked as finished and it will not be possible to continue editing it."
+                , { modal: true }, "Accept");
+            if (avisoInicial !== "Accept")
+                return;
+
             if (exercise.includesTeacherSolution && exercise.solutionIsPublic && exercise.course) {
-                const solutionZipInfo = FileZipUtil.studentSolutionZipInfo(exercise);
-                await FileZipUtil.filesFromZip(solutionZipInfo, APIClient.getExerciseResourceById(exercise.id, "solution"), solutionZipInfo.dir, true);
+                try {
+                    // Exercise is marked as finished (and updating events are disabled) only if edition is allowed after downloading solution
+                    if (!exercise.allowEditionAfterSolutionDownloaded && finishItem) {
+                        await setExerciseFinished(finishItem);
+                    }
+                    // Solution is downloaded in a folder called "solution" located at root directory of exercise
+                    const solutionZipInfo = FileZipUtil.studentSolutionZipInfo(exercise);
+                    await FileZipUtil.filesFromZip(solutionZipInfo, APIClient.getExerciseResourceById(exercise.id, "solution"), solutionZipInfo.dir, true);
+                    // Interaction with user: a notification is issued to the user to inform him or her of changes
+                    vscode.window.showInformationMessage(
+                        exercise.allowEditionAfterSolutionDownloaded
+                            ? "The solution has been downloaded but the exercise has not been finished, so further editing is possible."
+                            : "The solution has been downloaded and the exercise has been marked as finished, so subsequent editions will not be saved."
+                    );
+                    downloadTeacherSolutionItem.dispose();
+                } catch (err) {
+                    v4tLogger.error(err);
+                }
             }
         }
     });

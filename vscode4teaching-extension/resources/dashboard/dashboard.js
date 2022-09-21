@@ -72,4 +72,11 @@
             value: event.target.checked,
         });
     });
+
+    document.getElementById("allowEditionAfterSolutionDownloaded").addEventListener("click", (event) => {
+        vscode.postMessage({
+            type: "allowEditionAfterSolutionDownloaded",
+            value: event.target.checked,
+        });
+    });
 })();

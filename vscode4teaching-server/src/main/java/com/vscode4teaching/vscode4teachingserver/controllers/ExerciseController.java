@@ -76,6 +76,7 @@ public class ExerciseController {
             Exercise exercise = new Exercise(exerciseDTO.name);
             exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
             exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+            exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
             savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
         }
         return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
@@ -89,6 +90,7 @@ public class ExerciseController {
         Exercise exercise = new Exercise(exerciseDTO.name);
         exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
         exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+        exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
         return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
     }
 

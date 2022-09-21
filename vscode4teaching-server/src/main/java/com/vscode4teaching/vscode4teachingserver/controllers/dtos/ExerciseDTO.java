@@ -12,4 +12,6 @@ public class ExerciseDTO {
     public boolean includesTeacherSolution;
 
     public boolean solutionIsPublic;
+
+    public boolean allowEditionAfterSolutionDownloaded;
 }

@@ -59,6 +59,9 @@ public class Exercise {
     @JsonView(ExerciseViews.GeneralView.class)
     private boolean solutionIsPublic;
 
+    @JsonView(ExerciseViews.GeneralView.class)
+    private boolean allowEditionAfterSolutionDownloaded;
+
     @CreationTimestamp
     @JsonView(ExerciseViews.GeneralView.class)
     private LocalDateTime createDateTime;
@@ -73,6 +76,7 @@ public class Exercise {
         this.name = name;
         this.solutionIsPublic = false;
         this.includesTeacherSolution = false;
+        this.allowEditionAfterSolutionDownloaded = false;
         this.template = Arrays.asList(template);
     }
 
@@ -153,6 +157,14 @@ public class Exercise {
 
     public void setSolutionIsPublic(boolean solutionIsPublic) {
         this.solutionIsPublic = solutionIsPublic;
+    }
+
+    public boolean isEditionAfterSolutionDownloadedAllowed() {
+        return allowEditionAfterSolutionDownloaded;
+    }
+
+    public void setAllowEditionAfterSolutionDownloaded(boolean allowEditionAfterSolutionDownloaded) {
+        this.allowEditionAfterSolutionDownloaded = allowEditionAfterSolutionDownloaded;
     }
 
     public LocalDateTime getCreateDateTime() {

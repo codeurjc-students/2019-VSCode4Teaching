@@ -319,7 +319,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     const exerciseData = await APIClient.addExercises(course.id, exercisesDirectories.map(ex => ({
                         name: ex.name,
                         includesTeacherSolution: (ex.paths.solution !== undefined),
-                        solutionIsPublic: false
+                        solutionIsPublic: false,
+                        allowEditionAfterSolutionDownloaded: false
                     })));
                     
                     // 3.2: an array containing promises for sending ZIP compressed files including all the templates and solutions extracted during the previous phases is generated.
@@ -402,7 +403,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             const name = await this.getInput("Exercise name", Validators.validateExerciseName);
             if (name) {
                 try {
-                    await APIClient.editExercise(item.item.id, { name, includesTeacherSolution: item.item.includesTeacherSolution, solutionIsPublic: item.item.solutionIsPublic });
+                    await APIClient.editExercise(item.item.id, {
+                        name,
+                        includesTeacherSolution: item.item.includesTeacherSolution,
+                        solutionIsPublic: item.item.solutionIsPublic,
+                        allowEditionAfterSolutionDownloaded: item.item.allowEditionAfterSolutionDownloaded
+                    });
                     CoursesProvider.triggerTreeReload(item.parent);
                     vscode.window.showInformationMessage("Exercise edited successfully");
                 } catch (error) {
