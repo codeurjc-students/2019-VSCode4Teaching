@@ -21,12 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
@@ -319,7 +314,7 @@ public class ExerciseFilesServiceImplTests {
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, student);
-        eui.setStatus(1);
+        eui.setStatus(ExerciseStatus.FINISHED);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(anyLong(), anyString()))
                 .thenReturn(Optional.of(eui));
         // Get files

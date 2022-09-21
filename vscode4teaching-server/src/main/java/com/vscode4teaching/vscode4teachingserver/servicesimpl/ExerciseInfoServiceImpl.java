@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseStatus;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
@@ -46,7 +47,7 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     }
 
     @Override
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, List<String> modifiedFiles)
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, ExerciseStatus status, List<String> modifiedFiles)
             throws NotFoundException {
         logger.info("Called ExerciseInfoServiceImpl.updateExerciseUserInfo({}, {}, {}, {})", exerciseId, username, status, modifiedFiles);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);

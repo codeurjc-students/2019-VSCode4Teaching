@@ -2,6 +2,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Course } from "../../../model/serverModel/course/Course";
 import { Exercise } from "../../../model/serverModel/exercise/Exercise";
+import { ExerciseStatus } from "../../../model/serverModel/exercise/ExerciseStatus";
 import { V4TItemType } from "./V4TItemType";
 
 /**
@@ -24,7 +25,7 @@ export class V4TItem extends vscode.TreeItem {
         readonly parent?: V4TItem,
         readonly item?: Course | Exercise,
         readonly command?: vscode.Command,
-        readonly exerciseStatusOrSolution?: number
+        readonly exerciseStatusOrSolution?: ExerciseStatus.StatusEnum | number
     ) {
         super(label, collapsibleState);
     }
@@ -69,11 +70,11 @@ export class V4TItem extends vscode.TreeItem {
                 // This icon will indicate the status of the exercise (not started, in progress or finished) using specific colors and images.
                 if (this.exerciseStatusOrSolution !== undefined) {
                     switch (this.exerciseStatusOrSolution) {
-                        case 0:
+                        case ExerciseStatus.StatusEnum.NOT_STARTED:
                             return path.join(this.resourcesPath, "exercises_status_treeicons", "exercise_not_started.png");
-                        case 1:
+                        case ExerciseStatus.StatusEnum.FINISHED:
                             return path.join(this.resourcesPath, "exercises_status_treeicons", "exercise_finished.png");
-                        case 2:
+                        case ExerciseStatus.StatusEnum.IN_PROGRESS:
                             return path.join(this.resourcesPath, "exercises_status_treeicons", "exercise_in_progress.png");
                     }
                 }

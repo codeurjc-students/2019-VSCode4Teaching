@@ -10,11 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
@@ -57,7 +53,7 @@ public class ExerciseInfoServiceImplTests {
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(1);
+        eui.setStatus(ExerciseStatus.FINISHED);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
 
@@ -65,7 +61,7 @@ public class ExerciseInfoServiceImplTests {
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
     }
 
@@ -91,7 +87,7 @@ public class ExerciseInfoServiceImplTests {
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(0);
+        eui.setStatus(ExerciseStatus.NOT_STARTED);
         Set<String> euiOldModifiedFiles = new HashSet<>();
         euiOldModifiedFiles.add("/old/file.txt");
         eui.setModifiedFiles(euiOldModifiedFiles);
@@ -108,11 +104,11 @@ public class ExerciseInfoServiceImplTests {
         teacherSet.add(creator);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, euiNewModifiedFiles);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, ExerciseStatus.FINISHED, euiNewModifiedFiles);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
         assertThat(savedEui.getModifiedFiles()).size().isEqualTo(2);
         assertThat(savedEui.getModifiedFiles()).contains("/modified/file.txt");
         assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
@@ -132,18 +128,18 @@ public class ExerciseInfoServiceImplTests {
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(0);
+        eui.setStatus(ExerciseStatus.NOT_STARTED);
         Set<String> euiOldModifiedFiles = new HashSet<>();
         euiOldModifiedFiles.add("/old/file.txt");
         eui.setModifiedFiles(euiOldModifiedFiles);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 0, null);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, ExerciseStatus.NOT_STARTED, null);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.NOT_STARTED).isTrue();
         assertThat(savedEui.getModifiedFiles()).size().isEqualTo(1);
         assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
@@ -179,7 +175,7 @@ public class ExerciseInfoServiceImplTests {
         ExerciseUserInfo euiTeacher = new ExerciseUserInfo(exercise, teacher);
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setStatus(1);
+        euiStudent2.setStatus(ExerciseStatus.NOT_STARTED);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(3);
         expectedList.add(euiTeacher);
         expectedList.add(euiStudent1);
@@ -193,7 +189,7 @@ public class ExerciseInfoServiceImplTests {
         assertThat(returnedEuis.contains(euiTeacher)).isFalse();
         assertThat(returnedEuis.get(0)).isEqualTo(euiStudent1);
         assertThat(returnedEuis.get(1)).isEqualTo(euiStudent2);
-        assertThat(returnedEuis.get(0).getStatus() == 1).isFalse();
-        assertThat(returnedEuis.get(1).getStatus() == 1).isTrue();
+        assertThat(returnedEuis.get(0).getStatus() == ExerciseStatus.FINISHED).isFalse();
+        assertThat(returnedEuis.get(1).getStatus() == ExerciseStatus.FINISHED).isTrue();
     }
 }

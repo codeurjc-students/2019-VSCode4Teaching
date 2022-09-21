@@ -5,6 +5,7 @@ import { APIClient } from "../../client/APIClient";
 import { WebSocketV4TConnection } from "../../client/WebSocketV4TConnection";
 import { Course } from "../../model/serverModel/course/Course";
 import { Exercise } from "../../model/serverModel/exercise/Exercise";
+import { ExerciseStatus } from "../../model/serverModel/exercise/ExerciseStatus";
 import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 import { v4tLogger } from "../../services/LoggerService";
 import { CoursesProvider } from "../courses/CoursesTreeProvider";
@@ -314,18 +315,15 @@ export class DashboardWebview {
             }
             rows = rows + `<td class="exercise-folder">student_${eui.id}</td>\n`;
             switch (eui.status) {
-                case 0: {
-                    // not started
+                case ExerciseStatus.StatusEnum.NOT_STARTED: {
                     rows = rows + `<td class="not-started-cell"><img src="${imgUri("exercise_not_started")}" alt="Not started icon" class="status-icon-img"><div>Not started</div></td>\n`;
                     break;
                 }
-                case 1: {
-                    // finished
+                case ExerciseStatus.StatusEnum.FINISHED: {
                     rows = rows + `<td class="finished-cell"><img src="${imgUri("exercise_finished")}" alt="Finished icon" class="status-icon-img"><div>Finished</div></td>\n`;
                     break;
                 }
-                case 2: {
-                    // started but not finished
+                case ExerciseStatus.StatusEnum.IN_PROGRESS: {
                     rows = rows + `<td class="inprogress-cell"><img src="${imgUri("exercise_in_progress")}" alt="In progress icon" class="status-icon-img"><div>In progress</div></td>\n`;
                     break;
                 }

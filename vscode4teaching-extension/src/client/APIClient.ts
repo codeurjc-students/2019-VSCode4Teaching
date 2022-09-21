@@ -8,6 +8,7 @@ import { CourseEdit } from "../model/serverModel/course/CourseEdit";
 import { ManageCourseUsers } from "../model/serverModel/course/ManageCourseUsers";
 import { Exercise } from "../model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../model/serverModel/exercise/ExerciseEdit";
+import { ExerciseStatus } from "../model/serverModel/exercise/ExerciseStatus";
 import { ExerciseUserInfo } from "../model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "../model/serverModel/file/FileInfo";
 import { User } from "../model/serverModel/user/User";
@@ -416,7 +417,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: ExerciseStatus.StatusEnum, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",

@@ -18,6 +18,7 @@ import { ShowLiveshareBoardItem } from "./components/statusBarItems/liveshare/Sh
 import { Dictionary } from "./model/Dictionary";
 import { Course } from "./model/serverModel/course/Course";
 import { Exercise, instanceOfExercise } from "./model/serverModel/exercise/Exercise";
+import { ExerciseStatus } from "./model/serverModel/exercise/ExerciseStatus";
 import { ExerciseUserInfo } from "./model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "./model/serverModel/file/FileInfo";
 import { ModelUtils } from "./model/serverModel/ModelUtils";
@@ -128,8 +129,8 @@ export function activate(context: vscode.ExtensionContext) {
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
         coursesProvider.changeLoading(true);
         try {
-            const response = await APIClient.updateExerciseUserInfo(exercise.id, 2);
-            if (response.data.status === 2) {
+            const response = await APIClient.updateExerciseUserInfo(exercise.id, ExerciseStatus.StatusEnum.IN_PROGRESS);
+            if (response.data.status === ExerciseStatus.StatusEnum.IN_PROGRESS) {
                 await getSingleStudentExerciseFiles(courseName, exercise);
             }
         } finally {
@@ -272,8 +273,8 @@ export function activate(context: vscode.ExtensionContext) {
         const selectedOption = await vscode.window.showWarningMessage(warnMessage, { modal: true }, "Accept");
         if (selectedOption === "Accept" && finishItem) {
             try {
-                const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), 1);
-                if (response.data.status === 1 && finishItem) {
+                const response = await APIClient.updateExerciseUserInfo(finishItem.getExerciseId(), ExerciseStatus.StatusEnum.FINISHED);
+                if (response.data.status === ExerciseStatus.StatusEnum.FINISHED && finishItem) {
                     finishItem.dispose();
                     if (changeEvent) {
                         changeEvent.dispose();
@@ -483,7 +484,7 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                     // If user is student and exercise is not finished add finish button
                     if (!currentUserIsTeacher && !finishItem) {
                         try {
-                            if (eui.status !== 1) {
+                            if (eui.status !== ExerciseStatus.StatusEnum.FINISHED) {
                                 const jszipFile = new JSZip();
 
                                 // Student synchronization of files is only enabled when status is different to "finished"

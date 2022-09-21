@@ -99,7 +99,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
                 .orElseThrow(() ->
                         new NotFoundException(
                                 "Exercise user info not found for user: " + requestUsername + ". Exercise: " + exerciseId));
-        if (eui.getStatus() == 1) {
+        if (eui.getStatus() == ExerciseStatus.FINISHED) {
             throw new ExerciseFinishedException(exerciseId);
         }
         return saveFiles(file, exerciseId, requestUsername, eui, false, false);

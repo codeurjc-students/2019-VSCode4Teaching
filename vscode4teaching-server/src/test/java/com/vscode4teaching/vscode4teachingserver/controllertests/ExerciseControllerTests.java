@@ -27,11 +27,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseUserInfoDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
@@ -300,13 +296,13 @@ public class ExerciseControllerTests {
         User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
         user.setId(4L);
         ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
-        euiDTO.setStatus(1);
+        euiDTO.setStatus(ExerciseStatus.FINISHED);
         ArrayList<String> euiModifiedFiles = new ArrayList<>();
         euiModifiedFiles.add("/sample");
         euiDTO.setModifiedFiles(euiModifiedFiles);
         ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
-        updatedEui.setStatus(1);
-        when(exerciseInfoService.updateExerciseUserInfo(anyLong(), anyString(), anyInt(), anyList())).thenReturn(updatedEui);
+        updatedEui.setStatus(ExerciseStatus.FINISHED);
+        when(exerciseInfoService.updateExerciseUserInfo(anyLong(), anyString(), any(ExerciseStatus.class), anyList())).thenReturn(updatedEui);
 
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())
@@ -341,7 +337,7 @@ public class ExerciseControllerTests {
         // Set up EUIs
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setStatus(1);
+        euiStudent2.setStatus(ExerciseStatus.FINISHED);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(2);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);

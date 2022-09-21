@@ -3,11 +3,7 @@ package com.vscode4teaching.vscode4teachingserver;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
@@ -108,7 +104,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                     ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
                     if (course.equals(courses.get(0)) && savedExercise.getName().equals("Exercise 1")
                             && (user.equals(users.get(2)) || user.equals(users.get(3)))) {
-                        eui.setStatus(1);
+                        eui.setStatus(ExerciseStatus.FINISHED);
                     }
                     exerciseUserInfoRepository.save(eui);
                 }
