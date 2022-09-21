@@ -368,45 +368,59 @@ export class DashboardWebview {
                 <body>
                     <h1>VSCode4Teaching Dashboard</h1>
                     <h2>${this._dashboardViewName}</h2>
-                    ${
-                        this.fullMode
-                        ? ''
-                        :
-                        `<div class="option">
-                            <div class="alert-info"><strong>Preview mode.</strong> Some features, such as downloading student files or reviewing them, are disabled and are only accessible in full mode.</div>
-                        </div>`
-                    }
-                    <div class="reload-options">
+                    <div class="options-panel">
                         ${
-                            this._exercise.includesTeacherSolution
-                            ?
-                            `<div class="option">
-                                <div class="name">Publish solution to students</div>
+                            this.fullMode
+                            ? ''
+                            : `<div class="alert-info"><strong>Preview mode.</strong> Some features, such as downloading student files or reviewing them, are disabled and are only accessible in full mode.</div>`
+                        }
+                        <div class="checkbox-row">
+                            ${
+                                this._exercise.includesTeacherSolution
+                                ?
+                                `<div class="option">
+                                    <div class="name">Publish solution to students</div>
+                                    <label class="control checkbox_label">
+                                        <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                        <div class="checkbox_switch"></div>
+                                    </label>
+                                </div>
+                                <div class="option">
+                                    <div class="name">Allow edition after downloading solution</div>
+                                    <label class="control checkbox_label">
+                                        <input type="checkbox" name="allowEditionAfterSolutionDownloaded" id="allowEditionAfterSolutionDownloaded"${this._exercise.solutionIsPublic ? " disabled" : ""}${this._exercise.allowEditionAfterSolutionDownloaded ? " checked" : ""}/>
+                                        <div class="checkbox_switch"></div>
+                                    </label>
+                                </div>`
+                            : '' }
+                            <div class="option">
+                                <div class="name">Hide student's names</div>
                                 <label class="control checkbox_label">
-                                    <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                    <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}/>
                                     <div class="checkbox_switch"></div>
                                 </label>
                             </div>
-                            <div class="option">
-                                <div class="name">Allow edition after downloading solution</div>
-                                <label class="control checkbox_label">
-                                    <input type="checkbox" name="allowEditionAfterSolutionDownloaded" id="allowEditionAfterSolutionDownloaded"${this._exercise.solutionIsPublic ? " disabled" : ""}${this._exercise.allowEditionAfterSolutionDownloaded ? " checked" : ""}/>
-                                    <div class="checkbox_switch"></div>
-                                </label>
-                            </div>`
-                        : '' }
-                        <div class="option">
-                            <div class="name">Hide student's names</div>
-                            <label class="control checkbox_label">
-                                <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}/>
-                                <div class="checkbox_switch"></div>
-                            </label>
                         </div>
+                        <details>
+                            <summary><strong>Teacher short guide</strong></summary>
+                            <div class="details-content">
+                                This quick guide summarizes the functionalities that can be used in this Dashboard.
+
+                                <ul>
+                                    <li>The <strong>Hide student's names</strong> option allows you to show/hide a column that includes the first and last names of all students shown in the progress table below. It is enabled by default.</li>
+                                    <li>In case the exercises include a <strong>solution proposal</strong>, two additional controls are displayed:
+                                    <ul>
+                                        <li>The <strong>publish solution to students</strong> option allows teachers to decide when the solution to an exercise can be downloaded by students. This action is irrevocable, disabling this control when it is enabled. By default it is disabled.</li>
+                                        <li>The <strong>allow edition after downloading solution</strong> option allows you to decide whether the exercises can be edited by the students once they have downloaded the solution. This behavior cannot be changed from the moment the solution is published. By default it is deactivated.</li>
+                                    </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
                     ${this._euis.length === 0 ? `
                     <div class="alert-info"><strong>Warning</strong>: There are no students registered in this course.</div>
                     ` : `
-                    <hr/>
                     <table>
                         <tr>
                             ${

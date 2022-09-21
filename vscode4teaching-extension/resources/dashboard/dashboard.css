@@ -75,16 +75,30 @@ option:hover {
     background-color: var(--vscode-selection-background);
 }
 
-.reload-options {
+.options-panel {
     border-top: 1px solid;
     border-bottom: 1px solid;
     border-color: var(--vscode-button-background);
-    padding: 10px 0;
+    padding: 10px 10%;
     margin-top: 2px;
     margin-bottom: 10px;
     display: flex;
+    flex-direction: column;
+}
+
+.options-panel > * {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.options-panel > *:last-child {
+    margin-bottom: 0;
+}
+
+.options-panel > .checkbox-row {
+    display: flex;
+    flex-direction: row;
     justify-content: space-around;
-    align-items: center;
 }
 
 .option {
@@ -311,12 +325,60 @@ table th {
     transform: rotate(45deg);
 }
 
+
 .alert-info {
     text-align: center;
     position: relative;
-    padding: 1rem;
+    padding: 1rem 0;
     margin-bottom: 1rem;
     color: var(--vscode-editor-foreground);
     border: 1px solid var(--vscode-button-background);
     border-radius: 0.375rem;
+}
+
+
+details {
+    margin: 0 auto;
+    margin-bottom: .5rem;
+    border: 1px solid var(--vscode-button-background);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+summary {
+    padding: 0.5rem 1rem;
+    display: block;
+    padding-left: 1.6rem;
+    position: relative;
+    cursor: pointer;
+}
+
+summary:before {
+    content: '';
+    border-width: .3rem;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--vscode-button-background);
+    position: absolute;
+    top: 0.7rem;
+    left: 0.75rem;
+    transform: rotate(0);
+    transform-origin: .2rem 50%;
+    transition: .25s transform ease;
+}
+
+details[open] > summary:before {
+    transform: rotate(90deg);
+}
+
+details > ul {
+    padding-bottom: 1rem;
+    margin-bottom: 0;
+}
+
+details > .details-content {
+    padding: 0.75rem;
+}
+
+details > .details-content > ul {
+    margin-bottom: 0;
 }
