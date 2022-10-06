@@ -23,7 +23,7 @@
 	"description": "Bring the programming exercises directly to the student’s editor.",
 	"version": "2.2.0",
 	"engines": {
-		"vscode": "^1.61.0"
+		"vscode": "^1.64.0"
 	},
 	"categories": [
 		"Other"
@@ -404,7 +404,7 @@
 		"@types/mkdirp": "^1.0.2",
 		"@types/node": "^10.17.60",
 		"@types/rimraf": "^3.0.2",
-		"@types/vscode": "^1.45.1",
+		"@types/vscode": "1.64.0",
 		"@types/ws": "^8.5.3",
 		"esbuild": "^0.14.54",
 		"eslint": "^8.23.0",

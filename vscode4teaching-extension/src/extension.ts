@@ -12,6 +12,7 @@ import { V4TItem } from "./components/courses/V4TItem/V4TItem";
 import { DashboardWebview } from "./components/dashboard/DashboardWebview";
 import { LiveshareWebview } from "./components/liveshareBoard/LiveshareWebview";
 import { ShowDashboardItem } from "./components/statusBarItems/dashboard/ShowDashboardItem";
+import { DiffWithSolutionItem } from "./components/statusBarItems/exercises/DiffWithSolution";
 import { DownloadTeacherSolutionItem } from "./components/statusBarItems/exercises/DownloadTeacherSolution";
 import { FinishItem } from "./components/statusBarItems/exercises/FinishItem";
 import { ShowLiveshareBoardItem } from "./components/statusBarItems/liveshare/ShowLiveshareBoardItem";
@@ -28,6 +29,7 @@ import { LiveShareService } from "./services/LiveShareService";
 import { v4tLogger } from "./services/LoggerService";
 import { NoteComment } from "./services/NoteComment";
 import { TeacherCommentService } from "./services/TeacherCommentsService";
+import { DiffBetweenDirectories } from "./utils/DiffBetweenDirectories";
 import { FileIgnoreUtil } from "./utils/FileIgnoreUtil";
 import { FileZipUtil } from "./utils/FileZipUtil";
 
@@ -46,6 +48,7 @@ export let finishItem: FinishItem | undefined;
 export let showDashboardItem: ShowDashboardItem | undefined;
 export let showLiveshareBoardItem: ShowLiveshareBoardItem | undefined;
 export let downloadTeacherSolutionItem: DownloadTeacherSolutionItem | undefined;
+export let diffWithSolutionItem: DiffWithSolutionItem | undefined;
 export let changeEvent: vscode.Disposable;
 export let createEvent: vscode.Disposable;
 export let deleteEvent: vscode.Disposable;
@@ -351,12 +354,12 @@ export function activate(context: vscode.ExtensionContext) {
             // Get current exercise info
             const exercise = downloadTeacherSolutionItem.getExerciseInfo();
             // Interaction with the user: he or she is told of the changes to be made and confirmation is requested and command will only continue if user confirms.
-            let avisoInicial = await vscode.window.showInformationMessage(
+            let initialWarning = await vscode.window.showInformationMessage(
                 exercise.allowEditionAfterSolutionDownloaded
                     ? "The solution will then be downloaded. Once downloaded, you can continue editing the exercise."
                     : "The solution will then be downloaded. Once downloaded, the exercise will be marked as finished and it will not be possible to continue editing it."
                 , { modal: true }, "Accept");
-            if (avisoInicial !== "Accept")
+            if (initialWarning !== "Accept")
                 return;
 
             if (exercise.includesTeacherSolution && exercise.solutionIsPublic && exercise.course) {
@@ -375,9 +378,50 @@ export function activate(context: vscode.ExtensionContext) {
                             : "The solution has been downloaded and the exercise has been marked as finished, so subsequent editions will not be saved."
                     );
                     downloadTeacherSolutionItem.dispose();
+                    // The user is allowed to initiate the functionality to visualize differences between his proposal and the teacher's solution
+                    diffWithSolutionItem = new DiffWithSolutionItem();
+                    diffWithSolutionItem.show();
+                    const userResponse = await vscode.window.showInformationMessage("To visualize the differences between the submitted proposal and the solution, you can click on this button or access the function in the toolbar.", "Show diff with solution");
+                    if (userResponse && userResponse === "Show diff with solution") {
+                        await vscode.commands.executeCommand("vscode4teaching.diffwithsolution");
+                    }
                 } catch (err) {
                     v4tLogger.error(err);
                 }
+            }
+        }
+    });
+
+    const diffWithSolution = vscode.commands.registerCommand("vscode4teaching.diffwithsolution", async () => {
+        // Since this command can only be launched by students with an active exercise, the current workspace has to have only one active directory
+        const wsDirectory = vscode.workspace.workspaceFolders;
+        if (wsDirectory && wsDirectory.length === 1) {
+            // In this directory, both the exercise proposal (root directory) and the proposed solution ("solution" directory) should be found
+            const proposalPath = path.resolve(wsDirectory[0].uri.fsPath);
+            const solutionPath = path.resolve(wsDirectory[0].uri.fsPath, "solution");
+
+            // Trees of the directory structure of both paths are requested
+            // When searching for information in the root directory, the "solution" directory that it is contained there is ignored
+            const proposalTree = DiffBetweenDirectories.deepFilteredDirectoryTraversal(proposalPath, [/solution/, /^.*\.v4t$/]);
+            const solutionTree = DiffBetweenDirectories.deepFilteredDirectoryTraversal(solutionPath, [/^.*\.v4t$/]);
+
+            // The merging algorithm is executed (see documentation associated to this method)
+            const mergedTree = DiffBetweenDirectories.mergeDirectoryTrees(proposalTree, solutionTree);
+
+            // The user is shown the Quick Pick system designed to allow the user to choose a file from the tree resulting from the merge process
+            const userSelection = await DiffBetweenDirectories.directorySelectionQuickPick(DiffBetweenDirectories.mergedTreeToQuickPickTree(mergedTree, ""));
+
+            // In case the user has chosen a file, it will be displayed...
+            if (userSelection) {
+                const proposalFileUri = vscode.Uri.parse(path.join(proposalPath, userSelection.relativePath));
+                const solutionFileUri = vscode.Uri.parse(path.join(solutionPath, userSelection.relativePath));
+
+                // ... if it exists in both the proposal and the solution, the difference between both files
+                if (userSelection.source === 0)
+                    await vscode.commands.executeCommand("vscode.diff", proposalFileUri, solutionFileUri);
+                // ... otherwise, the selected file is just opened (distinguishing whether it exists in the proposal or in the solution)
+                else
+                    await vscode.commands.executeCommand("vscode.open", (userSelection.source === -1) ? proposalFileUri : solutionFileUri);
             }
         }
     });
@@ -408,7 +452,8 @@ export function activate(context: vscode.ExtensionContext) {
         finishExercise,
         showDashboard,
         showLiveshareBoard,
-        downloadTeacherSolution
+        downloadTeacherSolution,
+        diffWithSolution
     );
 
     // Temp fix for this issue https://github.com/microsoft/vscode/issues/136787
@@ -452,6 +497,10 @@ export function disableFeatures() {
     if (downloadTeacherSolutionItem) {
         downloadTeacherSolutionItem.dispose();
         downloadTeacherSolutionItem = undefined;
+    }
+    if (diffWithSolutionItem) {
+        diffWithSolutionItem.dispose();
+        diffWithSolutionItem = undefined;
     }
     if (showDashboardItem) {
         showDashboardItem.dispose();
@@ -529,10 +578,8 @@ export async function initializeExtension(cwds: ReadonlyArray<vscode.WorkspaceFo
                             if (eui.exercise.includesTeacherSolution && eui.exercise.solutionIsPublic) {
                                 downloadTeacherSolutionItem = new DownloadTeacherSolutionItem(eui.exercise);
                                 downloadTeacherSolutionItem.show();
-                                v4tLogger.error("Download inicializado para " + eui.exercise.name);
                             } else {
                                 downloadTeacherSolutionItem?.dispose();
-                                v4tLogger.error("Download quitado para " + eui.exercise.name);
                             }
                         } catch (error) {
                             APIClient.handleAxiosError(error);
