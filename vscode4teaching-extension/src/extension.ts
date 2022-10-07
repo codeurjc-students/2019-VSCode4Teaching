@@ -132,8 +132,14 @@ export function activate(context: vscode.ExtensionContext) {
     const getFilesDisposable = vscode.commands.registerCommand("vscode4teaching.getexercisefiles", async (courseName: string, exercise: Exercise) => {
         coursesProvider.changeLoading(true);
         try {
-            const response = await APIClient.updateExerciseUserInfo(exercise.id, ExerciseStatus.StatusEnum.IN_PROGRESS);
-            if (response.data.status === ExerciseStatus.StatusEnum.IN_PROGRESS) {
+            // Status has to be changed only if it was NOT_STARTED to IN_PROGRESS, otherwise it should not be changed
+            const eui: ExerciseUserInfo = (await APIClient.getExerciseUserInfo(exercise.id)).data;
+            if (eui.status === ExerciseStatus.StatusEnum.NOT_STARTED){
+                const response = await APIClient.updateExerciseUserInfo(exercise.id, ExerciseStatus.StatusEnum.IN_PROGRESS);
+                if (response.data.status === ExerciseStatus.StatusEnum.IN_PROGRESS) {
+                    await getSingleStudentExerciseFiles(courseName, exercise);
+                }
+            } else {
                 await getSingleStudentExerciseFiles(courseName, exercise);
             }
         } finally {
