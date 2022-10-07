@@ -134,7 +134,7 @@ export function activate(context: vscode.ExtensionContext) {
         try {
             // Status has to be changed only if it was NOT_STARTED to IN_PROGRESS, otherwise it should not be changed
             const eui: ExerciseUserInfo = (await APIClient.getExerciseUserInfo(exercise.id)).data;
-            if (eui.status === ExerciseStatus.StatusEnum.NOT_STARTED){
+            if (eui.status === ExerciseStatus.StatusEnum.NOT_STARTED) {
                 const response = await APIClient.updateExerciseUserInfo(exercise.id, ExerciseStatus.StatusEnum.IN_PROGRESS);
                 if (response.data.status === ExerciseStatus.StatusEnum.IN_PROGRESS) {
                     await getSingleStudentExerciseFiles(courseName, exercise);
@@ -168,8 +168,24 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.deleteCourse(item);
     });
 
-    const refreshView = vscode.commands.registerCommand("vscode4teaching.refreshcourses", () => {
+    const refreshView = vscode.commands.registerCommand("vscode4teaching.refreshcourses", async () => {
+        // Refreshes currently available courses
         coursesProvider.refreshCourses();
+        // If there is a currently activated exercise, it will check if solution is public or not
+        if (!downloadTeacherSolutionItem && finishItem && finishItem.getExerciseId() !== 0) {
+            try {
+                const exercise = (await APIClient.getExercise(finishItem.getExerciseId())).data;
+                if (exercise.includesTeacherSolution && exercise.solutionIsPublic) {
+                    // Solution is now public, so button can be showed to student
+                    downloadTeacherSolutionItem = new DownloadTeacherSolutionItem(exercise);
+                    downloadTeacherSolutionItem.show();
+                    // Students gets a visual alert about this change
+                    vscode.window.showInformationMessage("Solution provided by teacher is now available. You can download it using the corresponding button in toolbar.");
+                }
+            } catch (error) {
+                APIClient.handleAxiosError(error);
+            }
+        }
     });
 
     const refreshCourse = vscode.commands.registerCommand("vscode4teaching.refreshexercises", (item: V4TItem) => {

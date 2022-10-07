@@ -82,6 +82,13 @@ public class ExerciseController {
         return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
     }
 
+    @GetMapping("/exercises/{exerciseId}")
+    @JsonView(ExerciseViews.CourseView.class)
+    public ResponseEntity<Exercise> getExercise(@PathVariable Long exerciseId) throws ExerciseNotFoundException {
+        logger.info("Request to GET '/api/exercises/{}'", exerciseId);
+        return ResponseEntity.ok(courseService.getExercise(exerciseId));
+    }
+
     @PutMapping("/exercises/{exerciseId}")
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<Exercise> updateExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId,

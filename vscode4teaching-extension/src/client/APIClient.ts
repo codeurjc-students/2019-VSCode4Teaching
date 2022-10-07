@@ -208,6 +208,15 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Deleting course...");
     }
 
+    public getExercise(exerciseId: number): AxiosPromise<Exercise> {
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + exerciseId,
+            method: "GET",
+            responseType: "json"
+        };
+        return APIClient.createRequest(options, "Getting exercise information...");
+    }
+
     public addExercises(courseId: number, exercisesData: ExerciseEdit[]): AxiosPromise<Exercise[]> {
         const options: AxiosBuildOptions = {
             url: "/api/v2/courses/" + courseId + "/exercises",
