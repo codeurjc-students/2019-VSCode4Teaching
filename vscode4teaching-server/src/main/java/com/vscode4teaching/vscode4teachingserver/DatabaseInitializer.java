@@ -19,7 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "data.initialization", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "data.initialization", havingValue = "true")
 @Order(0)
 public class DatabaseInitializer implements CommandLineRunner {
 
@@ -62,7 +62,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");

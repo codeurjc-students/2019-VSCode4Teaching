@@ -43,7 +43,7 @@ public class ExerciseInfoServiceImplTests {
     private ExerciseInfoServiceImpl exerciseInfoService;
 
     @Test
-    public void getExerciseUserInfo_existing() throws NotFoundException {
+    public void getExerciseUserInfo_withExerciseIdAndUsername() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1");
         Long exerciseId = 2l;
@@ -66,7 +66,29 @@ public class ExerciseInfoServiceImplTests {
     }
 
     @Test
-    public void getExerciseUserInfo_exception() throws NotFoundException {
+    public void getExerciseUserInfo_withEuiId() throws NotFoundException {
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(2L);
+        exercise.setCourse(course);
+        Role studentRole = new Role("ROLE_STUDENT");
+        User user = new User("johndoe@john.com", "johndoe", "johndoeuser", "John", "Doe", studentRole);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
+        Long euiId = 3L;
+        eui.setId(euiId);
+        eui.setStatus(ExerciseStatus.FINISHED);
+        when(exerciseUserInfoRepository.findById(euiId)).thenReturn(Optional.of(eui));
+
+        ExerciseUserInfo savedEui = exerciseInfoService.getExerciseUserInfo(euiId);
+
+        assertThat(savedEui.getExercise()).isEqualTo(exercise);
+        assertThat(savedEui.getUser()).isEqualTo(user);
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
+        verify(exerciseUserInfoRepository, times(1)).findById(euiId);
+    }
+
+    @Test
+    public void getExerciseUserInfo_exception() {
         Long exerciseId = 2l;
         String username = "johndoe";
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username))
@@ -175,7 +197,7 @@ public class ExerciseInfoServiceImplTests {
         ExerciseUserInfo euiTeacher = new ExerciseUserInfo(exercise, teacher);
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setStatus(ExerciseStatus.NOT_STARTED);
+        euiStudent2.setStatus(ExerciseStatus.FINISHED);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(3);
         expectedList.add(euiTeacher);
         expectedList.add(euiStudent1);

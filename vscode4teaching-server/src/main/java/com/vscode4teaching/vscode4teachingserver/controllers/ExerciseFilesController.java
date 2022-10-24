@@ -71,8 +71,13 @@ public class ExerciseFilesController {
             separator = ExerciseFilesController.solutionFolderName;
             filesMap = filesService.getExerciseSolution(id, username);
         } else {
-            zipName = "exercise-" + id + "-" + username;
-            separator = (filesService.existsExerciseFilesForUser(id, username)) ? "student_[0-9]*" : "template";
+            if (filesService.existsExerciseFilesForUser(id, username)) {
+                zipName = "exercise-" + id + "-" + username;
+                separator = "student_[0-9]*";
+            } else {
+                zipName = "template-" + id;
+                separator = "template";
+            }
             // Order matters here: if checked existence of files after generating them, this method will fail
             filesMap = filesService.getExerciseFiles(id, username);
         }
@@ -100,8 +105,7 @@ public class ExerciseFilesController {
         String[] header = headerFilename("exercise-" + id + "-files.zip");
         response.addHeader(header[0], header[1]);
         Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
-        String exerciseDirectory = exOpt.isPresent() ? exOpt.get().getName().toLowerCase().replace(" ", "_") + "_" + id
-                : "";
+        String exerciseDirectory = exOpt.map(exercise -> exercise.getName().toLowerCase().replace(" ", "_") + "_" + id).orElse("");
         exportToZip(response, files, exerciseDirectory);
     }
 

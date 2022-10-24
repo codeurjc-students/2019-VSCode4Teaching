@@ -29,7 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(value = "file.initialization", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "file.initialization", havingValue = "true")
 @Transactional
 @Order(1)
 public class DatabaseFileInitializer implements CommandLineRunner {
@@ -61,7 +61,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                     long course_id = Long.parseLong(courseParts[courseParts.length - 1]);
                     Optional<Course> courseOpt = courseRepository.findById(course_id);
                     // If not found build course name and try to find it
-                    if (!courseOpt.isPresent()) {
+                    if (courseOpt.isEmpty()) {
                         List<String> coursePartsList = new ArrayList<>(Arrays.asList(courseParts));
                         coursePartsList.remove(courseParts[courseParts.length - 1]);
                         String courseName = String.join(" ", coursePartsList);
@@ -88,7 +88,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                                 .filter(exercise -> exercise.getId().equals(exercise_id)
                                         && exercise.getName().equalsIgnoreCase(exerciseName))
                                 .findFirst();
-                        if (!exerciseOpt.isPresent()) {
+                        if (exerciseOpt.isEmpty()) {
                             exerciseOpt = exerciseRepository.findByCourseAndNameIgnoreCase(course, exerciseName);
                             if (exerciseOpt.isPresent()) {
                                 Path dir = Paths.get(rootPath + File.separator + parts[1] + File.separator + parts[2]);

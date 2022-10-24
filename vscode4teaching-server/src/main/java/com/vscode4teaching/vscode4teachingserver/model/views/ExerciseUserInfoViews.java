@@ -4,6 +4,6 @@ public class ExerciseUserInfoViews {
     private ExerciseUserInfoViews() {
     }
 
-    public static interface GeneralView extends ExerciseViews.CourseView {
+    public interface GeneralView extends ExerciseViews.CourseView {
     }
 }

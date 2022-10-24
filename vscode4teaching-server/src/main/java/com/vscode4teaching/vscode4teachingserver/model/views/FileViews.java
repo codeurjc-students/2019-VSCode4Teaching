@@ -4,13 +4,13 @@ public class FileViews {
     private FileViews() {
     }
 
-    public static interface GeneralView {
+    public interface GeneralView {
     }
 
-    public static interface OwnerView extends GeneralView {
+    public interface OwnerView extends GeneralView {
 
     }
     
-    public static interface CommentView extends GeneralView, CommentThreadViews.CommentView {
+    public interface CommentView extends GeneralView, CommentThreadViews.CommentView {
     }
 }

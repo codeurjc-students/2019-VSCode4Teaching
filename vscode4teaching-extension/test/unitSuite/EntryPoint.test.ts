@@ -10,6 +10,7 @@ import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection"
 import { CoursesProvider } from "../../src/components/courses/CoursesTreeProvider";
 import * as extension from "../../src/extension";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
+import { ExerciseStatus } from "../../src/model/serverModel/exercise/ExerciseStatus";
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
 import { LiveShareService } from "../../src/services/LiveShareService";
@@ -46,17 +47,50 @@ const ec: vscode.ExtensionContext = {
     workspaceState: {
         get: jest.fn(),
         update: jest.fn(),
+        keys: jest.fn()
     },
     globalState: {
         get: jest.fn(),
         update: jest.fn(),
+        keys: jest.fn(),
+        setKeysForSync: jest.fn()
+    },
+    secrets: {
+        get: jest.fn(),
+        store: jest.fn(),
+        delete: jest.fn(),
+        onDidChange: jest.fn()
     },
     extensionUri: mockedVscode.Uri.parse("test"),
     extensionPath: "test",
+    environmentVariableCollection: {
+        persistent: true,
+        replace: jest.fn(),
+        append: jest.fn(),
+        prepend: jest.fn(),
+        get: jest.fn(),
+        forEach: jest.fn(),
+        delete: jest.fn(),
+        clear: jest.fn()
+    },
     asAbsolutePath: jest.fn(),
+    storageUri: mockedVscode.Uri.parse("test"),
     storagePath: "test",
+    globalStorageUri: mockedVscode.Uri.parse("test"),
     globalStoragePath: "test",
+    logUri: mockedVscode.Uri.parse("test"),
     logPath: "test",
+    extensionMode: 2,
+    extension: {
+        id: "test",
+        extensionUri: mockedVscode.Uri.parse("test"),
+        extensionPath: "test",
+        isActive: true,
+        packageJSON: {},
+        extensionKind: 1,
+        exports: {},
+        activate: jest.fn()
+    }
 };
 
 describe("Extension entry point", () => {
@@ -86,7 +120,8 @@ describe("Extension entry point", () => {
         "vscode4teaching.showexercisedashboard",
         "vscode4teaching.showcurrentexercisedashboard",
         "vscode4teaching.showliveshareboard",
-        "vscode4teaching.downloadteachersolution"
+        "vscode4teaching.downloadteachersolution",
+        "vscode4teaching.diffwithsolution"
     ];
 
     function expectAllCommandsToBeRegistered(subscriptions: any[]) {
@@ -96,6 +131,10 @@ describe("Extension entry point", () => {
             expect(commandIds).toContain(mockedVscode.commands.registerCommand.mock.calls[i][0]);
         }
     }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     it("should activate correctly", () => {
         mockedClient.initializeSessionFromFile.mockReturnValueOnce(false); // Initialization will be covered in another test
@@ -112,7 +151,8 @@ describe("Extension entry point", () => {
             id: 50,
             name: "Exercise test",
             includesTeacherSolution: false,
-            solutionIsPublic: false
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
         const cwds: vscode.WorkspaceFolder[] = [
             {
@@ -137,7 +177,7 @@ describe("Extension entry point", () => {
             id: 1,
             exercise,
             user,
-            status: 0,
+            status: ExerciseStatus.StatusEnum.NOT_STARTED,
             updateDateTime: new Date().toISOString(),
             modifiedFiles: [],
         };

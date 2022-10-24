@@ -49,6 +49,13 @@ function expectSessionInvalidated(isInvalidated: boolean) {
 }
 
 describe("Client", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        createSessionFile(xsrfToken, jwtToken);
+        APIClientSession.initializeSessionCredentials();
+    });
+
     afterEach(() => {
         APIClient.invalidateSession();
         const v4tPath = path.resolve(__dirname, "..", "..", "src", "v4t");
@@ -57,23 +64,9 @@ describe("Client", () => {
                 // console.error(error);
             });
         }
-        mockedAxios.mockReset();
-        mockedCoursesTreeProvider.mockClear();
-        mockedCoursesTreeProvider.triggerTreeReload.mockClear();
-        mockedCurrentUser.getUserInfo.mockClear();
-        mockedCurrentUser.isLoggedIn.mockClear();
-        mockedCurrentUser.resetUserInfo.mockClear();
-        mockedCurrentUser.updateUserInfo.mockClear();
-        mockedVscode.window.showWarningMessage.mockClear();
-        mockedVscode.window.showErrorMessage.mockClear();
-        mockedVscode.window.setStatusBarMessage.mockClear();
-        mockedVscode.window.showInformationMessage.mockClear();
-        mockedLogger.error = jest.fn();
-    });
 
-    beforeEach(() => {
-        createSessionFile(xsrfToken, jwtToken);
-        APIClientSession.initializeSessionCredentials();
+        mockedAxios.mockReset();
+        mockedLogger.error = jest.fn();
     });
 
     it("should log in", async () => {

@@ -123,6 +123,14 @@ export function activate(context: vscode.ExtensionContext) {
             showDashboardItem.dispose();
             showDashboardItem = undefined;
         }
+        if (downloadTeacherSolutionItem) {
+            downloadTeacherSolutionItem.dispose();
+            downloadTeacherSolutionItem = undefined;
+        }
+        if (diffWithSolutionItem) {
+            diffWithSolutionItem.dispose();
+            diffWithSolutionItem = undefined;
+        }
         currentCwds = vscode.workspace.workspaceFolders;
         if (currentCwds) {
             await initializeExtension(currentCwds);
@@ -168,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
         coursesProvider.deleteCourse(item);
     });
 
-    const refreshView = vscode.commands.registerCommand("vscode4teaching.refreshcourses", async () => {
+    const refreshCoursesInTreeView = vscode.commands.registerCommand("vscode4teaching.refreshcourses", async () => {
         // Refreshes currently available courses
         coursesProvider.refreshCourses();
         // If there is a currently activated exercise, it will check if solution is public or not
@@ -188,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const refreshCourse = vscode.commands.registerCommand("vscode4teaching.refreshexercises", (item: V4TItem) => {
+    const refreshExercisesInTreeView = vscode.commands.registerCommand("vscode4teaching.refreshexercises", (item: V4TItem) => {
         coursesProvider.refreshExercises(item);
     });
 
@@ -199,8 +207,6 @@ export function activate(context: vscode.ExtensionContext) {
     const addMultipleExercises = vscode.commands.registerCommand("vscode4teaching.addmultipleexercises", (item: V4TItem) => {
         coursesProvider.addExercises(item, true);
     });
-
-    // showExerciseDashboard is defined later in this file
 
     const editExercise = vscode.commands.registerCommand("vscode4teaching.editexercise", (item: V4TItem) => {
         coursesProvider.editExercise(item);
@@ -346,7 +352,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    const showDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {
+    const showCurrentExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {
         if (showDashboardItem && showDashboardItem.exercise && showDashboardItem.course) {
             showDashboardFunction(showDashboardItem.exercise, showDashboardItem.course, true);
         }
@@ -375,16 +381,16 @@ export function activate(context: vscode.ExtensionContext) {
         if (CurrentUser.isLoggedIn() && downloadTeacherSolutionItem) {
             // Get current exercise info
             const exercise = downloadTeacherSolutionItem.getExerciseInfo();
-            // Interaction with the user: he or she is told of the changes to be made and confirmation is requested and command will only continue if user confirms.
+            // Interaction with the user: he or she is told of the changes to be made and confirmation is requested and command will only continue if user confirms
             let initialWarning = await vscode.window.showInformationMessage(
                 exercise.allowEditionAfterSolutionDownloaded
                     ? "The solution will then be downloaded. Once downloaded, you can continue editing the exercise."
                     : "The solution will then be downloaded. Once downloaded, the exercise will be marked as finished and it will not be possible to continue editing it."
-                , { modal: true }, "Accept");
-            if (initialWarning !== "Accept")
+                , { modal: true }, { title: "Accept"});
+            if (initialWarning && initialWarning.title !== "Accept")
                 return;
 
-            if (exercise.includesTeacherSolution && exercise.solutionIsPublic && exercise.course) {
+            if (exercise.includesTeacherSolution && exercise.solutionIsPublic) {
                 try {
                     // Exercise is marked as finished (and updating events are disabled) only if edition is allowed after downloading solution
                     if (!exercise.allowEditionAfterSolutionDownloaded && finishItem) {
@@ -403,8 +409,8 @@ export function activate(context: vscode.ExtensionContext) {
                     // The user is allowed to initiate the functionality to visualize differences between his proposal and the teacher's solution
                     diffWithSolutionItem = new DiffWithSolutionItem();
                     diffWithSolutionItem.show();
-                    const userResponse = await vscode.window.showInformationMessage("To visualize the differences between the submitted proposal and the solution, you can click on this button or access the function in the toolbar.", "Show diff with solution");
-                    if (userResponse && userResponse === "Show diff with solution") {
+                    const userResponse = await vscode.window.showInformationMessage("To visualize the differences between the submitted proposal and the solution, you can click on this button or access the function in the toolbar.", { title: "Show diff with solution" });
+                    if (userResponse && userResponse.title === "Show diff with solution") {
                         await vscode.commands.executeCommand("vscode4teaching.diffwithsolution");
                     }
                 } catch (err) {
@@ -452,19 +458,18 @@ export function activate(context: vscode.ExtensionContext) {
         loginDisposable,
         logoutDisposable,
         getFilesDisposable,
+        getStudentFiles,
         addCourseDisposable,
         editCourseDisposable,
         deleteCourseDisposable,
-        refreshView,
-        refreshCourse,
+        refreshCoursesInTreeView,
+        refreshExercisesInTreeView,
         addExercise,
         addMultipleExercises,
-        showExerciseDashboard,
         editExercise,
         deleteExercise,
         addUsersToCourse,
         removeUsersFromCourse,
-        getStudentFiles,
         diff,
         createComment,
         share,
@@ -472,7 +477,8 @@ export function activate(context: vscode.ExtensionContext) {
         signupTeacher,
         getWithCode,
         finishExercise,
-        showDashboard,
+        showExerciseDashboard,
+        showCurrentExerciseDashboard,
         showLiveshareBoard,
         downloadTeacherSolution,
         diffWithSolution
@@ -793,16 +799,16 @@ async function _getStudentExerciseFiles(courseName: string, exercise: Exercise) 
  * Read further at getMultipleStudentFiles() documentation.
  */
 const _comparatorMethodOfDirectoryArray = (a: string, b: string): number => {
-    // a y b pueden ser "template", "solution" o "student_algo"
-    // template gana a todas
+    // Either a or b can be "template", "solution" or "student_(number)"
+    // "template" is always the first directory
     if (a === "template") return -1;
     if (b === "template") return 1;
 
-    // solution es la siguiente que gana a las demás
+    // "solution" is the second one if exists
     if (a === "solution") return -1;
     if (b === "solution") return 1;
 
-    // A partir de ahí comparo los números
+    // Otherwise, numbers of "student_(number)" directories are compared
     return (parseInt(a.split("student_").splice(-1)[0]) < parseInt(b.split("student_").splice(-1)[0])) ? -1 : 1;
 }
 
@@ -867,12 +873,17 @@ async function getFilesInfo(exercise: Exercise, fileInfoPath: string, usernames:
     }
 }
 
+// Syntactic sugar functions for command testing
 export function setCommentProvider(username: string) {
     commentProvider = new TeacherCommentService(username);
 }
 
 export function setFinishItem(exerciseId: number) {
     finishItem = new FinishItem(exerciseId);
+}
+
+export function setDownloadTeacherSolutionItem(exercise: Exercise) {
+    downloadTeacherSolutionItem = new DownloadTeacherSolutionItem(exercise);
 }
 
 export function setTemplate(cwdName: string, templatePath: string) {

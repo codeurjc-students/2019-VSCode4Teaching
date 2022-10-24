@@ -17,15 +17,15 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 public interface ExerciseInfoService {
-    public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
+    ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException;
 
-    public ExerciseUserInfo getExerciseUserInfo(@Min(1) Long euiId) throws NotFoundException;
+    ExerciseUserInfo getExerciseUserInfo(@Min(1) Long euiId) throws NotFoundException;
 
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, ExerciseStatus status, List<String> modifiedFiles)
+    ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, ExerciseStatus status, List<String> modifiedFiles)
             throws NotFoundException;
 
-    public List<ExerciseUserInfo> getAllStudentExerciseUserInfo(@Min(0) Long exerciseId, String requestUsername)
+    List<ExerciseUserInfo> getAllStudentExerciseUserInfo(@Min(0) Long exerciseId, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException;
 
 }

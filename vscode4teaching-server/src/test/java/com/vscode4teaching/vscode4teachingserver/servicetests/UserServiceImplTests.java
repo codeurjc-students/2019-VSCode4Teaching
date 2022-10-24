@@ -4,12 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -45,11 +47,31 @@ public class UserServiceImplTests {
     @BeforeEach
     public void setup() {
         user = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        user.setId(1l);
+        user.setId(1L);
         studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
+    }
+
+    @Test
+    public void findByUsername() throws NotFoundException {
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        User expectedUser = userService.findByUsername("johndoe");
+        assertThat(user).isEqualTo(expectedUser);
+    }
+
+    @Test
+    public void findAll() {
+        User user1 = new User("johndoejr@gmail.com", "johndoejr", "studentpassword", "John", "Doe Jr");
+        User user2 = new User("johndoejr2@gmail.com", "johndoejr2", "studentpassword2", "John", "Doe Jr 2");
+        User user3 = new User("johndoejr3@gmail.com", "johndoejr3", "studentpassword3", "John", "Doe Jr 3");
+        List<User> expectedUsers = List.of(user1, user2, user3);
+        when(userRepository.findAll()).thenReturn(expectedUsers);
+
+        List<User> actualUsers = userService.findAll();
+
+        assertThat(actualUsers).isEqualTo(expectedUsers);
     }
 
     @Test

@@ -14,10 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
@@ -71,6 +68,27 @@ public class CourseControllerTests {
         MvcResult loginResult = mockMvc.perform(post("/api/login").contentType("application/json").with(csrf())
                 .content(objectMapper.writeValueAsString(jwtRequest))).andExpect(status().isOk()).andReturn();
         jwtToken = objectMapper.readValue(loginResult.getResponse().getContentAsString(), JWTResponse.class);
+    }
+
+    @Test
+    public void getCourse() throws Exception {
+        logger.info("Test getCourse() begins.");
+
+        Course course = new Course("Spring Boot Course");
+
+        when(courseService.getCourseById(1L)).thenReturn(Optional.of(course));
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/courses/1").contentType("application/json").with(csrf())
+                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getCourseById(1L);
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
+                .writeValueAsString(course);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
+        logger.info("Test getCourse() ends.");
     }
 
     @Test
@@ -144,7 +162,7 @@ public class CourseControllerTests {
         CourseDTO course = new CourseDTO();
         course.setName("Spring Boot Course");
         Course expectedCourse = new Course("Spring Boot Course");
-        expectedCourse.setId(1l);
+        expectedCourse.setId(1L);
         when(courseService.registerNewCourse(any(Course.class), anyString())).thenReturn(expectedCourse);
 
         MvcResult mvcResult = mockMvc
@@ -228,8 +246,8 @@ public class CourseControllerTests {
         courses.add(c2);
         User user = new User("johndoe@john.com", "johndoejr", "password", "John", "Doe");
         user.setCourses(courses);
-        user.setId(4l);
-        when(courseService.getUserCourses(4l)).thenReturn(courses);
+        user.setId(4L);
+        when(courseService.getUserCourses(4L)).thenReturn(courses);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/users/4/courses").contentType("application/json").with(csrf())
@@ -250,15 +268,15 @@ public class CourseControllerTests {
         logger.info("Test addUserToCourse_valid() begins.");
 
         User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
-        newUser1.setId(1l);
+        newUser1.setId(1L);
         User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
-        newUser2.setId(5l);
+        newUser2.setId(5L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
-        teacher.setId(4l);
+        teacher.setId(4L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         newUser1.addRole(studentRole);
@@ -269,10 +287,10 @@ public class CourseControllerTests {
         expectedUsers.add(teacher);
 
         UserRequest request = new UserRequest();
-        Long[] ids = { 1l, 5l };
+        Long[] ids = {1L, 5L};
         request.setIds(ids);
         Course expectedCourse = new Course("Spring Boot Course");
-        expectedCourse.setId(1l);
+        expectedCourse.setId(1L);
         expectedCourse.addUserInCourse(teacher);
         expectedCourse.addUserInCourse(newUser1);
         expectedCourse.addUserInCourse(newUser2);
@@ -298,15 +316,15 @@ public class CourseControllerTests {
         logger.info("Test getUsersInCourse_valid() begins.");
 
         User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
-        newUser1.setId(1l);
+        newUser1.setId(1L);
         User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
-        newUser2.setId(5l);
+        newUser2.setId(5L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
-        teacher.setId(4l);
+        teacher.setId(4L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         newUser1.addRole(studentRole);
@@ -336,15 +354,15 @@ public class CourseControllerTests {
         logger.info("Test removeUsersFromCourse_valid() begins.");
 
         User newUser1 = new User("johndoejr@gmail.com", "johndoejr", "pass", "John", "Doe Jr");
-        newUser1.setId(1l);
+        newUser1.setId(1L);
         User newUser2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
-        newUser2.setId(5l);
+        newUser2.setId(5L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe ");
-        teacher.setId(4l);
+        teacher.setId(4L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         newUser1.addRole(studentRole);
@@ -355,10 +373,10 @@ public class CourseControllerTests {
         expectedUsers.add(teacher);
 
         UserRequest request = new UserRequest();
-        Long[] ids = { 1l, 5l };
+        Long[] ids = {1L, 5L};
         request.setIds(ids);
         Course expectedCourse = new Course("Spring Boot Course");
-        expectedCourse.setId(1l);
+        expectedCourse.setId(1L);
         expectedCourse.addUserInCourse(teacher);
         when(courseService.removeUsersFromCourse(anyLong(), any(Long[].class), anyString())).thenReturn(expectedCourse);
         String requestString = objectMapper.writeValueAsString(request);
@@ -380,22 +398,66 @@ public class CourseControllerTests {
     @Test
     public void getCode_valid() throws Exception {
         Course c0 = new Course("Spring Boot Course");
-        c0.setId(1l);
+        c0.setId(1L);
         String code = c0.getUuid();
         User user = new User("johndoe@john.com", "johndoejr", "password", "John", "Doe");
         user.addCourse(c0);
-        user.setId(4l);
+        user.setId(4L);
 
-        when(courseService.getCourseCode(1l, "johndoe")).thenReturn(code);
+        when(courseService.getCourseCode(1L, "johndoe")).thenReturn(code);
 
         MvcResult mvcResult = mockMvc
                 .perform(get("/api/courses/1/code").contentType("application/json").with(csrf()).header("Authorization",
                         "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
-        verify(courseService, times(1)).getCourseCode(1l, "johndoe");
+        verify(courseService, times(1)).getCourseCode(1L, "johndoe");
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = code;
+        assertThat(code).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void getCourseInformationBySharingCode_valid() throws Exception {
+        Course course = new Course("Spring Boot Course");
+        course.setId(1L);
+        String courseUuid = course.getUuid();
+        User user = new User("johndoe@john.com", "johndoejr", "password", "John", "Doe");
+        user.addCourse(course);
+        user.setId(4L);
+
+        when(courseService.getCourseInformationWithSharingCode(courseUuid)).thenReturn(course);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/v2/courses/code/" + courseUuid).contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getCourseInformationWithSharingCode(courseUuid);
+
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
+                .writeValueAsString(course);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+    }
+
+    @Test
+    public void joinCourse_valid() throws Exception {
+        Course course = new Course("Spring Boot Course");
+        course.setId(1L);
+        String courseUuid = course.getUuid();
+
+        when(courseService.joinCourseWithSharingCode(courseUuid, "johndoe")).thenReturn(course);
+
+        MvcResult mvcResult = mockMvc
+                .perform(put("/api/courses/code/" + courseUuid).contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).joinCourseWithSharingCode(courseUuid, "johndoe");
+
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(CourseViews.ExercisesView.class)
+                .writeValueAsString(course);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

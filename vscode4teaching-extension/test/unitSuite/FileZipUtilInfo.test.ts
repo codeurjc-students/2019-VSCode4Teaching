@@ -12,9 +12,9 @@ mockedPath.resolve.mockImplementation((...args) => "v4t"); // set INTERNAL_FILES
 
 import { FileZipUtil } from "../../src/utils/FileZipUtil";
 
-describe("FileZipUtil", () => {
-    afterEach(() => {
-        mockedPath.resolve.mockClear();
+describe("ZIP Files Info Utilities", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
     it("should get exercise zip info", async () => {
@@ -23,7 +23,8 @@ describe("FileZipUtil", () => {
                 id: 2,
                 name: "exercise",
                 includesTeacherSolution: false,
-                solutionIsPublic: false
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
             }],
             id: 1,
             name: "course",

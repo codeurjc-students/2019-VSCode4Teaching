@@ -2,12 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 
-type BasicNode = {
+export type BasicNode = {
     fileName: string;
     children: BasicNode[];
 }
 
-type MergedTreeNode = {
+export type MergedTreeNode = {
     value: string;
     children: MergedTreeNode[];
     originalNodes: {
@@ -17,7 +17,7 @@ type MergedTreeNode = {
     source: -1 | 0 | 1;
 }
 
-class QuickPickTreeNode implements vscode.QuickPickItem {
+export class QuickPickTreeNode implements vscode.QuickPickItem {
     constructor(
         public label: string,
         public children: QuickPickTreeNode[],
@@ -194,28 +194,18 @@ export class DiffBetweenDirectories {
 
         // Children nodes are generated
         for (const child of mergedTreeNodeRoot.children) {
-            // Label includes a icon (either a folder or a file) depending on whether it has children or not
-            let label = `$(${(child.children.length > 0) ? "folder" : "file"}) ${child.value}`;
-
-            // Description shows user the source of the Quick Pick item
-            let description;
-            if (child.source === -1)
-                description = "Only available in left folder";
-            else if (child.source === 0)
-                description = "Available in both left and right folder";
-            else
-                description = "Only available in right folder";
-
             // With the information obtained, the new node is formed and a recursive call is introduced to continue investigating the successive descendants
-            newQuickPickTreeNode.children.push({
-                label,
-                source: child.source,
-                description,
-                parent: newQuickPickTreeNode,
-                children: DiffBetweenDirectories.mergedTreeToQuickPickTree(child, path.join(relativePath, child.value), newQuickPickTreeNode).children,
-                relativePath: path.join(relativePath, child.value)
-            });
+            newQuickPickTreeNode.children.push(DiffBetweenDirectories.mergedTreeToQuickPickTree(child, path.join(relativePath, child.value), newQuickPickTreeNode));
         }
+
+        // When children are interpreted, label and description for current node are assigned
+        newQuickPickTreeNode.label = `$(${(newQuickPickTreeNode.children.length > 0) ? "folder" : "file"}) ${newQuickPickTreeNode.label}`;
+        if (newQuickPickTreeNode.source === -1)
+                newQuickPickTreeNode.description = "Only available in left folder";
+        else if (newQuickPickTreeNode.source === 0)
+            newQuickPickTreeNode.description = "Available in both left and right folder";
+        else
+            newQuickPickTreeNode.description = "Only available in right folder";
 
         // Analysis is finished and merged tree node is returned with its attributes completely fulfilled
         return newQuickPickTreeNode;

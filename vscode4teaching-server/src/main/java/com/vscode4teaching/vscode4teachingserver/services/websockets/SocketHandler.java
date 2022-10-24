@@ -30,7 +30,7 @@ public class SocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
-            throws InterruptedException, IOException, EmptyURIException, EmptyJSONObjectException, MissingPropertyException {
+            throws EmptyURIException, EmptyJSONObjectException, MissingPropertyException {
 
         URI uri = session.getUri();
         if (uri == null) {
@@ -75,7 +75,7 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session);
         if (session.getPrincipal() == null) {
             logger.info("Closed Websocket connection with unidentified user");

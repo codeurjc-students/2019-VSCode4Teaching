@@ -107,6 +107,7 @@ public class ExerciseFilesControllerTests {
         Map<Exercise, List<File>> returnMap = new HashMap<>();
         returnMap.put(exercise, files);
         when(filesService.getExerciseFiles(1l, "johndoe")).thenReturn(returnMap);
+        when(filesService.existsExerciseFilesForUser(1l, "johndoe")).thenReturn(true);
 
         MvcResult result = mockMvc
                 .perform(get("/api/exercises/1/files").contentType("application/zip").with(csrf())
@@ -151,6 +152,36 @@ public class ExerciseFilesControllerTests {
         assertThat(zis.getNextEntry().getName()).isEqualTo("ej1.txt");
         assertThat(zis.getNextEntry().getName()).isEqualTo("ej2.txt");
         verify(filesService, times(1)).getExerciseFiles(anyLong(), anyString());
+    }
+
+    @Test
+    public void downloadFilesFromExercise_solution() throws Exception {
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(1L);
+        List<File> files = new ArrayList<>();
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej1.txt"));
+        files.add(new File("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej2.txt"));
+        for (File file : files) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+        Map<Exercise, List<File>> returnMap = new HashMap<>();
+        returnMap.put(exercise, files);
+        when(filesService.getExerciseSolution(1L, "johndoe")).thenReturn(returnMap);
+
+        MvcResult result = mockMvc
+                .perform(get("/api/exercises/1/files/solution").contentType("application/zip").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+        logger.info(result.toString());
+
+        assertThat(result.getResponse().getHeader("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"solution-1.zip\"");
+        byte[] zipContent = result.getResponse().getContentAsByteArray();
+        ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipContent));
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej1.txt");
+        assertThat(zis.getNextEntry().getName()).isEqualTo("ej2.txt");
+        verify(filesService, times(1)).getExerciseSolution(anyLong(), anyString());
     }
 
     @Test
@@ -246,6 +277,47 @@ public class ExerciseFilesControllerTests {
 
         logger.info(result.getResponse().getContentAsString());
         verify(filesService, times(1)).saveExerciseTemplate(anyLong(), any(MultipartFile.class), anyString());
+    }
+
+    @Test
+    public void uploadSolution() throws Exception {
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(1l);
+        byte[] mock = null;
+        MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
+        Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/ex3"));
+        Path path1 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex1.html");
+        Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/ex1.html");
+        Files.copy(path1, path1Copy, StandardCopyOption.REPLACE_EXISTING);
+        Path path2 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex2.html");
+        Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/ex2.html");
+        Files.copy(path2, path2Copy, StandardCopyOption.REPLACE_EXISTING);
+        Path path3 = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files/ex3/ex3.html");
+        Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/ex3/ex3.html");
+        Files.copy(path3, path3Copy, StandardCopyOption.REPLACE_EXISTING);
+
+        File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/", "ex1.html");
+        File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/", "ex2.html");
+        File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/solution/", "ex3/ex3.html");
+        Map<Exercise, List<File>> returnMap = new HashMap<>();
+        returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
+        when(filesService.saveExerciseSolution(anyLong(), any(MultipartFile.class), anyString())).thenReturn(returnMap);
+
+        MvcResult result = mockMvc
+                .perform(multipart("/api/exercises/1/files/solution").file(mockMultiFile1).with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+
+        List<UploadFileResponse> expectedResponse = new ArrayList<>();
+        expectedResponse.add(new UploadFileResponse("ex1.html", "text/html", 23l));
+        expectedResponse.add(new UploadFileResponse("ex2.html", "text/html", 23l));
+        expectedResponse.add(new UploadFileResponse("ex3" + File.separator + "ex3.html", "text/html", 23l));
+
+        assertThat(result.getResponse().getContentAsString())
+                .isEqualToIgnoringWhitespace(objectMapper.writeValueAsString(expectedResponse));
+
+        logger.info(result.getResponse().getContentAsString());
+        verify(filesService, times(1)).saveExerciseSolution(anyLong(), any(MultipartFile.class), anyString());
     }
 
     @Test

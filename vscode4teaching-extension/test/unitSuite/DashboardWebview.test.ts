@@ -1,21 +1,23 @@
 import { parse } from 'node-html-parser';
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
-import { WebSocketV4TConnection } from "../../src/client/WebSocketV4TConnection";
 import { DashboardWebview } from "../../src/components/dashboard/DashboardWebview";
 import { Course } from "../../src/model/serverModel/course/Course";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
+import { ExerciseStatus } from '../../src/model/serverModel/exercise/ExerciseStatus';
 import { ExerciseUserInfo } from "../../src/model/serverModel/exercise/ExerciseUserInfo";
 import { User } from "../../src/model/serverModel/user/User";
 
 jest.mock("vscode");
 const mockedVscode = mocked(vscode, true);
-jest.mock("../../src/client/WebSocketV4TConnection");
-const mockedWebSocketV4TConnection = mocked(WebSocketV4TConnection, true);
 
 jest.useFakeTimers();
 
-describe("Dashboard webview", () => {
+describe("Dashboard Webview", () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should be created if it doesn't exist", () => {
         const course: Course = {
             id: 1,
@@ -26,7 +28,8 @@ describe("Dashboard webview", () => {
             id: 1,
             name: "Exercise 1",
             includesTeacherSolution: false,
-            solutionIsPublic: false
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
         const student1: User = {
             id: 2,
@@ -55,7 +58,7 @@ describe("Dashboard webview", () => {
             id: 1,
             exercise,
             user: student1,
-            status: 0,
+            status: ExerciseStatus.StatusEnum.NOT_STARTED,
             updateDateTime: new Date(new Date(now.setDate(now.getDate() - 1)).toISOString()).toISOString(),
             modifiedFiles: ["/index.html"],
         });
@@ -64,7 +67,7 @@ describe("Dashboard webview", () => {
             id: 2,
             exercise,
             user: student2,
-            status: 1,
+            status: ExerciseStatus.StatusEnum.FINISHED,
             updateDateTime: new Date(new Date(now.setMinutes(now.getMinutes() - 13)).toISOString()).toISOString(),
             modifiedFiles: ["/readme.md"],
         });
@@ -73,7 +76,7 @@ describe("Dashboard webview", () => {
             id: 3,
             exercise,
             user: student3,
-            status: 2,
+            status: ExerciseStatus.StatusEnum.IN_PROGRESS,
             updateDateTime: new Date(new Date(now.setSeconds(now.getSeconds() - 35)).toISOString()).toISOString(),
             modifiedFiles: undefined,
         });

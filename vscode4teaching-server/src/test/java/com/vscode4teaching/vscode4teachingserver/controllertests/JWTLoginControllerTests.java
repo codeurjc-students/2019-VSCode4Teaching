@@ -2,6 +2,7 @@ package com.vscode4teaching.vscode4teachingserver.controllertests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
+import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UserDTO;
 import com.vscode4teaching.vscode4teachingserver.controllertests.utils.MockAuthentication;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
@@ -39,8 +40,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,11 +90,11 @@ public class JWTLoginControllerTests {
     @Test
     public void register() throws Exception {
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
                 "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-        expectedUser.setId(1l);
-        expectedUser.setRoles(Arrays.asList(studentRole));
+        expectedUser.setId(1L);
+        expectedUser.setRoles(List.of(studentRole));
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail("johndoe@gmail.com");
         userDTO.setUsername("johndoe");
@@ -117,12 +117,12 @@ public class JWTLoginControllerTests {
     @WithMockUser(roles = {"STUDENT", "TEACHER"})
     public void registerTeacher() throws Exception {
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
                 "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-        expectedUser.setId(1l);
+        expectedUser.setId(1L);
         expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail("johndoe@gmail.com");
@@ -158,16 +158,16 @@ public class JWTLoginControllerTests {
     public void getCurrentUser() throws Exception {
 
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         com.vscode4teaching.vscode4teachingserver.model.User expectedUser = new com.vscode4teaching.vscode4teachingserver.model.User(
                 "johndoe@gmail.com", "johndoe", bEncoder.encode("password"), "John", "Doe");
-        expectedUser.setId(1l);
+        expectedUser.setId(1L);
         expectedUser.setRoles(Arrays.asList(studentRole, teacherRole));
         Course course = new Course("Spring Boot Course");
         course.addUserInCourse(expectedUser);
-        course.setId(4l);
+        course.setId(4L);
         expectedUser.addCourse(course);
         when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
         when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");

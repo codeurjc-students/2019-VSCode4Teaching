@@ -18,7 +18,11 @@ function failIfItemsAreWrong() {
         fail("Missing items from V4TBuildItems in items array.");
     }
 }
-describe("V4TItem", () => {
+describe("V4T Items", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should get all icons correctly", () => {
         failIfItemsAreWrong();
         for (const item of items) {

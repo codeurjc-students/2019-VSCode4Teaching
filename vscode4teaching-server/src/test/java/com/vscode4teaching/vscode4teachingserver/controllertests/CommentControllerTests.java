@@ -70,24 +70,24 @@ public class CommentControllerTests {
     }
 
     @Test
-    public void saveCommentThread() throws JsonProcessingException, Exception {
+    public void saveCommentThread() throws Exception {
         ExerciseFile demoFile = new ExerciseFile("testPath");
-        demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
-        expectedCommentThread.setId(2l);
+        demoFile.setId(1L);
+        CommentThread commentThread = new CommentThread(demoFile, 0L, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0L, "Test line");
+        expectedCommentThread.setId(2L);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
         commentThread.addComment(c1);
         commentThread.addComment(c2);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
-        expectedC1.setId(3l);
+        expectedC1.setId(3L);
         Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
-        expectedC2.setId(4l);
+        expectedC2.setId(4L);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
         ExerciseFile expectedFile = new ExerciseFile("testPath");
-        expectedFile.setId(1l);
+        expectedFile.setId(1L);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedCommentThread.setFile(expectedFile);
         when(commentService.saveCommentThread(anyLong(), any(CommentThread.class))).thenReturn(expectedCommentThread);
@@ -103,7 +103,7 @@ public class CommentControllerTests {
         ArgumentCaptor<CommentThread> commentCaptor = ArgumentCaptor.forClass(CommentThread.class);
         verify(commentService, times(1)).saveCommentThread(anyLong(), commentCaptor.capture());
         CommentThread capturedCommentThread = commentCaptor.getValue();
-        assertThat(capturedCommentThread.getLine()).isEqualTo(0l);
+        assertThat(capturedCommentThread.getLine()).isEqualTo(0L);
         List<Comment> capturedComments = capturedCommentThread.getComments();
         assertThat(capturedComments.get(0).getBody()).isEqualTo(expectedC1.getBody());
         assertThat(capturedComments.get(0).getAuthor()).isEqualTo(expectedC1.getAuthor());
@@ -119,22 +119,22 @@ public class CommentControllerTests {
     @Test
     public void getCommentThreads() throws Exception {
         ExerciseFile demoFile = new ExerciseFile("testPath");
-        demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
-        expectedCommentThread.setId(2l);
+        demoFile.setId(1L);
+        CommentThread commentThread = new CommentThread(demoFile, 0L, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0L, "Test line");
+        expectedCommentThread.setId(2L);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
         commentThread.addComment(c1);
         commentThread.addComment(c2);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
-        expectedC1.setId(3l);
+        expectedC1.setId(3L);
         Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
-        expectedC2.setId(4l);
+        expectedC2.setId(4L);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
         ExerciseFile expectedFile = new ExerciseFile("testPath");
-        expectedFile.setId(1l);
+        expectedFile.setId(1L);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedCommentThread.setFile(expectedFile);
         List<CommentThread> expectedCommentThreadList = new ArrayList<>();
@@ -156,33 +156,33 @@ public class CommentControllerTests {
     @Test
     public void getCommentsByUser() throws Exception {
         User user = new User("johndoe@johndoe.com", "johndoe", "johndoe", "johndoe", "johndoe");
-        user.setId(10000l);
+        user.setId(10000L);
         ExerciseFile demoFile = new ExerciseFile("testPath");
-        demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 0l, "Test line");
-        expectedCommentThread.setId(2l);
+        demoFile.setId(1L);
+        CommentThread commentThread = new CommentThread(demoFile, 0L, "Test line");
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 0L, "Test line");
+        expectedCommentThread.setId(2L);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
         commentThread.addComment(c1);
         commentThread.addComment(c2);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
-        expectedC1.setId(3l);
+        expectedC1.setId(3L);
         Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
-        expectedC2.setId(4l);
+        expectedC2.setId(4L);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
         ExerciseFile expectedFile = new ExerciseFile("testPath");
-        expectedFile.setId(1l);
+        expectedFile.setId(1L);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedCommentThread.setFile(expectedFile);
         List<CommentThread> expectedCommentThreadList = new ArrayList<>();
         expectedCommentThreadList.add(expectedCommentThread);
         Exercise ex = new Exercise("Test ex");
-        ex.setId(1000l);
+        ex.setId(1000L);
         ex.addUserFile(expectedFile);
         ExerciseFile expectedFile2 = new ExerciseFile("testPath2");
-        expectedFile2.setId(555l);
+        expectedFile2.setId(555L);
         expectedFile2.setOwner(new User("johndoe2@johndoe.com", "johndoe2", "johndoe2", "johndoe2", "johndoe2"));
         ex.addUserFile(expectedFile2);
         List<ExerciseFile> expectedFiles = new ArrayList<>();
@@ -202,25 +202,25 @@ public class CommentControllerTests {
     }
 
     @Test
-    public void updateCommentThreadLines() throws JsonProcessingException, Exception {
+    public void updateCommentThreadLines() throws Exception {
         ExerciseFile demoFile = new ExerciseFile("testPath");
-        demoFile.setId(1l);
-        CommentThread commentThread = new CommentThread(demoFile, 0l, "Test line");
-        commentThread.setId(2l);
-        CommentThread expectedCommentThread = new CommentThread(demoFile, 5l, "Test line 5");
-        expectedCommentThread.setId(2l);
+        demoFile.setId(1L);
+        CommentThread commentThread = new CommentThread(demoFile, 0L, "Test line");
+        commentThread.setId(2L);
+        CommentThread expectedCommentThread = new CommentThread(demoFile, 5L, "Test line 5");
+        expectedCommentThread.setId(2L);
         Comment c1 = new Comment(commentThread, "Test 1", "johndoe");
         Comment c2 = new Comment(commentThread, "Test 2", "johndoe");
         commentThread.addComment(c1);
         commentThread.addComment(c2);
         Comment expectedC1 = new Comment(expectedCommentThread, "Test 1", "johndoe");
-        expectedC1.setId(3l);
+        expectedC1.setId(3L);
         Comment expectedC2 = new Comment(expectedCommentThread, "Test 2", "johndoe");
-        expectedC2.setId(4l);
+        expectedC2.setId(4L);
         expectedCommentThread.addComment(expectedC1);
         expectedCommentThread.addComment(expectedC2);
         ExerciseFile expectedFile = new ExerciseFile("testPath");
-        expectedFile.setId(1l);
+        expectedFile.setId(1L);
         expectedFile.addCommentThread(expectedCommentThread);
         expectedCommentThread.setFile(expectedFile);
         when(commentService.updateCommentThreadLine(anyLong(), anyLong(), any(String.class))).thenReturn(expectedCommentThread);

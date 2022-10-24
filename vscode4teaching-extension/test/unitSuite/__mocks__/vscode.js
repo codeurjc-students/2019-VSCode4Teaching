@@ -47,7 +47,7 @@ const window = {
     createStatusBarItem: jest.fn(() => StatusBarItem),
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn((x, y, z) => z), // TODO: Better implementation
-    showInformationMessage: jest.fn(),
+    showInformationMessage: jest.fn((x, y, z) => z),
     setStatusBarMessage: jest.fn(),
     showInputBox: jest.fn(),
     showOpenDialog: jest.fn(),

@@ -56,8 +56,8 @@ public class DatabaseSuperuserInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        if (!userRepository.findByEmail(email).isPresent()) {
+    public void run(String... args) {
+        if (userRepository.findByEmail(email).isEmpty()) {
             User superuser = new User(email, username, passwordEncoder.encode(password), name, lastname);
             saveUser(superuser);
         }

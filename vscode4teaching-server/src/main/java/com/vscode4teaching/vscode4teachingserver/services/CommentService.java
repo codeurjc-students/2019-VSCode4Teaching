@@ -17,8 +17,8 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 public interface CommentService {
-    public CommentThread saveCommentThread(@Min(1) Long fileId, @Valid CommentThread commentThread) throws FileNotFoundException;
-    public List<CommentThread> getCommentThreadsByFile(@Min(1) Long fileId) throws FileNotFoundException;
-    public List<ExerciseFile> getFilesWithCommentsByUser(Long exerciseId, String username) throws ExerciseNotFoundException;
-    public CommentThread updateCommentThreadLine(@Min(1) Long commentThreadId, @Min(0) Long line, String lineText) throws CommentNotFoundException;
+    CommentThread saveCommentThread(@Min(1) Long fileId, @Valid CommentThread commentThread) throws FileNotFoundException;
+    List<CommentThread> getCommentThreadsByFile(@Min(1) Long fileId) throws FileNotFoundException;
+    List<ExerciseFile> getFilesWithCommentsByUser(Long exerciseId, String username) throws ExerciseNotFoundException;
+    CommentThread updateCommentThreadLine(@Min(1) Long commentThreadId, @Min(0) Long line, String lineText) throws CommentNotFoundException;
 }

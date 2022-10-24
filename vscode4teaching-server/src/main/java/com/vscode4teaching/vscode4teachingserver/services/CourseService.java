@@ -24,55 +24,55 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 public interface CourseService {
-    public List<Course> getAllCourses();
+    List<Course> getAllCourses();
 
-    public Optional<Course> getCourseById(Long courseId);
+    Optional<Course> getCourseById(Long courseId);
 
-    public Course registerNewCourse(@Valid Course course, String requestUsername) throws TeacherNotFoundException;
+    Course registerNewCourse(@Valid Course course, String requestUsername) throws TeacherNotFoundException;
 
-    public User getCreator(@Min(1) Long courseId) throws CourseNotFoundException;
+    User getCreator(@Min(1) Long courseId) throws CourseNotFoundException;
 
-    public Exercise addExerciseToCourse(@Min(1) Long courseId, @Valid Exercise exercise, String requestUsername)
+    Exercise addExerciseToCourse(@Min(1) Long courseId, @Valid Exercise exercise, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public Course editCourse(@Min(1) Long courseId, @Valid Course courseData, String requestUsername)
+    Course editCourse(@Min(1) Long courseId, @Valid Course courseData, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public void deleteCourse(@Min(1) Long courseId, String requestUsername)
+    void deleteCourse(@Min(1) Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException, NotCreatorException;
 
-    public List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
+    List<Exercise> getExercises(@Min(1) Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public Course joinCourseWithSharingCode(String uuid, String requestUsername)
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException;
+    Course joinCourseWithSharingCode(String uuid, String requestUsername)
+            throws CourseNotFoundException, UserNotFoundException;
 
-    public Course getCourseInformationWithSharingCode(String uuid)
+    Course getCourseInformationWithSharingCode(String uuid)
             throws CourseNotFoundException;
 
-    public Exercise getExercise(@Min(1) Long exerciseId)
+    Exercise getExercise(@Min(1) Long exerciseId)
             throws ExerciseNotFoundException;
 
-    public Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData, String requestUsername)
+    Exercise editExercise(@Min(1) Long exerciseId, @Valid Exercise exerciseData, String requestUsername)
             throws NotInCourseException, ExerciseNotFoundException;
 
-    public void deleteExercise(@Min(1) Long exerciseId, String requestUsername)
+    void deleteExercise(@Min(1) Long exerciseId, String requestUsername)
             throws NotInCourseException, ExerciseNotFoundException;
 
-    public List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
+    List<Course> getUserCourses(@Min(1) Long userId) throws UserNotFoundException;
 
-    public Set<User> getUsersInCourse(@Min(1) Long courseId, String requestUsername)
+    Set<User> getUsersInCourse(@Min(1) Long courseId, String requestUsername)
             throws CourseNotFoundException, NotInCourseException;
 
-    public Course addUsersToCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
+    Course addUsersToCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
 
-    public Course removeUsersFromCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
+    Course removeUsersFromCourse(@Min(1) Long courseId, Long[] userIds, String requestUsername)
             throws UserNotFoundException, CourseNotFoundException, NotInCourseException, CantRemoveCreatorException;
 
-    public String getCourseCode(Long courseId, String requestUsername)
-            throws UserNotFoundException, CourseNotFoundException, NotInCourseException;
+    String getCourseCode(Long courseId, String requestUsername)
+            throws CourseNotFoundException, NotInCourseException;
 
-    public String getExerciseCode(Long exerciseId, String requestUsername)
-            throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException;
+    String getExerciseCode(Long exerciseId, String requestUsername)
+            throws ExerciseNotFoundException, NotInCourseException;
 }

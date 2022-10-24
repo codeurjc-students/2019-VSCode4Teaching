@@ -1,7 +1,11 @@
 import * as path from "path";
 import { FileIgnoreUtil } from "../../src/utils/FileIgnoreUtil";
 
-describe("FileIgnoreUtil", () => {
+describe("File Ignore Utilities", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should get the ignored files of a single directory's .gitignore file", () => {
         const ignoredFiles = FileIgnoreUtil.readGitIgnores(path.resolve(__dirname, "..", "files", "exs"));
         const expectedIgnoredFiles: string[] = [

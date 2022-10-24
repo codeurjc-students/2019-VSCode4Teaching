@@ -169,6 +169,34 @@ public class ExerciseControllerTests {
     }
 
     @Test
+    public void getExercise_valid() throws Exception {
+        logger.info("Test getExercise_valid() begins.");
+
+        Course course = new Course("Spring Boot Course");
+        Long courseId = 1L;
+        course.setId(courseId);
+        Exercise exercise = new Exercise();
+        exercise.setName("Spring Boot Exercise 1");
+        exercise.setId(2L);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        when(courseService.getExercise(anyLong())).thenReturn(exercise);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/exercises/{exerciseId}", courseId).contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getExercise(anyLong());
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
+                .writeValueAsString(exercise);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
+        logger.info("Test getExercise_valid() ends.");
+    }
+
+    @Test
     public void getExercises_valid() throws Exception {
         logger.info("Test getExercises_valid() begins.");
 

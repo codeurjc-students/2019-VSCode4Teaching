@@ -129,7 +129,7 @@ public class Course {
     public Set<User> getTeachers() {
         Set<User> teachers = new HashSet<>();
         teachers.add(this.creator);
-        teachers.addAll(this.usersInCourse.stream().filter(u -> u.isTeacher()).collect(Collectors.toSet()));
+        teachers.addAll(this.usersInCourse.stream().filter(User::isTeacher).collect(Collectors.toSet()));
         return teachers;
     }
 }

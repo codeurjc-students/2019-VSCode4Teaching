@@ -279,8 +279,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
             // A message explaining the folder structure required to execute the multiple upload is displayed.
             let ans;
-            if (multiple) ans = await vscode.window.showInformationMessage("To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template and solution if wanted. When ready, click 'Accept'.", "Accept");
-            if (!((!multiple) || (multiple && ans === "Accept"))) return;
+            if (multiple) ans = await vscode.window.showInformationMessage("To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template and solution if wanted. When ready, click 'Accept'.", { title: "Accept" });
+            if (!((!multiple) || (multiple && ans && ans.title === "Accept"))) return;
 
             const fileUris = await vscode.window.showOpenDialog({
                 canSelectFiles: false,
@@ -307,7 +307,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             let exercisesDirectories: { name: string, paths: { template: vscode.Uri; solution?: vscode.Uri } }[] =
                 uri.map((uri) => ({
                     name: uri.fsPath.split(path.sep).slice(-1)[0],
-                    paths: this.getTemplateSolutionPaths(vscode.Uri.parse(path.join(uri.fsPath,)))
+                    paths: this.getTemplateSolutionPaths(vscode.Uri.parse(uri.fsPath))
                 }));
             // Unsuccessful responses' control (true if there were any during upload process)
             let errorCaught = false;
@@ -322,7 +322,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         solutionIsPublic: false,
                         allowEditionAfterSolutionDownloaded: false
                     })));
-                    
+
                     // 3.2: an array containing promises for sending ZIP compressed files including all the templates and solutions extracted during the previous phases is generated.
                     const uploadFilesPromises = await Promise.all(exerciseData.data.map(async (ex, index) =>
                         [
