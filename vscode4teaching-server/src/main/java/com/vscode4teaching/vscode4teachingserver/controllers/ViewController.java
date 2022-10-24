@@ -12,7 +12,7 @@ public class ViewController {
         return "forward:/app";
     }
 
-    @GetMapping({"/app/**/{path:[^\\.]*}", "/{path:app[^\\.]*}"})
+    @GetMapping({"/app/**/{path:[^.]*}", "/{path:app[^.]*}"})
     public String serveAngularWebapp() {
         return "forward:/index.html";
     }

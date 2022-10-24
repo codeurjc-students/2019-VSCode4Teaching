@@ -8,6 +8,6 @@ public class CommentViews {
     }
 
     public interface ThreadView extends GeneralView {
-        
+
     }
 }

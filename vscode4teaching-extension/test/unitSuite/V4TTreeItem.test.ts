@@ -18,6 +18,7 @@ function failIfItemsAreWrong() {
         fail("Missing items from V4TBuildItems in items array.");
     }
 }
+
 describe("V4T Items", () => {
     beforeEach(() => {
         jest.clearAllMocks();

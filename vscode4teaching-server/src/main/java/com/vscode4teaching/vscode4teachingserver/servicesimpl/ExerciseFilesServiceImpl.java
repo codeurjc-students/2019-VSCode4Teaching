@@ -281,7 +281,7 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
         // - A student username (if called from getSingleStudentExerciseFiles() from extension)
         // - A EUI identificator (like "student_XX", if called from getMultipleStudentExerciseFiles() from extension)
         User user;
-        if (id.startsWith("student_")){
+        if (id.startsWith("student_")) {
             Long parsedEuiId = Long.parseLong(id.split("student_")[1]);
             user = exerciseInfoService.getExerciseUserInfo(parsedEuiId).getUser();
         } else {

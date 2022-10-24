@@ -8,10 +8,10 @@ public class UserViews {
     }
 
     public interface CourseView extends CourseViews.GeneralView {
-        
+
     }
 
     public interface EmailView extends GeneralView {
-        
+
     }
 }

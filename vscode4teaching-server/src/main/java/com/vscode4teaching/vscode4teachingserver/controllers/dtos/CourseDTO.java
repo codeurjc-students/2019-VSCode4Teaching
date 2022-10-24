@@ -1,8 +1,8 @@
 package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
-import javax.validation.constraints.NotEmpty;
-
 import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
 
 public class CourseDTO {
     @NotEmpty
@@ -17,5 +17,5 @@ public class CourseDTO {
         this.name = name;
     }
 
-    
+
 }

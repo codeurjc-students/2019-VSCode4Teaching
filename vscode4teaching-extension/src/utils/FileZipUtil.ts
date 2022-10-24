@@ -26,7 +26,7 @@ export class FileZipUtil {
 
     /**
      * Returns ZIP info associated with the download of a student's files in an exercise.
-     * 
+     *
      * @param courseName Course name
      * @param exercise Exercise information
      */
@@ -48,7 +48,7 @@ export class FileZipUtil {
 
     /**
      * Returns ZIP info associated with a student's download of an exercise solution.
-     * 
+     *
      * @param exercise ExerciseInformation
      */
     public static studentSolutionZipInfo(exercise: Exercise): ZipInfo {
@@ -73,12 +73,13 @@ export class FileZipUtil {
 
     /**
      * Returns ZIP info from a exercise resource (either student's files, its template or its solution if exists).
-     * 
+     *
      * It distinguishes between these cases by means of the resourceType parameter,
      * which may not be entered (student's files) or may be set to "template" or "solution".
-     * 
+     *
      * @param courseName Course name
      * @param exercise Exercise information
+     * @param resourceType Resource type (can be either "template" or "solution")
      */
     public static teacherExerciseZipInfo(courseName: string, exercise: Exercise, resourceType?: "template" | "solution"): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
@@ -87,7 +88,7 @@ export class FileZipUtil {
             const dir = path.resolve(FileZipUtil.downloadDir, "teacher", currentUser.username, courseName, exercise.name, resourceType ?? "");
             // Dónde voy a guardarme el ZIP que se me descarga y con qué nombre
             const zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
-            const zipName = `${exercise.id}${resourceType ? "-" + resourceType : ''}.zip`;
+            const zipName = `${ exercise.id }${ resourceType ? "-" + resourceType : '' }.zip`;
             return {
                 dir: dir,
                 zipDir: zipDir,
@@ -103,6 +104,7 @@ export class FileZipUtil {
      * @param zipInfo zip info (check previous functions)
      * @param requestThenable thenable to call with zip
      * @param templateDir Optional template dir (use only if zipping a template)
+     * @param ignoreV4TFile True if V4T files should be ignored
      */
     public static async filesFromZip(zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string, ignoreV4TFile?: boolean) {
         if (!fs.existsSync(zipInfo.dir)) {
@@ -187,9 +189,9 @@ export class FileZipUtil {
      * Updates or adds a single file in zip and uploads it
      * @param ignoredFiles List of ignored files
      * @param filePath Path of the file
+     * @param rootPath Root path
      * @param exerciseId Exercise id
      * @param jszipFile JSZip instance
-     * @param cwd Current Working Directory
      */
     public static async updateFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
@@ -203,7 +205,7 @@ export class FileZipUtil {
                     const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                     vscode.window.setStatusBarMessage("Compressing files...", thenable);
                     return thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
-                        .catch((axiosError) => APIClient.handleAxiosError(axiosError));
+                                   .catch((axiosError) => APIClient.handleAxiosError(axiosError));
                 }
             } catch (err) {
                 if (filePath.includes("v4texercise.v4t")) {
@@ -219,9 +221,9 @@ export class FileZipUtil {
      * Deletes a single file in zip and uploads it
      * @param ignoredFiles List of ignored files
      * @param filePath Path of the file
+     * @param rootPath Root path
      * @param exerciseId Exercise id
      * @param jszipFile JSZip instance
-     * @param cwd Current Working Directory
      */
     public static async deleteFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
@@ -230,8 +232,10 @@ export class FileZipUtil {
             jszipFile.remove(relativeFilePath);
             const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
             vscode.window.setStatusBarMessage("Compressing files...", thenable);
-            return thenable.then((zipData) => { APIClient.uploadFiles(exerciseId, zipData); })
-                .catch((err) => APIClient.handleAxiosError(err));
+            return thenable.then((zipData) => {
+                APIClient.uploadFiles(exerciseId, zipData);
+            })
+                           .catch((err) => APIClient.handleAxiosError(err));
         }
     }
 

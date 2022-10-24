@@ -199,16 +199,16 @@ export class DashboardWebview {
                     if (exercise.includesTeacherSolution) {
                         exercise.solutionIsPublic = true;
                         APIClient.editExercise(exercise.id, exercise)
-                            .then(ex => {
-                                this._exercise = ex.data;
-                                this.updateHtml();
-                                CoursesProvider.triggerTreeReload();
-                                vscode.window.showInformationMessage("The solution was published to students successfully.");
-                            })
-                            .catch(err => {
-                                APIClient.handleAxiosError(err);
-                                vscode.window.showErrorMessage("The solution could not be published.");
-                            });
+                                 .then(ex => {
+                                     this._exercise = ex.data;
+                                     this.updateHtml();
+                                     CoursesProvider.triggerTreeReload();
+                                     vscode.window.showInformationMessage("The solution was published to students successfully.");
+                                 })
+                                 .catch(err => {
+                                     APIClient.handleAxiosError(err);
+                                     vscode.window.showErrorMessage("The solution could not be published.");
+                                 });
                     }
                     break;
                 }
@@ -217,16 +217,16 @@ export class DashboardWebview {
                     if (exercise.includesTeacherSolution) {
                         exercise.allowEditionAfterSolutionDownloaded = !exercise.allowEditionAfterSolutionDownloaded;
                         APIClient.editExercise(exercise.id, exercise)
-                            .then(ex => {
-                                this._exercise = ex.data;
-                                this.updateHtml();
-                                CoursesProvider.triggerTreeReload();
-                                vscode.window.showInformationMessage(`Edition after downloading solution was ${this._exercise.allowEditionAfterSolutionDownloaded ? "enabled" : "disabled"}.\nThis parameter can be changed while solution is not published to students.`);
-                            })
-                            .catch (err => {
-                                APIClient.handleAxiosError(err);
-                                vscode.window.showErrorMessage("This parameter could not be changed.");
-                            })
+                                 .then(ex => {
+                                     this._exercise = ex.data;
+                                     this.updateHtml();
+                                     CoursesProvider.triggerTreeReload();
+                                     vscode.window.showInformationMessage(`Edition after downloading solution was ${ this._exercise.allowEditionAfterSolutionDownloaded ? "enabled" : "disabled" }.\nThis parameter can be changed while solution is not published to students.`);
+                                 })
+                                 .catch(err => {
+                                     APIClient.handleAxiosError(err);
+                                     vscode.window.showErrorMessage("This parameter could not be changed.");
+                                 })
                     }
                     break;
                 }
@@ -293,11 +293,11 @@ export class DashboardWebview {
 
     private reloadData() {
         APIClient.getAllStudentsExerciseUserInfo(this._exercise.id)
-            .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
-                this._euis = response.data;
-                this.updateHtml();
-            })
-            .catch((error) => APIClient.handleAxiosError(error));
+                 .then((response: AxiosResponse<ExerciseUserInfo[]>) => {
+                     this._euis = response.data;
+                     this.updateHtml();
+                 })
+                 .catch((error) => APIClient.handleAxiosError(error));
     }
 
     private updateHtml() {
@@ -322,7 +322,7 @@ export class DashboardWebview {
         let rows: string = "";
         // for (const eui of this._euis) {
         for (const eui of this._euis) {
-            rows = rows + `<tr data-username="${eui.user.username}" data-eui="${eui.id}">\n`;
+            rows = rows + `<tr data-username="${ eui.user.username }" data-eui="${ eui.id }">\n`;
 
             if (!this.hiddenStudentNames) {
                 if (eui.user.name && eui.user.lastName) {
@@ -331,26 +331,26 @@ export class DashboardWebview {
                     rows = rows + "<td></td>";
                 }
             }
-            rows = rows + `<td class="exercise-folder">student_${eui.id}</td>\n`;
+            rows = rows + `<td class="exercise-folder">student_${ eui.id }</td>\n`;
             switch (eui.status) {
                 case ExerciseStatus.StatusEnum.NOT_STARTED: {
-                    rows = rows + `<td class="not-started-cell"><img src="${imgUri("exercise_not_started")}" alt="Not started icon" class="status-icon-img"><div>Not started</div></td>\n`;
+                    rows = rows + `<td class="not-started-cell"><img src="${ imgUri("exercise_not_started") }" alt="Not started icon" class="status-icon-img"><div>Not started</div></td>\n`;
                     break;
                 }
                 case ExerciseStatus.StatusEnum.FINISHED: {
-                    rows = rows + `<td class="finished-cell"><img src="${imgUri("exercise_finished")}" alt="Finished icon" class="status-icon-img"><div>Finished</div></td>\n`;
+                    rows = rows + `<td class="finished-cell"><img src="${ imgUri("exercise_finished") }" alt="Finished icon" class="status-icon-img"><div>Finished</div></td>\n`;
                     break;
                 }
                 case ExerciseStatus.StatusEnum.IN_PROGRESS: {
-                    rows = rows + `<td class="inprogress-cell"><img src="${imgUri("exercise_in_progress")}" alt="In progress icon" class="status-icon-img"><div>In progress</div></td>\n`;
+                    rows = rows + `<td class="inprogress-cell"><img src="${ imgUri("exercise_in_progress") }" alt="In progress icon" class="status-icon-img"><div>In progress</div></td>\n`;
                     break;
                 }
             }
             rows = rows + ``;
-            if (this.fullMode){
+            if (this.fullMode) {
                 rows += `<td class="button-col"><button class="workspace-link-open">Open</button><button class="workspace-link-diff">Diff</button></td>\n`;
             }
-            rows = rows + `<td class="last-modification" id="user-lastmod-${eui.user.id}">${this.getElapsedTime(eui.updateDateTime)}</td>\n`;
+            rows = rows + `<td class="last-modification" id="user-lastmod-${ eui.user.id }">${ this.getElapsedTime(eui.updateDateTime) }</td>\n`;
             rows = rows + "</tr>\n";
         }
 
@@ -361,13 +361,13 @@ export class DashboardWebview {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${this.panel.webview.cspSource} https:; script-src 'nonce-${nonce}'; style-src-elem ${this.panel.webview.cspSource};">
-                    <title>V4T Dashboard: ${this._dashboardName}</title>
-                    <link rel="stylesheet" type="text/css" href="${cssUri}">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${ this.panel.webview.cspSource } https:; script-src 'nonce-${ nonce }'; style-src-elem ${ this.panel.webview.cspSource };">
+                    <title>V4T Dashboard: ${ this._dashboardName }</title>
+                    <link rel="stylesheet" type="text/css" href="${ cssUri }">
                 </head>
                 <body>
                     <h1>VSCode4Teaching Dashboard</h1>
-                    <h2>${this._dashboardViewName}</h2>
+                    <h2>${ this._dashboardViewName }</h2>
                     <div class="options-panel">
                         ${
                             this.fullMode
@@ -381,14 +381,14 @@ export class DashboardWebview {
                                 `<div class="option">
                                     <div class="name">Publish solution to students</div>
                                     <label class="control checkbox_label">
-                                        <input type="checkbox" name="publishSolution" id="publishSolution"${this._exercise.solutionIsPublic ? " checked disabled" : ""}/>
+                                        <input type="checkbox" name="publishSolution" id="publishSolution"${ this._exercise.solutionIsPublic ? " checked disabled" : "" }/>
                                         <div class="checkbox_switch"></div>
                                     </label>
                                 </div>
                                 <div class="option">
                                     <div class="name">Allow edition after downloading solution</div>
                                     <label class="control checkbox_label">
-                                        <input type="checkbox" name="allowEditionAfterSolutionDownloaded" id="allowEditionAfterSolutionDownloaded"${this._exercise.solutionIsPublic ? " disabled" : ""}${this._exercise.allowEditionAfterSolutionDownloaded ? " checked" : ""}/>
+                                        <input type="checkbox" name="allowEditionAfterSolutionDownloaded" id="allowEditionAfterSolutionDownloaded"${ this._exercise.solutionIsPublic ? " disabled" : "" }${ this._exercise.allowEditionAfterSolutionDownloaded ? " checked" : "" }/>
                                         <div class="checkbox_switch"></div>
                                     </label>
                                 </div>`
@@ -396,7 +396,7 @@ export class DashboardWebview {
                             <div class="option">
                                 <div class="name">Hide student's names</div>
                                 <label class="control checkbox_label">
-                                    <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${this.hiddenStudentNames ? " checked" : ""}/>
+                                    <input type="checkbox" name="hideStudentNames" id="hideStudentNames"${ this.hiddenStudentNames ? " checked" : "" }/>
                                     <div class="checkbox_switch"></div>
                                 </label>
                             </div>
@@ -418,7 +418,7 @@ export class DashboardWebview {
                             </div>
                         </details>
                     </div>
-                    ${this._euis.length === 0 ? `
+                    ${ this._euis.length === 0 ? `
                     <div class="alert-info"><strong>Warning</strong>: There are no students registered in this course.</div>
                     ` : `
                     <table>
@@ -434,13 +434,13 @@ export class DashboardWebview {
                                     : ""
                             }
                             <th>Exercise folder
-                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="exerciseFolder">
+                                <span class="sorter ${ this.sortAsc ? "active" : "" }" data-column="exerciseFolder">
                                     <span></span>
                                     <span></span>
                                 </span>
                             </th>
                             <th>Exercise status
-                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="status">
+                                <span class="sorter ${ this.sortAsc ? "active" : "" }" data-column="status">
                                     <span></span>
                                     <span></span>
                                 </span>
@@ -451,16 +451,16 @@ export class DashboardWebview {
                                 : ""
                             }
                             <th>Last modification
-                                <span class="sorter ${this.sortAsc ? "active" : ""}" data-column="lastModification">
+                                <span class="sorter ${ this.sortAsc ? "active" : "" }" data-column="lastModification">
                                     <span></span>
                                     <span></span>
                                 </span>
                             </th>
                         </tr>
-                        ${rows}
+                        ${ rows }
                     </table>
-                    `}
-                    <script nonce="${nonce}" src="${scriptUri}"></script>
+                    ` }
+                    <script nonce="${ nonce }" src="${ scriptUri }"></script>
                 </body>
             </html>`;
     }
@@ -504,7 +504,7 @@ export class DashboardWebview {
             }
         }
 
-        return `${Math.floor(elapsedTime)} ${unit}`;
+        return `${ Math.floor(elapsedTime) } ${ unit }`;
     }
 
     /**
@@ -512,28 +512,29 @@ export class DashboardWebview {
      * @param username string username
      * @param course Course course
      * @param exercise Exercise exercise
+     * @param eui_id EUI identificator
      * @returns Thenable<string|undefined> the selected file
      */
     private async showQuickPick(username: string, course: Course, exercise: Exercise, eui_id: number): Promise<vscode.Uri | undefined> {
         // Download most recent files
         await vscode.commands.executeCommand("vscode4teaching.getstudentfiles", course.name, exercise);
         return vscode.window
-            .withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    cancellable: false,
-                    title: "Getting modified files...",
-                },
-                (progress, token) => this.buildQuickPickItems(username, eui_id)
-            )
-            .then(async (result: OpenQuickPick[]) => {
-                if (result) {
-                    const selection = await this.showQuickPickRecursive(result);
-                    if (selection) {
-                        return selection;
-                    }
-                }
-            });
+                     .withProgress(
+                         {
+                             location: vscode.ProgressLocation.Notification,
+                             cancellable: false,
+                             title: "Getting modified files...",
+                         },
+                         (progress, token) => this.buildQuickPickItems(username, eui_id)
+                     )
+                     .then(async (result: OpenQuickPick[]) => {
+                         if (result) {
+                             const selection = await this.showQuickPickRecursive(result);
+                             if (selection) {
+                                 return selection;
+                             }
+                         }
+                     });
     }
 
     private async buildQuickPickItems(username: string, eui_id: number): Promise<OpenQuickPick[]> {
@@ -556,7 +557,7 @@ export class DashboardWebview {
                             }
                         }
                     } else {
-                        vscode.window.showWarningMessage(`No modified files for ${username}`);
+                        vscode.window.showWarningMessage(`No modified files for ${ username }`);
                     }
                 }
                 if (uris.length > 0) {

@@ -8,6 +8,7 @@ export class ModelUtils {
             return false;
         }
     }
+
     public static isTeacher(user: User) {
         if (user) {
             return user.roles.filter((role) => role.roleName === "ROLE_TEACHER").length > 0;

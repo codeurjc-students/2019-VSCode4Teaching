@@ -8,5 +8,6 @@ export class UserPick implements QuickPickItem {
     constructor(
         readonly label: string,
         readonly user: User,
-    ) { }
+    ) {
+    }
 }

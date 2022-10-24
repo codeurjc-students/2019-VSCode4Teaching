@@ -1,6 +1,5 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import * as vsls from "vsls";
 import { APIClient } from "../../client/APIClient";
 import { CurrentUser } from "../../client/CurrentUser";
 import { initializeLiveShare, liveshareService, wsLiveshare } from "../../extension";
@@ -72,7 +71,9 @@ export class LiveshareWebview {
                 (data) => {
                     this.panel.webview.html = data;
                 },
-                (err) => { v4tLogger.error(err); },
+                (err) => {
+                    v4tLogger.error(err);
+                },
             );
         });
 
@@ -88,7 +89,9 @@ export class LiveshareWebview {
                         (data) => {
                             this.panel.webview.html = data;
                         },
-                        (err) => { v4tLogger.error(err); },
+                        (err) => {
+                            v4tLogger.error(err);
+                        },
                     );
                 }
             },
@@ -124,7 +127,9 @@ export class LiveshareWebview {
                                     return -1 * weight;
                                 } else if (a.username < b.username) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
@@ -135,17 +140,29 @@ export class LiveshareWebview {
                                     return -1 * weight;
                                 } else if (a.username < b.username) {
                                     return 1 * weight;
-                                } else { return 0; }
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
                         case 2: {
                             // role
                             this.data[message.courseIndex].users.sort((a: User, b: User) => {
-                                if (a.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return -1 * weight; }
-                                if (b.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return 1 * weight; }
-                                if (a.username < b.username) { return -1 * weight; }
-                                if (a.username > b.username) { return 1 * weight; } else { return 0; }
+                                if (a.roles.some((r) => r.roleName === "ROLE_TEACHER")) {
+                                    return -1 * weight;
+                                }
+                                if (b.roles.some((r) => r.roleName === "ROLE_TEACHER")) {
+                                    return 1 * weight;
+                                }
+                                if (a.username < b.username) {
+                                    return -1 * weight;
+                                }
+                                if (a.username > b.username) {
+                                    return 1 * weight;
+                                } else {
+                                    return 0;
+                                }
                             });
                             break;
                         }
@@ -173,7 +190,9 @@ export class LiveshareWebview {
 
     private async getUsersFromCourse(course: Course): Promise<User[]> {
         const users = await APIClient.getUsersInCourse(course.id);
-        if (!users?.data) { return []; }
+        if (!users?.data) {
+            return [];
+        }
 
         let currentUsername: string;
         try {
@@ -182,13 +201,23 @@ export class LiveshareWebview {
             v4tLogger.error(err);
         }
         const filteredUsers = users.data
-            .filter((user) => currentUsername && currentUsername !== user.username)
-            .sort((user1, user2) => {
-                if (user1.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return -1; }
-                if (user2.roles.some((r) => r.roleName === "ROLE_TEACHER")) { return 1; }
-                if (user1.username < user2.username) { return -1; }
-                if (user1.username > user2.username) { return 1; } else { return 0; }
-            });
+                                   .filter((user) => currentUsername && currentUsername !== user.username)
+                                   .sort((user1, user2) => {
+                                       if (user1.roles.some((r) => r.roleName === "ROLE_TEACHER")) {
+                                           return -1;
+                                       }
+                                       if (user2.roles.some((r) => r.roleName === "ROLE_TEACHER")) {
+                                           return 1;
+                                       }
+                                       if (user1.username < user2.username) {
+                                           return -1;
+                                       }
+                                       if (user1.username > user2.username) {
+                                           return 1;
+                                       } else {
+                                           return 0;
+                                       }
+                                   });
 
         this.users = new Set([...this.users, ...filteredUsers.map((user) => user.username)]);
         return filteredUsers;
@@ -204,7 +233,9 @@ export class LiveshareWebview {
         if (liveshareService) {
             if (!this.shareCode) {
                 const optionalCode = await liveshareService.share();
-                if (optionalCode) { this.shareCode = optionalCode; }
+                if (optionalCode) {
+                    this.shareCode = optionalCode;
+                }
             }
             if (!this.shareCode) {
                 vscode.window.showErrorMessage("Error generating Live Share Code");
@@ -258,7 +289,7 @@ export class LiveshareWebview {
 
         let searchbar: string = "<datalist id='usernames'>\n";
         this.users.forEach((username) => {
-            searchbar = searchbar + `<option value='${username}'>`;
+            searchbar = searchbar + `<option value='${ username }'>`;
         });
         searchbar = searchbar + "</datalist>";
 
@@ -269,19 +300,19 @@ export class LiveshareWebview {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${this.panel.webview.cspSource} https:; script-src 'nonce-${nonce}'; style-src-elem ${this.panel.webview.cspSource};">
-                <title>V4T Dashboard: ${this._dashboardName}</title>
-                <link rel="stylesheet" type="text/css" href="${cssUri}">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${ this.panel.webview.cspSource } https:; script-src 'nonce-${ nonce }'; style-src-elem ${ this.panel.webview.cspSource };">
+                <title>V4T Dashboard: ${ this._dashboardName }</title>
+                <link rel="stylesheet" type="text/css" href="${ cssUri }">
             </head>
             <body>
                 <h1>Liveshare - Users in courses</h1>
                 <hr/>
                 <label for="username-search">Quick search: </label>
                 <input id="username-search" list="usernames" type="text">
-                ${searchbar}
+                ${ searchbar }
                 <button id="search-send" type="button">Send</button>
-                ${tables}
-                <script nonce="${nonce}" src="${scriptUri}"></script>
+                ${ tables }
+                <script nonce="${ nonce }" src="${ scriptUri }"></script>
             </body>
             </html>`;
     }
@@ -297,7 +328,9 @@ export class LiveshareWebview {
 
     private async generateHTMLTableFromCourse(course: Course, users: User[], courseIndex: number): Promise<string> {
         let rows = "";
-        if (!users.length) { return ""; }
+        if (!users.length) {
+            return "";
+        }
         users
             .forEach((user) => {
                 rows = rows + "<tr>\n";
@@ -309,33 +342,31 @@ export class LiveshareWebview {
 
             });
 
-        const text = `<br/>
-        <h3>Users in ${course.name}</h3>
-        <table data-courseIndex="${courseIndex}">
+        return `<br/>
+        <h3>Users in ${ course.name }</h3>
+        <table data-courseIndex="${ courseIndex }">
             <tr>
                 <th>Full name
-                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
+                    <span class="sorter-ls ${ this.sortAsc ? "active" : "" }">
                         <span></span>
                         <span></span>
                     </span>
                 </th>
                 <th>Username
-                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
+                    <span class="sorter-ls ${ this.sortAsc ? "active" : "" }">
                         <span></span>
                         <span></span>
                     </span>
                 </th>
                 <th>Role
-                    <span class="sorter-ls ${this.sortAsc ? "active" : ""}">
+                    <span class="sorter-ls ${ this.sortAsc ? "active" : "" }">
                         <span></span>
                         <span></span>
                     </span>
                 </th>
                 <th>Liveshare</th>
             </tr>
-            ${rows}
+            ${ rows }
         </table>`;
-
-        return text;
     }
 }

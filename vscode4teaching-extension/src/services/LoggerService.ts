@@ -7,8 +7,8 @@ export let v4tLogger: Logger = winston.createLogger({
         winston.format.colorize(),
         winston.format.splat(),
         winston.format.timestamp(),
-        winston.format.printf(({level, message, timestamp}) =>
-            `${timestamp} [${level}]: ${message}`
+        winston.format.printf(({ level, message, timestamp }) =>
+            `${ timestamp } [${ level }]: ${ message }`
         )
     ),
     transports: [

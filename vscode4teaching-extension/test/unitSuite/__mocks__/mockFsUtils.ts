@@ -1,5 +1,3 @@
-import * as fs from "fs";
-
 export const mockFsStatus = (isDirectory: boolean) => ({
     isFile: jest.fn(),
     isDirectory: jest.fn().mockReturnValue(isDirectory),

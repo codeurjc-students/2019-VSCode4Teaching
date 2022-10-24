@@ -7,6 +7,7 @@ export interface Course {
     creator?: User;
     exercises: Exercise[];
 }
+
 export function instanceOfCourse(object: any): object is Course {
     return "id" in object && "name" in object && "exercises" in object;
 }

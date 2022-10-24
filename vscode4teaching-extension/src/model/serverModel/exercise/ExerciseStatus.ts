@@ -7,10 +7,14 @@ export namespace ExerciseStatus {
 
     export function toString(status: StatusEnum): string {
         switch (status) {
-            case "NOT_STARTED": return "Not started";
-            case "FINISHED": return "Finished";
-            case "IN_PROGRESS": return "In progress";
-            default: return "";
+            case "NOT_STARTED":
+                return "Not started";
+            case "FINISHED":
+                return "Finished";
+            case "IN_PROGRESS":
+                return "In progress";
+            default:
+                return "";
         }
     }
 }

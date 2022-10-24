@@ -1,27 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.AdditionalAnswers.returnsElementsOf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseUserInfoDTO;
@@ -32,9 +10,7 @@ import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoVie
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -48,24 +24,31 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalAnswers.returnsElementsOf;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
 public class ExerciseControllerTests {
+    private final Logger logger = LoggerFactory.getLogger(ExerciseControllerTests.class);
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private CourseService courseService;
-
     @MockBean
     private ExerciseInfoService exerciseInfoService;
-
     private JWTResponse jwtToken;
-    private final Logger logger = LoggerFactory.getLogger(ExerciseControllerTests.class);
 
     @BeforeEach
     public void login() throws Exception {
@@ -140,7 +123,7 @@ public class ExerciseControllerTests {
         course.setId(courseId);
         List<ExerciseDTO> exercisesList = new ArrayList<>();
         List<Exercise> expectedExercises = new ArrayList<>();
-        for (int i = 1; i <= number; i++){
+        for (int i = 1; i <= number; i++) {
             ExerciseDTO dto = new ExerciseDTO();
             dto.name = "Exercise " + i;
             Exercise exercise = new Exercise();

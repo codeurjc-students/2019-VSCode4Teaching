@@ -1,15 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
@@ -17,7 +7,6 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundExc
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseInfoServiceImpl;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -46,7 +37,7 @@ public class ExerciseInfoServiceImplTests {
     public void getExerciseUserInfo_withExerciseIdAndUsername() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1");
-        Long exerciseId = 2l;
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
         exercise.setCourse(course);
         String username = "johndoe";
@@ -89,7 +80,7 @@ public class ExerciseInfoServiceImplTests {
 
     @Test
     public void getExerciseUserInfo_exception() {
-        Long exerciseId = 2l;
+        Long exerciseId = 2L;
         String username = "johndoe";
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username))
                 .thenReturn(Optional.empty());
@@ -102,7 +93,7 @@ public class ExerciseInfoServiceImplTests {
     public void updateExerciseUserInfo_valid() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1");
-        Long exerciseId = 2l;
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
         exercise.setCourse(course);
         String username = "johndoe";
@@ -143,7 +134,7 @@ public class ExerciseInfoServiceImplTests {
     public void updateExerciseUserInfo_valid_no_file() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1");
-        Long exerciseId = 2l;
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
         exercise.setCourse(course);
         String username = "johndoe";
@@ -173,14 +164,14 @@ public class ExerciseInfoServiceImplTests {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
         Exercise exercise = new Exercise("Exercise 1");
-        exercise.setId(10l);
+        exercise.setId(10L);
         exercise.setCourse(course);
         // Set up users
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         teacher.addCourse(course);
@@ -202,11 +193,11 @@ public class ExerciseInfoServiceImplTests {
         expectedList.add(euiTeacher);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);
-        when(exerciseUserInfoRepository.findByExercise_Id(10l)).thenReturn(expectedList);
+        when(exerciseUserInfoRepository.findByExercise_Id(10L)).thenReturn(expectedList);
 
-        List<ExerciseUserInfo> returnedEuis = exerciseInfoService.getAllStudentExerciseUserInfo(10l, "johndoe");
+        List<ExerciseUserInfo> returnedEuis = exerciseInfoService.getAllStudentExerciseUserInfo(10L, "johndoe");
 
-        verify(exerciseUserInfoRepository, times(1)).findByExercise_Id(10l);
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_Id(10L);
         assertThat(returnedEuis).hasSize(2);
         assertThat(returnedEuis.contains(euiTeacher)).isFalse();
         assertThat(returnedEuis.get(0)).isEqualTo(euiStudent1);

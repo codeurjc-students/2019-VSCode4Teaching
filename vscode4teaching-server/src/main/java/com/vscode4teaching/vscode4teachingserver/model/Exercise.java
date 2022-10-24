@@ -20,39 +20,31 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "exercise")
 public class Exercise {
+    @JsonView(ExerciseViews.CodeView.class)
+    private final String uuid = UUID.randomUUID().toString();
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonView(ExerciseViews.GeneralView.class)
     private Long id;
-
     @JsonView(ExerciseViews.GeneralView.class)
     @NotEmpty(message = "Name cannot be empty")
     @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters")
     private String name;
-
     @ManyToOne
     @JsonView(ExerciseViews.CourseView.class)
     private Course course;
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> template = new ArrayList<>();
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> solution = new ArrayList<>();
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
-
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseUserInfo> userInfo = new ArrayList<>();
-
-    @JsonView(ExerciseViews.CodeView.class)
-    private final String uuid = UUID.randomUUID().toString();
-
     @JsonView(ExerciseViews.GeneralView.class)
     private boolean includesTeacherSolution;
 

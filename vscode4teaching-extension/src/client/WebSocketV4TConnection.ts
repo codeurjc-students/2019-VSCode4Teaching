@@ -11,6 +11,7 @@ export class WebSocketV4TConnection {
     constructor(private channel: string, private callback: ((data: any) => void)) {
         this.connect(this.channel, this.callback);
     }
+
     public send(data: any, cb?: (err?: Error) => void) {
         this.ws?.send(data, cb);
     }
@@ -24,7 +25,7 @@ export class WebSocketV4TConnection {
         const wsURL = APIClientSession.baseUrl.replace("http", "ws");
         const startConnectionDate = new Date().getTime();
         if (authToken && wsURL) {
-            this.ws = new WebSocket(`${wsURL}/${channel}?bearer=${authToken}`);
+            this.ws = new WebSocket(`${ wsURL }/${ channel }?bearer=${ authToken }`);
             const wsHeartbeat = (websocket: WebSocket) => {
                 v4tLogger.debug("ws ping " + this.channel + ": " + new Date(new Date().getTime() - startConnectionDate));
                 if (this.wsTimeout) {
@@ -36,7 +37,7 @@ export class WebSocketV4TConnection {
                     v4tLogger.warn("Timeout on websocket connection. Trying to reconnect...");
                     websocket.terminate();
                     this.connect(channel, callback);
-                  }, 31000);
+                }, 31000);
             };
             this.ws.on("open", wsHeartbeat);
             this.ws.on("ping", wsHeartbeat);
@@ -59,6 +60,8 @@ export class WebSocketV4TConnection {
             this.wsPingInterval = global.setInterval(() => {
                 this.ws?.ping();
             }, 30000);
-        } else { v4tLogger.error("Could not connect with websockets"); }
+        } else {
+            v4tLogger.error("Could not connect with websockets");
+        }
     }
 }

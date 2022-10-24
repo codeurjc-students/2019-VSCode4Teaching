@@ -24,14 +24,14 @@ export class QuickPickTreeNode implements vscode.QuickPickItem {
         public source: -1 | 0 | 1,
         public relativePath: string,
         public parent?: QuickPickTreeNode,
-
         public kind?: vscode.QuickPickItemKind,
         public description?: string,
         public detail?: string,
         public picked?: boolean,
         public alwaysShow?: boolean,
         public buttons?: vscode.QuickInputButton[],
-    ) { }
+    ) {
+    }
 }
 
 export class DiffBetweenDirectories {
@@ -39,9 +39,9 @@ export class DiffBetweenDirectories {
     /**
      * Method used to recursively traverse a directory, looking for all the files included.
      * In addition, the contents of each directory filtered.
-     * 
+     *
      * Due to implementation, it is known that children arrays will be alphabetically sorted.
-     * 
+     *
      * @param absolutePath Absolute path to the directory (grows when entering in recursive calls)
      * @param regexFilters (Optional) Regular expressions used to filter and eliminate the desired results of the directory scan.
      * @returns Tree-shaped structure (nodes with parent and children) representing the contents of the directory provided.
@@ -73,14 +73,14 @@ export class DiffBetweenDirectories {
 
     /**
      * Algorithm that combines two trees of directories and files obtained by the {@link deepFilteredDirectoryTraversal()} method.
-     * 
+     *
      * It introduces in each of them a source attribute:
      * -1 if the file exists only on the left.
      *  1 if the file exists only on the right.
      *  0 if it exists in both trees.
-     * 
+     *
      * It also keeps the pointers to the nodes of the original trees.
-     * 
+     *
      * @param leftTree Left tree.
      * @param rightTree Right tree.
      * @returns Merged tree root.
@@ -96,8 +96,18 @@ export class DiffBetweenDirectories {
 
         // The nodes associated with the children of both the left tree and the right tree are converted to the node type of the combined tree
         // The necessary provenance is entered (-1 for those coming from the left, 1 for those coming from the right) and the pointers to the original nodes are stored
-        const leftTreeChildren = leftTree.children.map<MergedTreeNode>(elem => ({ value: elem.fileName, source: -1, children: [], originalNodes: { left: elem } }));
-        const rightTreeChildren = rightTree.children.map<MergedTreeNode>(elem => ({ value: elem.fileName, source: 1, children: [], originalNodes: { right: elem } }));
+        const leftTreeChildren = leftTree.children.map<MergedTreeNode>(elem => ({
+            value: elem.fileName,
+            source: -1,
+            children: [],
+            originalNodes: { left: elem }
+        }));
+        const rightTreeChildren = rightTree.children.map<MergedTreeNode>(elem => ({
+            value: elem.fileName,
+            source: 1,
+            children: [],
+            originalNodes: { right: elem }
+        }));
 
         // Both lists are traversed with incrementing numeric iterates until both are fully explored
         let i = 0; // Iterator for the position of the elements in the list leftTreeChildren
@@ -159,7 +169,7 @@ export class DiffBetweenDirectories {
             if (child.source === 0 && child.originalNodes.left !== undefined && child.originalNodes.right !== undefined)
                 child.children = DiffBetweenDirectories.mergeDirectoryTrees(child.originalNodes.left, child.originalNodes.right).children;
 
-            // Base case: this child comes from a single tree or has no descendants from both trees
+                // Base case: this child comes from a single tree or has no descendants from both trees
             // The children of this child are automatically assigned the given provenance and all its children are copied recursively with the same source
             else
                 child.children = DiffBetweenDirectories.deepCopyWithSource(child).children;
@@ -171,12 +181,12 @@ export class DiffBetweenDirectories {
 
     /**
      * mergedTreeToQuickPickTree()
-     * 
+     *
      * Method applied to convert the previously generated tree (with {@link mergeDirectoryTrees()}) to a tree with nodes prepared for vscode.QuickPick (to interact with user).
-     * 
+     *
      * Returns a tree structure with the same content as the merged tree but made of {@link QuickPickTreeNode} instances which are ready to be displayed in the Quick Pick
      * that will be shown to the user to choose the file from which he or she wants to view diff.
-     * 
+     *
      * @param mergedTreeNodeRoot Merged tree root node.
      * @param relativePath Relative path.
      * @param parent (Optional) Parent of current node. Undefined only at root.
@@ -199,9 +209,9 @@ export class DiffBetweenDirectories {
         }
 
         // When children are interpreted, label and description for current node are assigned
-        newQuickPickTreeNode.label = `$(${(newQuickPickTreeNode.children.length > 0) ? "folder" : "file"}) ${newQuickPickTreeNode.label}`;
+        newQuickPickTreeNode.label = `$(${ (newQuickPickTreeNode.children.length > 0) ? "folder" : "file" }) ${ newQuickPickTreeNode.label }`;
         if (newQuickPickTreeNode.source === -1)
-                newQuickPickTreeNode.description = "Only available in left folder";
+            newQuickPickTreeNode.description = "Only available in left folder";
         else if (newQuickPickTreeNode.source === 0)
             newQuickPickTreeNode.description = "Available in both left and right folder";
         else
@@ -214,9 +224,9 @@ export class DiffBetweenDirectories {
 
     /**
      * Given a Quick Pick item tree, the user is asked which file to open
-     * 
+     *
      * This implementation allows the user to browse through the different directories available and shows the origin of each node through the appearance of successive VSCode Quick Pick windows
-     *  
+     *
      * @param quickPickTreeNode Quick Pick tree root node
      * @returns Object with information about user's selection
      */
@@ -226,7 +236,13 @@ export class DiffBetweenDirectories {
             ? [
                 // This item will allow users to go back to the parent level of currently shown children level.
                 // Note: Both this item and separator include compulsory parameters relativePath, children and source, but they three are ignored.
-                { label: "$(panel-maximize) Jump to parent", children: [], parent: quickPickTreeNode.parent, relativePath: "", source: 0 },
+                {
+                    label: "$(panel-maximize) Jump to parent",
+                    children: [],
+                    parent: quickPickTreeNode.parent,
+                    relativePath: "",
+                    source: 0
+                },
                 { label: "", children: [], kind: vscode.QuickPickItemKind.Separator, relativePath: "", source: 0 },
                 ...quickPickTreeNode.children
             ]
@@ -259,8 +275,8 @@ export class DiffBetweenDirectories {
     /**
      * Private method used in {@link mergeDirectoryTrees()} to generate new nodes recursively with the desired source and source nodes.
      * It implements the base case for the mentioned algorithm.
-     * 
-     * @param node Root node to transform. 
+     *
+     * @param node Root node to transform.
      * @returns Root node transformed (with children recursively transformed).
      */
     private static deepCopyWithSource = (node: MergedTreeNode): MergedTreeNode => {
@@ -275,14 +291,24 @@ export class DiffBetweenDirectories {
         // If the original node has children on the left and the origin of the node is the left tree, this method is applied recursively to all the children to include them.
         if (node.originalNodes.left !== undefined && node.source === -1) {
             node.originalNodes.left.children.forEach(child =>
-                newMergedTreeNode.children.push(DiffBetweenDirectories.deepCopyWithSource({ value: child.fileName, children: [], source: node.source, originalNodes: { left: child } }))
+                newMergedTreeNode.children.push(DiffBetweenDirectories.deepCopyWithSource({
+                    value: child.fileName,
+                    children: [],
+                    source: node.source,
+                    originalNodes: { left: child }
+                }))
             );
         }
 
         // If the original node has children on the right and the origin of the node is the right tree, this method is applied recursively to all the children to include them.
         if (node.originalNodes.right !== undefined && node.source === 1) {
             node.originalNodes.right.children.forEach(child =>
-                newMergedTreeNode.children.push(DiffBetweenDirectories.deepCopyWithSource({ value: child.fileName, children: [], source: node.source, originalNodes: { right: child } }))
+                newMergedTreeNode.children.push(DiffBetweenDirectories.deepCopyWithSource({
+                    value: child.fileName,
+                    children: [],
+                    source: node.source,
+                    originalNodes: { right: child }
+                }))
             );
         }
 

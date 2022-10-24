@@ -472,6 +472,7 @@ class APIClientSingleton {
      * Sets vscode status bar and returns axios promise for given options.
      * @param options Options from to build axios request
      * @param statusMessage message to add to the vscode status bar
+     * @param notification True if notification should be shown to user, false otherwise
      */
     private createRequest(options: AxiosBuildOptions, statusMessage: string, notification: boolean = false): AxiosPromise<any> {
         const axiosOptions = APIClientSession.buildOptions(options);
@@ -534,5 +535,6 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Logging in to VS Code 4 Teaching...");
     }
 }
+
 // API Client is a singleton
 export let APIClient = new APIClientSingleton();

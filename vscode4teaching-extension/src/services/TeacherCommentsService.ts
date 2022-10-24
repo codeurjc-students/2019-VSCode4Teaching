@@ -13,6 +13,7 @@ export class TeacherCommentService {
     private cwds: vscode.WorkspaceFolder[] = [];
     // Key: server id, value: thread
     private threads: Map<number, vscode.CommentThread> = new Map();
+
     constructor(private author: string) {
         this.commentController = vscode.comments.createCommentController("teacherComments", "Teacher comments");
         this.commentController.commentingRangeProvider = {
@@ -44,7 +45,6 @@ export class TeacherCommentService {
      * Adds comment to file
      * @param reply Comment reply to add (given by vscode and passed to this method)
      * @param fileId file to add comment to
-     * @param errorCallback callback to call in case of backend API error
      */
     public async addComment(reply: vscode.CommentReply, fileId: number) {
         const thread = reply.thread;
@@ -128,7 +128,6 @@ export class TeacherCommentService {
      * @param threadId thread
      * @param line line location
      * @param lineText text of the line
-     * @param errorCallback error callback if request fails
      */
     public async updateThreadLine(threadId: number, line: number, lineText: string) {
         const response = await APIClient.updateCommentThreadLine(threadId, line, lineText);

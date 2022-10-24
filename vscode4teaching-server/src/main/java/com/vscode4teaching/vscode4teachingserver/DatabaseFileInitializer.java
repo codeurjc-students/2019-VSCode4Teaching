@@ -1,5 +1,19 @@
 package com.vscode4teaching.vscode4teachingserver;
 
+import com.vscode4teaching.vscode4teachingserver.model.*;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,41 +26,21 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.transaction.Transactional;
-
-import com.vscode4teaching.vscode4teachingserver.model.*;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-
 @Component
 @ConditionalOnProperty(value = "file.initialization", havingValue = "true")
 @Transactional
 @Order(1)
 public class DatabaseFileInitializer implements CommandLineRunner {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseFileInitializer.class);
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
     private ExerciseRepository exerciseRepository;
-
     @Autowired
     private ExerciseFileRepository fileRepository;
-
     @Value("${v4t.filedirectory}")
     private String rootPath;
-
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseFileInitializer.class);
 
     @Override
     public void run(String... args) throws IOException {
@@ -115,7 +109,7 @@ public class DatabaseFileInitializer implements CommandLineRunner {
                                 try {
                                     long userInfoId = Integer.parseInt(userParts[userParts.length - 1]);
                                     userInfoOpt = exercise.getUserInfo().stream().filter(eui -> eui.getId().equals(userInfoId)).findFirst();
-                                } catch(NumberFormatException nfe) {
+                                } catch (NumberFormatException nfe) {
                                     logger.error("File initialization for exercise " + exercise_id + " and user " + parts[3] + " went wrong.");
                                 }
                                 if (userInfoOpt.isPresent()) {

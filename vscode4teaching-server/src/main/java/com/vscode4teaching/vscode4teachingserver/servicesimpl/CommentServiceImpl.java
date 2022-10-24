@@ -1,6 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
-import com.vscode4teaching.vscode4teachingserver.model.Comment;
 import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
@@ -48,9 +47,7 @@ public class CommentServiceImpl implements CommentService {
         file.addCommentThread(commentThread);
         commentThread.setFile(file);
         commentThreadRepository.save(commentThread);
-        for (Comment comment : commentThread.getComments()) {
-            commentRepository.save(comment);
-        }
+        commentRepository.saveAll(commentThread.getComments());
         ExerciseFile savedFile = exerciseFileRepository.save(file);
         return savedFile.getComments().get(savedFile.getComments().size() - 1);
     }

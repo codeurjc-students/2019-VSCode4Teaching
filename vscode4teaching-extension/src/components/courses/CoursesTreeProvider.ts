@@ -246,12 +246,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (CurrentUser.isLoggedIn()) {
             // If not logged refresh shouldn't do anything
             CurrentUser.updateUserInfo()
-                .then(() => {
-                    CoursesProvider.triggerTreeReload();
-                })
-                .catch((error) => {
-                    APIClient.handleAxiosError(error);
-                });
+                       .then(() => {
+                           CoursesProvider.triggerTreeReload();
+                       })
+                       .catch((error) => {
+                           APIClient.handleAxiosError(error);
+                       });
         }
     }
 
@@ -265,9 +265,9 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     /**
      * Shows a folder picker and sends to the server the new exercises, including their DB information, the template and, if available, the proposed solution (whose existence is detected by an auxiliary function getTemplateSolutionPaths).
-     * 
+     *
      * This method handles both the case of uploading a single exercise and the case of uploading multiple exercises.
-     * 
+     *
      * @param item course
      * @param multiple true if multiple exercises are being added to course, false otherwise
      */
@@ -332,29 +332,29 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
                     // 3.3: all registered requests (as promises in previous step) are sent and, once completed, the received results are processed.
                     Promise.all(uploadFilesPromises.flat())
-                        .catch(async (uploadError) => {
-                            // If any upload process fails, all exercises are deleted from database and error is handled (via errorCaught)
-                            errorCaught = true;
-                            v4tLogger.error(uploadError);
-                            try {
-                                exerciseData.data.forEach(async ex => await APIClient.deleteExercise(ex.id));
-                                APIClient.handleAxiosError(uploadError);
-                            } catch (deleteError) {
-                                APIClient.handleAxiosError(deleteError);
-                            }
-                        }).finally(() => {
-                            // The user is informed of the result of this process, whether it was successful or not.
-                            this.loading = false;
-                            if (errorCaught) {
-                                vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
-                            } else {
-                                vscode.window.showInformationMessage(multiple
-                                    ? exercisesDirectories.length + " exercises were added successfully."
-                                    : "The new exercise was added successfully."
-                                );
-                            }
-                            CoursesProvider.triggerTreeReload();
-                        });
+                           .catch(async (uploadError) => {
+                               // If any upload process fails, all exercises are deleted from database and error is handled (via errorCaught)
+                               errorCaught = true;
+                               v4tLogger.error(uploadError);
+                               try {
+                                   exerciseData.data.forEach(async ex => await APIClient.deleteExercise(ex.id));
+                                   APIClient.handleAxiosError(uploadError);
+                               } catch (deleteError) {
+                                   APIClient.handleAxiosError(deleteError);
+                               }
+                           }).finally(() => {
+                        // The user is informed of the result of this process, whether it was successful or not.
+                        this.loading = false;
+                        if (errorCaught) {
+                            vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
+                        } else {
+                            vscode.window.showInformationMessage(multiple
+                                ? exercisesDirectories.length + " exercises were added successfully."
+                                : "The new exercise was added successfully."
+                            );
+                        }
+                        CoursesProvider.triggerTreeReload();
+                    });
                 } catch (_) {
                     errorCaught = true;
                 }
@@ -364,7 +364,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
 
     /**
      * Given a folder associated with an exercise, this auxiliary method determines whether it contains a solution or only a template.
-     * 
+     *
      * @param exerciseRoute Uri of the mentioned folder.
      * @returns An object including specific template path and, if exists, also the specific solution path.
      */
@@ -573,17 +573,17 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private updateUserInfo(): V4TItem[] {
         this.loading = true;
         CurrentUser.updateUserInfo()
-            .then(() => {
-                // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
-                CoursesProvider.triggerTreeReload();
-            })
-            .catch((error) => {
-                APIClient.handleAxiosError(error);
-                CoursesProvider.triggerTreeReload();
-            })
-            .finally(() => {
-                this.loading = false;
-            });
+                   .then(() => {
+                       // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
+                       CoursesProvider.triggerTreeReload();
+                   })
+                   .catch((error) => {
+                       APIClient.handleAxiosError(error);
+                       CoursesProvider.triggerTreeReload();
+                   })
+                   .finally(() => {
+                       this.loading = false;
+                   });
         return [];
     }
 
@@ -665,7 +665,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Converts picked items to id array to call client with client call selected (thenable)
      * @param showArray picked items
      * @param item course
-     * @param thenableFunction thenable to call
      */
     private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem) {
         if (item.item && instanceOfCourse(item.item)) {

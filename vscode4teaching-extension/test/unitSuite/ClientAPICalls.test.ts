@@ -1,5 +1,4 @@
-
-import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosPromise, AxiosRequestConfig } from "axios";
 import FormData from "form-data";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
@@ -284,11 +283,36 @@ describe("Client API calls", () => {
     it("should request add multiple exercises correctly", () => {
         const courseId = 1;
         const exercises: ExerciseEdit[] = [
-            { name: "Exercise 1", includesTeacherSolution: false, solutionIsPublic: false, allowEditionAfterSolutionDownloaded: false },
-            { name: "Exercise 2", includesTeacherSolution: false, solutionIsPublic: false, allowEditionAfterSolutionDownloaded: false },
-            { name: "Exercise 3", includesTeacherSolution: false, solutionIsPublic: false, allowEditionAfterSolutionDownloaded: false },
-            { name: "Exercise 4", includesTeacherSolution: false, solutionIsPublic: false, allowEditionAfterSolutionDownloaded: false },
-            { name: "Exercise 5", includesTeacherSolution: false, solutionIsPublic: false, allowEditionAfterSolutionDownloaded: false },
+            {
+                name: "Exercise 1",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 2",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 3",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 4",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 5",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
         ];
 
         const expectedOptions: AxiosRequestConfig = {

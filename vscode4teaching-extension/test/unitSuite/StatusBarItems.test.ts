@@ -62,7 +62,6 @@ describe("Status Bar items", () => {
     });
 
 
-
     describe("Show dashboard (teacher)", () => {
         it("should create correctly", () => {
             const dashboardItem = new ShowDashboardItem("Test name", course, exercise);

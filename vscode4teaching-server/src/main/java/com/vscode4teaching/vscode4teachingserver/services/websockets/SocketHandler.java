@@ -5,7 +5,6 @@ import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyJSONObjectException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.EmptyURIException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.MissingPropertyException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,8 +24,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class SocketHandler extends TextWebSocketHandler {
 
-    private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(SocketHandler.class);
+    private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
@@ -88,14 +87,14 @@ public class SocketHandler extends TextWebSocketHandler {
         logger.info("Exercise user info updated, sending updates to teachers " + teachers.toString() + "...");
         for (User teacher : teachers) {
             sessions.stream()
-                .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacher.getUsername()))
-                .forEach(t -> {
-                    try {
-                        t.sendMessage(new TextMessage("{\"handle\":\"refresh\"}"));
-                    } catch (IOException e) {
-                        logger.error("Error sending websocket message: " + e.getMessage());
-                    }
-                });
+                    .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacher.getUsername()))
+                    .forEach(t -> {
+                        try {
+                            t.sendMessage(new TextMessage("{\"handle\":\"refresh\"}"));
+                        } catch (IOException e) {
+                            logger.error("Error sending websocket message: " + e.getMessage());
+                        }
+                    });
         }
         logger.info("Updates sent to teachers");
     }

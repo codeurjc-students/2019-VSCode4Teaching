@@ -1,11 +1,11 @@
 package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
-import javax.validation.constraints.NotEmpty;
-
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotEmpty;
+
 public class CommentDTO {
-    
+
     @NotEmpty(message = "Comment author should not be empty")
     @Length(min = 1, message = "Comment author should not be empty")
     private String author;
@@ -29,5 +29,5 @@ public class CommentDTO {
     public void setBody(String body) {
         this.body = body;
     }
-    
+
 }

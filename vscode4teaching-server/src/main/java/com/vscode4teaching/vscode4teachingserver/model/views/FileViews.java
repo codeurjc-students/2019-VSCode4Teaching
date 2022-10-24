@@ -10,7 +10,7 @@ public class FileViews {
     public interface OwnerView extends GeneralView {
 
     }
-    
+
     public interface CommentView extends GeneralView, CommentThreadViews.CommentView {
     }
 }

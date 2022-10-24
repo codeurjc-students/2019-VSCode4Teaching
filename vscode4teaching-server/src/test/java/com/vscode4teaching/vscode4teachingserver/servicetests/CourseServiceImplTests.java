@@ -1,39 +1,13 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
-
+import com.vscode4teaching.vscode4teachingserver.servicesimpl.CourseServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,29 +17,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
 public class CourseServiceImplTests {
 
+    private static final Logger logger = LoggerFactory.getLogger(CourseServiceImplTests.class);
     @Mock
     private CourseRepository courseRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private ExerciseRepository exerciseRepository;
-
     @Mock
     private ExerciseUserInfoRepository exerciseUserInfoRepository;
-
     @Mock
     private SocketHandler websocketHandler;
-
     @InjectMocks
     private CourseServiceImpl courseServiceImpl;
-
-    private static final Logger logger = LoggerFactory.getLogger(CourseServiceImplTests.class);
 
     @Test
     public void registerNewCourse_valid() throws TeacherNotFoundException {

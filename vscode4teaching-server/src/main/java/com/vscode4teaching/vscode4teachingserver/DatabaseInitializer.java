@@ -1,15 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.vscode4teaching.vscode4teachingserver.model.*;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-
+import com.vscode4teaching.vscode4teachingserver.model.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -17,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @ConditionalOnProperty(value = "data.initialization", havingValue = "true")

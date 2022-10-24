@@ -8,6 +8,7 @@ export interface Exercise {
     solutionIsPublic: boolean;
     allowEditionAfterSolutionDownloaded: boolean;
 }
+
 export function instanceOfExercise(object: any): object is Exercise {
     return "id" in object && "name" in object;
 }

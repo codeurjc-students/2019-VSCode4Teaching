@@ -1,21 +1,5 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-import java.util.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
@@ -27,7 +11,6 @@ import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.views.CourseViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.UserViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,21 +25,26 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
 public class CourseControllerTests {
+    private static final Logger logger = LoggerFactory.getLogger(CourseControllerTests.class);
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private CourseService courseService;
-
     private JWTResponse jwtToken;
-    private static final Logger logger = LoggerFactory.getLogger(CourseControllerTests.class);
 
     @BeforeEach
     public void login() throws Exception {
@@ -79,7 +67,7 @@ public class CourseControllerTests {
         when(courseService.getCourseById(1L)).thenReturn(Optional.of(course));
 
         MvcResult mvcResult = mockMvc.perform(get("/api/courses/1").contentType("application/json").with(csrf())
-                .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 
         verify(courseService, times(1)).getCourseById(1L);

@@ -15,20 +15,20 @@ describe("Diff between directories Utilities", () => {
     /**
      * Tree 1: BasicNode example tree
      * Graphic representation:
-     * 
-     * A         
-     * ├─ B      
-     * │  ├─ F   
-     * │  ├─ G   
-     * │  ├─ H   
-     * ├─ C      
-     * │  ├─ I   
-     * ├─ D      
-     * ├─ E      
-     * │  ├─ J   
+     *
+     * A
+     * ├─ B
+     * │  ├─ F
+     * │  ├─ G
+     * │  ├─ H
+     * ├─ C
+     * │  ├─ I
+     * ├─ D
+     * ├─ E
+     * │  ├─ J
      * │  │  ├─ L
      * │  │  ├─ M
-     * │  ├─ K   
+     * │  ├─ K
      * │  │  ├─ N
      */
     // Level 4 nodes
@@ -53,7 +53,7 @@ describe("Diff between directories Utilities", () => {
     /**
      * Tree 2: BasicNode example tree
      * Graphic representation:
-     * 
+     *
      * Z
      * ├─ B
      * │  ├─ G
@@ -97,7 +97,7 @@ describe("Diff between directories Utilities", () => {
     /**
      * Tree 3: MergedTreeNode example tree (result of merging tree 1 as left and tree 2 as right)
      * Graphic representation (with sources in parentheses):
-     * 
+     *
      * A (0)
      * ├─ B (0)
      * │  ├─ F (-1)

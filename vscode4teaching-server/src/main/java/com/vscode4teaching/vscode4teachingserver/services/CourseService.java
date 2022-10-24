@@ -1,25 +1,17 @@
 package com.vscode4teaching.vscode4teachingserver.services;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-
 import com.vscode4teaching.vscode4teachingserver.model.Course;
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.User;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CantRemoveCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.CourseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotCreatorException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.TeacherNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.UserNotFoundException;
-
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Validated

@@ -97,15 +97,13 @@ const mockedUserStudentModel: User = {
 let mockedUser = mockedUserTeacherModel;
 
 function mockGetInput(prompt: string, validateInput: (value: string) => string | undefined | null | Thenable<string | undefined | null>, resolvedValue: any, defaultValue?: string, password?: boolean) {
-    mockedVscode.window.showInputBox
-        .mockResolvedValueOnce(resolvedValue);
-    const expectedInputOptions = {
+    mockedVscode.window.showInputBox.mockResolvedValueOnce(resolvedValue);
+    return {
         prompt,
         validateInput,
         value: defaultValue,
         password,
     };
-    return expectedInputOptions;
 }
 
 describe("Tree View", () => {
@@ -280,8 +278,8 @@ describe("Tree View", () => {
             config: {},
         });
         mockedClient.getExerciseUserInfo
-            .mockResolvedValueOnce(expectedExerciseUserInfo(exercises[0]))
-            .mockResolvedValueOnce(expectedExerciseUserInfo(exercises[1]));
+                    .mockResolvedValueOnce(expectedExerciseUserInfo(exercises[0]))
+                    .mockResolvedValueOnce(expectedExerciseUserInfo(exercises[1]));
 
         const exerciseElements = await coursesProvider.getChildren(courseItem);
 
@@ -542,12 +540,12 @@ describe("Tree View", () => {
         const mockedParentDirectoryContents = exampleExercisesNames.map(ej => mockFsDirent(ej, true));
         mockedFs.readdirSync
             // First call: scanning contents of parent directory    
-            .mockReturnValueOnce(mockedParentDirectoryContents)
+                .mockReturnValueOnce(mockedParentDirectoryContents)
             // Successive calls: in getTemplateSolutionPaths(), one per each exercise, can be returned same info on every case
-            .mockReturnValue([
-                mockFsDirent("test_file_1", true),
-                mockFsDirent("test_file_2", true)
-            ]);
+                .mockReturnValue([
+                    mockFsDirent("test_file_1", true),
+                    mockFsDirent("test_file_2", true)
+                ]);
 
         const addExerciseRequestBody: ExerciseEdit[] = exampleExercisesNames.map(ej => ({
             name: ej,
@@ -647,16 +645,16 @@ describe("Tree View", () => {
         mockedFs.lstatSync.mockImplementation(path => mockFsStatus(path === "test"));
         mockedFs.readdirSync
             // First call: scanning contents of parent directory    
-            .mockReturnValueOnce([
-                mockFsDirent("template", true),
-                mockFsDirent("solution", true)
-            ])
+                .mockReturnValueOnce([
+                    mockFsDirent("template", true),
+                    mockFsDirent("solution", true)
+                ])
             // Successive calls: in getTemplateSolutionPaths(), one per each directory, can be returned same info on every case        
-            .mockReturnValue([
-                mockFsDirent("test_file_1", false),
-                mockFsDirent("test_file_2", false),
-                mockFsDirent("test_file_3", false)
-            ]);
+                .mockReturnValue([
+                    mockFsDirent("test_file_1", false),
+                    mockFsDirent("test_file_2", false),
+                    mockFsDirent("test_file_3", false)
+                ]);
 
         const addExerciseRequestBody: ExerciseEdit = {
             name: "test",
@@ -745,7 +743,7 @@ describe("Tree View", () => {
 
         /**
          * fs library mock
-         * 
+         *
          * A file structure is simulated for each exercise like this one:
          * ejN/
          * ├─ template/

@@ -1,18 +1,16 @@
 package com.vscode4teaching.vscode4teachingserver.services;
 
-import java.util.List;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseStatus;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Service
 @Validated

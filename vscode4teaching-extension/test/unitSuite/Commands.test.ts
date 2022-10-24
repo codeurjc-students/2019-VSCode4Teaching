@@ -241,7 +241,10 @@ describe("Command implementations", () => {
         expect(mockedFs.writeFileSync).toHaveBeenCalledTimes(1);
         expect(mockedFs.writeFileSync).toHaveBeenNthCalledWith(1, "fileInfo/johndoejr.json", JSON.stringify(fileInfoResponse.data), { encoding: "utf8" });
         expect(mockedVscode.workspace.updateWorkspaceFolders).toHaveBeenCalledTimes(1);
-        expect(mockedVscode.workspace.updateWorkspaceFolders).toHaveBeenNthCalledWith(1, 0, 0, { uri: mockedVscode.Uri.file(zipInfo.dir), name: exercise.name });
+        expect(mockedVscode.workspace.updateWorkspaceFolders).toHaveBeenNthCalledWith(1, 0, 0, {
+            uri: mockedVscode.Uri.file(zipInfo.dir),
+            name: exercise.name
+        });
     });
 
     it("should download all student's files of exercise without solution (teacher)", async () => {
@@ -285,12 +288,12 @@ describe("Command implementations", () => {
         mockedCurrentUser.isLoggedIn.mockReturnValueOnce(true);
         mockedCurrentUser.getUserInfo.mockReturnValueOnce(user);
         mockedPath.resolve
-            .mockReturnValueOnce("fileInfo")
-            .mockReturnValueOnce("fileInfo/johndoejr.json")
-            .mockReturnValueOnce("fileInfo/johndoejr2.json")
-            .mockReturnValueOnce("newWorkspace/template")
-            .mockReturnValueOnce("newWorkspace/student_11")
-            .mockReturnValueOnce("newWorkspace/student_12");
+                  .mockReturnValueOnce("fileInfo")
+                  .mockReturnValueOnce("fileInfo/johndoejr.json")
+                  .mockReturnValueOnce("fileInfo/johndoejr2.json")
+                  .mockReturnValueOnce("newWorkspace/template")
+                  .mockReturnValueOnce("newWorkspace/student_11")
+                  .mockReturnValueOnce("newWorkspace/student_12");
         mockedFs.existsSync.mockReturnValueOnce(false);
         mockedMkdirp.sync.mockReturnValueOnce("fileInfo");
         const fileInfoResponse1: AxiosResponse<FileInfo[]> = {
@@ -388,9 +391,9 @@ describe("Command implementations", () => {
                 (resourceType === "template") ? templateZipInfo : solutionZipInfo
         );
         mockedFileZipUtil.filesFromZip
-            .mockResolvedValueOnce(templateZipInfo.dir)
-            .mockResolvedValueOnce(zipInfo.dir)
-            .mockResolvedValueOnce(solutionZipInfo.dir);
+                         .mockResolvedValueOnce(templateZipInfo.dir)
+                         .mockResolvedValueOnce(zipInfo.dir)
+                         .mockResolvedValueOnce(solutionZipInfo.dir);
 
         mockedFs.readdirSync.mockReturnValueOnce([
             mockFsDirent("student_11", true),
@@ -402,13 +405,13 @@ describe("Command implementations", () => {
         mockedCurrentUser.isLoggedIn.mockReturnValueOnce(true);
         mockedCurrentUser.getUserInfo.mockReturnValueOnce(user);
         mockedPath.resolve
-            .mockReturnValueOnce("fileInfo")
-            .mockReturnValueOnce("fileInfo/johndoejr.json")
-            .mockReturnValueOnce("fileInfo/johndoejr2.json")
-            .mockReturnValueOnce("newWorkspace/template")
-            .mockReturnValueOnce("newWorkspace/solution")
-            .mockReturnValueOnce("newWorkspace/student_11")
-            .mockReturnValueOnce("newWorkspace/student_12");
+                  .mockReturnValueOnce("fileInfo")
+                  .mockReturnValueOnce("fileInfo/johndoejr.json")
+                  .mockReturnValueOnce("fileInfo/johndoejr2.json")
+                  .mockReturnValueOnce("newWorkspace/template")
+                  .mockReturnValueOnce("newWorkspace/solution")
+                  .mockReturnValueOnce("newWorkspace/student_11")
+                  .mockReturnValueOnce("newWorkspace/student_12");
         mockedFs.existsSync.mockReturnValueOnce(false);
         mockedMkdirp.sync.mockReturnValueOnce("fileInfo");
         const fileInfoResponse1: AxiosResponse<FileInfo[]> = {
@@ -586,6 +589,9 @@ describe("Command implementations", () => {
         expect(extension.commentProvider?.addComment).toHaveBeenNthCalledWith(1, replyMock, 101);
     });
 
+    /**
+     * PENDING traducir desde aquí hasta abajo del todo porque empieza la locura xD
+     */
     it("should download teacher's solution when available (successful scenario) (student)", async () => {
         const user: User = {
             id: 1,
@@ -611,9 +617,9 @@ describe("Command implementations", () => {
 
         mockedVscode.window.showInformationMessage
             // First button: beginning of process
-            .mockResolvedValueOnce({ title: "Accept" })
+                    .mockResolvedValueOnce({ title: "Accept" })
             // Second button: to start diff with solution functionality (not covered in this test)
-            .mockResolvedValueOnce(undefined);
+                    .mockResolvedValueOnce(undefined);
 
         const solutionZipInfo: ZipInfo = {
             dir: "newWorkspace/solution",
@@ -679,23 +685,23 @@ describe("Command implementations", () => {
     /**
      * Tree 1
      * Graphic representation:
-     * 
-     * A         
-     * ├─ B      
-     * │  ├─ F   
-     * │  ├─ G   
-     * │  ├─ H   
-     * ├─ C      
-     * │  ├─ I   
-     * ├─ D      
-     * ├─ E      
-     * │  ├─ J   
+     *
+     * A
+     * ├─ B
+     * │  ├─ F
+     * │  ├─ G
+     * │  ├─ H
+     * ├─ C
+     * │  ├─ I
+     * ├─ D
+     * ├─ E
+     * │  ├─ J
      * │  │  ├─ L
      * │  │  ├─ M
-     * │  ├─ K   
+     * │  ├─ K
      * │  │  ├─ N
      */
-    // Level 4 nodes
+        // Level 4 nodes
     const tree1NodeL: BasicNode = { fileName: "L", children: [] };
     const tree1NodeM: BasicNode = { fileName: "M", children: [] };
     const tree1NodeN: BasicNode = { fileName: "N", children: [] };
@@ -717,7 +723,7 @@ describe("Command implementations", () => {
     /**
      * Tree 2
      * Graphic representation:
-     * 
+     *
      * Z
      * ├─ B
      * │  ├─ G
@@ -761,7 +767,7 @@ describe("Command implementations", () => {
     /**
      * Tree 3
      * Graphic representation:
-     * 
+     *
      * A (0)
      * ├─ B (0)
      * │  ├─ F (-1)
@@ -815,7 +821,7 @@ describe("Command implementations", () => {
     /**
      * Tree 4
      * Graphic representation:
-     * 
+     *
      * Same structure as tree 3.
      */
     // Level 1: root node
@@ -881,20 +887,23 @@ describe("Command implementations", () => {
 
         mockedPath.resolve
             // First call: parent directory
-            .mockReturnValueOnce("test")
+                  .mockReturnValueOnce("test")
             // Second call: solution directory
-            .mockReturnValueOnce("test/solution");
+                  .mockReturnValueOnce("test/solution");
 
 
         mockedDiffBetweenDirectories.deepFilteredDirectoryTraversal
-            .mockReturnValueOnce(tree1RootNode)
-            .mockReturnValueOnce(tree2RootNode);
+                                    .mockReturnValueOnce(tree1RootNode)
+                                    .mockReturnValueOnce(tree2RootNode);
 
         mockedDiffBetweenDirectories.mergeDirectoryTrees.mockReturnValueOnce(tree3RootNode);
 
         mockedDiffBetweenDirectories.mergedTreeToQuickPickTree.mockReturnValueOnce(quickPickTreeRootNode);
 
-        mockedDiffBetweenDirectories.directorySelectionQuickPick.mockResolvedValueOnce({ relativePath: "file", source: 0 });
+        mockedDiffBetweenDirectories.directorySelectionQuickPick.mockResolvedValueOnce({
+            relativePath: "file",
+            source: 0
+        });
 
         mockedPath.join.mockImplementation(mockedPathJoin);
 
@@ -934,20 +943,23 @@ describe("Command implementations", () => {
 
         mockedPath.resolve
             // First call: parent directory
-            .mockReturnValueOnce("test")
+                  .mockReturnValueOnce("test")
             // Second call: solution directory
-            .mockReturnValueOnce("test/solution");
+                  .mockReturnValueOnce("test/solution");
 
 
         mockedDiffBetweenDirectories.deepFilteredDirectoryTraversal
-            .mockReturnValueOnce(tree1RootNode)
-            .mockReturnValueOnce(tree2RootNode);
+                                    .mockReturnValueOnce(tree1RootNode)
+                                    .mockReturnValueOnce(tree2RootNode);
 
         mockedDiffBetweenDirectories.mergeDirectoryTrees.mockReturnValueOnce(tree3RootNode);
 
         mockedDiffBetweenDirectories.mergedTreeToQuickPickTree.mockReturnValueOnce(quickPickTreeRootNode);
 
-        mockedDiffBetweenDirectories.directorySelectionQuickPick.mockResolvedValueOnce({ relativePath: "otherFile", source: 1 });
+        mockedDiffBetweenDirectories.directorySelectionQuickPick.mockResolvedValueOnce({
+            relativePath: "otherFile",
+            source: 1
+        });
 
         mockedPath.join.mockImplementation(mockedPathJoin);
 

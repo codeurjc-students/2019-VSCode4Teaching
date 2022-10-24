@@ -1,19 +1,6 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-
-import com.vscode4teaching.vscode4teachingserver.model.Comment;
-import com.vscode4teaching.vscode4teachingserver.model.CommentThread;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.CommentThreadRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
@@ -22,7 +9,6 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.CommentNotF
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.FileNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.CommentServiceImpl;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,28 +18,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.TestPropertySource;
 
+import java.io.File;
+import java.util.List;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
 public class CommentServiceImplTests {
 
+    private static final Logger logger = LoggerFactory.getLogger(CommentServiceImplTests.class);
     @Mock
     private ExerciseFileRepository exerciseFileRepository;
-
     @Mock
     private CommentThreadRepository commentThreadRepository;
-
     @Mock
     private CommentRepository commentRepository;
-
     @Mock
     private ExerciseRepository exerciseRepository;
-
     @InjectMocks
     private CommentServiceImpl commentServiceImpl;
-
-    private static final Logger logger = LoggerFactory.getLogger(CommentServiceImplTests.class);
 
     @Test
     public void saveCommentThread() throws FileNotFoundException {
@@ -79,7 +65,7 @@ public class CommentServiceImplTests {
         when(exerciseFileRepository.findById(1L)).thenReturn(Optional.of(demoFile));
         when(exerciseFileRepository.save(any(ExerciseFile.class))).thenReturn(expectedFile);
         when(commentThreadRepository.save(commentThread)).thenReturn(expectedCommentThread);
-        when(commentRepository.save(any(Comment.class))).thenReturn(null);
+        when(commentRepository.saveAll(anyList())).thenReturn(null);
 
         CommentThread savedCommentThread = commentServiceImpl.saveCommentThread(1L, commentThread);
 
