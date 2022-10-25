@@ -1,35 +1,278 @@
+/**
+ * GENERAL RULES
+ */
+* {
+    color: var(--vscode-editor-foreground);
+}
+
+body {
+    margin-bottom: 1rem;
+}
+
+section {
+    width: 97%;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+}
+
+h2 {
+    font-size: 1.65rem;
+    margin-top: 0;
+    font-weight: 500;
+}
+
+h3 {
+    font-size: 1.35rem;
+    font-weight: 500;
+}
+
+
+/**
+ * ALERTS
+ */
+.alert-info {
+    text-align: center;
+    padding: 1rem 0;
+    width: 90%;
+    margin: 1rem auto;
+    color: var(--vscode-editor-foreground);
+    border: 1px solid var(--vscode-button-background);
+    border-radius: 0.5rem;
+}
+
+
+/**
+ * SECTION SEPARATOR
+ */
 hr {
     border: 1px solid var(--vscode-button-background);
     margin: 1rem 0;
 }
 
+
+/**
+ * GENERAL STATISTICS SECTION
+ */
+section.generalStatistics > .row {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+    max-height: 200px;
+}
+
+section.generalStatistics > .row > .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    padding: 0 0.5rem;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowTotals {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(220, 220, 220, 0.2);
+    padding: 0.25rem 2rem;
+    margin-bottom: 0.5rem;
+}
+
+section.generalStatistics > .row > .col#col-2 .value {
+    font-weight: 700;
+    font-size: 1.75rem;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus {
+    display: flex;
+    flex-direction: row;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    margin-right: 0.5rem;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status:last-child {
+    margin-right: 0;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status > .info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status#notStartedStatus {
+    background-color: rgba(239, 83, 80, 0.2);
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status#inProgressStatus {
+    background-color: rgba(249, 168, 37, 0.2);
+}
+
+section.generalStatistics > .row > .col#col-2 > .rowStatus > .status#finishedStatus {
+    background-color: rgba(102, 187, 106, 0.2);
+}
+
+section.generalStatistics > .row > .col#col-2 .icon > img {
+    max-height: 50px;
+}
+
+section.generalStatistics > .row > .col#col-3 > .rowTime {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(220, 220, 220, 0.2);
+    padding: 0.25rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+section.generalStatistics > .row > .col#col-3 > .rowTime:last-child {
+    margin-bottom: 0;
+}
+
+section.generalStatistics > .row > .col#col-3 .value {
+    font-weight: 700;
+    font-size: 1.75rem;
+}
+
+/**
+ * EXERCISE CONFIGURATION SECTION
+ * STUDENT'S PROGRESS SECTION
+ */
+.optionsPanel {
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem 0;
+}
+
+.optionsPanel > * {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.optionsPanel > *:last-child {
+    margin-bottom: 0;
+}
+
+.optionsPanel > .checkboxRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.optionsPanel > .checkboxRow > .option {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+/**
+ * HELP DROPDOWN PANEL
+ */
+details {
+    margin: 0 auto;
+    margin-bottom: .5rem;
+    border: 1px solid var(--vscode-button-background);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+summary {
+    padding: 0.5rem 1rem;
+    display: block;
+    padding-left: 1.6rem;
+    position: relative;
+    cursor: pointer;
+}
+
+summary:before {
+    content: '';
+    border-width: .3rem;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--vscode-button-background);
+    position: absolute;
+    top: 0.7rem;
+    left: 0.75rem;
+    transform: rotate(0);
+    transform-origin: .2rem 50%;
+    transition: .25s transform ease;
+}
+
+details[open] > summary:before {
+    transform: rotate(90deg);
+}
+
+details > ul {
+    padding-bottom: 1rem;
+    margin-bottom: 0;
+}
+
+details > .details-content {
+    padding: 0.75rem;
+}
+
+details > .details-content > ul {
+    margin-bottom: 0;
+}
+
+
+/**
+ * TABLE
+ */
 table {
     border-collapse: collapse;
     width: 100%;
 }
 
-body.vscode-light td,
-body.vscode-light th,
-body.vscode-dark td,
-body.vscode-dark th {
-    border: 1px solid;
-    text-align: center;
-}
-
-body.vscode-high-contrast td,
 th {
-    border: 1px solid;
+    border: 0;
+    border-bottom: 1px solid var(--vscode-button-background);
     text-align: center;
+    line-height: 30px;
 }
 
-body.vscode-light td,
-body.vscode-dark td {
-    padding: 0.25rem 0;
+td {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+tr:nth-child(2n) > td:not(.not-started-cell, .finished-cell, .inprogress-cell) {
+    background-color: rgba(230, 230, 230, 0.2);
 }
 
 
+/**
+ * TABLE - STATUS CELLS
+ */
 .status-icon-img {
-    height: 32px;
+    height: 30px;
+    padding-right: 8px;
+}
+
+.not-started-cell,
+.finished-cell,
+.inprogress-cell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .not-started-cell {
@@ -44,7 +287,9 @@ body.vscode-dark td {
     background-color: rgba(249, 168, 37, 0.2);
 }
 
-
+/**
+ * USER INTERACTION ELEMENTS 1 - BUTTONS
+ */
 button {
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
@@ -65,61 +310,10 @@ body.vscode-high-contrast button {
     border: 1px solid var(--vscode-contrastActiveBorder);
 }
 
-select {
-    background-color: var(--vscode-dropdown-background);
-    border: 1px solid var(--vscode-dropdown-border);
-    color: var(--vscode-foreground);
-}
 
-option:hover {
-    background-color: var(--vscode-selection-background);
-}
-
-.options-panel {
-    border-top: 1px solid;
-    border-bottom: 1px solid;
-    border-color: var(--vscode-button-background);
-    padding: 10px 10%;
-    margin-top: 2px;
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-}
-
-.options-panel > * {
-    width: 100%;
-    margin-bottom: 0.5rem;
-}
-
-.options-panel > *:last-child {
-    margin-bottom: 0;
-}
-
-.options-panel > .checkbox-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-}
-
-.option {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-}
-
-.control-group {
-    display: inline-block;
-    vertical-align: top;
-    background: #fff;
-    text-align: left;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    width: 200px;
-    height: 210px;
-    margin: 10px;
-}
-
+/**
+ * USER INTERACTION ELEMENTS 2 - CHECKBOXES
+ */
 .control {
     display: block;
     position: relative;
@@ -142,19 +336,19 @@ option:hover {
     background: #e6e6e6;
 }
 
-.control:hover input~.checkbox_switch {
+.control:hover input ~ .checkbox_switch {
     background: #ccc;
 }
 
-.control input:checked~.checkbox_switch {
+.control input:checked ~ .checkbox_switch {
     background: var(--vscode-button-background);
 }
 
-.control:hover input:not([disabled]):checked~.checkbox_switch {
+.control:hover input:not([disabled]):checked ~ .checkbox_switch {
     background: var(--vscode-button-hoverBackground);
 }
 
-.control input:disabled~.checkbox_switch {
+.control input:disabled ~ .checkbox_switch {
     background: #e6e6e6;
     opacity: 0.6;
     pointer-events: none;
@@ -166,7 +360,7 @@ option:hover {
     display: none;
 }
 
-.control input:checked~.checkbox_switch:after {
+.control input:checked ~ .checkbox_switch:after {
     display: block;
 }
 
@@ -180,75 +374,14 @@ option:hover {
     transform: rotate(45deg);
 }
 
-.checkbox_label input:disabled~.checkbox_switch:after {
+.checkbox_label input:disabled ~ .checkbox_switch:after {
     border-color: #7b7b7b;
 }
 
-.select {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 15px;
-    width: 100%;
-}
 
-.select select {
-    display: inline-block;
-    width: 100%;
-    cursor: pointer;
-    padding: 10px 15px;
-    outline: 0;
-    border: 0;
-    border-radius: 0;
-    background: #e6e6e6;
-    color: #7b7b7b;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-.select select::-ms-expand {
-    display: none;
-}
-
-.select select:hover,
-.select select:focus {
-    color: #000;
-    background: #ccc;
-}
-
-.select select:disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.select__arrow {
-    position: absolute;
-    top: 16px;
-    right: 15px;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-    border-style: solid;
-    border-width: 8px 5px 0 5px;
-    border-color: #7b7b7b transparent transparent transparent;
-}
-
-.select select:hover~.select__arrow,
-.select select:focus~.select__arrow {
-    border-top-color: #000;
-}
-
-.select select:disabled~.select__arrow {
-    border-top-color: #ccc;
-}
-
-
-
-
-table th {
-    line-height: 30px;
-}
-
+/**
+ * USER INTERACTION ELEMENTS 3 - SORTER CHEVRON
+ */
 .sorter {
     width: 1.25rem;
     height: 1.25rem;
@@ -323,62 +456,4 @@ table th {
 
 .sorter-ls.active span:last-of-type {
     transform: rotate(45deg);
-}
-
-
-.alert-info {
-    text-align: center;
-    position: relative;
-    padding: 1rem 0;
-    margin-bottom: 1rem;
-    color: var(--vscode-editor-foreground);
-    border: 1px solid var(--vscode-button-background);
-    border-radius: 0.375rem;
-}
-
-
-details {
-    margin: 0 auto;
-    margin-bottom: .5rem;
-    border: 1px solid var(--vscode-button-background);
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-summary {
-    padding: 0.5rem 1rem;
-    display: block;
-    padding-left: 1.6rem;
-    position: relative;
-    cursor: pointer;
-}
-
-summary:before {
-    content: '';
-    border-width: .3rem;
-    border-style: solid;
-    border-color: transparent transparent transparent var(--vscode-button-background);
-    position: absolute;
-    top: 0.7rem;
-    left: 0.75rem;
-    transform: rotate(0);
-    transform-origin: .2rem 50%;
-    transition: .25s transform ease;
-}
-
-details[open] > summary:before {
-    transform: rotate(90deg);
-}
-
-details > ul {
-    padding-bottom: 1rem;
-    margin-bottom: 0;
-}
-
-details > .details-content {
-    padding: 0.75rem;
-}
-
-details > .details-content > ul {
-    margin-bottom: 0;
 }
