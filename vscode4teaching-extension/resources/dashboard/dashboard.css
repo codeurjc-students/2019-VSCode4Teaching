@@ -84,9 +84,15 @@ section.generalStatistics > .row > .col#col-2 > .rowTotals {
     margin-bottom: 0.5rem;
 }
 
+section.generalStatistics > .row > .col#col-2 .label {
+    text-align: center;
+    padding-right: 0.25rem;
+}
+
+
 section.generalStatistics > .row > .col#col-2 .value {
     font-weight: 700;
-    font-size: 1.75rem;
+    font-size: 1.5rem;
 }
 
 section.generalStatistics > .row > .col#col-2 > .rowStatus {
@@ -148,7 +154,7 @@ section.generalStatistics > .row > .col#col-3 > .rowTime:last-child {
 
 section.generalStatistics > .row > .col#col-3 .value {
     font-weight: 700;
-    font-size: 1.75rem;
+    font-size: 1.5rem;
 }
 
 /**

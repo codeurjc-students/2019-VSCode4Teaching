@@ -502,6 +502,8 @@ describe("Tree View", () => {
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenCalledTimes(1);
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenNthCalledWith(1, addExerciseResponseBody.id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenCalledTimes(0);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(1, "The new exercise was added successfully.");
     });
 
     it("should add some exercises without solution", async () => {
@@ -585,7 +587,7 @@ describe("Tree View", () => {
         await coursesProvider.addExercises(courseModel, true);
 
 
-        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(2);
         expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(1, "To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template and solution if wanted. When ready, click 'Accept'.", { title: "Accept" });
         expect(mockedVscode.window.showOpenDialog).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenNthCalledWith(1, openDialogOptions);
@@ -611,6 +613,7 @@ describe("Tree View", () => {
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenNthCalledWith(4, addExerciseResponseBody[3].id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenNthCalledWith(5, addExerciseResponseBody[4].id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenCalledTimes(0);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(2, "5 exercises were added successfully.");
     });
 
     it("should add an exercise with solution", async () => {
@@ -707,9 +710,11 @@ describe("Tree View", () => {
         expect(mockedClient.uploadExerciseTemplate).toHaveBeenNthCalledWith(1, addExerciseResponseBody.id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenCalledTimes(1);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenNthCalledWith(1, addExerciseResponseBody.id, mockBufferDoc, false);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(1, "The new exercise was added successfully.");
     });
 
-    it("should add some exercises without solution", async () => {
+    it("should add some exercises with solution", async () => {
         const courseModel = new V4TItem(
             teacherCourses[0].name,
             V4TItemType.CourseTeacher,
@@ -810,7 +815,7 @@ describe("Tree View", () => {
         await coursesProvider.addExercises(courseModel, true);
 
 
-        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(1);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenCalledTimes(2);
         expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(1, "To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template and solution if wanted. When ready, click 'Accept'.", { title: "Accept" });
         expect(mockedVscode.window.showOpenDialog).toHaveBeenCalledTimes(1);
         expect(mockedVscode.window.showOpenDialog).toHaveBeenNthCalledWith(1, openDialogOptions);
@@ -851,6 +856,7 @@ describe("Tree View", () => {
         expect(mockedClient.uploadExerciseSolution).toHaveBeenNthCalledWith(3, addExerciseResponseBody[2].id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenNthCalledWith(4, addExerciseResponseBody[3].id, mockBufferDoc, false);
         expect(mockedClient.uploadExerciseSolution).toHaveBeenNthCalledWith(5, addExerciseResponseBody[4].id, mockBufferDoc, false);
+        expect(mockedVscode.window.showInformationMessage).toHaveBeenNthCalledWith(2, "5 exercises were added successfully.");
     });
 
     it("should edit exercise", async () => {

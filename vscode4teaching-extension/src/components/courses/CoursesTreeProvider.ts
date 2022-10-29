@@ -323,26 +323,26 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                         allowEditionAfterSolutionDownloaded: false
                     })));
 
-                    // 3.2: an array containing promises for sending ZIP compressed files including all the templates and solutions extracted during the previous phases is generated.
-                    const uploadFilesPromises = await Promise.all(exerciseData.data.map(async (ex, index) =>
-                        [
-                            APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.template]), false),
-                            (exercisesDirectories[index].paths.solution) ? APIClient.uploadExerciseSolution(ex.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.solution!]), false) : undefined
-                        ]));
+                    // 3.2: promises are sent to server in order and one at a time due to performance reasons.
+                    try {
+                        for (const [index, exercise] of exerciseData.data.entries()) {
+                            await APIClient.uploadExerciseTemplate(exercise.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.template]), false);
 
-                    // 3.3: all registered requests (as promises in previous step) are sent and, once completed, the received results are processed.
-                    Promise.all(uploadFilesPromises.flat())
-                           .catch(async (uploadError) => {
-                               // If any upload process fails, all exercises are deleted from database and error is handled (via errorCaught)
-                               errorCaught = true;
-                               v4tLogger.error(uploadError);
-                               try {
-                                   exerciseData.data.forEach(async ex => await APIClient.deleteExercise(ex.id));
-                                   APIClient.handleAxiosError(uploadError);
-                               } catch (deleteError) {
-                                   APIClient.handleAxiosError(deleteError);
-                               }
-                           }).finally(() => {
+                            if (exercise.includesTeacherSolution) {
+                                await APIClient.uploadExerciseSolution(exercise.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.solution!]), false);
+                            }
+                        }
+                    } catch (uploadError) {
+                        // If any upload process fails, all exercises are deleted from database and error is handled (via errorCaught)
+                        errorCaught = true;
+                        v4tLogger.error(uploadError);
+                        try {
+                            exerciseData.data.forEach(async ex => await APIClient.deleteExercise(ex.id));
+                            APIClient.handleAxiosError(uploadError);
+                        } catch (deleteError) {
+                            APIClient.handleAxiosError(deleteError);
+                        }
+                    } finally {
                         // The user is informed of the result of this process, whether it was successful or not.
                         this.loading = false;
                         if (errorCaught) {
@@ -354,7 +354,7 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                             );
                         }
                         CoursesProvider.triggerTreeReload();
-                    });
+                    }
                 } catch (_) {
                     errorCaught = true;
                 }
