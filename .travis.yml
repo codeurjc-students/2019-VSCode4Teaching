@@ -14,7 +14,7 @@ jobs:
               - chmod +x mvnw
           script:
               - "./mvnw clean package -B -q"
-         after_script:
+          after_script:
              - cd ..
              - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
              - docker build -t vscode4teaching/vscode4teaching:2.2.0 .
