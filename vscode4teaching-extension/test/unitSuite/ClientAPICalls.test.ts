@@ -1,5 +1,4 @@
-
-import axios, { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosPromise, AxiosRequestConfig } from "axios";
 import FormData from "form-data";
 import { mocked } from "ts-jest/utils";
 import * as vscode from "vscode";
@@ -11,6 +10,7 @@ import { CourseEdit } from "../../src/model/serverModel/course/CourseEdit";
 import { ManageCourseUsers } from "../../src/model/serverModel/course/ManageCourseUsers";
 import { Exercise } from "../../src/model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../../src/model/serverModel/exercise/ExerciseEdit";
+import { ExerciseStatus } from "../../src/model/serverModel/exercise/ExerciseStatus";
 
 jest.mock("axios");
 const mockedAxios = mocked(axios, true);
@@ -25,7 +25,7 @@ const mockedVscode = mocked(vscode, true);
 const baseUrl = "https://edukafora.codeurjc.es";
 
 // This tests don't bother with the response of the calls, only the request parameters
-describe("client API calls", () => {
+describe("Client API calls", () => {
 
     function expectCorrectRequest(options: AxiosRequestConfig, message: string, notification: boolean, thenable: AxiosPromise<any>) {
         expect(mockedAxios).toHaveBeenCalledTimes(1);
@@ -57,16 +57,15 @@ describe("client API calls", () => {
         APIClientSession.jwtToken = jwtToken;
     }
 
-    afterEach(() => {
-        mockedAxios.mockClear();
-        mockedVscode.window.setStatusBarMessage.mockClear();
-        mockedVscode.window.withProgress.mockClear();
-        APIClientSession.xsrfToken = undefined;
-        APIClientSession.jwtToken = undefined;
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        setLoggedIn();
     });
 
-    beforeEach(() => {
-        setLoggedIn();
+    afterEach(() => {
+        APIClientSession.xsrfToken = undefined;
+        APIClientSession.jwtToken = undefined;
     });
 
     it("should request get user info correctly", () => {
@@ -132,6 +131,27 @@ describe("client API calls", () => {
         const thenable = APIClient.getExerciseFiles(exerciseId);
 
         expectCorrectRequest(expectedOptions, "Downloading exercise files...", true, thenable);
+    });
+
+    it("should request get course correctly", () => {
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: undefined,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "GET",
+            responseType: "json",
+            url: "/api/courses",
+        };
+
+        const thenable = APIClient.getCourses();
+
+        expectCorrectRequest(expectedOptions, "Getting courses...", false, thenable);
     });
 
     it("should request add course correctly", () => {
@@ -208,10 +228,36 @@ describe("client API calls", () => {
         expectCorrectRequest(expectedOptions, "Deleting course...", false, thenable);
     });
 
+    it("should request get exercise correctly", () => {
+        const exerciseId = 1;
+
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: undefined,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "GET",
+            responseType: "json",
+            url: "/api/exercises/" + exerciseId,
+        };
+
+        const thenable = APIClient.getExercise(exerciseId);
+
+        expectCorrectRequest(expectedOptions, "Getting exercise information...", false, thenable);
+    });
+
     it("should request add exercise correctly", () => {
         const courseId = 1;
         const exercise: ExerciseEdit = {
             name: "New exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
 
         const expectedOptions: AxiosRequestConfig = {
@@ -237,11 +283,36 @@ describe("client API calls", () => {
     it("should request add multiple exercises correctly", () => {
         const courseId = 1;
         const exercises: ExerciseEdit[] = [
-            { name: "Exercise 1", },
-            { name: "Exercise 2", },
-            { name: "Exercise 3", },
-            { name: "Exercise 4", },
-            { name: "Exercise 5", },
+            {
+                name: "Exercise 1",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 2",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 3",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 4",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
+            {
+                name: "Exercise 5",
+                includesTeacherSolution: false,
+                solutionIsPublic: false,
+                allowEditionAfterSolutionDownloaded: false
+            },
         ];
 
         const expectedOptions: AxiosRequestConfig = {
@@ -268,6 +339,9 @@ describe("client API calls", () => {
         const exerciseId = 1;
         const exercise: ExerciseEdit = {
             name: "New exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
 
         const expectedOptions: AxiosRequestConfig = {
@@ -313,6 +387,31 @@ describe("client API calls", () => {
         const thenable = APIClient.uploadExerciseTemplate(exerciseId, data);
 
         expectCorrectRequest(expectedOptions, "Uploading template...", true, thenable);
+    });
+
+    it("should request upload exercise solution correctly", () => {
+        const exerciseId = 1;
+        const data: Buffer = Buffer.from("Test");
+        const dataForm = new FormData();
+        dataForm.append("file", data, { filename: "solution-1.zip" });
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: dataForm,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "POST",
+            responseType: "json",
+            url: "/api/exercises/" + exerciseId + "/files/solution",
+        };
+
+        const thenable = APIClient.uploadExerciseSolution(exerciseId, data);
+
+        expectCorrectRequest(expectedOptions, "Uploading solution...", true, thenable);
     });
 
     it("should request delete exercise template correctly", () => {
@@ -516,9 +615,31 @@ describe("client API calls", () => {
             url: "/api/exercises/" + exerciseId + "/files/template",
         };
 
-        const thenable = APIClient.getTemplate(exerciseId);
+        const thenable = APIClient.getExerciseResourceById(exerciseId, "template");
 
         expectCorrectRequest(expectedOptions, "Downloading exercise template...", true, thenable);
+    });
+
+    it("should request get solution correctly", () => {
+        const exerciseId = 1;
+        const expectedOptions: AxiosRequestConfig = {
+            baseURL: baseUrl,
+            data: undefined,
+            headers: {
+                "Authorization": "Bearer " + jwtToken,
+                "Cookie": "XSRF-TOKEN=" + xsrfToken,
+                "X-XSRF-TOKEN": xsrfToken,
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            method: "GET",
+            responseType: "arraybuffer",
+            url: "/api/exercises/" + exerciseId + "/files/solution",
+        };
+
+        const thenable = APIClient.getExerciseResourceById(exerciseId, "solution");
+
+        expectCorrectRequest(expectedOptions, "Downloading exercise solution...", true, thenable);
     });
 
     it("should request get files info correctly", () => {
@@ -645,6 +766,9 @@ describe("client API calls", () => {
         const exercise: Exercise = {
             name: "Exercise",
             id: 2,
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
@@ -738,7 +862,7 @@ describe("client API calls", () => {
 
     it("should request update exercise user info for exercise correctly", () => {
         const exerciseId = 1;
-        const status = 1;
+        const status = ExerciseStatus.StatusEnum.FINISHED;
         const expectedOptions: AxiosRequestConfig = {
             baseURL: baseUrl,
             data: {

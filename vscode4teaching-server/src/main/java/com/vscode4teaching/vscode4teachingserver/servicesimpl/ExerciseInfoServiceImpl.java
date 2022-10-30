@@ -1,6 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver.servicesimpl;
 
 import com.vscode4teaching.vscode4teachingserver.model.Course;
+import com.vscode4teaching.vscode4teachingserver.model.ExerciseStatus;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,16 +35,18 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
     public ExerciseUserInfo getExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username)
             throws NotFoundException {
         logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({}, {})", exerciseId, username);
-        ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);
-        //Changing status from not accessed to accessed but not finished
-        if (eui.getStatus() == 0) {
-            eui = updateExerciseUserInfo(exerciseId, username, 2, new ArrayList<>());
-        }
-        return eui;
+        return this.getAndCheckExerciseUserInfo(exerciseId, username);
     }
 
     @Override
-    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, int status, List<String> modifiedFiles)
+    public ExerciseUserInfo getExerciseUserInfo(@Min(1) Long euiId) throws NotFoundException {
+        logger.info("Called ExerciseInfoServiceImpl.getExerciseUserInfo({})", euiId);
+        Optional<ExerciseUserInfo> eui = exerciseUserInfoRepository.findById(euiId);
+        return eui.orElseThrow(() -> new NotFoundException(euiId.toString()));
+    }
+
+    @Override
+    public ExerciseUserInfo updateExerciseUserInfo(@Min(0) Long exerciseId, @NotEmpty String username, ExerciseStatus status, List<String> modifiedFiles)
             throws NotFoundException {
         logger.info("Called ExerciseInfoServiceImpl.updateExerciseUserInfo({}, {}, {}, {})", exerciseId, username, status, modifiedFiles);
         ExerciseUserInfo eui = this.getAndCheckExerciseUserInfo(exerciseId, username);

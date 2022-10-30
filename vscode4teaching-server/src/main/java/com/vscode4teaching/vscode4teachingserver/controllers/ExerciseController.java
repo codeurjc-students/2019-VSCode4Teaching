@@ -74,9 +74,19 @@ public class ExerciseController {
         ArrayList<Exercise> savedExercises = new ArrayList<>();
         for (ExerciseDTO exerciseDTO : exercisesDTO) {
             Exercise exercise = new Exercise(exerciseDTO.name);
+            exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
+            exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+            exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
             savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
         }
         return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/exercises/{exerciseId}")
+    @JsonView(ExerciseViews.CourseView.class)
+    public ResponseEntity<Exercise> getExercise(@PathVariable Long exerciseId) throws ExerciseNotFoundException {
+        logger.info("Request to GET '/api/exercises/{}'", exerciseId);
+        return ResponseEntity.ok(courseService.getExercise(exerciseId));
     }
 
     @PutMapping("/exercises/{exerciseId}")
@@ -84,9 +94,11 @@ public class ExerciseController {
     public ResponseEntity<Exercise> updateExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId,
                                                    @RequestBody ExerciseDTO exerciseDTO) throws ExerciseNotFoundException, NotInCourseException {
         logger.info("Request to PUT '/api/exercises/{}' with body '{}'", exerciseId, exerciseDTO);
-        Exercise exercise = new Exercise(exerciseDTO.getName());
-        return ResponseEntity
-                .ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
+        Exercise exercise = new Exercise(exerciseDTO.name);
+        exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
+        exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+        exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
+        return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
     }
 
     @DeleteMapping("/exercises/{exerciseId}")

@@ -1,19 +1,7 @@
 package com.vscode4teaching.vscode4teachingserver;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.CourseRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
-import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-
+import com.vscode4teaching.vscode4teachingserver.model.*;
+import com.vscode4teaching.vscode4teachingserver.model.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -22,8 +10,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
-@ConditionalOnProperty(value = "data.initialization", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "data.initialization", havingValue = "true")
 @Order(0)
 public class DatabaseInitializer implements CommandLineRunner {
 
@@ -66,7 +57,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
         User teacher = new User("johndoe@teacher.com", "johndoe", passwordEncoder.encode("teacherpassword"), "John",
                 "Doe");
@@ -100,14 +91,15 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         for (Course course : courses) {
             for (int j = 1; j < 6; j++) {
-                Exercise exercise = new Exercise("Exercise " + j, course);
+                Exercise exercise = new Exercise("Exercise " + j);
+                exercise.setCourse(course);
                 course.addExercise(exercise);
                 Exercise savedExercise = exerciseRepository.save(exercise);
                 for (User user : users) {
                     ExerciseUserInfo eui = new ExerciseUserInfo(savedExercise, user);
                     if (course.equals(courses.get(0)) && savedExercise.getName().equals("Exercise 1")
                             && (user.equals(users.get(2)) || user.equals(users.get(3)))) {
-                        eui.setStatus(1);
+                        eui.setStatus(ExerciseStatus.FINISHED);
                     }
                     exerciseUserInfoRepository.save(eui);
                 }

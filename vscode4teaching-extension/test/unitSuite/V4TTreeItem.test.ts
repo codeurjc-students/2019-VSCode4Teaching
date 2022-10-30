@@ -18,16 +18,21 @@ function failIfItemsAreWrong() {
         fail("Missing items from V4TBuildItems in items array.");
     }
 }
-describe("V4TItem", () => {
+
+describe("V4T Items", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should get all icons correctly", () => {
         failIfItemsAreWrong();
         for (const item of items) {
             const iconPaths = item.iconPath;
-            if (iconPaths) {
+            if (typeof iconPaths === "string") {
+                expect(fs.existsSync(iconPaths)).toBeTruthy();
+            } else if (typeof iconPaths === "object") {
                 expect(fs.existsSync(iconPaths.dark)).toBeTruthy();
                 expect(fs.existsSync(iconPaths.light)).toBeTruthy();
-            } else {
-                fail(item.contextValue + " missing icons.");
             }
         }
     });

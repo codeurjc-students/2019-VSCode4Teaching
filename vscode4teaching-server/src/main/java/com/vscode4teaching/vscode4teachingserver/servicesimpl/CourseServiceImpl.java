@@ -118,7 +118,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course joinCourseWithSharingCode(String uuid, String requestUsername)
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+            throws CourseNotFoundException, UserNotFoundException {
         Course course = this.courseRepo.findByUuid(uuid).orElseThrow(() -> new CourseNotFoundException(uuid));
         User user = userRepo.findByUsername(requestUsername)
                 .orElseThrow(() -> new UserNotFoundException(requestUsername));
@@ -138,12 +138,20 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Exercise getExercise(Long exerciseId) throws ExerciseNotFoundException {
+        return this.exerciseRepo.findById(exerciseId).orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
+    }
+
+    @Override
     public Exercise editExercise(Long exerciseId, Exercise exerciseData, String requestUsername)
             throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);
         exercise.setName(exerciseData.getName());
+        exercise.setIncludesTeacherSolution(exerciseData.includesTeacherSolution());
+        exercise.setSolutionIsPublic(exerciseData.solutionIsPublic());
+        exercise.setAllowEditionAfterSolutionDownloaded(exerciseData.isEditionAfterSolutionDownloadedAllowed());
         return exerciseRepo.save(exercise);
     }
 
@@ -203,7 +211,7 @@ public class CourseServiceImpl implements CourseService {
             }
             course.removeUserFromCourse(user);
         }
-        List<Long> exerciseIds = course.getExercises().stream().map(e -> e.getId()).collect(Collectors.toList());
+        List<Long> exerciseIds = course.getExercises().stream().map(Exercise::getId).collect(Collectors.toList());
         this.exerciseUserInfoRepo.deleteByExercise_IdInAndUser_IdIn(exerciseIds, Arrays.asList(userIds));
         this.websocketHandler.refreshExerciseDashboards(course.getTeachers());
         return this.courseRepo.save(course);
@@ -211,7 +219,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public String getCourseCode(Long courseId, String requestUsername)
-            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+            throws CourseNotFoundException, NotInCourseException {
         Course course = this.courseRepo.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         ExceptionUtil.throwExceptionIfNotInCourse(course, requestUsername, true);
         return course.getUuid();
@@ -219,7 +227,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public String getExerciseCode(Long exerciseId, String requestUsername)
-            throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
+            throws ExerciseNotFoundException, NotInCourseException {
         Exercise exercise = this.exerciseRepo.findById(exerciseId)
                 .orElseThrow(() -> new ExerciseNotFoundException(exerciseId));
         ExceptionUtil.throwExceptionIfNotInCourse(exercise.getCourse(), requestUsername, true);

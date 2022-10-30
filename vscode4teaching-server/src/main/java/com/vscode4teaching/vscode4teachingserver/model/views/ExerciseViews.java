@@ -4,15 +4,15 @@ public class ExerciseViews {
     private ExerciseViews() {
     }
 
-    public static interface GeneralView {
+    public interface GeneralView {
     }
 
-    public static interface CourseView extends GeneralView, CourseViews.CreatorView {
+    public interface CourseView extends GeneralView, CourseViews.CreatorView {
     }
 
-    public static interface FileView extends GeneralView, FileViews.GeneralView {
+    public interface FileView extends GeneralView, FileViews.GeneralView {
     }
 
-    public static interface CodeView extends GeneralView {
+    public interface CodeView extends GeneralView {
     }
 }

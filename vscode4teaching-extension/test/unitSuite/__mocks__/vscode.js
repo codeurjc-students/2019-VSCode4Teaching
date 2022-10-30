@@ -47,7 +47,7 @@ const window = {
     createStatusBarItem: jest.fn(() => StatusBarItem),
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn((x, y, z) => z), // TODO: Better implementation
-    showInformationMessage: jest.fn(),
+    showInformationMessage: jest.fn((x, y, z) => z),
     setStatusBarMessage: jest.fn(),
     showInputBox: jest.fn(),
     showOpenDialog: jest.fn(),
@@ -100,7 +100,7 @@ const Uri = jest.fn().mockImplementation((x) => {
     }
 });
 const mockUriFile = f => {
-    return { fsPath: f }
+    return {fsPath: f}
 };
 Uri.file = mockUriFile.bind(Uri);
 Uri.parse = mockUriFile.bind(Uri);
@@ -144,8 +144,8 @@ const Range = jest.fn().mockImplementation((startLine, startCharacter, endLine, 
 });
 
 const commands = {
-    registerCommand: jest.fn(() => Promise.resolve({ data: {} })),
-    executeCommand: jest.fn(() => Promise.resolve({ data: {} }))
+    registerCommand: jest.fn(() => Promise.resolve({data: {}})),
+    executeCommand: jest.fn(() => Promise.resolve({data: {}}))
 };
 
 const TreeItemCollapsibleState = {

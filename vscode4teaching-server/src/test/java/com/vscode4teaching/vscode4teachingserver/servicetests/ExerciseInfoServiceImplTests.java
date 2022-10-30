@@ -1,27 +1,12 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
 import com.vscode4teaching.vscode4teachingserver.services.websockets.SocketHandler;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseInfoServiceImpl;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -47,16 +34,17 @@ public class ExerciseInfoServiceImplTests {
     private ExerciseInfoServiceImpl exerciseInfoService;
 
     @Test
-    public void getExerciseUserInfo_existing() throws NotFoundException {
+    public void getExerciseUserInfo_withExerciseIdAndUsername() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
-        Long exerciseId = 2l;
+        Exercise exercise = new Exercise("Exercise 1");
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(1);
+        eui.setStatus(ExerciseStatus.FINISHED);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
 
@@ -64,13 +52,35 @@ public class ExerciseInfoServiceImplTests {
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
     }
 
     @Test
-    public void getExerciseUserInfo_exception() throws NotFoundException {
-        Long exerciseId = 2l;
+    public void getExerciseUserInfo_withEuiId() throws NotFoundException {
+        Course course = new Course("Spring Boot Course");
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(2L);
+        exercise.setCourse(course);
+        Role studentRole = new Role("ROLE_STUDENT");
+        User user = new User("johndoe@john.com", "johndoe", "johndoeuser", "John", "Doe", studentRole);
+        ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
+        Long euiId = 3L;
+        eui.setId(euiId);
+        eui.setStatus(ExerciseStatus.FINISHED);
+        when(exerciseUserInfoRepository.findById(euiId)).thenReturn(Optional.of(eui));
+
+        ExerciseUserInfo savedEui = exerciseInfoService.getExerciseUserInfo(euiId);
+
+        assertThat(savedEui.getExercise()).isEqualTo(exercise);
+        assertThat(savedEui.getUser()).isEqualTo(user);
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
+        verify(exerciseUserInfoRepository, times(1)).findById(euiId);
+    }
+
+    @Test
+    public void getExerciseUserInfo_exception() {
+        Long exerciseId = 2L;
         String username = "johndoe";
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username))
                 .thenReturn(Optional.empty());
@@ -82,14 +92,15 @@ public class ExerciseInfoServiceImplTests {
     @Test
     public void updateExerciseUserInfo_valid() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
-        Long exerciseId = 2l;
+        Exercise exercise = new Exercise("Exercise 1");
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(0);
+        eui.setStatus(ExerciseStatus.NOT_STARTED);
         Set<String> euiOldModifiedFiles = new HashSet<>();
         euiOldModifiedFiles.add("/old/file.txt");
         eui.setModifiedFiles(euiOldModifiedFiles);
@@ -106,11 +117,11 @@ public class ExerciseInfoServiceImplTests {
         teacherSet.add(creator);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 1, euiNewModifiedFiles);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, ExerciseStatus.FINISHED, euiNewModifiedFiles);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 1).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.FINISHED).isTrue();
         assertThat(savedEui.getModifiedFiles()).size().isEqualTo(2);
         assertThat(savedEui.getModifiedFiles()).contains("/modified/file.txt");
         assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
@@ -122,25 +133,26 @@ public class ExerciseInfoServiceImplTests {
     @Test
     public void updateExerciseUserInfo_valid_no_file() throws NotFoundException {
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
-        Long exerciseId = 2l;
+        Exercise exercise = new Exercise("Exercise 1");
+        Long exerciseId = 2L;
         exercise.setId(exerciseId);
+        exercise.setCourse(course);
         String username = "johndoe";
         Role studentRole = new Role("ROLE_STUDENT");
         User user = new User("johndoe@john.com", username, "johndoeuser", "John", "Doe", studentRole);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, user);
-        eui.setStatus(0);
+        eui.setStatus(ExerciseStatus.NOT_STARTED);
         Set<String> euiOldModifiedFiles = new HashSet<>();
         euiOldModifiedFiles.add("/old/file.txt");
         eui.setModifiedFiles(euiOldModifiedFiles);
         Optional<ExerciseUserInfo> euiOpt = Optional.of(eui);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(exerciseId, username)).thenReturn(euiOpt);
         when(exerciseUserInfoRepository.save(any(ExerciseUserInfo.class))).then(returnsFirstArg());
-        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, 0, null);
+        ExerciseUserInfo savedEui = exerciseInfoService.updateExerciseUserInfo(exerciseId, username, ExerciseStatus.NOT_STARTED, null);
 
         assertThat(savedEui.getExercise()).isEqualTo(exercise);
         assertThat(savedEui.getUser()).isEqualTo(user);
-        assertThat(savedEui.getStatus() == 0).isTrue();
+        assertThat(savedEui.getStatus() == ExerciseStatus.NOT_STARTED).isTrue();
         assertThat(savedEui.getModifiedFiles()).size().isEqualTo(1);
         assertThat(savedEui.getModifiedFiles()).contains("/old/file.txt");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(exerciseId, username);
@@ -151,14 +163,15 @@ public class ExerciseInfoServiceImplTests {
     public void getStudentUserInfo() throws ExerciseNotFoundException, NotInCourseException {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
-        exercise.setId(10l);
+        Exercise exercise = new Exercise("Exercise 1");
+        exercise.setId(10L);
+        exercise.setCourse(course);
         // Set up users
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(3l);
+        teacherRole.setId(3L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         teacher.addCourse(course);
@@ -175,21 +188,21 @@ public class ExerciseInfoServiceImplTests {
         ExerciseUserInfo euiTeacher = new ExerciseUserInfo(exercise, teacher);
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setStatus(1);
+        euiStudent2.setStatus(ExerciseStatus.FINISHED);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(3);
         expectedList.add(euiTeacher);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);
-        when(exerciseUserInfoRepository.findByExercise_Id(10l)).thenReturn(expectedList);
+        when(exerciseUserInfoRepository.findByExercise_Id(10L)).thenReturn(expectedList);
 
-        List<ExerciseUserInfo> returnedEuis = exerciseInfoService.getAllStudentExerciseUserInfo(10l, "johndoe");
+        List<ExerciseUserInfo> returnedEuis = exerciseInfoService.getAllStudentExerciseUserInfo(10L, "johndoe");
 
-        verify(exerciseUserInfoRepository, times(1)).findByExercise_Id(10l);
+        verify(exerciseUserInfoRepository, times(1)).findByExercise_Id(10L);
         assertThat(returnedEuis).hasSize(2);
         assertThat(returnedEuis.contains(euiTeacher)).isFalse();
         assertThat(returnedEuis.get(0)).isEqualTo(euiStudent1);
         assertThat(returnedEuis.get(1)).isEqualTo(euiStudent2);
-        assertThat(returnedEuis.get(0).getStatus() == 1).isFalse();
-        assertThat(returnedEuis.get(1).getStatus() == 1).isTrue();
+        assertThat(returnedEuis.get(0).getStatus() == ExerciseStatus.FINISHED).isFalse();
+        assertThat(returnedEuis.get(1).getStatus() == ExerciseStatus.FINISHED).isTrue();
     }
 }

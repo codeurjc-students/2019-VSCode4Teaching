@@ -1,27 +1,19 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonView;
-import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 @Entity
-@Table(name="user_info")
+@Table(name = "user_info")
 public class ExerciseUserInfo {
 
     @Id
@@ -38,7 +30,7 @@ public class ExerciseUserInfo {
     private User user;
 
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
-    private int status = 0;
+    private ExerciseStatus status = ExerciseStatus.NOT_STARTED;
 
     @CreationTimestamp
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
@@ -88,11 +80,11 @@ public class ExerciseUserInfo {
         this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }
 
-    public int getStatus() {
+    public ExerciseStatus getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(ExerciseStatus status) {
         this.status = status;
         this.updateDateTime = LocalDateTime.now(ZoneOffset.UTC);
     }

@@ -11,9 +11,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final SocketHandler socketHandler;
 
-	public WebSocketConfig(SocketHandler socketHandler) {
-		this.socketHandler = socketHandler;
-	}
+    public WebSocketConfig(SocketHandler socketHandler) {
+        this.socketHandler = socketHandler;
+    }
 
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(socketHandler, "/liveshare", "dashboard-refresh");

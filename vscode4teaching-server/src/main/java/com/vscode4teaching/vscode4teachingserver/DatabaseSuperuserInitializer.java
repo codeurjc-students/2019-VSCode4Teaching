@@ -4,7 +4,6 @@ import com.vscode4teaching.vscode4teachingserver.model.Role;
 import com.vscode4teaching.vscode4teachingserver.model.User;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.RoleRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -49,15 +48,15 @@ public class DatabaseSuperuserInitializer implements CommandLineRunner {
         user.addRole(role);
     }
 
-    private User saveUser(User user) {
+    private void saveUser(User user) {
         addRole(user, "ROLE_STUDENT");
         addRole(user, "ROLE_TEACHER");
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        if (!userRepository.findByEmail(email).isPresent()) {
+    public void run(String... args) {
+        if (userRepository.findByEmail(email).isEmpty()) {
             User superuser = new User(email, username, passwordEncoder.encode(password), name, lastname);
             saveUser(superuser);
         }

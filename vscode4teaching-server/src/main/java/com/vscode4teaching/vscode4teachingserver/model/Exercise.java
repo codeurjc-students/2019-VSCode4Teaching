@@ -1,5 +1,15 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.Length;
+
+import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,56 +17,42 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.validator.constraints.Length;
-
 @Entity
-@Table(name="exercise")
+@Table(name = "exercise")
 public class Exercise {
+    @JsonView(ExerciseViews.CodeView.class)
+    private final String uuid = UUID.randomUUID().toString();
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonView(ExerciseViews.GeneralView.class)
     private Long id;
-
     @JsonView(ExerciseViews.GeneralView.class)
     @NotEmpty(message = "Name cannot be empty")
     @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters")
     private String name;
-
     @ManyToOne
     @JsonView(ExerciseViews.CourseView.class)
     private Course course;
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> template = new ArrayList<>();
-
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ExerciseFile> solution = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseFile> userFiles = new ArrayList<>();
-
-    @OneToMany(mappedBy="exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ExerciseUserInfo> userInfo = new ArrayList<>();
+    @JsonView(ExerciseViews.GeneralView.class)
+    private boolean includesTeacherSolution;
 
-    @JsonView(ExerciseViews.CodeView.class)
-    private String uuid = UUID.randomUUID().toString();
+    @JsonView(ExerciseViews.GeneralView.class)
+    private boolean solutionIsPublic;
+
+    @JsonView(ExerciseViews.GeneralView.class)
+    private boolean allowEditionAfterSolutionDownloaded;
 
     @CreationTimestamp
     @JsonView(ExerciseViews.GeneralView.class)
@@ -67,23 +63,12 @@ public class Exercise {
     private LocalDateTime updateDateTime;
 
     public Exercise(
-            @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name contain be between 3 and 100 characters") String name) {
-        this.name = name;
-    }
-
-    public Exercise(
             @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters") String name,
-            @Valid Course course, @Valid List<ExerciseFile> template) {
+            @Valid ExerciseFile... template) {
         this.name = name;
-        this.course = course;
-        this.template = template;
-    }
-
-    public Exercise(
-            @NotEmpty(message = "Name cannot be empty") @Length(min = 3, max = 100, message = "Exercise name should contain between 3 and 100 characters") String name,
-            @Valid Course course, @Valid ExerciseFile... template) {
-        this.name = name;
-        this.course = course;
+        this.solutionIsPublic = false;
+        this.includesTeacherSolution = false;
+        this.allowEditionAfterSolutionDownloaded = false;
         this.template = Arrays.asList(template);
     }
 
@@ -138,6 +123,42 @@ public class Exercise {
         this.template.add(templateFile);
     }
 
+    public List<ExerciseFile> getSolution() {
+        return solution;
+    }
+
+    public void setSolution(@Valid List<ExerciseFile> solution) {
+        this.solution = solution;
+    }
+
+    public void addFileToSolution(@Valid ExerciseFile solutionFile) {
+        this.solution.add(solutionFile);
+    }
+
+    public boolean includesTeacherSolution() {
+        return includesTeacherSolution;
+    }
+
+    public void setIncludesTeacherSolution(boolean includesTeacherSolution) {
+        this.includesTeacherSolution = includesTeacherSolution;
+    }
+
+    public boolean solutionIsPublic() {
+        return solutionIsPublic;
+    }
+
+    public void setSolutionIsPublic(boolean solutionIsPublic) {
+        this.solutionIsPublic = solutionIsPublic;
+    }
+
+    public boolean isEditionAfterSolutionDownloadedAllowed() {
+        return allowEditionAfterSolutionDownloaded;
+    }
+
+    public void setAllowEditionAfterSolutionDownloaded(boolean allowEditionAfterSolutionDownloaded) {
+        this.allowEditionAfterSolutionDownloaded = allowEditionAfterSolutionDownloaded;
+    }
+
     public LocalDateTime getCreateDateTime() {
         return createDateTime;
     }
@@ -173,5 +194,5 @@ public class Exercise {
     public void setUserInfo(List<ExerciseUserInfo> userInfo) {
         this.userInfo = userInfo;
     }
-    
+
 }

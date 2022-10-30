@@ -1,44 +1,16 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.AdditionalAnswers.returnsElementsOf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.ExerciseUserInfoDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseUserInfoViews;
 import com.vscode4teaching.vscode4teachingserver.model.views.ExerciseViews;
 import com.vscode4teaching.vscode4teachingserver.services.CourseService;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -52,24 +24,31 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalAnswers.returnsElementsOf;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
 public class ExerciseControllerTests {
+    private final Logger logger = LoggerFactory.getLogger(ExerciseControllerTests.class);
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private CourseService courseService;
-
     @MockBean
     private ExerciseInfoService exerciseInfoService;
-
     private JWTResponse jwtToken;
-    private final Logger logger = LoggerFactory.getLogger(ExerciseControllerTests.class);
 
     @BeforeEach
     public void login() throws Exception {
@@ -95,7 +74,7 @@ public class ExerciseControllerTests {
         expectedExercise.setId(2L);
         expectedExercise.setCourse(course);
         ExerciseDTO exerciseDTO = new ExerciseDTO();
-        exerciseDTO.setName("Spring Boot Exercise 1");
+        exerciseDTO.name = "Spring Boot Exercise 1";
         when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
                 .thenReturn(expectedExercise);
 
@@ -144,9 +123,9 @@ public class ExerciseControllerTests {
         course.setId(courseId);
         List<ExerciseDTO> exercisesList = new ArrayList<>();
         List<Exercise> expectedExercises = new ArrayList<>();
-        for (int i = 1; i <= number; i++){
+        for (int i = 1; i <= number; i++) {
             ExerciseDTO dto = new ExerciseDTO();
-            dto.setName("Exercise " + i);
+            dto.name = "Exercise " + i;
             Exercise exercise = new Exercise();
             exercise.setName("Exercise " + i);
             exercise.setId((long) (1 + i));
@@ -170,6 +149,34 @@ public class ExerciseControllerTests {
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
         logger.info("Test addMultipleExercises_valid() ends.");
+    }
+
+    @Test
+    public void getExercise_valid() throws Exception {
+        logger.info("Test getExercise_valid() begins.");
+
+        Course course = new Course("Spring Boot Course");
+        Long courseId = 1L;
+        course.setId(courseId);
+        Exercise exercise = new Exercise();
+        exercise.setName("Spring Boot Exercise 1");
+        exercise.setId(2L);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        when(courseService.getExercise(anyLong())).thenReturn(exercise);
+
+        MvcResult mvcResult = mockMvc
+                .perform(get("/api/exercises/{exerciseId}", courseId).contentType("application/json").with(csrf())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
+                .andExpect(status().isOk()).andReturn();
+
+        verify(courseService, times(1)).getExercise(anyLong());
+        String actualResponseBody = mvcResult.getResponse().getContentAsString();
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
+                .writeValueAsString(exercise);
+        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
+
+        logger.info("Test getExercise_valid() ends.");
     }
 
     @Test
@@ -215,7 +222,7 @@ public class ExerciseControllerTests {
         expectedExercise.setName("Spring Boot Exercise 1 v2");
         expectedExercise.setId(1L);
         expectedExercise.setCourse(new Course("Spring Boot Course"));
-        exercise.setName("Spring Boot Exercise 1 v2");
+        exercise.name = "Spring Boot Exercise 1 v2";
         when(courseService.editExercise(anyLong(), any(Exercise.class), anyString())).thenReturn(expectedExercise);
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1").contentType("application/json").with(csrf())
@@ -300,13 +307,13 @@ public class ExerciseControllerTests {
         User user = new User("johndoe@john.com", "johndoe", "password", "John", "Doe");
         user.setId(4L);
         ExerciseUserInfoDTO euiDTO = new ExerciseUserInfoDTO();
-        euiDTO.setStatus(1);
+        euiDTO.setStatus(ExerciseStatus.FINISHED);
         ArrayList<String> euiModifiedFiles = new ArrayList<>();
         euiModifiedFiles.add("/sample");
         euiDTO.setModifiedFiles(euiModifiedFiles);
         ExerciseUserInfo updatedEui = new ExerciseUserInfo(ex, user);
-        updatedEui.setStatus(1);
-        when(exerciseInfoService.updateExerciseUserInfo(anyLong(), anyString(), anyInt(), anyList())).thenReturn(updatedEui);
+        updatedEui.setStatus(ExerciseStatus.FINISHED);
+        when(exerciseInfoService.updateExerciseUserInfo(anyLong(), anyString(), any(ExerciseStatus.class), anyList())).thenReturn(updatedEui);
 
         MvcResult mvcResult = mockMvc
                 .perform(put("/api/exercises/1/info").contentType("application/json").with(csrf())
@@ -324,8 +331,9 @@ public class ExerciseControllerTests {
     public void getAllStudentExerciseUserInfo_valid() throws Exception {
         // Set up courses and exercises
         Course course = new Course("Spring Boot Course");
-        Exercise exercise = new Exercise("Exercise 1", course);
+        Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(10L);
+        exercise.setCourse(course);
         // Set up users
         Role studentRole = new Role("ROLE_STUDENT");
         studentRole.setId(2L);
@@ -340,7 +348,7 @@ public class ExerciseControllerTests {
         // Set up EUIs
         ExerciseUserInfo euiStudent1 = new ExerciseUserInfo(exercise, student1);
         ExerciseUserInfo euiStudent2 = new ExerciseUserInfo(exercise, student2);
-        euiStudent2.setStatus(1);
+        euiStudent2.setStatus(ExerciseStatus.FINISHED);
         List<ExerciseUserInfo> expectedList = new ArrayList<>(2);
         expectedList.add(euiStudent1);
         expectedList.add(euiStudent2);

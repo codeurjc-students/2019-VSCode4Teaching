@@ -1,19 +1,21 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 import { APIClient } from "../../client/APIClient";
 import { CurrentUser } from "../../client/CurrentUser";
 import { Course, instanceOfCourse } from "../../model/serverModel/course/Course";
 import { instanceOfExercise } from "../../model/serverModel/exercise/Exercise";
+import { ExerciseUserInfo } from "../../model/serverModel/exercise/ExerciseUserInfo";
 import { ModelUtils } from "../../model/serverModel/ModelUtils";
 import { User } from "../../model/serverModel/user/User";
 import { UserSignup } from "../../model/serverModel/user/UserSignup";
+import { v4tLogger } from "../../services/LoggerService";
 import { FileZipUtil } from "../../utils/FileZipUtil";
 import { UserPick } from "./UserPick";
 import { V4TBuildItems } from "./V4TItem/V4TBuiltItems";
 import { V4TItem } from "./V4TItem/V4TItem";
 import { V4TItemType } from "./V4TItem/V4TItemType";
 import { Validators } from "./Validators";
-import * as fs from "fs";
-import * as path from "path";
 
 /**
  * Tree view that lists extension's basic options like:
@@ -244,12 +246,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         if (CurrentUser.isLoggedIn()) {
             // If not logged refresh shouldn't do anything
             CurrentUser.updateUserInfo()
-                .then(() => {
-                    CoursesProvider.triggerTreeReload();
-                })
-                .catch((error) => {
-                    APIClient.handleAxiosError(error);
-                });
+                       .then(() => {
+                           CoursesProvider.triggerTreeReload();
+                       })
+                       .catch((error) => {
+                           APIClient.handleAxiosError(error);
+                       });
         }
     }
 
@@ -262,115 +264,134 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     }
 
     /**
-     * Show form for adding an exercise then call client.
+     * Shows a folder picker and sends to the server the new exercises, including their DB information, the template and, if available, the proposed solution (whose existence is detected by an auxiliary function getTemplateSolutionPaths).
+     *
+     * This method handles both the case of uploading a single exercise and the case of uploading multiple exercises.
+     *
      * @param item course
+     * @param multiple true if multiple exercises are being added to course, false otherwise
      */
-    public async addExercise(item: V4TItem) {
+    public async addExercises(item: V4TItem, multiple: boolean) {
         if (item.item && instanceOfCourse(item.item)) {
-            // Get exercise name
-            const name = await this.getInput("Exercise name", Validators.validateExerciseName);
-            if (name) {
-                // Select files to use as template for the exercise
-                const fileUris = await vscode.window.showOpenDialog({
-                    canSelectFiles: true,
-                    canSelectFolders: true,
-                    canSelectMany: true,
-                });
-                if (fileUris) {
-                    // Create zip file from files and send them
-                    const course: Course = item.item;
+            // Stage 1: interaction with user
+            // User picks a folder using the displayed folder picker.
+            // This operation returns a vscode Uri object (fileUris) that points to selected directory.
+
+            // A message explaining the folder structure required to execute the multiple upload is displayed.
+            let ans;
+            if (multiple) ans = await vscode.window.showInformationMessage("To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template and solution if wanted. When ready, click 'Accept'.", { title: "Accept" });
+            if (!((!multiple) || (multiple && ans && ans.title === "Accept"))) return;
+
+            const fileUris = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: "Select a directory"
+            });
+            if (!fileUris) return;
+
+            // Stage 2: interpretation of contents of selected folder
+            // At the end of this stage, a list of exercises to be added in the next phase is obtained.
+            // Each exercise in that list is defined by its name and the paths to its template and, if exists, to its proposed solution.
+            const fsUri = fileUris[0].fsPath;
+            const course: Course = item.item;
+            this.loading = true;
+            CoursesProvider.triggerTreeReload();
+            // URLs of locations of both templates and solutions of exercises (one or more) are retrieved.
+            let uri: vscode.Uri[] = multiple
+                ? fs.readdirSync(fsUri, { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => vscode.Uri.parse(path.join(fsUri, dirent.name)))
+                : [fileUris[0]];
+            // Names of the exercises are extracted from the names of the directories, as well as the template and solution paths (if exists).
+            let exercisesDirectories: { name: string, paths: { template: vscode.Uri; solution?: vscode.Uri } }[] =
+                uri.map((uri) => ({
+                    name: uri.fsPath.split(path.sep).slice(-1)[0],
+                    paths: this.getTemplateSolutionPaths(vscode.Uri.parse(uri.fsPath))
+                }));
+            // Unsuccessful responses' control (true if there were any during upload process)
+            let errorCaught = false;
+
+            // Stage 3: uploading of exercises to server
+            if (exercisesDirectories.length > 0) {
+                try {
+                    // 3.1: basic information (name, whether they include a solution or not...) of each exercise is sent to server to be persisted.
+                    const exerciseData = await APIClient.addExercises(course.id, exercisesDirectories.map(ex => ({
+                        name: ex.name,
+                        includesTeacherSolution: (ex.paths.solution !== undefined),
+                        solutionIsPublic: false,
+                        allowEditionAfterSolutionDownloaded: false
+                    })));
+
+                    // 3.2: promises are sent to server in order and one at a time due to performance reasons.
                     try {
-                        this.loading = true;
-                        CoursesProvider.triggerTreeReload();
-                        const addExerciseData = await APIClient.addExercises(course.id, [{ name }]);
-                        try {
-                            // When exercise is createdupload template
-                            const zipContent = await FileZipUtil.getZipFromUris(fileUris);
-                            await APIClient.uploadExerciseTemplate(addExerciseData.data[0].id, zipContent);
-                        } catch (uploadError) {
-                            try {
-                                // If upload fails delete the exercise and show error
-                                await APIClient.deleteExercise(addExerciseData.data[0].id);
-                                APIClient.handleAxiosError(uploadError);
-                            } catch (deleteError) {
-                                APIClient.handleAxiosError(deleteError);
+                        for (const [index, exercise] of exerciseData.data.entries()) {
+                            await APIClient.uploadExerciseTemplate(exercise.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.template]), false);
+
+                            if (exercise.includesTeacherSolution) {
+                                await APIClient.uploadExerciseSolution(exercise.id, await FileZipUtil.getZipFromUris([exercisesDirectories[index].paths.solution!]), false);
                             }
-                        } finally {
-                            this.loading = false;
-                            CoursesProvider.triggerTreeReload();
-                            vscode.window.showInformationMessage("Exercise added.");
                         }
-                    } catch (error) {
-                        APIClient.handleAxiosError(error);
+                    } catch (uploadError) {
+                        // If any upload process fails, all exercises are deleted from database and error is handled (via errorCaught)
+                        errorCaught = true;
+                        v4tLogger.error(uploadError);
+                        try {
+                            exerciseData.data.forEach(async ex => await APIClient.deleteExercise(ex.id));
+                            APIClient.handleAxiosError(uploadError);
+                        } catch (deleteError) {
+                            APIClient.handleAxiosError(deleteError);
+                        }
+                    } finally {
+                        // The user is informed of the result of this process, whether it was successful or not.
+                        this.loading = false;
+                        if (errorCaught) {
+                            vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
+                        } else {
+                            vscode.window.showInformationMessage(multiple
+                                ? exercisesDirectories.length + " exercises were added successfully."
+                                : "The new exercise was added successfully."
+                            );
+                        }
+                        CoursesProvider.triggerTreeReload();
                     }
+                } catch (_) {
+                    errorCaught = true;
                 }
             }
         }
     }
 
     /**
-     * Prepare and send multiple exercises' creation request
-     * @param item course
+     * Given a folder associated with an exercise, this auxiliary method determines whether it contains a solution or only a template.
+     *
+     * @param exerciseRoute Uri of the mentioned folder.
+     * @returns An object including specific template path and, if exists, also the specific solution path.
      */
-    public async addMultipleExercises(item: V4TItem) {
-        if (item.item && instanceOfCourse(item.item)) {
-            const course = item.item;
-            // Explain user how to organize their exercises' directory
-            vscode.window.showInformationMessage("To upload multiple exercises, prepare a directory with a folder for each exercise, each folder including the exercise's corresponding template. When ready, click 'Accept'.", "Accept").then(async (ans) => {
-                if (ans === "Accept") {
-                    // Ask user to select a directory
-                    // This directory has to contain exercises (1 folder = 1 new exercise)
-                    const parentDirectoryUri = await vscode.window.showOpenDialog({
-                        canSelectFiles: false,
-                        canSelectFolders: true,
-                        canSelectMany: false,
-                        openLabel: "Select directory",
-                    });
-                    if (parentDirectoryUri) {
-                        const fsUri = parentDirectoryUri[0].fsPath;
-                        // Get every folder from a selected directory
-                        const exercisesDirectories = fs.readdirSync(fsUri, { withFileTypes: true }).filter((d) => d.isDirectory());
-                        // Get the number of directories
-                        const availableFolderNumber = exercisesDirectories.length;
-                        // Prepare count of successfully uploaded exercises
-                        let uploadedExercises = 0;
-                        // Unsuccessful responses' control (true if there were any)
-                        let errorCaught = false;
-                        if (exercisesDirectories.length > 1) {
-                            // Exercises are uploaded in batches of 3 exercises
-                            while (!errorCaught && exercisesDirectories.length > 0) {
-                                const exercisesDirChunk = exercisesDirectories.splice(0, 3);
-                                // Collect exercises' names from directories' names
-                                try {
-                                    const exerciseData = await APIClient.addExercises(course.id, exercisesDirChunk.map((d) => ({ name: d.name })));
-                                    exerciseData.data.map(async (ex, index) => {
-                                        const directoryFiles = fs.readdirSync(fsUri + path.sep + exercisesDirChunk[index].name).map((e) => vscode.Uri.parse(fsUri + path.sep + exercisesDirChunk[index].name + path.sep + e));
-                                        APIClient.uploadExerciseTemplate(ex.id, await FileZipUtil.getZipFromUris(directoryFiles), false)
-                                            .then((_) => {
-                                                uploadedExercises++;
-                                                if (!errorCaught && availableFolderNumber === uploadedExercises) {
-                                                    vscode.window.showInformationMessage("All exercises were successfully uploaded.");
-                                                    CoursesProvider.triggerTreeReload();
-                                                    item.collapsibleState
-                                                    return;
-                                                }
-                                            })
-                                            .catch((_) => (errorCaught = true));
-                                    });
-                                } catch(e: any) {
-                                    errorCaught = true;
-                                }
-                            }
-                            if (errorCaught) {
-                                vscode.window.showErrorMessage("One or more exercises were not properly uploaded.");
-                            }
-                        } else {
-                            vscode.window.showErrorMessage("No exercises have been uploaded since there were not any to upload in the selected folder.");
-                        }
+    private getTemplateSolutionPaths(exerciseRoute: vscode.Uri): { template: vscode.Uri; solution?: vscode.Uri } {
+        // To determine if the provided path of an exercise includes its solution, it is required that the directory provided includes only two folders inside: template and solution.
+        // Otherwise, all the contents of the directory will be entered as the template of the exercise and it will be saved without solution.
+
+        // Check if provided path corresponds to an existing directory
+        if (fs.lstatSync(exerciseRoute.fsPath).isDirectory()) {
+            // Read directory contents and check if it contains "template" and "solution" folders
+            const directoryEntries = fs.readdirSync(exerciseRoute.fsPath, { withFileTypes: true });
+            if (directoryEntries.length === 2
+                && directoryEntries.every(dirent => dirent.isDirectory())
+                && directoryEntries.flatMap(dirent => dirent.name).every(name => name === "template" || name === "solution")
+            ) {
+                const templateDir = path.join(exerciseRoute.fsPath, "template");
+                const solutionDir = path.join(exerciseRoute.fsPath, "solution");
+                // If these directories both contain any file, exercise is saved with its solution
+                if (fs.readdirSync(templateDir).length > 0 && fs.readdirSync(solutionDir).length > 0) {
+                    return {
+                        template: vscode.Uri.parse(templateDir),
+                        solution: vscode.Uri.parse(solutionDir)
                     }
                 }
-            });
+            }
         }
+        return { template: exerciseRoute };
     }
 
     /**
@@ -382,7 +403,12 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
             const name = await this.getInput("Exercise name", Validators.validateExerciseName);
             if (name) {
                 try {
-                    await APIClient.editExercise(item.item.id, { name });
+                    await APIClient.editExercise(item.item.id, {
+                        name,
+                        includesTeacherSolution: item.item.includesTeacherSolution,
+                        solutionIsPublic: item.item.solutionIsPublic,
+                        allowEditionAfterSolutionDownloaded: item.item.allowEditionAfterSolutionDownloaded
+                    });
                     CoursesProvider.triggerTreeReload(item.parent);
                     vscode.window.showInformationMessage("Exercise edited successfully");
                 } catch (error) {
@@ -513,15 +539,29 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
                     type = V4TItemType.ExerciseStudent;
                     commandName = "vscode4teaching.getexercisefiles";
                 }
-                const exerciseItems = course.exercises.map(
-                    (exercise) =>
-                        new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
-                            command: commandName,
-                            title: "Get exercise files",
-                            arguments: [course ? course.name : null, exercise],
-                        })
-                );
-                return exerciseItems.length > 0 ? exerciseItems : [V4TBuildItems.NO_EXERCISES_ITEM];
+                if (course.exercises.length > 0) {
+                    if (ModelUtils.isStudent(CurrentUser.getUserInfo())) {
+                        return await Promise.all(course.exercises.map(
+                            async (exercise) => {
+                                const eui: ExerciseUserInfo = (await APIClient.getExerciseUserInfo(exercise.id)).data;
+                                return new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
+                                    command: commandName,
+                                    title: "Get exercise files",
+                                    arguments: [course ? course.name : null, exercise],
+                                }, eui.status);
+                            }
+                        ));
+                    } else {
+                        return course.exercises.map(
+                            (exercise) =>
+                                new V4TItem(exercise.name, type, vscode.TreeItemCollapsibleState.None, element, exercise, {
+                                    command: commandName,
+                                    title: "Get exercise files",
+                                    arguments: [course ? course.name : null, exercise],
+                                }, (Number(exercise.includesTeacherSolution) + Number(exercise.solutionIsPublic)))
+                        );
+                    }
+                }
             }
         }
         return [V4TBuildItems.NO_EXERCISES_ITEM];
@@ -533,17 +573,17 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
     private updateUserInfo(): V4TItem[] {
         this.loading = true;
         CurrentUser.updateUserInfo()
-            .then(() => {
-                // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
-                CoursesProvider.triggerTreeReload();
-            })
-            .catch((error) => {
-                APIClient.handleAxiosError(error);
-                CoursesProvider.triggerTreeReload();
-            })
-            .finally(() => {
-                this.loading = false;
-            });
+                   .then(() => {
+                       // Calls getChildren again, which will go through the else statement in this method (logged in and user info initialized)
+                       CoursesProvider.triggerTreeReload();
+                   })
+                   .catch((error) => {
+                       APIClient.handleAxiosError(error);
+                       CoursesProvider.triggerTreeReload();
+                   })
+                   .finally(() => {
+                       this.loading = false;
+                   });
         return [];
     }
 
@@ -625,7 +665,6 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
      * Converts picked items to id array to call client with client call selected (thenable)
      * @param showArray picked items
      * @param item course
-     * @param thenableFunction thenable to call
      */
     private async manageUsersFromCourse(showArray: UserPick[], item: V4TItem) {
         if (item.item && instanceOfCourse(item.item)) {

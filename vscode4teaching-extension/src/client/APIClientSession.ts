@@ -72,14 +72,13 @@ class APIClientSessionSingleton {
             baseURL: this.baseUrl,
             method: options.method,
             data: options.data,
-            headers: {
-            },
+            headers: {},
             responseType: options.responseType,
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
         };
         let timeout;
-        if (axiosConfig.headers !== undefined){
+        if (axiosConfig.headers !== undefined) {
             if (this.jwtToken) {
                 Object.assign(axiosConfig.headers, { Authorization: "Bearer " + this.jwtToken });
             }
@@ -103,4 +102,5 @@ class APIClientSessionSingleton {
         return { axiosOptions: axiosConfig, timeout };
     }
 }
+
 export let APIClientSession = new APIClientSessionSingleton();

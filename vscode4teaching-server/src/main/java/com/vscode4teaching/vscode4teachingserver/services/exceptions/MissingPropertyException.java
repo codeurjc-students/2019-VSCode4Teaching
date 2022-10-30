@@ -8,5 +8,5 @@ public class MissingPropertyException extends Exception {
     public MissingPropertyException(String... missingProperties) {
         super("The following keys are missing: " + Arrays.toString(missingProperties));
     }
-    
+
 }

@@ -1,20 +1,14 @@
 package com.vscode4teaching.vscode4teachingserver.model;
 
-import java.time.LocalDateTime;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.validation.constraints.NotEmpty;
-
 import com.fasterxml.jackson.annotation.JsonView;
 import com.vscode4teaching.vscode4teachingserver.model.views.CommentViews;
-
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import java.time.LocalDateTime;
 
 @Entity
 public class Comment {
@@ -44,7 +38,7 @@ public class Comment {
     @UpdateTimestamp
     @JsonView(CommentViews.GeneralView.class)
     private LocalDateTime updateDateTime;
-    
+
     public Comment(CommentThread thread, String body, String author) {
         this.thread = thread;
         this.body = body;
@@ -52,7 +46,7 @@ public class Comment {
     }
 
     public Comment() {
-        
+
     }
 
     public Long getId() {
@@ -103,5 +97,5 @@ public class Comment {
         this.updateDateTime = updateDateTime;
     }
 
-    
+
 }

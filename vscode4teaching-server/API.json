@@ -2,17 +2,23 @@
     "openapi": "3.0.3",
     "info": {
         "title": "VSCode4Teaching",
-        "description": "VSCode4Teaching REST API Documentation",
+        "description": "VSCode4Teaching REST API Documentation.",
         "contact": {
             "name": "VSCode4Teaching",
             "url": "https://github.com/codeurjc-students/2019-VSCode4Teaching"
         },
         "license": {
-            "name": "Apache-2.0 LICENSE",
+            "name": "V4T License (Apache-2.0 LICENSE)",
             "url": "https://github.com/codeurjc-students/2019-VSCode4Teaching/blob/master/LICENSE"
         },
-        "version": "2.0.2"
+        "version": "2.2.0"
     },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Inferred Url"
+        }
+    ],
     "tags": [
         {
             "name": "comment-controller",
@@ -33,10 +39,6 @@
         {
             "name": "jwt-login-controller",
             "description": "JWT Login Controller"
-        },
-        {
-            "name": "view-controller",
-            "description": "View Controller"
         }
     ],
     "paths": {
@@ -985,10 +987,52 @@
                     "404": {
                         "description": "Not Found"
                     }
-                }
+                },
+                "deprecated": true
             }
         },
         "/api/exercises/{exerciseId}": {
+            "get": {
+                "tags": [
+                    "exercise-controller"
+                ],
+                "summary": "getExercise",
+                "operationId": "getExerciseUsingGET",
+                "parameters": [
+                    {
+                        "name": "exerciseId",
+                        "in": "path",
+                        "description": "exerciseId",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExerciseCourseViewView"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
             "put": {
                 "tags": [
                     "exercise-controller"
@@ -1266,13 +1310,76 @@
                 }
             }
         },
+        "/api/v2/courses/{courseId}/exercises": {
+            "post": {
+                "tags": [
+                    "exercise-controller"
+                ],
+                "summary": "addExercises",
+                "operationId": "addExercisesUsingPOST",
+                "parameters": [
+                    {
+                        "name": "courseId",
+                        "in": "path",
+                        "description": "courseId",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "minimum": 1,
+                            "exclusiveMinimum": false,
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ExerciseDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ExerciseCourseViewView"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/exercises/{id}/files": {
             "get": {
                 "tags": [
                     "exercise-files-controller"
                 ],
-                "summary": "downloadExerciseFiles",
-                "operationId": "downloadExerciseFilesUsingGET",
+                "summary": "downloadFiles",
+                "operationId": "downloadFilesUsingGET",
                 "parameters": [
                     {
                         "name": "id",
@@ -1283,6 +1390,16 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "resourceType",
+                        "in": "path",
+                        "description": "resourceType",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -1305,8 +1422,8 @@
                 "tags": [
                     "exercise-files-controller"
                 ],
-                "summary": "uploadZip",
-                "operationId": "uploadZipUsingPOST",
+                "summary": "uploadFiles",
+                "operationId": "uploadFilesUsingPOST",
                 "parameters": [
                     {
                         "name": "id",
@@ -1317,6 +1434,16 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "type",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -1365,13 +1492,13 @@
                 }
             }
         },
-        "/api/exercises/{id}/files/template": {
+        "/api/exercises/{id}/files/{resourceType}": {
             "get": {
                 "tags": [
                     "exercise-files-controller"
                 ],
-                "summary": "getTemplate",
-                "operationId": "getTemplateUsingGET",
+                "summary": "downloadFiles",
+                "operationId": "downloadFilesUsingGET_1",
                 "parameters": [
                     {
                         "name": "id",
@@ -1382,6 +1509,16 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "resourceType",
+                        "in": "path",
+                        "description": "resourceType",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -1399,13 +1536,15 @@
                         "description": "Not Found"
                     }
                 }
-            },
+            }
+        },
+        "/api/exercises/{id}/files/{type}": {
             "post": {
                 "tags": [
                     "exercise-files-controller"
                 ],
-                "summary": "uploadTemplate",
-                "operationId": "uploadTemplateUsingPOST",
+                "summary": "uploadFiles",
+                "operationId": "uploadFilesUsingPOST_1",
                 "parameters": [
                     {
                         "name": "id",
@@ -1416,6 +1555,16 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "type",
+                        "required": true,
+                        "style": "simple",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -1862,96 +2011,6 @@
                     }
                 }
             }
-        },
-        "/": {
-            "get": {
-                "tags": [
-                    "view-controller"
-                ],
-                "summary": "redirect",
-                "operationId": "redirectUsingGET",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    }
-                }
-            }
-        },
-        "/app/**/{path}": {
-            "get": {
-                "tags": [
-                    "view-controller"
-                ],
-                "summary": "serveAngularWebapp",
-                "operationId": "serveAngularWebappUsingGET",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    }
-                }
-            }
-        },
-        "/{path}": {
-            "get": {
-                "tags": [
-                    "view-controller"
-                ],
-                "summary": "serveAngularWebapp",
-                "operationId": "serveAngularWebappUsingGET_1",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    }
-                }
-            }
         }
     },
     "components": {
@@ -2204,6 +2263,9 @@
                 "title": "ExerciseCourseViewView",
                 "type": "object",
                 "properties": {
+                    "allowEditionAfterSolutionDownloaded": {
+                        "type": "boolean"
+                    },
                     "course": {
                         "$ref": "#/components/schemas/CourseCourseViewView"
                     },
@@ -2215,8 +2277,14 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "includesTeacherSolution": {
+                        "type": "boolean"
+                    },
                     "name": {
                         "type": "string"
+                    },
+                    "solutionIsPublic": {
+                        "type": "boolean"
                     },
                     "updateDateTime": {
                         "type": "string",
@@ -2228,8 +2296,17 @@
                 "title": "ExerciseDTO",
                 "type": "object",
                 "properties": {
+                    "allowEditionAfterSolutionDownloaded": {
+                        "type": "boolean"
+                    },
+                    "includesTeacherSolution": {
+                        "type": "boolean"
+                    },
                     "name": {
                         "type": "string"
+                    },
+                    "solutionIsPublic": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -2237,6 +2314,9 @@
                 "title": "ExerciseExercisesViewView",
                 "type": "object",
                 "properties": {
+                    "allowEditionAfterSolutionDownloaded": {
+                        "type": "boolean"
+                    },
                     "createDateTime": {
                         "type": "string",
                         "format": "date-time"
@@ -2245,8 +2325,14 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "includesTeacherSolution": {
+                        "type": "boolean"
+                    },
                     "name": {
                         "type": "string"
+                    },
+                    "solutionIsPublic": {
+                        "type": "boolean"
                     },
                     "updateDateTime": {
                         "type": "string",
@@ -2306,6 +2392,9 @@
                 "title": "ExerciseGeneralViewView",
                 "type": "object",
                 "properties": {
+                    "allowEditionAfterSolutionDownloaded": {
+                        "type": "boolean"
+                    },
                     "course": {
                         "$ref": "#/components/schemas/CourseGeneralViewView"
                     },
@@ -2317,8 +2406,14 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "includesTeacherSolution": {
+                        "type": "boolean"
+                    },
                     "name": {
                         "type": "string"
+                    },
+                    "solutionIsPublic": {
+                        "type": "boolean"
                     },
                     "updateDateTime": {
                         "type": "string",
@@ -2337,8 +2432,12 @@
                         }
                     },
                     "status": {
-                        "type": "integer",
-                        "format": "int32"
+                        "type": "string",
+                        "enum": [
+                            "FINISHED",
+                            "IN_PROGRESS",
+                            "NOT_STARTED"
+                        ]
                     }
                 }
             },
@@ -2365,8 +2464,12 @@
                         }
                     },
                     "status": {
-                        "type": "integer",
-                        "format": "int32"
+                        "type": "string",
+                        "enum": [
+                            "FINISHED",
+                            "IN_PROGRESS",
+                            "NOT_STARTED"
+                        ]
                     },
                     "updateDateTime": {
                         "type": "string",
@@ -2550,7 +2653,7 @@
                         "type": "string"
                     },
                     "username": {
-                        "pattern": "^(?:(?!template).)+$",
+                        "pattern": "^(?:(?!(template)|(solution)|(student)).)+$",
                         "type": "string"
                     }
                 }

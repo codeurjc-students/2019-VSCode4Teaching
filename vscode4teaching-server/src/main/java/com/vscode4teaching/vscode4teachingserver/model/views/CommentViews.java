@@ -4,10 +4,10 @@ public class CommentViews {
     private CommentViews() {
     }
 
-    public static interface GeneralView {
+    public interface GeneralView {
     }
 
-    public static interface ThreadView extends GeneralView {
-        
+    public interface ThreadView extends GeneralView {
+
     }
 }

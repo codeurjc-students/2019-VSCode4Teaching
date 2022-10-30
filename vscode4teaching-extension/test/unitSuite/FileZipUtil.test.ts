@@ -19,7 +19,7 @@ const mockedCurrentUser = mocked(CurrentUser, true);
 jest.mock("../../src/client/APIClient");
 const mockedAPIClient = mocked(APIClient, true);
 
-describe("FileZipUtil", () => {
+describe("ZIP Files Utilities", () => {
     const rootPath = path.resolve(__dirname, "..", "files");
     const extractedPath = path.resolve(rootPath, "extracted");
     const zipPath = path.resolve(rootPath, "zips");
@@ -31,6 +31,10 @@ describe("FileZipUtil", () => {
         return JSZip.loadAsync(buffer);
     }
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     afterEach(() => {
         rimraf(zipPath, (error: any) => {
             return error;
@@ -41,7 +45,6 @@ describe("FileZipUtil", () => {
         rimraf(newFilePath, (error: any) => {
             return error;
         });
-        mockedAPIClient.uploadFiles.mockClear();
     });
 
     it("should obtain files from zip of exercise", async () => {
@@ -102,6 +105,9 @@ describe("FileZipUtil", () => {
         const exercise: Exercise = {
             id: 2,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
         const ignoredPaths: string[] = [];
         // Create file to add
@@ -122,6 +128,9 @@ describe("FileZipUtil", () => {
         const exercise: Exercise = {
             id: 2,
             name: "Test exercise",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         };
         const ignoredPaths: string[] = [];
         const filePath = path.relative(rootPath, path.resolve(rootPath, "exs", "ex3.html"));

@@ -80,8 +80,8 @@ public class JWTLoginController {
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
         User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
                 userDto.getLastName());
-        User saveduser = userDetailsService.save(user, true);
-        return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
+        User savedUser = userDetailsService.save(user, true);
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/teachers/invitation")

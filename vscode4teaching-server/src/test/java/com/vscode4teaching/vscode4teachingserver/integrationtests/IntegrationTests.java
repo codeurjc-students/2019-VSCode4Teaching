@@ -5,7 +5,6 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.CourseDTO;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTRequest;
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.JWTResponse;
 import com.vscode4teaching.vscode4teachingserver.model.Course;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,10 +13,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Databse is initialized in class DatabaseInitializer
 @SpringBootTest
@@ -67,7 +66,7 @@ public class IntegrationTests {
                 JWTResponse.class);
 
         MvcResult mvcErrorResult = mockMvc.perform(post("/api/courses").contentType("application/json").with(csrf())
-                .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest())
+                        .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest())
                 .andReturn();
 
         CourseDTO course = new CourseDTO();

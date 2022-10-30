@@ -1,6 +1,10 @@
 import { Validators } from "../../src/components/courses/Validators";
 
 describe("Validators", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should validate URL correctly", () => {
         const invalidURLError = "Invalid URL";
         const emptyURLError = "Please enter the URL of the server that you want to connect to";
@@ -59,7 +63,7 @@ describe("Validators", () => {
     it("should validate username correctly", () => {
         const lengthError = "Username must have between 4 and 50 characters";
         const emptyError = "Please enter your username";
-        const templateInvalidError = "Username is not valid (cannot contain the word template)";
+        const templateInvalidError = "Username is not valid (cannot contain the words \"template\", \"solution\" or \"student\")";
         expect(Validators.validateUsername("johndoe")).toBeUndefined();
         expect(Validators.validateUsername("jnd")).toBe(lengthError);
         const longName = "johndoe".repeat(10);

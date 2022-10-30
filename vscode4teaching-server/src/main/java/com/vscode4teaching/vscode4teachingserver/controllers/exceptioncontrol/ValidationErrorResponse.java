@@ -5,6 +5,21 @@ import java.util.List;
 public class ValidationErrorResponse {
     private List<ErrorDetail> errors;
 
+    public ValidationErrorResponse(List<ErrorDetail> errors) {
+        this.errors = errors;
+    }
+
+    public ValidationErrorResponse() {
+    }
+
+    public List<ErrorDetail> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<ErrorDetail> errors) {
+        this.errors = errors;
+    }
+
     public static class ErrorDetail {
         private String fieldName;
         private String message;
@@ -29,21 +44,6 @@ public class ValidationErrorResponse {
         public void setMessage(String message) {
             this.message = message;
         }
-    }
-
-    public ValidationErrorResponse(List<ErrorDetail> errors) {
-        this.errors = errors;
-    }
-
-    public ValidationErrorResponse() {
-    }
-
-    public List<ErrorDetail> getErrors() {
-        return errors;
-    }
-
-    public void setErrors(List<ErrorDetail> errors) {
-        this.errors = errors;
     }
 
 }

@@ -8,6 +8,7 @@ import { CourseEdit } from "../model/serverModel/course/CourseEdit";
 import { ManageCourseUsers } from "../model/serverModel/course/ManageCourseUsers";
 import { Exercise } from "../model/serverModel/exercise/Exercise";
 import { ExerciseEdit } from "../model/serverModel/exercise/ExerciseEdit";
+import { ExerciseStatus } from "../model/serverModel/exercise/ExerciseStatus";
 import { ExerciseUserInfo } from "../model/serverModel/exercise/ExerciseUserInfo";
 import { FileInfo } from "../model/serverModel/file/FileInfo";
 import { User } from "../model/serverModel/user/User";
@@ -207,6 +208,15 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Deleting course...");
     }
 
+    public getExercise(exerciseId: number): AxiosPromise<Exercise> {
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + exerciseId,
+            method: "GET",
+            responseType: "json"
+        };
+        return APIClient.createRequest(options, "Getting exercise information...");
+    }
+
     public addExercises(courseId: number, exercisesData: ExerciseEdit[]): AxiosPromise<Exercise[]> {
         const options: AxiosBuildOptions = {
             url: "/api/v2/courses/" + courseId + "/exercises",
@@ -237,6 +247,18 @@ class APIClientSingleton {
             data: dataForm,
         };
         return APIClient.createRequest(options, "Uploading template...", showNotification ?? true);
+    }
+
+    public uploadExerciseSolution(id: number, data: Buffer, showNotification?: boolean): AxiosPromise<any> {
+        const dataForm = new FormData();
+        dataForm.append("file", data, { filename: "solution.zip" });
+        const options: AxiosBuildOptions = {
+            url: "/api/exercises/" + id + "/files/solution",
+            method: "POST",
+            responseType: "json",
+            data: dataForm,
+        };
+        return APIClient.createRequest(options, "Uploading solution...", showNotification ?? true);
     }
 
     public deleteExercise(id: number): AxiosPromise<void> {
@@ -316,13 +338,13 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Downloading student files...", true);
     }
 
-    public getTemplate(exerciseId: number): AxiosPromise<ArrayBuffer> {
+    public getExerciseResourceById(exerciseId: number, resourceType: "template" | "solution"): AxiosPromise<ArrayBuffer> {
         const options: AxiosBuildOptions = {
-            url: "/api/exercises/" + exerciseId + "/files/template",
+            url: "/api/exercises/" + exerciseId + "/files/" + resourceType,
             method: "GET",
             responseType: "arraybuffer",
         };
-        return APIClient.createRequest(options, "Downloading exercise template...", true);
+        return APIClient.createRequest(options, "Downloading exercise " + resourceType + "...", true);
     }
 
     public getFilesInfo(username: string, exerciseId: number): AxiosPromise<FileInfo[]> {
@@ -404,7 +426,7 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Fetching exercise info for current user...");
     }
 
-    public updateExerciseUserInfo(exerciseId: number, status: number, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
+    public updateExerciseUserInfo(exerciseId: number, status: ExerciseStatus.StatusEnum, modifiedFiles?: string[]): AxiosPromise<ExerciseUserInfo> {
         const options: AxiosBuildOptions = {
             url: "/api/exercises/" + exerciseId + "/info",
             method: "PUT",
@@ -450,6 +472,7 @@ class APIClientSingleton {
      * Sets vscode status bar and returns axios promise for given options.
      * @param options Options from to build axios request
      * @param statusMessage message to add to the vscode status bar
+     * @param notification True if notification should be shown to user, false otherwise
      */
     private createRequest(options: AxiosBuildOptions, statusMessage: string, notification: boolean = false): AxiosPromise<any> {
         const axiosOptions = APIClientSession.buildOptions(options);
@@ -512,5 +535,6 @@ class APIClientSingleton {
         return APIClient.createRequest(options, "Logging in to VS Code 4 Teaching...");
     }
 }
+
 // API Client is a singleton
 export let APIClient = new APIClientSingleton();

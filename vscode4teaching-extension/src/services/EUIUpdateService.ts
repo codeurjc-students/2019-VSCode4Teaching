@@ -7,7 +7,9 @@ export class EUIUpdateService {
 
     public static addModifiedPath(uri: vscode.Uri) {
         const matches = (this.URI_REGEX.exec(uri.path));
-        if (!matches) { return null; }
+        if (!matches) {
+            return null;
+        }
         matches.shift();
         this.modifiedPaths.add(matches[0]);
     }

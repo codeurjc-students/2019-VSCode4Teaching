@@ -1,9 +1,8 @@
 package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
+import javax.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.validation.constraints.Min;
 
 public class CommentThreadDTO {
     private List<CommentDTO> comments = new ArrayList<>();
@@ -11,7 +10,7 @@ public class CommentThreadDTO {
     @Min(0)
     private Long line;
     private String lineText;
-    
+
     public List<CommentDTO> getComments() {
         return comments;
     }
@@ -28,13 +27,13 @@ public class CommentThreadDTO {
         this.line = line;
     }
 
-	public String getLineText() {
-		return lineText;
-	}
+    public String getLineText() {
+        return lineText;
+    }
 
-	public void setLineText(String lineText) {
-		this.lineText = lineText;
-	}
+    public void setLineText(String lineText) {
+        this.lineText = lineText;
+    }
 
-    
+
 }

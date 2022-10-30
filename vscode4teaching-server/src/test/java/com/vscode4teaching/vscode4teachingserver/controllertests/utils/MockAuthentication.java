@@ -1,9 +1,9 @@
 package com.vscode4teaching.vscode4teachingserver.controllertests.utils;
 
-import java.util.Collection;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Collection;
 
 public class MockAuthentication implements Authentication {
 

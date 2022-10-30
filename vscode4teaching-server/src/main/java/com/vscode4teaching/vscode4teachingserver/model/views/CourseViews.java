@@ -4,18 +4,18 @@ public class CourseViews {
     private CourseViews() {
     }
 
-    public static interface GeneralView extends UserViews.GeneralView {
+    public interface GeneralView extends UserViews.GeneralView {
     }
 
-    public static interface ExercisesView extends GeneralView, ExerciseViews.GeneralView {
+    public interface ExercisesView extends GeneralView, ExerciseViews.GeneralView {
     }
 
-    public static interface UsersView extends GeneralView {
+    public interface UsersView extends GeneralView {
     }
 
-    public static interface CreatorView extends GeneralView {
+    public interface CreatorView extends GeneralView {
     }
 
-    public static interface CodeView extends GeneralView {
+    public interface CodeView extends GeneralView {
     }
 }

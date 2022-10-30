@@ -2,7 +2,6 @@ package com.vscode4teaching.vscode4teachingserver.security;
 
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTAuthenticationEntryPoint;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTRequestFilter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,20 +43,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         final String teacherRole = "TEACHER";
         final String studentRole = "STUDENT";
         http.authorizeRequests()
+                // Specific endpoints for every user (logged in or not)
                 .antMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/code/*", "/api/v2/courses/code/*", "/api/courses/*/creator")
                 .permitAll()
                 .antMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/teachers/register", "/api/teachers/invitation")
                 .permitAll()
-                .antMatchers(HttpMethod.POST, "/api/exercises/*/teachers/**", "/api/courses", "/api/courses/*/exercises", "/api/v2/courses/*/exercises", "/api/courses/*/users")
+
+                // Specific endpoints for teachers
+                .antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
+                .hasAnyRole(teacherRole)
+                .antMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users", "/api/exercises/*/teachers/**", "/api/exercises/*/files/template", "/api/exercises/*/files/solution", "/api/v2/courses/*/exercises")
                 .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.PUT, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole(teacherRole)
-                .antMatchers(HttpMethod.POST, "/api/exercises/*/files/template")
-                .hasAnyRole(teacherRole)
-                .antMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
-                .hasAnyRole(teacherRole)
+
+                // Every other endpoint in /api requires student role
                 .antMatchers("/api/**")
                 .hasAnyRole(studentRole)
                 .anyRequest().permitAll().and()

@@ -15,12 +15,12 @@ jobs:
           script:
               - "./mvnw clean package -B -q"
           after_script:
-              - cd ..
-              - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-              - docker build -t vscode4teaching/vscode4teaching:2.1.4 .
-              - docker build -t vscode4teaching/vscode4teaching:latest .
-              - docker push vscode4teaching/vscode4teaching:2.1.4
-              - docker push vscode4teaching/vscode4teaching:latest
+             - cd ..
+             - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+             - docker build -t vscode4teaching/vscode4teaching:2.2.0 .
+             - docker build -t vscode4teaching/vscode4teaching:latest .
+             - docker push vscode4teaching/vscode4teaching:2.2.0
+             - docker push vscode4teaching/vscode4teaching:latest
         - name: V4T Extension (Node.js)
           language: node_js
           os:

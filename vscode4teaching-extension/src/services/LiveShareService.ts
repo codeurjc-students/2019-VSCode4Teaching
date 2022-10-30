@@ -43,20 +43,21 @@ export class LiveShareService {
     }
 
     public handleLiveshareMessage(dataStringified: string) {
-        if (!dataStringified) { return; }
+        if (!dataStringified) {
+            return;
+        }
         const { handle, from, code } = JSON.parse(dataStringified);
         if ((handle === "liveshare") && from && code) {
-            vscode.window.showInformationMessage(`Liveshare invitation by ${from}`, "Accept", "Decline").then(
+            vscode.window.showInformationMessage(`Liveshare invitation by ${ from }`, "Accept", "Decline").then(
                 (res) => {
                     if (res === "Accept") {
                         const codeParsed: vscode.Uri = vscode.Uri.parse(code);
                         vscode.env.clipboard.writeText(code).then(
                             () => {
-                                vscode.window.showInformationMessage(`Code already set on clipboard: ${code}`);
+                                vscode.window.showInformationMessage(`Code already set on clipboard: ${ code }`);
                                 this.liveshareAPI.join(codeParsed);
                             },
-                            (err) => vscode.window.showErrorMessage(`Could not use clipboard: ${err}`),
-
+                            (err) => vscode.window.showErrorMessage(`Could not use clipboard: ${ err }`),
                         );
                     }
                 });
@@ -67,8 +68,8 @@ export class LiveShareService {
         this.liveshareAPI = data;
     }
 
-    public async share () {
+    public async share() {
         return this.liveshareAPI.share();
     }
-    
+
 }

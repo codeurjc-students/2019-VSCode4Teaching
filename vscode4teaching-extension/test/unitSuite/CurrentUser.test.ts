@@ -10,9 +10,12 @@ jest.mock("../../src/client/APIClient");
 const mockedClient = mocked(APIClient, true);
 
 describe("Current user", () => {
-    afterEach(() => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+
         CurrentUser.resetUserInfo();
     });
+
     it("should update user info", async () => {
         const user: User = {
             id: 40,
@@ -84,9 +87,15 @@ describe("Current user", () => {
         const exercises: Exercise[] = [{
             id: 21,
             name: "Test exercise 1",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         }, {
             id: 22,
             name: "Test exercise 2",
+            includesTeacherSolution: false,
+            solutionIsPublic: false,
+            allowEditionAfterSolutionDownloaded: false
         }];
         const newCourse: Course = {
             id: 20,

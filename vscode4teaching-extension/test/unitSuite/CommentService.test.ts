@@ -20,12 +20,9 @@ describe("Comment Service", () => {
     const author = "johndoe";
 
     beforeEach(() => {
-        commentProvider = new TeacherCommentService(author);
-    });
+        jest.clearAllMocks();
 
-    afterEach(() => {
-        mockedVscode.comments.createCommentController.mockClear();
-        mockedVscode.workspace.openTextDocument.mockClear();
+        commentProvider = new TeacherCommentService(author);
     });
 
     it("should create correctly", () => {
@@ -75,6 +72,7 @@ describe("Comment Service", () => {
             uri: mockedVscode.Uri.parse("testURL"),
             range: rangeMock,
             collapsibleState: mockedVscode.CommentThreadCollapsibleState.Expanded,
+            canReply: true,
             comments: commentsMock,
             dispose: jest.fn(),
         };
@@ -254,21 +252,21 @@ describe("Comment Service", () => {
             isUntitled: false,
             languageId: "json",
             lineAt: jest.fn().mockReturnValueOnce({
-                firstNonWhitespaceCharacterIndex: 0,
-                isEmptyOrWhitespace: false,
-                lineNumber: comments[0].line,
-                range: rangeMock1,
-                rangeIncludingLineBreak: rangeMock1,
-                text: comments[0].lineText,
-            },
+                    firstNonWhitespaceCharacterIndex: 0,
+                    isEmptyOrWhitespace: false,
+                    lineNumber: comments[0].line,
+                    range: rangeMock1,
+                    rangeIncludingLineBreak: rangeMock1,
+                    text: comments[0].lineText,
+                },
             ).mockReturnValueOnce({
-                firstNonWhitespaceCharacterIndex: 0,
-                isEmptyOrWhitespace: false,
-                lineNumber: comments[1].line,
-                range: rangeMock2,
-                rangeIncludingLineBreak: rangeMock2,
-                text: comments[1].lineText,
-            },
+                    firstNonWhitespaceCharacterIndex: 0,
+                    isEmptyOrWhitespace: false,
+                    lineNumber: comments[1].line,
+                    range: rangeMock2,
+                    rangeIncludingLineBreak: rangeMock2,
+                    text: comments[1].lineText,
+                },
             ),
             lineCount: 5,
             offsetAt: jest.fn(),
@@ -332,11 +330,12 @@ describe("Comment Service", () => {
         };
         mockedClient.updateCommentThreadLine.mockResolvedValueOnce(response);
         const thread = {
-            dispose: jest.fn(),
+            uri: mockedVscode.Uri.file("file"),
             range: rangeMock,
             comments: [],
-            uri: mockedVscode.Uri.file("file"),
             collapsibleState: mockedVscode.CommentThreadCollapsibleState.Collapsed,
+            canReply: true,
+            dispose: jest.fn(),
         };
         commentProvider.setThread(threadId, thread);
         commentProvider.updateThreadLine(threadId, line, lineText);

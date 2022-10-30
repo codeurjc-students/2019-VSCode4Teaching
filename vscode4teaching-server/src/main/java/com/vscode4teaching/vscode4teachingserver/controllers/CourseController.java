@@ -138,7 +138,7 @@ public class CourseController {
     @GetMapping("/courses/code/{courseCode}")
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+            throws CourseNotFoundException, UserNotFoundException {
         logger.info("Request to GET '/api/courses/code/{}' (deprecated API endpoint)", courseCode);
         return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }
@@ -154,7 +154,7 @@ public class CourseController {
     @PutMapping("/courses/code/{courseCode}")
     @JsonView(CourseViews.ExercisesView.class)
     public ResponseEntity<Course> joinCourse(HttpServletRequest request, @PathVariable String courseCode)
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+            throws CourseNotFoundException, UserNotFoundException {
         logger.info("Request to PUT '/api/courses/code/{}'", courseCode);
         return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromToken(request)));
     }

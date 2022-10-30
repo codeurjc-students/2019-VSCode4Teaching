@@ -14,19 +14,16 @@ import java.util.stream.Collectors;
 
 @Entity
 public class Course {
+    @JsonView(CourseViews.CodeView.class)
+    private final String uuid = UUID.randomUUID().toString();
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonView(CourseViews.GeneralView.class)
     private Long id;
-
     @JsonView(CourseViews.GeneralView.class)
     @NotEmpty(message = "Name cannot be null")
     @Length(min = 10, max = 100, message = "Course name should be between 10 and 100 characters")
     private String name;
-
-    @JsonView(CourseViews.CodeView.class)
-    private final String uuid = UUID.randomUUID().toString();
-
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonView(CourseViews.ExercisesView.class)
     private List<Exercise> exercises = new ArrayList<>();
@@ -129,7 +126,7 @@ public class Course {
     public Set<User> getTeachers() {
         Set<User> teachers = new HashSet<>();
         teachers.add(this.creator);
-        teachers.addAll(this.usersInCourse.stream().filter(u -> u.isTeacher()).collect(Collectors.toSet()));
+        teachers.addAll(this.usersInCourse.stream().filter(User::isTeacher).collect(Collectors.toSet()));
         return teachers;
     }
 }

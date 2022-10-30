@@ -1,4 +1,3 @@
-
 import { Course } from "../model/serverModel/course/Course";
 import { User } from "../model/serverModel/user/User";
 import { APIClient } from "./APIClient";

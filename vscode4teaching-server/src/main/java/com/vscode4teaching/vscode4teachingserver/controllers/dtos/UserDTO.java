@@ -1,10 +1,10 @@
 package com.vscode4teaching.vscode4teachingserver.controllers.dtos;
 
+import org.hibernate.validator.constraints.Length;
+
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
-
-import org.hibernate.validator.constraints.Length;
 
 public class UserDTO {
 
@@ -12,12 +12,12 @@ public class UserDTO {
     @NotEmpty(message = "Please provide an email")
     private String email;
 
-    @Length(min = 4, max = 50, message = "Your username must have between 4 and 50 characters")
-    @Pattern(regexp = "^(?:(?!template).)+$", message = "Username is not valid")
+    @Length(min = 4, max = 50, message = "Username must have between 4 and 50 characters")
+    @Pattern(regexp = "^(?:(?!(template)|(solution)|(student)).)+$", message = "Username is not valid (cannot contain the words \"template\", \"solution\" or \"student\")")
     private String username;
 
     @NotEmpty(message = "Please provide a password")
-    @Length(min = 8, message = "Your password must have at least 8 characters")
+    @Length(min = 8, message = "Password must have at least 8 characters")
     private String password;
 
     @NotEmpty(message = "Please provide your name")

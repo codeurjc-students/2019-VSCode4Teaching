@@ -4,14 +4,14 @@ public class UserViews {
     private UserViews() {
     }
 
-    public static interface GeneralView extends RoleViews.GeneralView {
+    public interface GeneralView extends RoleViews.GeneralView {
     }
 
-    public static interface CourseView extends CourseViews.GeneralView {
-        
+    public interface CourseView extends CourseViews.GeneralView {
+
     }
 
-    public static interface EmailView extends GeneralView {
-        
+    public interface EmailView extends GeneralView {
+
     }
 }

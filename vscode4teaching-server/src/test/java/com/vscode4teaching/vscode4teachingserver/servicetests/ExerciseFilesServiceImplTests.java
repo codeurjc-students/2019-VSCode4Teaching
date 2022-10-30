@@ -1,42 +1,13 @@
 package com.vscode4teaching.vscode4teachingserver.servicetests;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import com.vscode4teaching.vscode4teachingserver.model.Course;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
-import com.vscode4teaching.vscode4teachingserver.model.ExerciseUserInfo;
-import com.vscode4teaching.vscode4teachingserver.model.Role;
-import com.vscode4teaching.vscode4teachingserver.model.User;
+import com.vscode4teaching.vscode4teachingserver.model.*;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFileRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseNotFoundException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NoTemplateException;
-import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
+import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseFilesServiceImpl;
-
+import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,27 +22,35 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
 public class ExerciseFilesServiceImplTests {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImplTests.class);
     @Mock
     private ExerciseRepository exerciseRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private ExerciseFileRepository fileRepository;
-
     @Mock
     private ExerciseUserInfoRepository exerciseUserInfoRepository;
-
     @InjectMocks
     private ExerciseFilesServiceImpl filesService;
-
-    private static final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImplTests.class);
-
+    @Mock
+    private JWTUserDetailsService userService;
     private Set<String> pathsSaved = new HashSet<>();
 
     @BeforeEach
@@ -91,18 +70,49 @@ public class ExerciseFilesServiceImplTests {
     }
 
     @Test
+    public void existsExerciseFilesForUser() throws NotInCourseException, ExerciseNotFoundException {
+        Course course = new Course("Spring Boot Course");
+        course.setId(1L);
+        Exercise exercise = new Exercise("Spring Boot Exercise 1");
+        Long exerciseId = 2L;
+        exercise.setId(exerciseId);
+        exercise.setCourse(course);
+        course.addExercise(exercise);
+        User user = new User("johndoejr@gmail.com", "johndoejr", "studentpassword", "John", "Doe Jr");
+        user.addCourse(course);
+        course.addUserInCourse(user);
+        when(exerciseRepository.findById(exerciseId)).thenReturn(Optional.of(exercise));
+
+        Boolean actualExists = filesService.existsExerciseFilesForUser(exerciseId, user.getUsername());
+
+        assertThat(actualExists).isFalse();
+
+
+        // Now files are added
+        ExerciseFile file1 = new ExerciseFile("file1", user);
+        ExerciseFile file2 = new ExerciseFile("file2", user);
+        ExerciseFile file3 = new ExerciseFile("file3", user);
+        List<ExerciseFile> expectedExerciseFiles = List.of(file1, file2, file3);
+        exercise.setUserFiles(expectedExerciseFiles);
+
+        Boolean actualExists2 = filesService.existsExerciseFilesForUser(exerciseId, user.getUsername());
+
+        assertThat(actualExists2).isTrue();
+    }
+
+    @Test
     public void getExerciseFiles_withTemplate() throws Exception {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseFile file1 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt");
@@ -112,7 +122,7 @@ public class ExerciseFilesServiceImplTests {
         Optional<Exercise> exOpt = Optional.of(exercise);
         when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1l, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1L, "johndoe");
         List<File> files = filesMap.values().stream().findFirst().get();
 
         assertThat(files.size()).isEqualTo(2);
@@ -121,22 +131,54 @@ public class ExerciseFilesServiceImplTests {
         assertThat(files.get(1).getPath().replace("\\", "/"))
                 .isEqualTo("v4t-course-test/spring-boot-course/exercise_1_1/template/ej2.txt");
         verify(exerciseRepository, times(1)).findById(anyLong());
+    }
 
+    @Test
+    public void getExerciseSolution() throws Exception {
+        User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        student.setId(3L);
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2L);
+        student.addRole(studentRole);
+        Course course = new Course("Spring Boot Course");
+        course.setId(4L);
+        course.addUserInCourse(student);
+        Exercise exercise = new Exercise();
+        exercise.setName("Exercise 1");
+        exercise.setId(1L);
+        course.addExercise(exercise);
+        exercise.setCourse(course);
+        ExerciseFile file1 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej1.txt");
+        ExerciseFile file2 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej2.txt");
+        exercise.addFileToSolution(file1);
+        exercise.addFileToSolution(file2);
+        Optional<Exercise> exOpt = Optional.of(exercise);
+        when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
+
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseSolution(1L, "johndoe");
+        List<File> files = filesMap.values().stream().findFirst().get();
+
+        assertThat(files.size()).isEqualTo(2);
+        assertThat(files.get(0).getPath().replace("\\", "/"))
+                .isEqualTo("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej1.txt");
+        assertThat(files.get(1).getPath().replace("\\", "/"))
+                .isEqualTo("v4t-course-test/spring-boot-course/exercise_1_1/solution/ej2.txt");
+        verify(exerciseRepository, times(1)).findById(anyLong());
     }
 
     @Test
     public void getExerciseFiles_withUserFiles() throws Exception {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseFile file1 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt");
@@ -152,7 +194,7 @@ public class ExerciseFilesServiceImplTests {
         Optional<Exercise> exOpt = Optional.of(exercise);
         when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1l, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseFiles(1L, "johndoe");
         List<File> files = filesMap.values().stream().findFirst().get();
 
         logger.info(files.get(0).getAbsolutePath());
@@ -166,24 +208,24 @@ public class ExerciseFilesServiceImplTests {
     }
 
     @Test
-    public void getExerciseFiles_noTemplate() throws Exception {
+    public void getExerciseFiles_noTemplate() {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         Optional<Exercise> exOpt = Optional.of(exercise);
         when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-        assertThrows(NoTemplateException.class, () -> filesService.getExerciseFiles(1l, "johndoe"));
+        assertThrows(NoTemplateException.class, () -> filesService.getExerciseFiles(1L, "johndoe"));
         verify(exerciseRepository, times(1)).findById(anyLong());
     }
 
@@ -193,7 +235,7 @@ public class ExerciseFilesServiceImplTests {
         MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
                 new FileInputStream(file));
 
-        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1l, mockFile, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseFiles(1L, mockFile, "johndoe");
         return filesMap.values().stream().findFirst().get();
     }
 
@@ -233,16 +275,16 @@ public class ExerciseFilesServiceImplTests {
 
     private ExerciseUserInfo setupSaveExerciseFiles() {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, student);
@@ -309,20 +351,20 @@ public class ExerciseFilesServiceImplTests {
     @Test
     public void saveExerciseFilesFinishedError() throws Exception {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseUserInfo eui = new ExerciseUserInfo(exercise, student);
-        eui.setStatus(1);
+        eui.setStatus(ExerciseStatus.FINISHED);
         when(exerciseUserInfoRepository.findByExercise_IdAndUser_Username(anyLong(), anyString()))
                 .thenReturn(Optional.of(eui));
         // Get files
@@ -331,7 +373,7 @@ public class ExerciseFilesServiceImplTests {
                 new FileInputStream(file));
 
         ExerciseFinishedException e = assertThrows(ExerciseFinishedException.class,
-                () -> filesService.saveExerciseFiles(1l, mockFile, "johndoe"));
+                () -> filesService.saveExerciseFiles(1L, mockFile, "johndoe"));
 
         assertThat(e.getMessage()).isEqualToIgnoringWhitespace("Exercise is marked as finished: 1");
         verify(exerciseUserInfoRepository, times(1)).findByExercise_IdAndUser_Username(anyLong(), anyString());
@@ -340,19 +382,19 @@ public class ExerciseFilesServiceImplTests {
     @Test
     public void saveExerciseTemplate() throws Exception {
         User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        teacher.setId(3l);
+        teacher.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        studentRole.setId(10l);
+        studentRole.setId(10L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(teacher);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
@@ -364,7 +406,7 @@ public class ExerciseFilesServiceImplTests {
         MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
                 new FileInputStream(file));
 
-        Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(1l, mockFile, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseTemplate(1L, mockFile, "johndoe");
         List<File> savedFiles = filesMap.values().stream().findFirst().get();
 
         assertThat(Files.exists(Paths.get("null/"))).isTrue();
@@ -397,18 +439,77 @@ public class ExerciseFilesServiceImplTests {
     }
 
     @Test
+    public void saveExerciseSolution() throws Exception {
+        User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
+        teacher.setId(3L);
+        Role studentRole = new Role("ROLE_STUDENT");
+        studentRole.setId(2L);
+        Role teacherRole = new Role("ROLE_TEACHER");
+        studentRole.setId(10L);
+        teacher.addRole(studentRole);
+        teacher.addRole(teacherRole);
+        Course course = new Course("Spring Boot Course");
+        course.setId(4L);
+        course.addUserInCourse(teacher);
+        Exercise exercise = new Exercise();
+        exercise.setName("Exercise 1");
+        exercise.setId(1L);
+        course.addExercise(exercise);
+        exercise.setCourse(course);
+        when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(teacher));
+        when(fileRepository.save(any(ExerciseFile.class))).then(returnsFirstArg());
+        when(exerciseRepository.save(any(Exercise.class))).then(returnsFirstArg());
+        // Get files
+        File file = Paths.get("src/test/java/com/vscode4teaching/vscode4teachingserver/files", "exs.zip").toFile();
+        MultipartFile mockFile = new MockMultipartFile("file", file.getName(), "application/zip",
+                new FileInputStream(file));
+
+        Map<Exercise, List<File>> filesMap = filesService.saveExerciseSolution(1L, mockFile, "johndoe");
+        List<File> savedFiles = filesMap.values().stream().findFirst().get();
+
+        assertThat(Files.exists(Paths.get("null/"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/solution"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex1.html"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex2.html"))).isTrue();
+        assertThat(Files.exists(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex3/ex3.html"))).isTrue();
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex1.html")))
+                .contains("<html>Exercise 1</html>");
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex2.html")))
+                .contains("<html>Exercise 2</html>");
+        assertThat(Files.readAllLines(Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex3/ex3.html")))
+                .contains("<html>Exercise 3</html>");
+        assertThat(exercise.getSolution()).hasSize(3);
+        assertThat(exercise.getSolution().get(0).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex1.html").toAbsolutePath().toString());
+        assertThat(exercise.getSolution().get(1).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex2.html").toAbsolutePath().toString());
+        assertThat(exercise.getSolution().get(2).getPath()).isEqualToIgnoringCase(
+                Paths.get("null/spring_boot_course_4/exercise_1_1/solution/ex3/ex3.html").toAbsolutePath().toString());
+        assertThat(savedFiles.size()).isEqualTo(3);
+        assertThat(savedFiles.get(0).getAbsolutePath()).isEqualToIgnoringCase(exercise.getSolution().get(0).getPath());
+        assertThat(savedFiles.get(1).getAbsolutePath()).isEqualToIgnoringCase(exercise.getSolution().get(1).getPath());
+        assertThat(savedFiles.get(2).getAbsolutePath()).isEqualToIgnoringCase(exercise.getSolution().get(2).getPath());
+        verify(exerciseRepository, times(1)).findById(anyLong());
+        verify(userRepository, times(1)).findByUsername(anyString());
+        verify(fileRepository, times(3)).save(any(ExerciseFile.class));
+        verify(exerciseRepository, times(1)).save(any(Exercise.class));
+    }
+
+    @Test
     public void getTemplate() throws Exception {
         User student = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        student.setId(3l);
+        student.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         student.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(student);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseFile file1 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt");
@@ -418,7 +519,7 @@ public class ExerciseFilesServiceImplTests {
         Optional<Exercise> exOpt = Optional.of(exercise);
         when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-        Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(1l, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.getExerciseTemplate(1L, "johndoe");
         List<File> files = filesMap.values().stream().findFirst().get();
 
         assertThat(files.size()).isEqualTo(2);
@@ -432,31 +533,31 @@ public class ExerciseFilesServiceImplTests {
     @Test
     public void getAllStudentExercises() throws ExerciseNotFoundException, NotInCourseException {
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
-        teacher.setId(3l);
+        teacher.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(10l);
+        teacherRole.setId(10L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         User student1 = new User("johndoejr1@gmail.com", "johndoejr1", "pass", "John", "Doe Jr 1");
-        student1.setId(11l);
+        student1.setId(11L);
         student1.addRole(studentRole);
         User student2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
-        student2.setId(12l);
+        student2.setId(12L);
         student2.addRole(studentRole);
         User student3 = new User("johndoejr3@gmail.com", "johndoejr3", "pass", "John", "Doe Jr 3");
-        student3.setId(13l);
+        student3.setId(13L);
         student3.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(teacher);
         course.addUserInCourse(student1);
         course.addUserInCourse(student2);
         course.addUserInCourse(student3);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseFile file1 = new ExerciseFile("v4t-course-test/spring-boot-course/exercise_1_1/template/ej1.txt");
@@ -496,7 +597,7 @@ public class ExerciseFilesServiceImplTests {
         Optional<Exercise> exOpt = Optional.of(exercise);
         when(exerciseRepository.findById(anyLong())).thenReturn(exOpt);
 
-        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(1l, "johndoe");
+        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(1L, "johndoe");
         List<File> files = filesMap.values().stream().findFirst().get();
 
         assertThat(files.size()).isEqualTo(6);
@@ -516,54 +617,55 @@ public class ExerciseFilesServiceImplTests {
     }
 
     @Test
-    public void getFileIds() throws ExerciseNotFoundException {
+    public void getFileIds() throws NotFoundException {
         User teacher = new User("johndoe@gmail.com", "johndoe", "pass", "John", "Doe");
-        teacher.setId(3l);
+        teacher.setId(3L);
         Role studentRole = new Role("ROLE_STUDENT");
-        studentRole.setId(2l);
+        studentRole.setId(2L);
         Role teacherRole = new Role("ROLE_TEACHER");
-        teacherRole.setId(10l);
+        teacherRole.setId(10L);
         teacher.addRole(studentRole);
         teacher.addRole(teacherRole);
         User student1 = new User("johndoejr1@gmail.com", "johndoejr1", "pass", "John", "Doe Jr 1");
-        student1.setId(11l);
+        student1.setId(11L);
         student1.addRole(studentRole);
         User student2 = new User("johndoejr2@gmail.com", "johndoejr2", "pass", "John", "Doe Jr 2");
-        student2.setId(12l);
+        student2.setId(12L);
         student2.addRole(studentRole);
         User student3 = new User("johndoejr3@gmail.com", "johndoejr3", "pass", "John", "Doe Jr 3");
-        student3.setId(13l);
+        student3.setId(13L);
         student3.addRole(studentRole);
         Course course = new Course("Spring Boot Course");
-        course.setId(4l);
+        course.setId(4L);
         course.addUserInCourse(teacher);
         course.addUserInCourse(student1);
         course.addUserInCourse(student2);
         course.addUserInCourse(student3);
         Exercise exercise = new Exercise();
         exercise.setName("Exercise 1");
-        exercise.setId(1l);
+        exercise.setId(1L);
         course.addExercise(exercise);
         exercise.setCourse(course);
         ExerciseFile ex1 = new ExerciseFile("student_11" + File.separator + "test1");
-        ex1.setId(101l);
+        ex1.setId(101L);
         ex1.setOwner(student1);
         ExerciseFile ex2 = new ExerciseFile("student_12" + File.separator + "test2");
-        ex2.setId(102l);
+        ex2.setId(102L);
         ex2.setOwner(student2);
         ExerciseFile ex3 = new ExerciseFile("student_13" + File.separator + "test3");
-        ex3.setId(103l);
+        ex3.setId(103L);
         ex3.setOwner(student3);
         exercise.addUserFile(ex1);
         exercise.addUserFile(ex2);
         exercise.addUserFile(ex3);
         when(exerciseRepository.findById(anyLong())).thenReturn(Optional.of(exercise));
+        when(userService.findByUsername("johndoejr1")).thenReturn(student1);
 
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndOwner(1l, "johndoejr1");
+        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndId(1L, "johndoejr1");
 
         verify(exerciseRepository, times(1)).findById(anyLong());
         assertThat(files.size()).isEqualTo(1);
-        assertThat(files.get(0).getId()).isEqualTo(101l);
+        assertThat(files.get(0).getId()).isEqualTo(101L);
         assertThat(files.get(0).getPath()).isEqualTo("test1");
     }
 }

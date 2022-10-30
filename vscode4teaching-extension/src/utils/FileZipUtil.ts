@@ -25,11 +25,12 @@ export class FileZipUtil {
     }
 
     /**
-     * Returns zip info from an exercise
-     * @param courseName course name
-     * @param exercise exercise
+     * Returns ZIP info associated with the download of a student's files in an exercise.
+     *
+     * @param courseName Course name
+     * @param exercise Exercise information
      */
-    public static exerciseZipInfo(courseName: string, exercise: Exercise): ZipInfo {
+    public static studentExerciseZipInfo(courseName: string, exercise: Exercise): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
             const currentUser = CurrentUser.getUserInfo();
             const dir = path.resolve(FileZipUtil.downloadDir, currentUser.username, courseName, exercise.name);
@@ -46,41 +47,52 @@ export class FileZipUtil {
     }
 
     /**
-     * Returns zip info from student files
-     * @param courseName course name
-     * @param exercise exercise
+     * Returns ZIP info associated with a student's download of an exercise solution.
+     *
+     * @param exercise ExerciseInformation
      */
-    public static studentZipInfo(courseName: string, exercise: Exercise): ZipInfo {
+    public static studentSolutionZipInfo(exercise: Exercise): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
-            const currentUser = CurrentUser.getUserInfo();
-            const dir = path.resolve(FileZipUtil.downloadDir, "teacher", currentUser.username, courseName, exercise.name);
-            const zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
-            const studentZipName = exercise.id + ".zip";
-            return {
-                dir,
-                zipDir,
-                zipName: studentZipName,
-            };
+            if (exercise.course && exercise.includesTeacherSolution && exercise.solutionIsPublic) {
+                const currentUser = CurrentUser.getUserInfo();
+                const dir = path.resolve(FileZipUtil.downloadDir, currentUser.username, exercise.course.name, exercise.name, "solution");
+                const zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, currentUser.username);
+                const zipName = exercise.id + "-solution.zip";
+                return {
+                    dir,
+                    zipDir,
+                    zipName,
+                };
+            } else {
+                throw new Error("Referred exercise has no solution or it is not public yet.");
+            }
         } else {
             throw new Error("Not logged in");
         }
     }
 
     /**
-     * Returns zip info from a template of an exercise
-     * @param courseName course name
-     * @param exercise exercise
+     * Returns ZIP info from a exercise resource (either student's files, its template or its solution if exists).
+     *
+     * It distinguishes between these cases by means of the resourceType parameter,
+     * which may not be entered (student's files) or may be set to "template" or "solution".
+     *
+     * @param courseName Course name
+     * @param exercise Exercise information
+     * @param resourceType Resource type (can be either "template" or "solution")
      */
-    public static templateZipInfo(courseName: string, exercise: Exercise): ZipInfo {
+    public static teacherExerciseZipInfo(courseName: string, exercise: Exercise, resourceType?: "template" | "solution"): ZipInfo {
         if (CurrentUser.isLoggedIn()) {
             const currentUser = CurrentUser.getUserInfo();
-            const templateDir = path.resolve(FileZipUtil.downloadDir, "teacher", currentUser.username, courseName, exercise.name, "template");
-            const templateZipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
-            const templateZipName = exercise.id + "-template.zip";
+            // Dónde voy a meter el fichero ZIP una vez se haya descargado y descomprimido
+            const dir = path.resolve(FileZipUtil.downloadDir, "teacher", currentUser.username, courseName, exercise.name, resourceType ?? "");
+            // Dónde voy a guardarme el ZIP que se me descarga y con qué nombre
+            const zipDir = path.resolve(FileZipUtil.INTERNAL_FILES_DIR, "teacher", currentUser.username);
+            const zipName = `${ exercise.id }${ resourceType ? "-" + resourceType : '' }.zip`;
             return {
-                dir: templateDir,
-                zipDir: templateZipDir,
-                zipName: templateZipName,
+                dir: dir,
+                zipDir: zipDir,
+                zipName: zipName,
             };
         } else {
             throw new Error("Not logged in");
@@ -92,8 +104,9 @@ export class FileZipUtil {
      * @param zipInfo zip info (check previous functions)
      * @param requestThenable thenable to call with zip
      * @param templateDir Optional template dir (use only if zipping a template)
+     * @param ignoreV4TFile True if V4T files should be ignored
      */
-    public static async filesFromZip(zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string) {
+    public static async filesFromZip(zipInfo: ZipInfo, requestThenable: AxiosPromise<ArrayBuffer>, templateDir?: string, ignoreV4TFile?: boolean) {
         if (!fs.existsSync(zipInfo.dir)) {
             mkdirp.sync(zipInfo.dir);
         }
@@ -133,13 +146,17 @@ export class FileZipUtil {
                 }
             }
             // The purpose of this file is to indicate this is an exercise directory to V4T to enable file uploads, etc
-            const isTeacher = CurrentUser.isLoggedIn() ? ModelUtils.isTeacher(CurrentUser.getUserInfo()) : false;
-            const fileContent: V4TExerciseFile = {
-                zipLocation: zipUri,
-                teacher: isTeacher,
-                template: templateDir ? templateDir : undefined,
-            };
-            fs.writeFileSync(path.resolve(zipInfo.dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
+            // It is written when ignoreV4TFile is not declared or its value is undefined
+            // Currently, this parameter is only used when a student downloads the teacher's solution to an exercise
+            if (!ignoreV4TFile) {
+                const isTeacher = CurrentUser.isLoggedIn() ? ModelUtils.isTeacher(CurrentUser.getUserInfo()) : false;
+                const fileContent: V4TExerciseFile = {
+                    zipLocation: zipUri,
+                    teacher: isTeacher,
+                    template: templateDir ? templateDir : undefined,
+                };
+                fs.writeFileSync(path.resolve(zipInfo.dir, "v4texercise.v4t"), JSON.stringify(fileContent), { encoding: "utf8" });
+            }
             return zipInfo.dir;
         } catch (error) {
             v4tLogger.error(error);
@@ -153,8 +170,8 @@ export class FileZipUtil {
      */
     public static async getZipFromUris(fileUris: vscode.Uri[]) {
         const zip = new JSZip();
-        fileUris.forEach((uri) => {
-            const uriPath = path.resolve(uri.fsPath)?.replace(/\\/g, "/");
+        fs.readdirSync(fileUris[0].fsPath).forEach((uri) => {
+            const uriPath = path.resolve(fileUris[0].fsPath, uri)?.replace(/\\/g, "/");
             const stat = fs.statSync(uriPath);
             if (stat && stat.isDirectory()) {
                 FileZipUtil.buildZipFromDirectory(uriPath, zip, path.dirname(uriPath));
@@ -172,9 +189,9 @@ export class FileZipUtil {
      * Updates or adds a single file in zip and uploads it
      * @param ignoredFiles List of ignored files
      * @param filePath Path of the file
+     * @param rootPath Root path
      * @param exerciseId Exercise id
      * @param jszipFile JSZip instance
-     * @param cwd Current Working Directory
      */
     public static async updateFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
@@ -188,7 +205,7 @@ export class FileZipUtil {
                     const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
                     vscode.window.setStatusBarMessage("Compressing files...", thenable);
                     return thenable.then((zipData) => APIClient.uploadFiles(exerciseId, zipData))
-                        .catch((axiosError) => APIClient.handleAxiosError(axiosError));
+                                   .catch((axiosError) => APIClient.handleAxiosError(axiosError));
                 }
             } catch (err) {
                 if (filePath.includes("v4texercise.v4t")) {
@@ -204,9 +221,9 @@ export class FileZipUtil {
      * Deletes a single file in zip and uploads it
      * @param ignoredFiles List of ignored files
      * @param filePath Path of the file
+     * @param rootPath Root path
      * @param exerciseId Exercise id
      * @param jszipFile JSZip instance
-     * @param cwd Current Working Directory
      */
     public static async deleteFile(jszipFile: JSZip, filePath: string, rootPath: string, ignoredFiles: string[], exerciseId: number) {
         if (!ignoredFiles.includes(filePath)) {
@@ -215,8 +232,10 @@ export class FileZipUtil {
             jszipFile.remove(relativeFilePath);
             const thenable = jszipFile.generateAsync({ type: "nodebuffer" });
             vscode.window.setStatusBarMessage("Compressing files...", thenable);
-            return thenable.then((zipData) => { APIClient.uploadFiles(exerciseId, zipData); })
-                .catch((err) => APIClient.handleAxiosError(err));
+            return thenable.then((zipData) => {
+                APIClient.uploadFiles(exerciseId, zipData);
+            })
+                           .catch((err) => APIClient.handleAxiosError(err));
         }
     }
 

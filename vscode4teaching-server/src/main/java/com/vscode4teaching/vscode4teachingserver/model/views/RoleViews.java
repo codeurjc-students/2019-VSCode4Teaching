@@ -4,6 +4,6 @@ public class RoleViews {
     private RoleViews() {
     }
 
-    public static interface GeneralView {
+    public interface GeneralView {
     }
 }
