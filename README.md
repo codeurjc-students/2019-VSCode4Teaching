@@ -1,8 +1,10 @@
 # VSCode4Teaching
 
-[![Build Status](https://api.travis-ci.com/codeurjc-students/2019-VSCode4Teaching.svg?branch=master)](https://app.travis-ci.com/github/codeurjc-students/2019-VSCode4Teaching)
-[![Extension version](https://vsmarketplacebadge.apphb.com/version-short/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
-[![Extension installs](https://vsmarketplacebadge.apphb.com/installs/VSCode4Teaching.vscode4teaching.svg)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
+[![Travis CI build status](https://img.shields.io/travis/com/codeurjc-students/2019-VSCode4Teaching?label=Travis%20CI&style=flat-square)](https://app.travis-ci.com/github/codeurjc-students/2019-VSCode4Teaching)
+[![Docker Hub Repository](https://img.shields.io/docker/v/vscode4teaching/vscode4teaching?color=0db7ed&label=Docker%20Hub&sort=date&style=flat-square)](https://hub.docker.com/r/vscode4teaching/vscode4teaching)
+[![Docker Hub pulls](https://img.shields.io/docker/pulls/vscode4teaching/vscode4teaching?color=0db7ed&label=Docker%20Hub%20pulls&style=flat-square)](https://hub.docker.com/r/vscode4teaching/vscode4teaching)
+[![VS Marketplace extension's version](https://img.shields.io/visual-studio-marketplace/v/vscode4teaching.vscode4teaching?color=0078d7&label=VS%20Marketplace&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
+[![VS Marketplace extension's installs](https://img.shields.io/visual-studio-marketplace/i/vscode4teaching.vscode4teaching?color=0078d7&label=VS%20Marketplace%20installs&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
 
 VSCode4Teaching is a [Visual Studio Code](https://code.visualstudio.com) extension that brings the programming exercises of a course directly to the student’s editor, so that the teacher of that course can check the progress of the students and help them. It was created and expanded by Iván Chicano Capelo (whose blog can be read clicking [here](https://medium.com/@ivchicano)) and Álvaro Justo Rivas Alcobendas. Currently, this project is being developed by Diego Guerrero Carrasco. All the information about the progress of this stage of the project can be read in [this blog](https://medium.com/@diego-guerrero).
 
@@ -44,7 +46,7 @@ VSCode4Teaching is composed of three components that work cooperatively with eac
 ### How to quickly start up a server
 To set up a VSCode4Teaching server, the fastest method is to use **Docker**, which is a lightweight container-based technology to speed up application deployment. For this purpose, some relevant files are inserted into the repository:
 - A [``Dockerfile``](Dockerfile) file containing the necessary coding to compile the webapp and insert it as a server view, which is compiled and launched in a Java container. The image resulting from this compilation is published in [*Docker Hub*](https://hub.docker.com/r/vscode4teaching/vscode4teaching) each time a new version of the application is released.
-- A file [``vscode4teaching-server/docker/docker-compose.yml``](vscode4teaching-server/docker/docker-compose.yml``) that allows using Docker Compose to quickly run two containers: one for the MySQL database used (``db``), for the image compiled from the ``Dockerfile`` above (``app``) and for the execution of a graphical database manager (``adminer``), which is optional and can be removed without affecting the operation of the server.
+- A file [``vscode4teaching-server/docker/docker-compose.yml``](vscode4teaching-server/docker/docker-compose.yml) that allows using Docker Compose to quickly run two containers: one for the MySQL database used (``db``), for the image compiled from the ``Dockerfile`` above (``app``) and for the execution of a graphical database manager (``adminer``), which is optional and can be removed without affecting the operation of the server.
 - A file [``vscode4teaching-server/docker/.env``](vscode4teaching-server/docker/.env) with user-customizable environment variables for the execution of the ``docker-compose.yml`` above.
 
 Therefore, it is possible to run a VSCode4Teaching server directly using the ``docker-compose.yml`` file, by pointing a terminal to the directory containing it and running the command ``docker compose up -d`` (or ``docker-compose up -d`` in earlier versions of Docker).

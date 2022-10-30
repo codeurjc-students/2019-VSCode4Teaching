@@ -81,7 +81,7 @@ mvn test
 ### Arguments and environment variables
 It is possible to enter some arguments in the JAR run line or as environment variables in the [``.env``](vscode4teaching-server/docker/.env) file to modify the basic application settings. They are:
 
-- ``server.port`` (default: 8080). It is used to modify the port on which the application is served.
+- ``server.port`` (default: ``8080``). It is used to modify the port on which the application is served.
 - ``jwt.secret`` (default: ``vscode4teaching``. Secret used to generate JWT tokens. It is **IMPORTANT** to change this value in production to ensure security.
 - ``v4t.filedirectory`` (default: ``v4t-course``). This is the directory where all course and exercise files created and submitted are stored.
 - Configuration of the database:
