@@ -104,7 +104,7 @@ describe("Dashboard Webview", () => {
         });
 
         DashboardWebview.show(euis, course, exercise, true);
-        
+
         if (DashboardWebview.currentPanel) {
             expect(mockedVscode.window.createWebviewPanel).toHaveBeenCalledTimes(1);
             expect(mockedVscode.window.createWebviewPanel.mock.calls[0][0]).toBe("v4tdashboard");
@@ -118,7 +118,7 @@ describe("Dashboard Webview", () => {
             }
 
             expect(global.setInterval).toHaveBeenCalledTimes(2);
-            
+
             const generatedHTML = parse(DashboardWebview.currentPanel.panel.webview.html);
             // HTML <title> is correct
             const tabTitle = generatedHTML.querySelector("title");
