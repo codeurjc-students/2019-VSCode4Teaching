@@ -21,7 +21,7 @@
 	},
 	"displayName": "VS Code 4 Teaching",
 	"description": "Bring the programming exercises directly to the student’s editor.",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"engines": {
 		"vscode": "^1.64.0"
 	},
@@ -407,13 +407,13 @@
 		"@types/vscode": "1.64.0",
 		"@types/ws": "^8.5.3",
 		"esbuild": "^0.14.54",
-		"eslint": "^8.26.0",
+		"eslint": "^8.27.0",
 		"jest": "^26.6.3",
 		"jest-sonar-reporter": "^2.0.0",
-		"node-html-parser": "^6.1.1",
+		"node-html-parser": "^6.1.4",
 		"rimraf": "^3.0.2",
 		"ts-jest": "^26.5.6",
-		"typescript": "^4.8.4"
+		"typescript": "^4.9.3"
 	},
 	"dependencies": {
 		"axios": "^1.1.3",
@@ -424,7 +424,7 @@
 		"mkdirp": "^1.0.4",
 		"vsls": "^1.0.4753",
 		"winston": "^3.8.2",
-		"ws": "^8.9.0"
+		"ws": "^8.11.0"
 	},
 	"jestSonar": {
 		"reportPath": "coverage",
