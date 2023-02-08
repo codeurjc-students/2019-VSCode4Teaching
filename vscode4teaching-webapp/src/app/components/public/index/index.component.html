@@ -1,0 +1,90 @@
+<div id="indexComponentBody" class="container">
+    <div class="logoContainer">
+        <img src="/assets/img/v4ticon.png" alt="V4T logo" />
+    </div>
+    <h1>VSCode4Teaching</h1>
+    <h2>Extension for Visual Studio Code</h2>
+    <hr/>
+    <!-- <ng-container>
+        <div class="alert alert-secondary"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+        <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> The code you entered could not be related to a course.</div>
+    </ng-container> -->
+    <ng-container>
+        <!-- <ng-container>
+            <div class="text-big">
+                <kbd>NAME</kbd> <kbd>SURNAME</kbd> invited you to join <kbd>COURSENAME</kbd> at VSCode4Teaching!
+            </div>
+            <div class="text-big">
+                If you want to join this course, please follow this steps:
+            </div>
+        </ng-container> -->
+        <ng-container>
+            <div class="text-big">
+                Bring the programming exercises of a course directly to the student's editor, so that the teacher of that course can check the progress of the students and help them.
+            </div>
+            <div class="text-big">
+                Getting started (for users)
+            </div>
+        </ng-container>
+        <div class="step" id="step1">
+            <div class="stepDescription">Install Visual Studio Code IDE if you have not installed it previously:</div>
+            <div>
+                <a class="downloadBtn" id="vsc" href="https://code.visualstudio.com/Download" target="_blank" rel="noopener noreferrer">
+                    <img src="/assets/img/vscode.png" alt="" />
+                    <span>Download Visual Studio Code</span>
+                </a>
+            </div>
+        </div>
+        <div class="step" id="step2">
+            <div class="stepDescription">Install VSCode4Teaching extension if you have not installed it previously:</div>
+            <div>
+                <a class="downloadBtn" id="v4t" href="vscode:extension/VSCode4Teaching.vscode4teaching">
+                    <img src="/assets/img/v4ticon.png" alt="" />
+                    <span>Download V4T extension</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="step" id="step3">
+            <div class="stepDescription">You will have to sign up if you did not previously:</div>
+            <img class="stepImage" src="/assets/img/gif1_signup.gif" alt="Animated image of demo student registering" />
+        </div>
+        <div class="step" id="step4">
+            <div class="stepDescription">If you signed up successfully, now you can log in:</div>
+            <img class="stepImage" src="/assets/img/gif2_login.gif" alt="Animated image of demo student logging in">
+        </div>
+        <div class="step" id="step5">
+            <ng-container>
+                <div class="stepDescription">Join a course (the teacher will give you the code!):</div>
+            </ng-container>
+            <!-- <ng-container>
+                <div class="stepDescription">Join the course using this code:</div>
+                <div class="codeBlock">
+                    <input id="givenCodeInput" [value]="this.code" readonly #codeCopyInput />
+                    <button type="button" id="codeCopyBtn" #codeCopyBtn>Copy</button>
+                </div>
+            </ng-container> -->
+            <img class="stepImage" src="/assets/img/gif3_joincourse.gif" alt="Animated image of demo student enrolling in a course using an enrollment code" />
+        </div>
+        <div class="step" id="step6">
+            <div class="stepDescription">Now you can do the exercise! When you save a file, its contents will be able to be seen by the teachers:</div>
+            <img class="stepImage" src="/assets/img/gif4_doingexercise.gif" alt="Animated image of demo student editing an exercise" />
+        </div>
+        <div class="step" id="step7">
+            <div class="stepDescription">When you finish the exercise, press the Finish button:</div>
+            <img class="stepImage" src="/assets/img/gif5_finishexercise.gif" alt="Animated image of a demo student marking an exercise as finished" />
+        </div>
+        <div class="step" id="step8">
+            <div class="stepDescription">If your teacher included a solution, you can download it:</div>
+            <img class="stepImage" src="/assets/img/gif6_downloadsolution.gif" alt="Animated image of a demo student downloading the teacher's solution to an exercise" />
+        </div>
+        <div class="step" id="step9">
+            <div class="stepDescription">When downloaded, you can also check the differences between your proposal and your teacher's solution:</div>
+            <img class="stepImage" src="/assets/img/gif7_diffwithsolution.gif" alt="Animated image of a demo student viewing the differences between his or her exercise and the teacher's solution" />
+        </div>
+        <div class="step" id="step10">
+            <div class="stepDescription">New exercise!</div>
+            <img class="stepImage" src="/assets/img/gif8_newexercise.gif" alt="Animated image of demo student refreshing exercise list" />
+        </div>
+    </ng-container>
+</div>

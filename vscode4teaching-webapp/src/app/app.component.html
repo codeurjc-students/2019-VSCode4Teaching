@@ -1,0 +1,13 @@
+<header *ngIf="this.showHeader">
+    <app-layout-header></app-layout-header>
+</header>
+<main class="container-fluid">
+    <div class="row">
+        <aside class="col-3 p-1" *ngIf="this.showAside">
+            <app-layout-aside></app-layout-aside>
+        </aside>
+        <section [ngClass]='{"col-9": this.showAside, "col-12": !this.showAside}'>
+            <router-outlet></router-outlet>
+        </section>
+    </div>
+</main>

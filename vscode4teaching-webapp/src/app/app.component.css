@@ -1,0 +1,10 @@
+header + main {
+    margin-top: 3rem;
+}
+
+.col-12 {
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+}
