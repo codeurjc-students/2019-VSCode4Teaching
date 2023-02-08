@@ -1,17 +1,11 @@
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
-import { TeacherSignUpFormComponent } from "./components/teacher-sign-up-form/teacher-sign-up-form.component";
-import { ErrorNotFoundComponent } from "./components/error-not-found/error-not-found.component";
-import { IndexComponent } from "./components/index/index.component";
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-const routes: Routes = [
-    { path: "", component: IndexComponent },
-    { path: "teacher/sign-up/:tempPassword", component: TeacherSignUpFormComponent },
-    { path: "**", component: ErrorNotFoundComponent },
-];
+const routes: Routes = [];
 
 @NgModule({
     imports: [RouterModule.forRoot(routes)],
-    exports: [RouterModule],
+    exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule {
+}
