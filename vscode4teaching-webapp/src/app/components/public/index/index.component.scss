@@ -3,34 +3,34 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
 
-#indexComponentBody > .logoContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px 0;
-    height: 150px;
-}
+    > .logoContainer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px 0;
+        height: 150px;
 
-#indexComponentBody > .logoContainer > img {
-    height: 100%;
-}
+        > img {
+            height: 100%;
+        }
+    }
 
-#indexComponentBody > h1 {
-    text-align: center;
-    font-weight: 700;
-    margin: 0;
-    color: #F44A3E;
-}
+    > h1 {
+        text-align: center;
+        font-weight: 700;
+        margin: 0;
+        color: #F44A3E;
+    }
 
-#indexComponentBody > h2 {
-    font-weight: 500;
-    margin: 1.5rem 0 0.75rem;
-}
+    > h2 {
+        font-weight: 500;
+        margin: 1.5rem 0 0.75rem;
+    }
 
-#indexComponentBody > hr {
-    border-color: #F44A3E;
+    > hr {
+        border-color: #F44A3E;
+    }
 }
 
 .text-big {
@@ -43,12 +43,12 @@
     margin: .5rem 4vw;
     padding-bottom: .25rem;
     border-bottom: 1px solid #F44A3E;
-}
 
-.step > .stepImage {
-    width: 75%;
-    max-width: 1200px;
-    margin-top: .25rem;
+    > .stepImage {
+        width: 75%;
+        max-width: 1200px;
+        margin-top: .25rem;
+    }
 }
 
 
@@ -61,44 +61,46 @@
     padding: 8px 30px;
     font-size: 1rem;
     transition: all 0.5s;
-}
 
-.downloadBtn:hover {
-    transition: all 0.5s;
+    &:hover {
+        transition: all 0.5s;
+    }
 }
 
 .step#step1 .downloadBtn#vsc {
     border: 1px solid #007acc;
     background-color: #ceebff;
-}
 
-.step#step1 .downloadBtn#vsc:hover {
-    background-color: #9ad6ff;
-    box-shadow: 0 0 10px #9ad6ff;
+    &:hover {
+        background-color: #9ad6ff;
+        box-shadow: 0 0 10px #9ad6ff;
+    }
 }
 
 .step#step2 .downloadBtn#v4t {
     border: 2px solid #f88a81;
     background-color: #fbb7b1;
+
+    &:hover {
+        background-color: #fbb7b1;
+        box-shadow: 0 0 10px #fbb7b1;
+    }
 }
 
-.step#step2 .downloadBtn#v4t:hover {
-    background-color: #fbb7b1;
-    box-shadow: 0 0 10px #fbb7b1;
-}
+.downloadBtn {
+    > img {
+        width: 25px;
+        margin-right: 16px;
+    }
 
-.downloadBtn > img {
-    width: 25px;
-    margin-right: 16px;
-}
+    > span {
+        color: black;
+    }
 
-.downloadBtn > span {
-    color: black;
-}
-
-.downloadBtn:link,
-.downloadBtn:visited {
-    text-decoration: none;
+    &:link,
+    &:visited {
+        text-decoration: none;
+    }
 }
 
 .codeBlock {
@@ -112,12 +114,12 @@
     padding: 12px 40px;
     flex-grow: 9;
     transition: all 0.25s;
-}
 
-#givenCodeInput:focus {
-    outline: none;
-    box-shadow: 0 0 20px #f38078;
-    transition: all 0.25s;
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 20px #f38078;
+        transition: all 0.25s;
+    }
 }
 
 #codeCopyBtn {

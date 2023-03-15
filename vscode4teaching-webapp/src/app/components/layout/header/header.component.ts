@@ -7,7 +7,7 @@ import { Event, NavigationStart, Router } from "@angular/router";
 @Component({
     selector: 'app-layout-header',
     templateUrl: './header.component.html',
-    styleUrls: ['./header.component.css']
+    styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
 
