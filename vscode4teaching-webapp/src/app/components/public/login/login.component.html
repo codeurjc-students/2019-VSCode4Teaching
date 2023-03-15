@@ -1,0 +1,30 @@
+<div class="loginFormWrapper">
+    <div class="loginFormContainer">
+        <form class="loginForm was-validated" (submit)="submitLoginForm($event)" [formGroup]="loginForm" novalidate>
+            <h4 class="centeredTitle">VSCode4Teaching</h4>
+
+            <div class="alertRegion" id="alertRegion">
+                <div class="alert alert-danger" *ngIf="this.loginFormSubmissionStatus === LoginFormSubmissionStatus.RESPONSE_ERROR">Authentication failed: username or password were not registered.</div>
+                <!-- Currently unavailable -->
+                <!-- <div class="alert alert-danger" *ngIf="this.loginForm.dirty && this.loginForm.invalid">Authentication failed: username or password entered are not valid.</div> -->
+            </div>
+
+            <div class="formInput">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" formControlName="username" autocomplete="off" placeholder="Username">
+            </div>
+            <div class="formInput">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" formControlName="password" autocomplete="off" placeholder="Password">
+            </div>
+            <button type="submit" class="formButton">
+                <span *ngIf="this.loginFormSubmissionStatus === LoginFormSubmissionStatus.SUBMITTED">
+                    <i class="fas fa-spin fa-circle-notch"></i> Loading...
+                </span>
+                <span *ngIf="this.loginFormSubmissionStatus !== LoginFormSubmissionStatus.SUBMITTED">
+                    Sign In
+                </span>
+            </button>
+        </form>
+    </div>
+</div>

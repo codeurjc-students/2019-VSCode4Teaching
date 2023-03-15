@@ -4,6 +4,17 @@
         <h1>VSCode4Teaching</h1>
     </div>
     <div class="rightSide">
-        <a class="btn btn-sm btn-outline-danger"><i class="fas fa-user"></i> Sign In</a>
+        <ng-container *ngIf="this.currentUserInfo === undefined">
+            <div>
+                <i class="fas fa-spin fa-circle-notch" style="color: #F44A3E"></i>
+            </div>
+        </ng-container>
+        <ng-container *ngIf="this.currentUserInfo === null">
+            <a [routerLink]="['/login']" class="btn btn-sm btn-outline-danger"><i class="fas fa-user"></i> Sign In</a>
+        </ng-container>
+        <ng-container *ngIf="this.currentUserInfo">
+            <div *ngIf="this.currentUserInfo">{{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}</div>&nbsp;
+            <a class="btn btn-sm btn-outline-danger" (click)="this.logout()">Sign Out</a>
+        </ng-container>
     </div>
 </nav>

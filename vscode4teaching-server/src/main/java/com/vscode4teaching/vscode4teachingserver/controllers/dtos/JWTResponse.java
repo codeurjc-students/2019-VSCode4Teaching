@@ -8,18 +8,21 @@ public class JWTResponse implements Serializable {
 
     private String jwtToken;
 
+    private String encryptedJwtToken;
+
     public JWTResponse() {
     }
 
-    public JWTResponse(String jwtToken) {
+    public JWTResponse(String jwtToken, String encryptedJwtToken) {
         this.jwtToken = jwtToken;
+        this.encryptedJwtToken = encryptedJwtToken;
     }
 
     public String getJwtToken() {
         return jwtToken;
     }
 
-    public void setJwtToken(String jwtToken) {
-        this.jwtToken = jwtToken;
+    public String getEncryptedJwtToken() {
+        return encryptedJwtToken;
     }
 }

@@ -7,8 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +29,8 @@ public class JWTTokenUtil implements Serializable {
     // Value in application.properties
     @Value("${jwt.secret}")
     private String secret;
+
+    private Key key;
 
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
@@ -61,7 +70,50 @@ public class JWTTokenUtil implements Serializable {
     }
 
     public String getUsernameFromToken(HttpServletRequest request) {
-        String jwtToken = request.getHeader("Authorization").substring(7); // remove Bearer
-        return getUsernameFromToken(jwtToken);
+        // Request can include either a "Authorization" header (vscode4teaching-extension)
+        // or a "Encrypted-Authorization" header (vscode4teaching-webapp)
+        String jwtToken = request.getHeader("Authorization"); // Remove Bearer
+        if (request.getHeader("Encrypted-Authorization") != null) {
+            jwtToken = this.decryptToken(request.getHeader("Encrypted-Authorization")); // Remove Bearer
+        }
+        return (jwtToken == null) ? null : getUsernameFromToken(jwtToken.substring(7));
+    }
+
+    public String encryptToken(String text) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, this.getAESKey());
+
+            byte[] encrypted = cipher.doFinal(text.getBytes());
+
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String decryptToken(String encrypted) {
+        byte[] encryptedBytes = Base64.getDecoder().decode(encrypted.replace("\n", ""));
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, this.getAESKey());
+
+            return new String(cipher.doFinal(encryptedBytes));
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private Key getAESKey() {
+        if (this.key == null) {
+            try {
+                KeyGenerator generator = KeyGenerator.getInstance("AES");
+                this.key = generator.generateKey();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return this.key;
     }
 }

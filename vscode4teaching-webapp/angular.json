@@ -39,13 +39,13 @@
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "maximumWarning": "500kb",
-                                    "maximumError": "1mb"
+                                    "maximumWarning": "4mb",
+                                    "maximumError": "8mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "2kb",
-                                    "maximumError": "4kb"
+                                    "maximumWarning": "4mb",
+                                    "maximumError": "8mb"
                                 }
                             ],
                             "outputHashing": "all"
@@ -68,7 +68,8 @@
                             "browserTarget": "vscode4teaching:build:production"
                         },
                         "development": {
-                            "browserTarget": "vscode4teaching:build:development"
+                            "browserTarget": "vscode4teaching:build:development",
+                            "proxyConfig": "src/proxy.conf.json"
                         }
                     },
                     "defaultConfiguration": "development"

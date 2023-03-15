@@ -21,8 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,13 +51,14 @@ public class JWTLoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JWTResponse> generateLoginToken(@Valid @RequestBody JWTRequest loginRequest) {
-        logger.info("Request to GET '/api/login'");
+    public ResponseEntity<JWTResponse> generateLoginToken(@Valid @RequestBody JWTRequest loginRequest, HttpServletResponse response) {
+        logger.info("Request to POST '/api/login'");
         String username = loginRequest.getUsername();
         login(username, loginRequest.getPassword());
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         final String token = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JWTResponse(token));
+
+        return ResponseEntity.ok(new JWTResponse(token, jwtTokenUtil.encryptToken("Bearer " + token)));
     }
 
     private void login(String username, String password) {
@@ -98,7 +102,9 @@ public class JWTLoginController {
     @JsonView(UserViews.CourseView.class)
     public ResponseEntity<User> getCurrentUser(HttpServletRequest request) throws NotFoundException {
         logger.info("Request to GET '/api/currentuser'");
+        jwtTokenUtil.getUsernameFromToken(request);
         User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
+
         return ResponseEntity.ok(user);
     }
 

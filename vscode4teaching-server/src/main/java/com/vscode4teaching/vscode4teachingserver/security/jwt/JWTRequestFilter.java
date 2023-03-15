@@ -32,6 +32,9 @@ public class JWTRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestTokenHeader = request.getHeader("Authorization");
+        if (request.getHeader("encrypted-authorization") != null) {
+            requestTokenHeader = jwtTokenUtil.decryptToken(request.getHeader("encrypted-authorization"));
+        }
         String username = null;
         String jwtToken = null;
         String query = request.getQueryString();
