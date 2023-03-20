@@ -1,16 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { CurrentUserService } from "../../../../services/auth/current-user/current-user.service";
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
 
-    constructor (private curUserService: CurrentUserService) { }
+    constructor () { }
 
-    async ngOnInit() {
-        await this.curUserService.currentUser;
-    }
 }

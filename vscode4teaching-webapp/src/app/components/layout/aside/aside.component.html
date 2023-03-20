@@ -1,69 +1,44 @@
-<div class="flex-shrink-0 bg-white">
-    <ul class="list-unstyled">
-        <li class="mb-1">
-            <button class="btn btn-toggle rounded collapsed" data-bs-toggle="collapse"
-                    data-bs-target="#orders-collapse" aria-expanded="false">
-                Orders
+<ng-container *ngIf="this.asideContent === undefined">
+    <div class="alert alert-secondary">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading aside content...
+    </div>
+</ng-container>
+<ng-container *ngIf="this.asideContent !== undefined">
+    <ul class="list-unstyled px-2">
+        <li class="mb-1" *ngFor="let item of this.asideContent">
+            <button [ngClass]="{'btn btn-toggle': true, 'collapsed': item.collapsed}" data-bs-toggle="collapse" [attr.data-bs-target]="'#course' + item.id" [attr.aria-expanded]="!item.collapsed">
+                {{ item.name }}
             </button>
-            <div class="collapse" id="orders-collapse">
+            <div [ngClass]="{'collapse courseExercisesList px-2': true, 'show': !item.collapsed}" [id]="'course' + item.id">
                 <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li [routerLink]="['/dashboard']" class="aside-exercise">
-                        <div class="name">New</div>
-                        <div class="links">
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                        </div>
+                    <li class="courseActions">
+                        <button class="btn btn-xs btn-v4t"
+                                *ngFor="let itemAction of item.actions"
+                                (click)="itemAction.callback(item.id)">
+                            <i *ngIf="itemAction.icon !== undefined" [class]="itemAction.icon"></i>
+                            <span *ngIf="itemAction.icon === undefined">{{ itemAction.name }}</span>
+                        </button>
                     </li>
-                    <li [routerLink]="['/dashboard']" class="aside-exercise">
-                        <div class="name">
-                            <a class="link-dark rounded">New</a>
-                        </div>
-                        <div class="links">
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                        </div>
-                    </li>
-                    <li [routerLink]="['/dashboard']" class="aside-exercise">
-                        <div class="name">
-                            <a class="link-dark rounded">New</a>
-                        </div>
-                        <div class="links">
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                        </div>
-                    </li>
-                    <li [routerLink]="['/dashboard']" class="aside-exercise">
-                        <div class="name">
-                            <a class="link-dark rounded">New</a>
-                        </div>
-                        <div class="links">
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
-                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-save"></i></button>
+
+                    <li class="exercise" *ngFor="let subitem of item.subitems" (click)="subitem.callback(item.id, subitem.id)">
+                        <div class="row">
+                            <div class="col-9">
+                                <span class="link-dark text-decoration-none">
+                                    {{ subitem.name }}
+                                </span>
+                            </div>
+                            <div class="col-3 d-flex justify-content-end">
+                                <button class="btn btn-xs btn-v4t"
+                                        *ngFor="let subitemAction of subitem.actions"
+                                        (click)="$event.stopPropagation(); subitemAction.callback(item.id, subitem.id)">
+                                    <i *ngIf="subitemAction.icon !== undefined" [class]="subitemAction.icon"></i>
+                                    <span *ngIf="subitemAction.icon === undefined">{{ subitemAction.name }}</span>
+                                </button>
+                            </div>
                         </div>
                     </li>
                 </ul>
             </div>
         </li>
-        <!--
-            <li class="border-top my-3"></li>
-            <li class="mb-1">
-                <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
-                    data-bs-target="#account-collapse" aria-expanded="false">
-                    Account
-                </button>
-                <div class="collapse" id="account-collapse">
-                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li><a href="#" class="link-dark rounded">New...</a></li>
-                        <li><a href="#" class="link-dark rounded">Profile</a></li>
-                        <li><a href="#" class="link-dark rounded">Settings</a></li>
-                        <li><a href="#" class="link-dark rounded">Sign out</a></li>
-                    </ul>
-                </div>
-            </li>
-        -->
     </ul>
-</div>
+</ng-container>

@@ -5,16 +5,28 @@
     </div>
     <div class="rightSide">
         <ng-container *ngIf="this.currentUserInfo === undefined">
-            <div>
-                <i class="fas fa-spin fa-circle-notch" style="color: #F44A3E"></i>
-            </div>
+            <button class="btn btn-sm btn-outline-danger" disabled>
+                <i class="fas fa-spin fa-circle-notch" style="color: #F44A3E"></i>&nbsp;
+                Loading...
+            </button>
         </ng-container>
         <ng-container *ngIf="this.currentUserInfo === null">
-            <a [routerLink]="['/login']" class="btn btn-sm btn-outline-danger"><i class="fas fa-user"></i> Sign In</a>
+            <button [routerLink]="['/login']" class="btn btn-sm btn-v4t"><i class="fas fa-user"></i> Sign In</button>
         </ng-container>
         <ng-container *ngIf="this.currentUserInfo">
-            <div *ngIf="this.currentUserInfo">{{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}</div>&nbsp;
-            <a class="btn btn-sm btn-outline-danger" (click)="this.logout()">Sign Out</a>
+            <div *ngIf="this.currentUserInfo" class="userProfileInfo">
+                <i class="fas fa-user"></i>&nbsp;
+                {{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}
+            </div>&nbsp;
+            <button class="btn btn-sm btn-v4t" (click)="this.navigateToDashboard()">
+                <i class="fas fa-gauge"></i>&nbsp;
+                Dashboard
+            </button>
+            &nbsp;
+            <button class="btn btn-sm btn-v4t" (click)="this.logout()">
+                <i class="fas fa-power-off"></i>&nbsp;
+                Sign Out
+            </button>
         </ng-container>
     </div>
 </nav>

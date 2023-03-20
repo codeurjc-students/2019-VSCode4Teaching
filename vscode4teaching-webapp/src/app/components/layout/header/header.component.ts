@@ -17,9 +17,9 @@ export class HeaderComponent implements OnInit {
     constructor(public authService: AuthService, private currentUserService: CurrentUserService, private router: Router) {
         this.currentUserInfo = undefined;
 
-        this.router.events.subscribe((event: Event) => {
+        this.router.events.subscribe(async (event: Event) => {
             if (event instanceof NavigationStart) {
-                this.checkCurrentUserInfo();
+                await this.checkCurrentUserInfo();
             }
         });
     }
@@ -35,10 +35,14 @@ export class HeaderComponent implements OnInit {
     }
 
     // Header buttons' actions
-    public logout = (): void => {
+    public navigateToDashboard = async () => {
+        await this.router.navigate(["/dashboard"]);
+    }
+
+    public logout = async () => {
         // TODO to be refactored
         this.authService.logout();
         this.currentUserService.disposeCurrentUserInfo();
-        this.router.navigate(["/"]);
+        await this.router.navigate(["/"]);
     }
 }
