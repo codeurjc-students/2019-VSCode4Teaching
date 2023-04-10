@@ -14,5 +14,14 @@
                 (stepFinished)="this.nextStep()"
             ></app-exercise-step1>
         </div>
+        <div>
+            <app-exercise-step2
+                [activeStep]="this.activeStep"
+                [exercise]="this.exercise"
+                (newRootDirectoryNode)="saveRootDirectoryNode($event)"
+                (newFileSystemDirectoryHandle)="saveFileSystemDirectoryHandle($event)"
+                (stepFinished)="this.nextStep()"
+            ></app-exercise-step2>
+        </div>
     </div>
 </ng-container>

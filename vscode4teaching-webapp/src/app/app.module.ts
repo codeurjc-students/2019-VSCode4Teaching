@@ -15,6 +15,7 @@ import { AuthPersistenceMethodInterface } from "./services/auth/persistence-meth
 import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-sessionstorage.class";
 import { ExerciseComponent } from './components/private/student/exercise/exercise.component';
 import { ExerciseStep1Component } from './components/private/student/exercise/steps/exercise-step1/exercise-step1.component';
+import { ExerciseStep2Component } from './components/private/student/exercise/steps/exercise-step2/exercise-step2.component';
 
 @NgModule({
     declarations: [
@@ -31,7 +32,8 @@ import { ExerciseStep1Component } from './components/private/student/exercise/st
         // private/common
         DashboardComponent,
         ExerciseComponent,
-        ExerciseStep1Component
+        ExerciseStep1Component,
+        ExerciseStep2Component,
     ],
     imports: [
         BrowserModule,

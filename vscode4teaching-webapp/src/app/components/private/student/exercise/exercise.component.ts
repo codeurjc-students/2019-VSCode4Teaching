@@ -2,6 +2,8 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
 import { ExerciseService } from "../../../../services/rest-api/model-entities/exercise/exercise.service";
 import { Exercise } from "../../../../model/exercise.model";
+import { DirectoryNode } from "../../../../model/file-system/file-system.model";
+import { FileSystemService } from "../../../../services/file-system/file-system.service";
 
 @Component({
   selector: 'app-exercise',
@@ -15,8 +17,11 @@ export class ExerciseComponent implements OnInit {
 
     activeStep: number;
 
+    rootDirectoryNode: DirectoryNode | undefined;
+    fileSystemDirectoryHandle: FileSystemDirectoryHandle | undefined;
+
     constructor(private route: ActivatedRoute,
-                private exerciseService: ExerciseService) {
+                private exerciseService: ExerciseService, private fileSystemReaderService: FileSystemService) {
         this.exerciseId = parseInt(route.snapshot.paramMap.get("exerciseId") ?? "0");
 
         this.activeStep = 1;
@@ -28,6 +33,14 @@ export class ExerciseComponent implements OnInit {
 
 
     nextStep() {
-        // this.activeStep = this.activeStep + 1;
+        this.activeStep = this.activeStep + 1;
+    }
+
+    saveFileSystemDirectoryHandle(fileSystemDirectoryHandle: FileSystemDirectoryHandle) {
+        this.fileSystemDirectoryHandle = fileSystemDirectoryHandle;
+    }
+
+    saveRootDirectoryNode(newRootDirectoryNode: DirectoryNode) {
+        this.rootDirectoryNode = newRootDirectoryNode;
     }
 }
