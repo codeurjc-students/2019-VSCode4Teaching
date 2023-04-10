@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from "@angular/router";
-import { AuthService, LoginCredentials } from "../../../services/rest-api/auth.service";
+import { AuthService, LoginCredentials } from "../../../services/rest-api/auth/auth.service";
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
 

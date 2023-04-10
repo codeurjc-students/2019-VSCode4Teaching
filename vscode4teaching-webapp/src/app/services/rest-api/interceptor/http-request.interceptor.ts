@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UrlService } from "../../url/url.service";
-import { AuthPersistenceMethodInterface } from "../persistence-methods/auth-persistence-method-interface.service";
+import { AuthPersistenceMethodInterface } from "../../auth/persistence-methods/auth-persistence-method-interface.service";
 import { AppModule } from "../../../app.module";
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
 import { User } from "../../../model/user.model";
-import { AuthService } from "../../../services/rest-api/auth.service";
+import { AuthService } from "../../../services/rest-api/auth/auth.service";
 import { Event, NavigationStart, Router } from "@angular/router";
 
 @Component({

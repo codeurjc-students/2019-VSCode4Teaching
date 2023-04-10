@@ -1,6 +1,3 @@
-import { HttpClient } from "@angular/common/http";
-import { Inject } from "@angular/core";
-
 export class User {
     private readonly _id: number;
     private readonly _username: string;
@@ -10,9 +7,6 @@ export class User {
     private readonly _roles: string[];
 
     private readonly _courses: any[];
-
-    @Inject(HttpClient)
-    private http!: HttpClient;
 
     constructor(id: number, username: string, name: string, lastName: string) {
         this._id = id;

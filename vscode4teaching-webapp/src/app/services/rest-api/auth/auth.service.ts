@@ -1,11 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
-import { AuthPersistenceMethodInterface } from "../auth/persistence-methods/auth-persistence-method-interface.service";
+import { AuthPersistenceMethodInterface } from "../../auth/persistence-methods/auth-persistence-method-interface.service";
 
-
-// TODO ENCAPSULAR
 export type LoginCredentials = { username: string, password: string };
-
 
 @Injectable({
     providedIn: 'root'

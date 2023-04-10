@@ -1,1 +1,50 @@
-<p>dashboard works!</p>
+<div class="dashboard">
+    <h3>My Courses</h3>
+
+    <ng-container *ngIf="loadingCourseState === 'LOADING_COURSES'">
+        <div class="alert alert-v4t">
+            <i class="fas fa-circle-notch fa-spin"></i> Loading courses...
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="loadingCourseState !== 'LOADING_COURSES' && courses.length === 0">
+        <div class="alert alert-v4t">
+            <i class="fas fa-exclamation-triangle"></i> No courses for this user.
+        </div>
+    </ng-container>
+
+    <!-- Scenario 3: courses are loaded and there exists at least one course -->
+    <ng-container *ngIf="loadingCourseState !== 'LOADING_COURSES' && courses.length > 0">
+        <div class="course" *ngFor="let course of courses">
+            <div class="courseTitle">{{ course.name }}</div>
+            <div class="courseExercises">
+                <!-- Scenario 3.1: exercises are currently loading -->
+                <ng-container *ngIf="loadingCourseState === 'LOADING_EXERCISES'">
+                    <div class="alert alert-v4t">
+                        <i class="fas fa-circle-notch fa-spin"></i> Loading exercises...
+                    </div>
+                </ng-container>
+
+                <!-- Scenario 3.2: exercises are fully loaded but there are not exercises -->
+                <ng-container *ngIf="loadingCourseState !== 'LOADING_EXERCISES' && course.exercises.length === 0">
+                    <i class="fas fa-exclamation-triangle"></i> No exercises in this course.
+                </ng-container>
+
+                <!-- Scenario 3.3: exercises are fully loaded and there exists at least one exercise -->
+                <ng-container *ngIf="loadingCourseState !== 'LOADING_EXERCISES' && course.exercises.length > 0">
+                    <div class="exercise" *ngFor="let exercise of course.exercises">
+                        <div class="exerciseInfo">{{ exercise.name }}</div>
+                        <div class="exerciseActions">
+                            <button class="btn btn-xs btn-v4t">
+                                <i class="fas fa-circle-info"></i>
+                            </button>
+                            <button class="btn btn-xs btn-v4t">
+                                <i class="fas fa-cloud-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </ng-container>
+</div>

@@ -9,7 +9,7 @@ import { HeaderComponent } from "./components/layout/header/header.component";
 import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { LoginComponent } from './components/public/login/login.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { HttpRequestInterceptor } from "./services/auth/interceptor/http-request.interceptor";
+import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-request.interceptor";
 import { DashboardComponent } from './components/private/common/dashboard/dashboard.component';
 import { AuthPersistenceMethodInterface } from "./services/auth/persistence-methods/auth-persistence-method-interface.service";
 import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-sessionstorage.class";
