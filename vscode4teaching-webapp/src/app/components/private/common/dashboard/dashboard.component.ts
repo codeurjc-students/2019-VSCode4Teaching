@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { CourseService } from "../../../../services/rest-api/course/course.service";
+import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
 import { CurrentUserService } from "../../../../services/auth/current-user/current-user.service";
 import { Course } from "../../../../model/course.model";
-import { ExerciseService } from "../../../../services/rest-api/exercise/exercise.service";
+import { ExerciseService } from "../../../../services/rest-api/model-entities/exercise/exercise.service";
 import { User } from "../../../../model/user.model";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-dashboard',
@@ -17,7 +18,7 @@ export class DashboardComponent implements OnInit {
 
     loadingCourseState: 'LOADING_COURSES' | 'LOADING_EXERCISES' | 'LOADED';
 
-    constructor (private courseService: CourseService, private exerciseService: ExerciseService, private curUserService: CurrentUserService) {
+    constructor (private courseService: CourseService, private exerciseService: ExerciseService, private curUserService: CurrentUserService, public router: Router) {
         this.loadingCourseState = 'LOADING_COURSES';
     }
 
@@ -31,5 +32,10 @@ export class DashboardComponent implements OnInit {
             course.exercises = await this.exerciseService.getExercisesByCourseId(course.id);
         }
         this.loadingCourseState = 'LOADED';
+    }
+
+
+    async navigateToStudentExercise(exerciseId: number): Promise<boolean> {
+        return await this.router.navigate(["exercise", exerciseId]);
     }
 }

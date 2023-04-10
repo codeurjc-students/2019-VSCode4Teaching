@@ -13,6 +13,7 @@ button.btn-xs {
     }
 }
 
+
 button.btn-v4t {
     color: #F44A3E;
     border: 1px solid #F44A3E;
@@ -23,9 +24,46 @@ button.btn-v4t {
         color: white;
     }
 
-    &:active {
+    &:active, &.active {
         background-color: #F33326 !important;
         border-color: #F33326 !important;
         color: white !important;
     }
+}
+
+
+button.btn-v4t-coloured {
+    background-color: #F44A3E;
+    color: white;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: .5rem 3rem;
+    margin: .5rem;
+
+    &:hover {
+        background-color: #F33326;
+        color: white;
+    }
+
+    &:active {
+        background-color: #F11D0E !important;
+        color: white !important;
+        border-color: #F11D0E !important;
+    }
+}
+
+
+div.alert {
+    margin: 0;
+
+    &.alert-v4t {
+        background-color: #FFF0F0;
+        color: #F44A3E;
+        border-color: #F44A3E;
+    }
+}
+
+
+.progress-bar.bg-v4t {
+    background-color: #F44A3E;
 }

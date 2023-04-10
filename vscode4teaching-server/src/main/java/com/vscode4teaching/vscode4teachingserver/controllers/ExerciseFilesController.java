@@ -11,19 +11,25 @@ import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 @RestController
@@ -48,8 +54,8 @@ public class ExerciseFilesController {
     // GET endpoint
 
     @GetMapping(value = {"/exercises/{id}/files", "/exercises/{id}/files/{resourceType:template|solution}"}, produces = "application/zip")
-    public void downloadFiles(@PathVariable Long id, @PathVariable(required = false) Optional<String> resourceType,
-                              HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<byte[]> downloadFiles(@PathVariable Long id, @PathVariable(required = false) Optional<String> resourceType,
+                              HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException, NoSolutionException {
         logger.info("Request to GET '/api/exercises/{}/files/{}'", id, resourceType);
         String username = jwtTokenUtil.getUsernameFromToken(request);
@@ -86,11 +92,33 @@ public class ExerciseFilesController {
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.orElseGet(ArrayList::new);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        String[] header = headerFilename(zipName + ".zip");
-        response.addHeader(header[0], header[1]);
+        // TODO pending better encapsulation
+        // This task will be executed when getAllStudentsFiles() implementation changes (due to new V4T webapp)
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(baos);
+        for (File file : files) {
+            try {
+                String[] filePath = file.getCanonicalPath().split(separator);
+                String zipFilePath = filePath[filePath.length - 1].substring(1).replace('\\', '/');
+                zipOutputStream.putNextEntry(new ZipEntry(zipFilePath));
+                FileInputStream fileInputStream = new FileInputStream(file);
 
-        exportToZip(response, files, separator);
+                IOUtils.copy(fileInputStream, zipOutputStream);
+                fileInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                zipOutputStream.closeEntry();
+            }
+        }
+        zipOutputStream.close();
+        baos.close();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(baos.size());
+        headers.set("Content-Disposition", "attachment; filename=\"" + zipName + ".zip\"");
+
+        return new ResponseEntity<>(baos.toByteArray(), headers, HttpStatus.OK);
     }
 
     @GetMapping("/exercises/{id}/teachers/files")
@@ -106,7 +134,7 @@ public class ExerciseFilesController {
         response.addHeader(header[0], header[1]);
         Optional<Exercise> exOpt = filesMap.keySet().stream().findFirst();
         String exerciseDirectory = exOpt.map(exercise -> exercise.getName().toLowerCase().replace(" ", "_") + "_" + id).orElse("");
-        exportToZip(response, files, exerciseDirectory);
+        exportToZipAllStudents(response, files, exerciseDirectory);
     }
 
     @JsonView(FileViews.GeneralView.class)
@@ -125,7 +153,7 @@ public class ExerciseFilesController {
         return headerElements;
     }
 
-    private void exportToZip(HttpServletResponse response, List<File> files, String parentDirectory)
+    private void exportToZipAllStudents(HttpServletResponse response, List<File> files, String parentDirectory)
             throws IOException {
         ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
         for (File file : files) {

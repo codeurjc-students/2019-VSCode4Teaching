@@ -13,6 +13,8 @@ import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-req
 import { DashboardComponent } from './components/private/common/dashboard/dashboard.component';
 import { AuthPersistenceMethodInterface } from "./services/auth/persistence-methods/auth-persistence-method-interface.service";
 import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-sessionstorage.class";
+import { ExerciseComponent } from './components/private/student/exercise/exercise.component';
+import { ExerciseStep1Component } from './components/private/student/exercise/steps/exercise-step1/exercise-step1.component';
 
 @NgModule({
     declarations: [
@@ -27,7 +29,9 @@ import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-ses
         LoginComponent,
 
         // private/common
-        DashboardComponent
+        DashboardComponent,
+        ExerciseComponent,
+        ExerciseStep1Component
     ],
     imports: [
         BrowserModule,

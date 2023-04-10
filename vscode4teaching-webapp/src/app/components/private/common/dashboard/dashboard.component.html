@@ -35,7 +35,7 @@
                     <div class="exercise" *ngFor="let exercise of course.exercises">
                         <div class="exerciseInfo">{{ exercise.name }}</div>
                         <div class="exerciseActions">
-                            <button class="btn btn-xs btn-v4t">
+                            <button class="btn btn-xs btn-v4t" (click)="navigateToStudentExercise(exercise.id)">
                                 <i class="fas fa-circle-info"></i>
                             </button>
                             <button class="btn btn-xs btn-v4t">
