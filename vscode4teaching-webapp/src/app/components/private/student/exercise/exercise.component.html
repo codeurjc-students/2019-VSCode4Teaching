@@ -1,8 +1,8 @@
-<ng-container *ngIf="!exercise">
+<ng-container *ngIf="!exercise || !exerciseUserInfo">
     <div class="alert alert-v4t">Loading...</div>
 </ng-container>
 
-<ng-container *ngIf="exercise">
+<ng-container *ngIf="exercise && exerciseUserInfo">
     <h3>{{ exercise.course.name }}</h3>
     <h4>{{ exercise.name }}</h4>
 
@@ -10,18 +10,28 @@
         <div>
             <app-exercise-step1
                 [activeStep]="this.activeStep"
-                [exercise]="this.exercise"
+                [exerciseUserInfo]="this.exerciseUserInfo"
+                (exerciseStatusChanged)="this.exerciseStatusChanged($event)"
                 (stepFinished)="this.nextStep()"
             ></app-exercise-step1>
         </div>
         <div>
             <app-exercise-step2
                 [activeStep]="this.activeStep"
-                [exercise]="this.exercise"
-                (newRootDirectoryNode)="saveRootDirectoryNode($event)"
+                [exerciseUserInfo]="this.exerciseUserInfo"
                 (newFileSystemDirectoryHandle)="saveFileSystemDirectoryHandle($event)"
+                (newRootDirectoryNode)="saveRootDirectoryNode($event)"
                 (stepFinished)="this.nextStep()"
             ></app-exercise-step2>
+        </div>
+        <div>
+            <app-exercise-step3
+                [activeStep]="this.activeStep"
+                [exerciseUserInfo]="this.exerciseUserInfo"
+                [fileSystemDirectoryHandle]="fileSystemDirectoryHandle"
+                [rootDirectoryNode]="rootDirectoryNode"
+                (exerciseStatusChanged)="this.exerciseStatusChanged($event)"
+            ></app-exercise-step3>
         </div>
     </div>
 </ng-container>

@@ -16,6 +16,7 @@ import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-ses
 import { ExerciseComponent } from './components/private/student/exercise/exercise.component';
 import { ExerciseStep1Component } from './components/private/student/exercise/steps/exercise-step1/exercise-step1.component';
 import { ExerciseStep2Component } from './components/private/student/exercise/steps/exercise-step2/exercise-step2.component';
+import { ExerciseStep3Component } from './components/private/student/exercise/steps/exercise-step3/exercise-step3.component';
 
 @NgModule({
     declarations: [
@@ -31,9 +32,10 @@ import { ExerciseStep2Component } from './components/private/student/exercise/st
 
         // private/common
         DashboardComponent,
-        ExerciseComponent,
-        ExerciseStep1Component,
-        ExerciseStep2Component,
+         ExerciseComponent,
+         ExerciseStep1Component,
+         ExerciseStep2Component,
+         ExerciseStep3Component
     ],
     imports: [
         BrowserModule,

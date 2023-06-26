@@ -7,7 +7,7 @@ import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UploadFileResp
 import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
-import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.ExerciseZipFileService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,14 +45,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @TestPropertySource(locations = "classpath:test.properties")
 @AutoConfigureMockMvc
-public class ExerciseFilesControllerTests {
-    private static final Logger logger = LoggerFactory.getLogger(ExerciseFilesControllerTests.class);
+public class ExerciseZipFileControllerTests {
+    private static final Logger logger = LoggerFactory.getLogger(ExerciseZipFileControllerTests.class);
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
-    private ExerciseFilesService filesService;
+    private ExerciseZipFileService filesService;
     private JWTResponse jwtToken;
 
     @BeforeEach

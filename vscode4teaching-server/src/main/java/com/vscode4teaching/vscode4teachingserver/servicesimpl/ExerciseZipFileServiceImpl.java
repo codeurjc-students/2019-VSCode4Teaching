@@ -5,7 +5,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseFile
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
-import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.ExerciseZipFileService;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseInfoService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.hibernate.exception.ConstraintViolationException;
@@ -31,7 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Service
-public class ExerciseFilesServiceImpl implements ExerciseFilesService {
+public class ExerciseZipFileServiceImpl implements ExerciseZipFileService {
 
     private final ExerciseRepository exerciseRepository;
     private final ExerciseFileRepository fileRepository;
@@ -40,14 +40,14 @@ public class ExerciseFilesServiceImpl implements ExerciseFilesService {
 
     private final ExerciseInfoService exerciseInfoService;
     private final JWTUserDetailsService userService;
-    private final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(ExerciseZipFileServiceImpl.class);
 
     @Value("${v4t.filedirectory}")
     private String rootPath;
 
-    public ExerciseFilesServiceImpl(ExerciseRepository exerciseRepository, ExerciseFileRepository fileRepository,
-                                    ExerciseUserInfoRepository exerciseUserInfoRepository, UserRepository userRepository,
-                                    ExerciseInfoService exerciseInfoService, JWTUserDetailsService userService) {
+    public ExerciseZipFileServiceImpl(ExerciseRepository exerciseRepository, ExerciseFileRepository fileRepository,
+                                      ExerciseUserInfoRepository exerciseUserInfoRepository, UserRepository userRepository,
+                                      ExerciseInfoService exerciseInfoService, JWTUserDetailsService userService) {
         this.exerciseRepository = exerciseRepository;
         this.fileRepository = fileRepository;
         this.exerciseUserInfoRepository = exerciseUserInfoRepository;

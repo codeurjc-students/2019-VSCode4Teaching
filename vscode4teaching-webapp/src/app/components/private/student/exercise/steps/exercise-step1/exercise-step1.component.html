@@ -1,7 +1,8 @@
 <div class="step">
     <div class="stepTitle">
         <div class="stepNumber">1</div>
-        <div class="stepShortDescription">Download template / exercise</div>
+        <div class="stepShortDescription" *ngIf="exerciseUserInfo.status === 'NOT_STARTED'">Start exercise: download template</div>
+        <div class="stepShortDescription" *ngIf="exerciseUserInfo.status === 'IN_PROGRESS'">Download current progress</div>
     </div>
     <div class="stepDetail" *ngIf="this.activeStep === 1">
         <!-- If download fails, show error alert inviting user to force reload page -->
@@ -13,27 +14,36 @@
         <ng-container *ngIf="this.downloadStatus !== 'ERROR'">
             <!-- Introduction messages -->
             <!-- Scenario 1: exercise has not been started and user is going to download exercise's template -->
-            <ng-container *ngIf="true">
-                To start the exercise, download the template. It has been prepared by the teacher of the course. Download it as a compressed file (in ZIP format) and unzip it to continue.            </ng-container>
+            <ng-container *ngIf="exerciseUserInfo.status === 'NOT_STARTED'">
+                The exercise has not been started yet. Once you start it, you will be able to download the template that the teacher has prepared. This template will be your starting point.
 
-            <!-- Scenario 1: exercise has already been started and user is going to download their own solution proposal -->
-            <ng-container *ngIf="false">
-                To continue the exercise, download the currently saved progress of the exercise. Download it as a compressed file (in ZIP format) and unzip it to continue.
+                <div class="center">
+                    <button class="btn btn-v4t-coloured" (click)="markAsInProgress()">
+                        <i class="fa-solid fa-circle-play"></i> Start exercise
+                    </button>
+                </div>
             </ng-container>
 
-            <!-- Start download button -->
-            <div class="center">
-                <button class="btn btn-v4t-coloured" (click)="downloadStudentFiles()">
-                    <i class="fas fa-cloud-download"></i> Download
-                </button>
-            </div>
+            <!-- Scenario 2: exercise has already been started and user is going to download their own solution proposal -->
+            <ng-container *ngIf="exerciseUserInfo.status === 'IN_PROGRESS'">
+                To continue the exercise, download the currently saved progress of the exercise. Download it as a compressed file (in ZIP format) and unzip it to continue.
+
+                <!-- Start download button -->
+                <div class="center" *ngIf="downloadStatus === 'NOT_REQUESTED'">
+                    <button class="btn btn-v4t-coloured" (click)="downloadExerciseFiles()">
+                        <i class="fas fa-cloud-download"></i> Download
+                    </button>
+                </div>
+            </ng-container>
 
             <!-- Download progress bar -->
-            <div class="progress" *ngIf="downloadStatus !== 'NOT_REQUESTED'">
-                <div class="progress-bar bg-v4t"
-                     [ngClass]="{ 'progress-bar-striped progress-bar-animated': downloadStatus === 'PENDING' }"
-                     [ngStyle]="{ 'width': (downloadStatus !== 'IN_PROGRESS' ? 100 : percentageProgressBarDownload) + '%' }">
-                    <ng-container *ngIf="downloadStatus === 'IN_PROGRESS' || downloadStatus === 'FINISHED'">{{ percentageProgressBarDownload }}%</ng-container>
+            <div class="center">
+                <div class="progress" *ngIf="downloadStatus !== 'NOT_REQUESTED'">
+                    <div class="progress-bar bg-v4t"
+                         [ngClass]="{ 'progress-bar-striped progress-bar-animated': downloadStatus === 'PENDING' }"
+                         [ngStyle]="{ 'width': (downloadStatus !== 'IN_PROGRESS' ? 100 : percentageProgressBarDownload) + '%' }">
+                        <ng-container *ngIf="downloadStatus === 'IN_PROGRESS' || downloadStatus === 'FINISHED'">{{ percentageProgressBarDownload }}%</ng-container>
+                    </div>
                 </div>
             </div>
 

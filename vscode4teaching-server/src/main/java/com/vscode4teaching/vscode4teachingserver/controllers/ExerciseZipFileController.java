@@ -6,12 +6,11 @@ import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.model.ExerciseFile;
 import com.vscode4teaching.vscode4teachingserver.model.views.FileViews;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
-import com.vscode4teaching.vscode4teachingserver.services.ExerciseFilesService;
+import com.vscode4teaching.vscode4teachingserver.services.ExerciseZipFileService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
@@ -29,24 +27,23 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 @RestController
 @CrossOrigin
 @Validated
 @RequestMapping("/api")
-public class ExerciseFilesController {
+public class ExerciseZipFileController {
     private static final String templateFolderName = "template";
     private static final String solutionFolderName = "solution";
 
-    private final ExerciseFilesService filesService;
+    private final ExerciseZipFileService exerciseZipFileService;
     private final JWTTokenUtil jwtTokenUtil;
 
-    private final Logger logger = LoggerFactory.getLogger(ExerciseFilesController.class);
+    private final Logger logger = LoggerFactory.getLogger(ExerciseZipFileController.class);
 
-    public ExerciseFilesController(ExerciseFilesService filesService, JWTTokenUtil jwtTokenUtil) {
-        this.filesService = filesService;
+    public ExerciseZipFileController(ExerciseZipFileService exerciseZipFileService, JWTTokenUtil jwtTokenUtil) {
+        this.exerciseZipFileService = exerciseZipFileService;
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
@@ -70,14 +67,14 @@ public class ExerciseFilesController {
         String separator;
         if (resourceType.isPresent() && resourceType.get().equals("template")) {
             zipName = "template-" + id;
-            separator = ExerciseFilesController.templateFolderName;
-            filesMap = filesService.getExerciseTemplate(id, username);
+            separator = ExerciseZipFileController.templateFolderName;
+            filesMap = exerciseZipFileService.getExerciseTemplate(id, username);
         } else if (resourceType.isPresent() && resourceType.get().equals("solution")) {
             zipName = "solution-" + id;
-            separator = ExerciseFilesController.solutionFolderName;
-            filesMap = filesService.getExerciseSolution(id, username);
+            separator = ExerciseZipFileController.solutionFolderName;
+            filesMap = exerciseZipFileService.getExerciseSolution(id, username);
         } else {
-            if (filesService.existsExerciseFilesForUser(id, username)) {
+            if (exerciseZipFileService.existsExerciseFilesForUser(id, username)) {
                 zipName = "exercise-" + id + "-" + username;
                 separator = "student_[0-9]*";
             } else {
@@ -85,15 +82,14 @@ public class ExerciseFilesController {
                 separator = "template";
             }
             // Order matters here: if checked existence of files after generating them, this method will fail
-            filesMap = filesService.getExerciseFiles(id, username);
+            filesMap = exerciseZipFileService.getExerciseFiles(id, username);
         }
 
         // Stage 2: files from returned paths are zipped and sent as response to client (method exportToZip())
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.orElseGet(ArrayList::new);
 
-        // TODO pending better encapsulation
-        // This task will be executed when getAllStudentsFiles() implementation changes (due to new V4T webapp)
+        // -------------------------------------------
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(baos);
         for (File file : files) {
@@ -126,7 +122,7 @@ public class ExerciseFilesController {
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         logger.info("Request to GET '/api/exercises/{}/teachers/files'", id);
         String username = jwtTokenUtil.getUsernameFromToken(request);
-        Map<Exercise, List<File>> filesMap = filesService.getAllStudentsFiles(id, username);
+        Map<Exercise, List<File>> filesMap = exerciseZipFileService.getAllStudentsFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.orElseGet(ArrayList::new);
         response.setStatus(HttpServletResponse.SC_OK);
@@ -142,7 +138,7 @@ public class ExerciseFilesController {
     public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
                                                                             @PathVariable Long exerciseId) throws NotFoundException {
         logger.info("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
-        List<ExerciseFile> files = filesService.getFileIdsByExerciseAndId(exerciseId, username);
+        List<ExerciseFile> files = exerciseZipFileService.getFileIdsByExerciseAndId(exerciseId, username);
         return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
     }
 
@@ -194,13 +190,13 @@ public class ExerciseFilesController {
         String fileSeparatorPattern = Pattern.quote(File.separator);
         String pattern;
         if (Objects.equals(type, "template")) {
-            filesMap = filesService.saveExerciseTemplate(id, zip, username);
-            pattern = fileSeparatorPattern + ExerciseFilesController.templateFolderName + fileSeparatorPattern;
+            filesMap = exerciseZipFileService.saveExerciseTemplate(id, zip, username);
+            pattern = fileSeparatorPattern + ExerciseZipFileController.templateFolderName + fileSeparatorPattern;
         } else if (Objects.equals(type, "solution")) {
-            filesMap = filesService.saveExerciseSolution(id, zip, username);
-            pattern = fileSeparatorPattern + ExerciseFilesController.solutionFolderName + fileSeparatorPattern;
+            filesMap = exerciseZipFileService.saveExerciseSolution(id, zip, username);
+            pattern = fileSeparatorPattern + ExerciseZipFileController.solutionFolderName + fileSeparatorPattern;
         } else {
-            filesMap = filesService.saveExerciseFiles(id, zip, username);
+            filesMap = exerciseZipFileService.saveExerciseFiles(id, zip, username);
             pattern = fileSeparatorPattern + "student_[0-9]*" + fileSeparatorPattern;
         }
 

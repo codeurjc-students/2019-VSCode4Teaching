@@ -11,7 +11,7 @@
             <button class="btn btn-v4t-coloured" (click)="chooseDirectory()"><i class="fas fa-folder"></i> Choose directory</button>
         </div>
 
-        <!-- If reading fails, show error alert inviting user to force reload page -->
+        <!-- If reading directory process fails, show error alert inviting user to force reload page -->
         <ng-container *ngIf="this.errorStep2">
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle"></i> There was an error during the directory reading process. Please reload the page and try again.

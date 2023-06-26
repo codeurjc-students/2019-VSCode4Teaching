@@ -47,5 +47,91 @@
             display: flex;
             justify-content: center;
         }
+
+        > .as-column {
+            flex-direction: column;
+        }
     }
+}
+
+.progress {
+    width: 75%;
+    margin-top: .75rem;
+}
+
+.currentSyncWork {
+    padding: 0 .5rem;
+}
+
+.pendingFinishedSyncWorks {
+    display: flex;
+    flex-direction: row;
+
+    > .pendingSyncWorks {
+        flex: 1;
+        padding: 0 .5rem;
+        border-right: 1px solid #F44A3E;
+    }
+
+    > .finishedSyncWorks {
+        flex: 1;
+        padding: 0 .5rem;
+    }
+}
+
+.actions {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.syncWorkProcess {
+    display: flex;
+    align-items: center;
+    padding: .5rem 0;
+    border-bottom: 1px solid #F44A3E;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    > .processInfo {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex: 2;
+
+        > .processType {
+            flex: 1 0;
+            font-size: 1.5rem;
+        }
+
+        > .processType.creation {
+            color: green;
+        }
+
+        > .processType.modification {
+            color: orange;
+            font-size: 1.4rem;
+        }
+
+        > .processType.deletion {
+            color: red;
+        }
+
+        > .processRelatedFile {
+            flex: 20 0;
+        }
+    }
+
+    > .progress {
+        flex: 1;
+    }
+}
+
+.sectionTitle {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    color: #333;
+    padding: .5rem 0;
 }

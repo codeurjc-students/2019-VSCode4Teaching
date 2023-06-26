@@ -6,7 +6,7 @@ import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseRepo
 import com.vscode4teaching.vscode4teachingserver.model.repositories.ExerciseUserInfoRepository;
 import com.vscode4teaching.vscode4teachingserver.model.repositories.UserRepository;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.*;
-import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseFilesServiceImpl;
+import com.vscode4teaching.vscode4teachingserver.servicesimpl.ExerciseZipFileServiceImpl;
 import com.vscode4teaching.vscode4teachingserver.servicesimpl.JWTUserDetailsService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -36,9 +36,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-public class ExerciseFilesServiceImplTests {
+public class ExerciseZipFileServiceImplTests {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExerciseFilesServiceImplTests.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExerciseZipFileServiceImplTests.class);
     @Mock
     private ExerciseRepository exerciseRepository;
     @Mock
@@ -48,7 +48,7 @@ public class ExerciseFilesServiceImplTests {
     @Mock
     private ExerciseUserInfoRepository exerciseUserInfoRepository;
     @InjectMocks
-    private ExerciseFilesServiceImpl filesService;
+    private ExerciseZipFileServiceImpl filesService;
     @Mock
     private JWTUserDetailsService userService;
     private Set<String> pathsSaved = new HashSet<>();

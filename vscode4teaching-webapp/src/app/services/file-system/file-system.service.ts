@@ -16,7 +16,7 @@ export class FileSystemService {
     constructor() {
     }
 
-    public fileSystemAPISupported(): boolean {
+    public fileSystemAccessAPISupported(): boolean {
         return supported && window.hasOwnProperty("showDirectoryPicker");
     }
 
