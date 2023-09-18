@@ -1,0 +1,97 @@
+<div class="sync-status-info">
+    <div class="alert alert-success mb-2">
+        <div class="alert-heading"><i class="fa fa-circle-check"></i> Synchronization active</div>
+        Automatic synchronization of files to the server is now active.
+    </div>
+
+    <div class="progressBadges">
+        <div class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill w-100">Synchronization active</div>
+        <ng-container [ngSwitch]="this.currentSyncStatus">
+            <div *ngSwitchCase="'WAITING_FOR_CHANGES'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill w-100">
+                <i class="far fa-hourglass"></i> Waiting for changes...
+            </div>
+            <div *ngSwitchCase="'SENDING_FILES'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill w-100">
+                <i class="fas fa-rotate fa-spin"></i> Sending {{ this.syncJobs.pending.pendingElements() + 1 }} file(s) to server...
+            </div>
+        </ng-container>
+    </div>
+
+    <div class="text-center">
+        <button type="button" class="btn btn-v4t btn-sm" (click)="this.openModal()">
+            <i class="fas fa-magnifying-glass"></i> Sync details
+        </button>
+    </div>
+</div>
+
+<div #syncDetailsModal class="modal fade" id="syncDetailsModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Sync details</h1>
+            </div>
+            <div class="modal-body">
+                <ng-container *ngIf="this.syncJobs.current === undefined && this.syncJobs.pending.pendingElements() === 0 && this.syncJobs.finished.length === 0">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-exclamation-triangle"></i> No files in this exercise have been saved to server.
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="this.syncJobs.current !== undefined || this.syncJobs.pending.pendingElements() > 0 || this.syncJobs.finished.length > 0">
+                    <ng-container *ngIf="this.syncJobs.pending.pendingElements() >= 10">
+                        <div class="syncWorkProcess moreThan10Pending">
+                            {{ this.syncJobs.pending.pendingElements() - 10 }} more pending synchronization works enqueued
+                        </div>
+                    </ng-container>
+                    <!-- Pending SyncWorks (if exisitng) -->
+                    <div class="syncWorkProcess" *ngFor="let enqueuedProcess of this.syncJobs.pending.getNElements(10)">
+                        <div class="processInfo">
+                            <span class="processType">
+                                <i class="fas fa-circle-up not-started"></i>
+                            </span>
+                            <span class="processType">
+                                <i class="fas" [ngClass]="{'fa-square-plus creation': enqueuedProcess.type === 'CREATION', 'fa-square-pen modification': enqueuedProcess.type === 'MODIFICATION', 'fa-square-xmark deletion': enqueuedProcess.type === 'DELETION'}"></i>
+                            </span>
+                            <div class="processRelatedFile">{{ enqueuedProcess.node.name }}</div>
+                        </div>
+                    </div>
+                    <!-- Current SyncWork -->
+                    <div class="syncWorkProcess this.syncJobs.current" *ngIf="this.syncJobs.current !== undefined">
+                        <div class="processInfo">
+                            <span class="processType">
+                                <i class="fas fa-clock in-progress"></i>
+                            </span>
+                            <span class="processType">
+                                <i class="fas" [ngClass]="{'fa-square-plus creation': this.syncJobs.current?.type === 'CREATION', 'fa-square-pen modification': this.syncJobs.current?.type === 'MODIFICATION', 'fa-square-xmark deletion': this.syncJobs.current?.type === 'DELETION'}"></i>
+                            </span>
+                            <div class="processRelatedFile">{{ this.syncJobs.current?.node?.name }}</div>
+                        </div>
+                        <div class="progress" style="height: .5rem">
+                            <div class="progress-bar progress-bar-animated" style="background-color: #F9A825" [ngStyle]="{'width': this.syncJobs.current?.progress + '%'}"></div>
+                        </div>
+                    </div>
+                    <!-- Finished SyncWorks -->
+                    <div class="syncWorkProcess" *ngFor="let finishedWork of this.syncJobs.finished.slice(0, 10)">
+                        <div class="processInfo">
+                            <span class="processType">
+                                <i class="fas fa-clock finished"></i>
+                            </span>
+                            <span class="processType">
+                                <i class="fas" [ngClass]="{'fa-square-plus creation': finishedWork.type === 'CREATION', 'fa-square-pen modification': finishedWork.type === 'MODIFICATION', 'fa-square-xmark deletion': finishedWork.type === 'DELETION'}"></i>
+                            </span>
+                            <div class="processRelatedFile">{{ finishedWork.node?.name }}</div>
+                        </div>
+                    </div>
+                    <ng-container *ngIf="this.syncJobs.finished.length > 10">
+                        <div class="syncWorkProcess moreThan10Finished">
+                            {{ this.syncJobs.finished.length - 10 }} more finished works
+                        </div>
+                    </ng-container>
+                </ng-container>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeModal()">
+                    <i class="fas fa-times-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

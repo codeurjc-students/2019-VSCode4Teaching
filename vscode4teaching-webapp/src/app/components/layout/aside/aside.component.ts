@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { AsideItem } from "../../../model/aside/aside.model";
-import { AsideTeacherCourse, AsideTeacherExercise } from "../../../model/aside/asideTeacher.model";
+import { AsideService } from "../../../services/aside/aside.service";
 
 @Component({
     selector: 'app-layout-aside',
@@ -9,22 +9,13 @@ import { AsideTeacherCourse, AsideTeacherExercise } from "../../../model/aside/a
 })
 export class AsideComponent {
 
-    public asideContent: AsideItem[] | undefined;
+    public asideContent!: AsideItem[];
 
-    constructor() {
-        this.asideContent = this.exampleContent;
+    constructor(private asideService: AsideService) {
+        this.asideService.asideEventEmitter.subscribe({
+            next: (aside: AsideItem[]) => {
+                this.asideContent = aside;
+            }
+        });
     }
-
-    public exampleContent: AsideTeacherCourse[] = [
-        new AsideTeacherCourse("Spring Boot Course", 2, [
-            new AsideTeacherExercise("Exercise 1", 21),
-            new AsideTeacherExercise("Exercise 2", 22),
-            new AsideTeacherExercise("Exercise 3", 23)
-        ]),
-        new AsideTeacherCourse("VSCode Course", 3, [
-            new AsideTeacherExercise("Exercise 1", 31),
-            new AsideTeacherExercise("Exercise 2", 32),
-            new AsideTeacherExercise("Exercise 3", 33)
-        ])
-    ];
 }

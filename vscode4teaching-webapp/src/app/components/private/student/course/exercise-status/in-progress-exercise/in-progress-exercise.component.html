@@ -1,0 +1,27 @@
+<div class="exercise in-progress">
+    <div class="name">{{ eui.exercise.name }}</div>
+    <div class="actions-row">
+        <!-- Scenario 1: auto sync not started yet (initial situation) -->
+        <ng-container *ngIf="!this.syncToServerActive">
+            <!-- Scenario 1.1: exercise directory already existed and contains files => ask user whether to download or use the existing ones -->
+            <ng-container *ngIf="this.existingFilesInLocalDirectory">
+                <app-student-exercise-existing-files (userSelected)="this.exerciseFilesReadyHandler($event)"></app-student-exercise-existing-files>
+            </ng-container>
+            <!-- Scenario 1.2: directory did not exist or has no content => show possibility to download and unzip from online -->
+            <ng-container *ngIf="!this.existingFilesInLocalDirectory">
+                <app-student-exercise-download-unzip [exerciseDirectoryHandle]="this.exerciseDirectory" [eui]="this.eui" (exercisePrepared)="this.exerciseFilesReadyHandler($event)"></app-student-exercise-download-unzip>
+            </ng-container>
+        </ng-container>
+        <!-- Scenario 2: auto sync started (common situation) -->
+        <ng-container *ngIf="this.syncToServerActive">
+            <app-student-exercise-sync [exerciseDirectoryHandle]="this.exerciseDirectory" [eui]="this.eui"></app-student-exercise-sync>
+        </ng-container>
+    </div>
+    <div class="actions-row">
+        <button class="btn btn-v4t btn-sm mx-1" (click)="finishExercise()">
+            <i class="fas fa-circle-check"></i> Finish exercise
+        </button>
+    </div>
+</div>
+
+

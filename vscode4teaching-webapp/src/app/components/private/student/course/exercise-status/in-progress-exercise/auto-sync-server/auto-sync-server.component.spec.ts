@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ExerciseStep1Component } from './exercise-step1.component';
+import { AutoSyncServerComponent } from './auto-sync-server.component';
 
-describe('ExerciseStep1Component', () => {
-  let component: ExerciseStep1Component;
-  let fixture: ComponentFixture<ExerciseStep1Component>;
+describe('AutoSyncServerComponent', () => {
+  let component: AutoSyncServerComponent;
+  let fixture: ComponentFixture<AutoSyncServerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExerciseStep1Component ]
+      declarations: [ AutoSyncServerComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ExerciseStep1Component);
+    fixture = TestBed.createComponent(AutoSyncServerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

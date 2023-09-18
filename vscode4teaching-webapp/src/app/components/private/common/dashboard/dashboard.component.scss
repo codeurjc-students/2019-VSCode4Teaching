@@ -27,6 +27,17 @@
                 flex-direction: row;
                 justify-content: space-between;
 
+                > .exerciseInfo {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+
+                    > .exerciseUserIcon > img {
+                        max-height: 1.75rem;
+                        margin-right: .5rem;
+                    }
+                }
+
                 &:last-child {
                     border-bottom: 0;
                 }

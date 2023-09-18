@@ -10,6 +10,7 @@ export interface AsideItem {
 export interface AsideSubitem {
     name: string;
     id: number;
+    icon: string;
     actions: AsideAction[];
     callback: (itemId: number, subitemId: number, ...info: string[]) => void;
 }

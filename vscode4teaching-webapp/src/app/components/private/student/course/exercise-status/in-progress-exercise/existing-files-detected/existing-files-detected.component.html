@@ -1,0 +1,16 @@
+<div class="sync-status-info">
+    <div class="alert alert-info mb-2">
+        <div class="alert-heading">Contents detected in local exercise folder.</div>
+        Contents have been detected in the local folder of the exercise.
+        You can either start automatic synchronization with these files (for example, if you keep the files from the last time you edited it) or download the files from the server.
+        <br><strong>Note</strong>: during the download the local files will be overwritten with the contents from the server.
+    </div>
+    <div class="row">
+        <div class="col text-center">
+            <button class="btn btn-v4t btn-sm" (click)="this.startSync()"><i class="fas fa-sync"></i> Start sync with server</button>
+        </div>
+        <div class="col text-center">
+            <button class="btn btn-v4t btn-sm" (click)="this.downloadFiles()"><i class="fas fa-download"></i> Download files from server</button>
+        </div>
+    </div>
+</div>

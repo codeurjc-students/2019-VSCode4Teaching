@@ -13,10 +13,15 @@ import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-req
 import { DashboardComponent } from './components/private/common/dashboard/dashboard.component';
 import { AuthPersistenceMethodInterface } from "./services/auth/persistence-methods/auth-persistence-method-interface.service";
 import { AuthSessionstorage } from "./services/auth/persistence-methods/auth-sessionstorage.class";
-import { ExerciseComponent } from './components/private/student/exercise/exercise.component';
-import { ExerciseStep1Component } from './components/private/student/exercise/steps/exercise-step1/exercise-step1.component';
-import { ExerciseStep2Component } from './components/private/student/exercise/steps/exercise-step2/exercise-step2.component';
-import { ExerciseStep3Component } from './components/private/student/exercise/steps/exercise-step3/exercise-step3.component';
+import { StudentCourseComponent } from './components/private/student/course/student-course.component';
+import { NotStartedExerciseComponent } from "./components/private/student/course/exercise-status/not-started-exercise/not-started-exercise.component";
+import { ExerciseStatusComponent } from './components/private/student/course/exercise-status/exercise-status.component';
+import { InProgressExerciseComponent } from './components/private/student/course/exercise-status/in-progress-exercise/in-progress-exercise.component';
+import { ProgressBarComponent } from './components/helpers/progress-bar/progress-bar.component';
+import { DownloadUnzipFilesComponent } from './components/private/student/course/exercise-status/in-progress-exercise/download-unzip-files/download-unzip-files.component';
+import { AutoSyncServerComponent } from './components/private/student/course/exercise-status/in-progress-exercise/auto-sync-server/auto-sync-server.component';
+import { ExistingFilesDetectedComponent } from './components/private/student/course/exercise-status/in-progress-exercise/existing-files-detected/existing-files-detected.component';
+import { FinishedExerciseComponent } from './components/private/student/course/exercise-status/finished-exercise/finished-exercise.component';
 
 @NgModule({
     declarations: [
@@ -24,18 +29,27 @@ import { ExerciseStep3Component } from './components/private/student/exercise/st
 
         // layout
         AsideComponent,
-        HeaderComponent,
+
+        // helpers
+        ProgressBarComponent,
 
         // public
+        HeaderComponent,
         IndexComponent,
-        LoginComponent,
 
         // private/common
+        LoginComponent,
+
+        // private/student/course
         DashboardComponent,
-         ExerciseComponent,
-         ExerciseStep1Component,
-         ExerciseStep2Component,
-         ExerciseStep3Component
+        StudentCourseComponent,
+        ExerciseStatusComponent,
+        NotStartedExerciseComponent,
+        InProgressExerciseComponent,
+        FinishedExerciseComponent,
+        DownloadUnzipFilesComponent,
+        ExistingFilesDetectedComponent,
+        AutoSyncServerComponent
     ],
     imports: [
         BrowserModule,

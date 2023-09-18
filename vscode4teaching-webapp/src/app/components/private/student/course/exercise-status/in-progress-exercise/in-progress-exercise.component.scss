@@ -1,0 +1,81 @@
+.sync-status-info > * {
+    margin-bottom: .5rem;
+    text-align: center;
+}
+
+
+.progressBadges {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: 1rem;
+
+    margin-bottom: .5rem;
+
+    width: 100%;
+
+    > div {
+        flex: 1 1 0;
+    }
+}
+
+
+.syncWorkProcess {
+    display: flex;
+    align-items: center;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid #F44A3E;
+
+    &:not(.moreThan10Pending, .moreThan10Finished):last-child {
+        border-bottom: 0;
+    }
+
+    &.moreThan10Pending {
+        background-color: #FEF4F3;
+        justify-content: center;
+        color: #F44A3E;
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+    &.currentSyncWork {
+        background-color: #FFF7EB;
+    }
+
+    &.moreThan10Finished {
+        background-color: #F4FAF4;
+        justify-content: center;
+        color: #66BB6A;
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+    > .processInfo {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex: 1 0 50%;
+
+        > .processType {
+            margin-right: .5rem;
+            font-size: 1.1rem;
+
+            > .creation, > .finished {
+                color: #66BB6A;
+            }
+
+            > .modification, > .in-progress {
+                color: #F9A825;
+            }
+
+            > .deletion, .not-started {
+                color: #F44A3E;
+            }
+        }
+    }
+
+    > .progress {
+        flex: 1 0 50%;
+    }
+}

@@ -1,0 +1,116 @@
+<div class="container" *ngIf="!this.course && !this.error">
+    <div class="alert alert-v4t my-2 text-center">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading course information...
+    </div>
+</div>
+<div class="container" *ngIf="!this.course && this.error">
+    <div class="alert alert-danger my-2 text-center">
+        <div class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Error loading information about course.</div>
+        <div>
+            An error has occurred when obtaining the course information and exercises from the server.
+            <br>Please try reloading the page or returning to the dashboard and accessing a valid course.
+        </div>
+    </div>
+</div>
+<div class="container" *ngIf="this.course">
+    <h2>{{ this.course.name }}</h2>
+
+    <ng-container *ngIf="this.courseDirectory === undefined">
+        <div class="text-center">
+            <button class="btn btn-v4t-coloured" (click)="pickCourseLocalDirectory()"><i class="fas fa-folder"></i>&nbsp;&nbsp;Choose directory</button>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="this.courseDirectory !== undefined">
+        <div class="row">
+            <div class="col-10">
+                <input type="text" class="form-control" readonly [value]="courseDirectory?.name" aria-describedby="basic-addon2">
+            </div>
+            <div class="col-2 text-center">
+                <button class="btn btn-v4t" (click)="pickCourseLocalDirectory()"><i class="fas fa-folder"></i> Change directory</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="accordion" id="inProgressAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#inProgressExercise">
+                        <img src="/assets/exercise-icons/exercise_in_progress.png" alt="In progress exercises"/> In progress
+                    </button>
+                </h2>
+                <div id="inProgressExercise" class="accordion-collapse collapse show">
+                    <div class="accordion-body">
+                        <ng-container *ngIf="euiListsByStatus.inProgress.length === 0">
+                            <div class="alert alert-info">
+                                <i class="fas fa-exclamation-circle"></i> No exercises.
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="euiListsByStatus.inProgress.length > 0">
+                            <div class="row">
+                                <div class="col-6" *ngFor="let eui of euiListsByStatus.inProgress">
+                                    <app-student-exercise-status-in-progress [eui]="eui" [courseDirectory]="this.courseDirectory" (exerciseStatusChanged)="exerciseStatusChanged($event)"></app-student-exercise-status-in-progress>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-6">
+                <div class="accordion" id="notStartedAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed notStartedExerciseButton" type="button" data-bs-toggle="collapse" data-bs-target="#notStartedExercise" aria-expanded="false" aria-controls="notStartedExercise">
+                                <img src="/assets/exercise-icons/exercise_not_started.png" alt="Not started exercises"/> Not started
+                            </button>
+                        </h2>
+                        <div id="notStartedExercise" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ng-container *ngIf="euiListsByStatus.notStarted.length === 0">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-exclamation-circle"></i> No exercises.
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="euiListsByStatus.notStarted.length > 0">
+                                    <div class="row">
+                                        <div class="col-6" *ngFor="let eui of euiListsByStatus.notStarted">
+                                            <app-student-exercise-status-not-started [eui]="eui" [courseDirectory]="this.courseDirectory" (exerciseStatusChanged)="exerciseStatusChanged($event)"></app-student-exercise-status-not-started>
+                                        </div>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="accordion" id="finishedAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed finishedExerciseButton" type="button" data-bs-toggle="collapse" data-bs-target="#finishedExercise" aria-expanded="false" aria-controls="finishedExercise">
+                                <img src="/assets/exercise-icons/exercise_finished.png" alt="Finished exercises"/> Finished
+                            </button>
+                        </h2>
+                        <div id="finishedExercise" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ng-container *ngIf="euiListsByStatus.finished.length === 0">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-exclamation-circle"></i> No exercises.
+                                    </div>
+                                </ng-container>
+                                <ng-container *ngIf="euiListsByStatus.finished.length > 0">
+                                    <div class="col-6" *ngFor="let eui of euiListsByStatus.finished">
+                                        <app-student-exercise-status-finished [eui]="eui" [courseDirectory]="this.courseDirectory"></app-student-exercise-status-finished>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>

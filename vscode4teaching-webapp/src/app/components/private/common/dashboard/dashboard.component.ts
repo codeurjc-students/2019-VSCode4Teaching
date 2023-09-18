@@ -2,40 +2,35 @@ import { Component, OnInit } from '@angular/core';
 import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
 import { CurrentUserService } from "../../../../services/auth/current-user/current-user.service";
 import { Course } from "../../../../model/course.model";
-import { ExerciseService } from "../../../../services/rest-api/model-entities/exercise/exercise.service";
 import { User } from "../../../../model/user.model";
 import { Router } from "@angular/router";
+import { AsideService } from "../../../../services/aside/aside.service";
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+   selector: 'app-dashboard',
+   templateUrl: './dashboard.component.html',
+   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-
-    courses!: Course[];
+    userCourses!: Course[];
     curUser!: User;
 
-    loadingCourseState: 'LOADING_COURSES' | 'LOADING_EXERCISES' | 'LOADED';
+    coursesLoaded: boolean;
 
-    constructor (private courseService: CourseService, private exerciseService: ExerciseService, private curUserService: CurrentUserService, public router: Router) {
-        this.loadingCourseState = 'LOADING_COURSES';
+    constructor(private asideService: AsideService,
+                private courseService: CourseService,
+                private curUserService: CurrentUserService,
+                public router: Router) {
+        this.coursesLoaded = false;
     }
 
     async ngOnInit(): Promise<void> {
         const currentUser = await this.curUserService.currentUser;
         if (currentUser !== undefined) this.curUser = currentUser;
 
-        this.courses = await this.courseService.getCoursesByUser(this.curUser);
-        this.loadingCourseState = 'LOADING_EXERCISES';
-        for (const course of this.courses) {
-            course.exercises = await this.exerciseService.getExercisesByCourseId(course.id);
-        }
-        this.loadingCourseState = 'LOADED';
-    }
+        this.asideService.lanzarBusquedaInfoAside();
 
-
-    async navigateToStudentExercise(exerciseId: number): Promise<boolean> {
-        return await this.router.navigate(["exercise", exerciseId]);
+        this.userCourses = await this.courseService.getCoursesByUser(this.curUser);
+        this.coursesLoaded = true;
     }
 }

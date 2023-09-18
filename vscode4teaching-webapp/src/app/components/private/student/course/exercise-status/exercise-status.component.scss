@@ -1,0 +1,46 @@
+.exercise {
+    border: 1px solid #F88E86;
+    border-radius: 8px;
+
+    box-shadow: 0 0 10px #F9A59E;
+
+    margin: 1rem;
+    padding: .75rem;
+
+    display: flex;
+    flex-direction: column;
+
+    > .name {
+        font-weight: 600;
+        font-size: 1.25rem;
+
+        text-align: center;
+    }
+
+    &.not-started > .name {
+        color: #EF5350;
+    }
+
+    &.in-progress > .name {
+        color: #F9A825;
+    }
+
+    &.finished > .name {
+        color: #66BB6A;
+    }
+
+    > .actions-row {
+        border-top: 1px solid #F44A3E;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        padding: .75rem .5rem;
+
+        > *:not(button) {
+            width: 100%;
+        }
+    }
+}

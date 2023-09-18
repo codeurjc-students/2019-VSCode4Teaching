@@ -1,0 +1,38 @@
+<div class="sync-status-info">
+    <div class="alert alert-danger mb-2">
+        <div class="alert-heading">Exercise not downloaded</div>
+        No files were found in the local exercise directory. You can download the files saved on the server the last time you ran the exercise.
+    </div>
+    <div class="text-center" *ngIf="!this.showStepperProgress">
+        <button class="btn btn-v4t btn-sm" (click)="downloadExercise()">
+            <i class="fas fa-download"></i> Download progress
+        </button>
+    </div>
+    <ng-container *ngIf="this.showStepperProgress">
+        <div class="progressBadges">
+            <ng-container [ngSwitch]="stepperStatus.download">
+                <div *ngSwitchCase="'NOT_STARTED'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <i class="far fa-circle" style="margin-right: .25rem"></i> Download
+                </div>
+                <div *ngSwitchCase="'IN_PROGRESS'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                    <i class="far fa-circle-play" style="margin-right: .25rem"></i> Downloading...
+                </div>
+                <div *ngSwitchCase="'FINISHED'" class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <i class="fa fa-circle-check" style="margin-right: .25rem"></i> Downloaded
+                </div>
+            </ng-container>
+            <ng-container [ngSwitch]="stepperStatus.unzip">
+                <div *ngSwitchCase="'NOT_STARTED'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <i class="far fa-circle" style="margin-right: .25rem"></i> Unzip
+                </div>
+                <div *ngSwitchCase="'IN_PROGRESS'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                    <i class="far fa-circle-play" style="margin-right: .25rem"></i> Unzipping...
+                </div>
+                <div *ngSwitchCase="'FINISHED'" class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <i class="fa fa-circle-check" style="margin-right: .25rem"></i> Unzipped
+                </div>
+            </ng-container>
+        </div>
+        <app-helper-progress-bar [current]="progressBar.current" [total]="progressBar.total" [process]="progressBar.process" [visible]="progressBar.visible"></app-helper-progress-bar>
+    </ng-container>
+</div>

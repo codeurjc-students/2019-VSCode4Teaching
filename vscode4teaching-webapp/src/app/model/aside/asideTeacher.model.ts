@@ -17,7 +17,7 @@ export class AsideTeacherCourse implements AsideItem {
         // TODO Actions to be implemented when course screens are ready
         this.actions = [
             { name: "Get sharing link", icon: "fas fa-share-nodes", callback: (courseId) => console.log(`Sharing Link course ${courseId}`) },
-            // { name: "Add exercise", icon: "fas fa-plus", callback: (courseId) => console.log(`Add Exercise course ${courseId}`) },
+            // { name: "Add course", icon: "fas fa-plus", callback: (courseId) => console.log(`Add Exercise course ${courseId}`) },
             // { name: "Add multiple exercises", icon: "fas fa-circle-plus", callback: (courseId) => console.log(`AddMultiple Exercises course ${courseId}`) },
             // { name: "Add users to course", icon: "fas fa-user-plus", callback: (courseId) => console.log(`Add Users course ${courseId}`) },
             // { name: "Remove users from course", icon: "fas fa-user-minus", callback: (courseId) => console.log(`Remove Users course ${courseId}`) },
@@ -42,8 +42,8 @@ export class AsideTeacherExercise implements AsideSubitem {
         // TODO Actions to be implemented when course screens are ready
         this.actions = [
             { name: "Open dashboard", icon: "fas fa-dashboard", callback: (courseId: number, exerciseId?: number) => console.log(`Dashboard exercise ${exerciseId} course ${courseId}`) },
-            { name: "Edit exercise", icon: "fas fa-pen", callback: (courseId: number, exerciseId? :number) => console.log(`Edit exercise ${exerciseId} course ${courseId}`) },
-            { name: "Delete exercise", icon: "fas fa-trash", callback: (courseId: number, exerciseId?: number) => console.log(`Delete exercise ${exerciseId} course ${courseId}`) },
+            { name: "Edit course", icon: "fas fa-pen", callback: (courseId: number, exerciseId? :number) => console.log(`Edit exercise ${exerciseId} course ${courseId}`) },
+            { name: "Delete course", icon: "fas fa-trash", callback: (courseId: number, exerciseId?: number) => console.log(`Delete exercise ${exerciseId} course ${courseId}`) },
         ];
         this.callback = (courseId, exerciseId) => console.log(`Click exercise ${exerciseId} course ${courseId}`);
     }

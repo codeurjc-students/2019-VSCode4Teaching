@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ExerciseStep3Component } from './exercise-step3.component';
+import { ProgressBarComponent } from './progress-bar.component';
 
-describe('ExerciseStep3Component', () => {
-  let component: ExerciseStep3Component;
-  let fixture: ComponentFixture<ExerciseStep3Component>;
+describe('ProgressBarComponent', () => {
+  let component: ProgressBarComponent;
+  let fixture: ComponentFixture<ProgressBarComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExerciseStep3Component ]
+      declarations: [ ProgressBarComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ExerciseStep3Component);
+    fixture = TestBed.createComponent(ProgressBarComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

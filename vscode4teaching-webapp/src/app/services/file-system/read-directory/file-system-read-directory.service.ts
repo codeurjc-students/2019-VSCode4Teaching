@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { supported } from "browser-fs-access";
-import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../model/file-system/file-system.model";
+import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../../model/file-system/file-system.model";
 
 /**
  * File System service
@@ -11,7 +11,7 @@ import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../model/file-
 @Injectable({
     providedIn: 'root'
 })
-export class FileSystemService {
+export class FileSystemReadDirectoryService {
 
     constructor() {
     }
@@ -68,6 +68,8 @@ export class FileSystemService {
      * This method does not require File System Access API to work, but it is recommended to use it only when File System Access API is not supported
      * (since this method is more complex in time and memory).
      *
+     * @deprecated Use API only on available browsers.
+     *
      * @param recursiveFileList Bulk recursive file list (including all files of picked directory and subdirectories flattened)
      * @return DirectoryNode-based tree
      */
@@ -91,6 +93,7 @@ export class FileSystemService {
         return rootDirectoryNode;
     }
 
+    /** @deprecated */
     private notSupportedRecursiveAlgorithm(file: File, directoryNode: DirectoryNode, relativePath?: string[]) {
         // Step 1: path parameter (an array including every part of relative path of current file) is generated
         // It can come either from method call (relativePath, when recursive calls are instantiated for subdirectories' contents)

@@ -25,13 +25,16 @@ export class AsideStudentCourse implements AsideItem {
 export class AsideStudentExercise implements AsideSubitem {
     name: string;
     id: number;
+    icon: string;
     actions: AsideAction[];
     callback: (itemId: number, subitemId: number, ...info: string[]) => any;
 
-    constructor(name: string, id: number) {
+    constructor(name: string, id: number, icon: string, callback: (itemId: number, subitemId: number, ...info: string[]) => void) {
         this.name = name;
         this.id = id;
+        this.icon = icon;
         this.actions = [];
-        this.callback = (courseId, exerciseId) => { console.log(`Click exercise ${exerciseId} course ${courseId}`) };
+        this.callback = callback;
     }
+
 }

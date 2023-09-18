@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpEvent, HttpHeaders, HttpRequest } from "@angular/common/http";
+import { HttpClient, HttpEvent } from "@angular/common/http";
 import { Observable } from "rxjs";
 
 @Injectable({
@@ -22,13 +22,11 @@ export class FileExchangeService {
         const formData: FormData = new FormData();
         formData.append("relativePath", relativePath);
         formData.append("file", file);
-        let postRequest = this.http.post(`/exercises/${exerciseId}/file`, formData, {
+        return this.http.post(`/exercises/${exerciseId}/file`, formData, {
             observe: "events",
             reportProgress: true,
             responseType: "json"
         });
-        console.warn(postRequest);
-        return postRequest;
     }
 
     public modifyExerciseSingleFileByExerciseIdRelativePath = (exerciseId: number, relativePath: string, file: Blob) => {
