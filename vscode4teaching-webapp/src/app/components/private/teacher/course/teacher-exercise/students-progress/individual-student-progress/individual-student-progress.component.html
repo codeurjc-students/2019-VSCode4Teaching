@@ -1,0 +1,32 @@
+<ng-container *ngIf="this.exerciseUserInfo">
+    <div class="student-identification">
+        <div class="exercise-folder">
+            <i class="fas fa-folder icon"></i> {{ this.directoryName }}
+        </div>
+        <div class="non-anonymous-data" [hidden]="this.studentIdentityShown">
+            <div class="username">
+                <i class="fas fa-user"></i> {{ this.exerciseUserInfo.user.username }}
+            </div>
+            <div class="fullName">
+                {{ this.exerciseUserInfo.user.name }} {{ this.exerciseUserInfo.user.lastName }}
+            </div>
+        </div>
+    </div>
+    <div class="synchronization">
+        <div class="status" [ngSwitch]="exerciseUserInfo.status">
+            <div *ngSwitchCase="'NOT_STARTED'" class="badge color-not-started border-not-started py-1 px-2 rounded-pill">
+                <img ngSrc="/assets/exercise-icons/exercise_not_started.png" alt="Not started" height="192" width="192"> Not started
+            </div>
+            <div *ngSwitchCase="'IN_PROGRESS'" class="badge color-in-progress border-in-progress py-1 px-2 rounded-pill">
+                <img ngSrc="/assets/exercise-icons/exercise_in_progress.png" alt="In progress" height="192" width="192"> In progress
+            </div>
+            <div *ngSwitchCase="'FINISHED'" class="badge color-finished border-finished py-1 px-2 rounded-pill">
+                <img ngSrc="/assets/exercise-icons/exercise_finished.png" alt="Finished" height="192" width="192"> Finished
+            </div>
+        </div>
+        <div class="date" *ngIf="this.exerciseUserInfo.updateDateTime">
+            <app-helper-delay-since [since]="this.exerciseUserInfo.updateDateTime"></app-helper-delay-since>
+            ({{ this.exerciseUserInfo.updateDateTime | date: 'dd/MM/yyyy HH:mm:ss' }})
+        </div>
+    </div>
+</ng-container>

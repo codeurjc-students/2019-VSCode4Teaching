@@ -44,7 +44,7 @@ export class AsideService {
                     const asideSubitems: AsideSubitem[] = [];
                     asideItems.push(new AsideStudentCourse(course.name, course.id, asideSubitems, (itemId) => { console.log(itemId) }));
 
-                    for (let exercise of await this.exerciseService.getExercisesByCourseId(course.id)){
+                    for (let exercise of await this.exerciseService.getExercisesInCourse(course)){
                         // const exerciseUserInfo: ExerciseUserInfo = this.exerciseUserInfoService.getExerciseUserInfoByExercise(course);
                         asideSubitems.push(new AsideStudentExercise(exercise.name, exercise.id, "asd", () => {
                             this.router.navigateByUrl(`/exercise/${exercise.id}`, { onSameUrlNavigation: "reload" });

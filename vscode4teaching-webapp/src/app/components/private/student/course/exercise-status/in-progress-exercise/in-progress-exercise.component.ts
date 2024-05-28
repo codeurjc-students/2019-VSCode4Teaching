@@ -34,7 +34,7 @@ export class InProgressExerciseComponent extends ExerciseStatusComponent impleme
 
     private async checkExistingFilesInLocalDirectory() {
         // Each exercise is saved in a directory into course's one (picked by user)
-        this.exerciseDirectory = await this.courseDirectory.getDirectoryHandle(this.fileSystemWriteDirectoryService.getDirectoryNameByExerciseUserInfo(this.eui), {create: true});
+        this.exerciseDirectory = await this.courseDirectory.getDirectoryHandle(this.fileSystemWriteDirectoryService.getExerciseDirectoryNameByExerciseUserInfo(this.eui), {create: true});
 
         for await (const [_, entry] of this.exerciseDirectory.entries()) {
             if (entry instanceof FileSystemDirectoryHandle || entry instanceof FileSystemFileHandle) {

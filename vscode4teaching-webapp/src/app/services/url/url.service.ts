@@ -6,13 +6,17 @@ import { Injectable } from '@angular/core';
 export class UrlService {
 
     // Base URL of REST API
-    public baseURL: string;
+    public apiBaseURL: string;
+
+    // Base URL of WebSocket
+    public wsBaseURL: string;
 
     constructor(private window: Window) {
-        this.baseURL = "//" + this.window.location.hostname;
+        let baseURL = "//" + this.window.location.hostname;
         if (this.window.location.port) {
-            this.baseURL += ":" + "4200";
+            baseURL += ":" + "4200";
         }
-        this.baseURL += "/api";
+        this.wsBaseURL = baseURL;
+        this.apiBaseURL = baseURL + "/api";
     }
 }

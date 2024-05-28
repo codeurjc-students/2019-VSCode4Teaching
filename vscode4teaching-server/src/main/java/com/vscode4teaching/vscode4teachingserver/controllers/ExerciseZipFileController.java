@@ -55,7 +55,7 @@ public class ExerciseZipFileController {
                               HttpServletRequest request)
             throws ExerciseNotFoundException, NotInCourseException, IOException, NoTemplateException, NoSolutionException {
         logger.info("Request to GET '/api/exercises/{}/files/{}'", id, resourceType);
-        String username = jwtTokenUtil.getUsernameFromToken(request);
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
 
         // Stage 1: All the information required to execute the process is obtained and file paths are returned from
         // database using filesService specific methods. This process distinguishes between the different possible cases:
@@ -121,7 +121,7 @@ public class ExerciseZipFileController {
     public void getAllStudentsFiles(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response)
             throws ExerciseNotFoundException, NotInCourseException, IOException {
         logger.info("Request to GET '/api/exercises/{}/teachers/files'", id);
-        String username = jwtTokenUtil.getUsernameFromToken(request);
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
         Map<Exercise, List<File>> filesMap = exerciseZipFileService.getAllStudentsFiles(id, username);
         Optional<List<File>> optFiles = filesMap.values().stream().findFirst();
         List<File> files = optFiles.orElseGet(ArrayList::new);
@@ -184,7 +184,7 @@ public class ExerciseZipFileController {
         // - Uploading of individual files for each student's exercise
         // - Uploading of an exercise template.
         // - Uploading of the proposed solution to an exercise (if existing).
-        String username = jwtTokenUtil.getUsernameFromToken(request);
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
 
         Map<Exercise, List<File>> filesMap;
         String fileSeparatorPattern = Pattern.quote(File.separator);

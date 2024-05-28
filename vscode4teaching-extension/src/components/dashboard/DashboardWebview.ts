@@ -304,12 +304,12 @@ export class DashboardWebview {
     }
 
 
-    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string): Promise<{ uri: vscode.Uri; relativePath: string }> {
+    private async findLastModifiedFile(folder: vscode.WorkspaceFolder, fileRoute: string): Promise<{ uri: vscode.Uri; relativePath: string } | undefined> {
         if (fileRoute === "null") {
             return this.findMainFile(folder);
         }
 
-        const fileRegex = /^\/[^\/]+\/[^\/]+\/[^\/]+\/(.+)$/;
+        const fileRegex = /^\/(.+)$/;
         const regexResults = fileRegex.exec(fileRoute);
         if (regexResults && regexResults.length > 1) {
             const match: vscode.Uri[] = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, regexResults[1]));
@@ -317,7 +317,7 @@ export class DashboardWebview {
                 return { uri: match[0], relativePath: regexResults[1] };
             }
         }
-        return this.findMainFile(folder);
+        return undefined;
     }
 
     private async findMainFile(folder: vscode.WorkspaceFolder): Promise<{ uri: vscode.Uri; relativePath: string }> {
@@ -682,7 +682,7 @@ export class DashboardWebview {
                     if (eui.modifiedFiles && eui.modifiedFiles.length > 0) {
                         for (const fileName of eui.modifiedFiles) {
                             const lastFile = await this.findLastModifiedFile(wsF, fileName);
-                            if (lastFile.uri) {
+                            if (lastFile !== undefined && lastFile.uri) {
                                 relativePaths.push(lastFile.relativePath);
                                 uris.push(lastFile.uri);
                             }

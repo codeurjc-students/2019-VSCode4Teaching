@@ -9,12 +9,9 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,14 +66,34 @@ public class JWTTokenUtil implements Serializable {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String getUsernameFromToken(HttpServletRequest request) {
-        // Request can include either a "Authorization" header (vscode4teaching-extension)
-        // or a "Encrypted-Authorization" header (vscode4teaching-webapp)
-        String jwtToken = request.getHeader("Authorization"); // Remove Bearer
-        if (request.getHeader("Encrypted-Authorization") != null) {
-            jwtToken = this.decryptToken(request.getHeader("Encrypted-Authorization")); // Remove Bearer
+    public String getCleanTokenFromRequest(HttpServletRequest request) {
+        // Check header for token
+        String jwtToken = request.getHeader("Authorization");
+        if (jwtToken == null) {
+            jwtToken = request.getHeader("Encrypted-Authorization");
         }
-        return (jwtToken == null) ? null : getUsernameFromToken(jwtToken.substring(7));
+        if (jwtToken != null) {
+            if (jwtToken.startsWith("Bearer ")) {
+                jwtToken = jwtToken.substring(7);
+            }
+            if (request.getHeader("Encrypted-Authorization") != null) {
+                jwtToken = decryptToken(jwtToken);
+            }
+        }
+
+        // If token is not in header, check query string
+        if (jwtToken == null) {
+            jwtToken = request.getParameter("bearer");
+            if (request.getParameter("encrypted-bearer") != null) {
+                jwtToken = decryptToken(request.getParameter("encrypted-bearer"));
+            }
+        }
+        return jwtToken;
+    }
+
+    public String getUsernameFromAuthenticatedRequest(HttpServletRequest request) {
+        String jwtToken = getCleanTokenFromRequest(request);
+        return (jwtToken == null) ? null : getUsernameFromToken(jwtToken);
     }
 
     public String encryptToken(String text) {

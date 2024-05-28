@@ -1,37 +1,49 @@
 import { User } from "./user.model";
 import { Exercise } from "./exercise.model";
+import { CourseDTO } from "./rest-api/course.dto";
+import { ExerciseDTO } from "./rest-api/exercise.dto";
 
 export class Course {
-    private readonly _id: number;
-    private readonly _name: string;
-    private readonly _creator: User;
-    private _exercises: Exercise[];
+    readonly #id: number;
+    readonly #name: string;
+    #creator: User | undefined;
+    #exercises: Exercise[] | undefined;
 
-    constructor(id: number, name: string, creator: User, exercises: Exercise[]) {
-        this._id = id;
-        this._name = name;
-        this._creator = creator;
-        this._exercises = exercises;
+    constructor(dto: CourseDTO) {
+        this.#id = parseInt(dto.id);
+        this.#name = dto.name;
+        this.#creator = dto.creator ? new User(dto.creator) : undefined;
+        this.#exercises = dto.exercises?.map((dto: ExerciseDTO) => new Exercise(dto)) ?? undefined;
     }
 
 
     get id(): number {
-        return this._id;
+        return this.#id;
     }
 
     get name(): string {
-        return this._name;
+        return this.#name;
     }
 
-    get creator(): User {
-        return this._creator;
+    get creator(): User | undefined {
+        return this.#creator;
     }
 
-    get exercises(): Exercise[] {
-        return this._exercises;
+    get exercises(): Exercise[] | undefined {
+        return this.#exercises;
     }
 
     set exercises(value: Exercise[]) {
-        this._exercises = value;
+        this.#exercises = value;
+    }
+
+
+    public toDTO = (): CourseDTO => {
+        return {
+            id: this.id.toString(),
+            name: this.name,
+            creator: this.creator?.toDTO(),
+            exercises: this.exercises?.map((exercise: Exercise) => exercise.toDTO())
+        };
     }
 }

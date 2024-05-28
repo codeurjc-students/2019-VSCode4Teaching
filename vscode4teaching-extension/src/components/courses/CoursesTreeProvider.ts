@@ -375,11 +375,8 @@ export class CoursesProvider implements vscode.TreeDataProvider<V4TItem> {
         // Check if provided path corresponds to an existing directory
         if (fs.lstatSync(exerciseRoute.fsPath).isDirectory()) {
             // Read directory contents and check if it contains "template" and "solution" folders
-            const directoryEntries = fs.readdirSync(exerciseRoute.fsPath, { withFileTypes: true });
-            if (directoryEntries.length === 2
-                && directoryEntries.every(dirent => dirent.isDirectory())
-                && directoryEntries.flatMap(dirent => dirent.name).every(name => name === "template" || name === "solution")
-            ) {
+            const directoryEntries = fs.readdirSync(exerciseRoute.fsPath, { withFileTypes: true }).filter(dirent => dirent.isDirectory());
+            if (directoryEntries.flatMap(dirent => dirent.name).every(name => name === "template" || name === "solution")) {
                 const templateDir = path.join(exerciseRoute.fsPath, "template");
                 const solutionDir = path.join(exerciseRoute.fsPath, "solution");
                 // If these directories both contain any file, exercise is saved with its solution

@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { Course } from "../../../../model/course.model";
 import { ExerciseUserInfo } from "../../../../model/exercise-user-info.model";
+import { Exercise } from "../../../../model/exercise.model";
 import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
 import { ExerciseUserInfoService } from "../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
 
 @Component({
-  selector: 'app-course',
-  templateUrl: './student-course.component.html',
-  styleUrls: ['./student-course.component.scss']
+    selector: 'app-student-course',
+    templateUrl: './student-course.component.html',
+    styleUrls: ['./student-course.component.scss']
 })
 export class StudentCourseComponent implements OnInit {
     public courseId: number | undefined;
@@ -40,7 +41,7 @@ export class StudentCourseComponent implements OnInit {
             this.courseId = parseInt(this.activatedRoute.snapshot.paramMap.get("courseId") ?? "0");
             this.course = await this.courseService.getCourseById(this.courseId, true);
 
-            const exerciseUserInfos = await Promise.all(this.course.exercises.map(exercise => this.euiService.getExerciseUserInfoByExercise(exercise)));
+            const exerciseUserInfos = await Promise.all((this.course.exercises as Exercise[]).map(exercise => this.euiService.getExerciseUsersInfoByExercise(exercise)));
             exerciseUserInfos.forEach(e => {
                 switch (e.status) {
                     case "NOT_STARTED":
@@ -67,7 +68,8 @@ export class StudentCourseComponent implements OnInit {
     public async pickCourseLocalDirectory(): Promise<void> {
         try {
             this.courseDirectory = await showDirectoryPicker({ mode: 'readwrite' });
-        } catch (e) { }
+        } catch (e) {
+        }
     }
 
     /**

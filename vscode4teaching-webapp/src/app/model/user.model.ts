@@ -1,45 +1,70 @@
+import { UserDTO } from "./rest-api/user.dto";
+import { Course } from "./course.model";
+
 export class User {
-    private readonly _id: number;
-    private readonly _username: string;
-    private readonly _name: string;
-    private readonly _lastName: string;
+    readonly #id: number;
+    readonly #username: string;
+    readonly #email: string | undefined;
+    readonly #name: string;
+    readonly #lastName: string;
 
-    private readonly _roles: string[];
+    readonly #roles: string[];
 
-    private readonly _courses: any[];
+    readonly #courses: Course[] | undefined;
 
-    constructor(id: number, username: string, name: string, lastName: string) {
-        this._id = id;
-        this._username = username;
-        this._name = name;
-        this._lastName = lastName;
+    constructor(dto: UserDTO) {
+        this.#id = dto.id;
+        this.#username = dto.username;
+        this.#name = dto.name;
+        this.#lastName = dto.lastName;
+        this.#email = dto.email ?? undefined;
 
-        this._roles = [];
-        this._courses = [];
+        this.#roles = dto.roles?.map(roleDefinition => roleDefinition.roleName) ?? [];
+        this.#courses = dto.courses?.map(courseDTO => new Course(courseDTO)) ?? undefined;
     }
 
 
     get id(): number {
-        return this._id;
+        return this.#id;
     }
 
     get username(): string {
-        return this._username;
+        return this.#username;
+    }
+
+    get email(): string | undefined {
+        return this.#email;
     }
 
     get name(): string {
-        return this._name;
+        return this.#name;
     }
 
     get lastName(): string {
-        return this._lastName;
+        return this.#lastName;
     }
 
     get roles(): string[] {
-        return this._roles;
+        return this.#roles;
     }
 
-    get courses(): any[] {
-        return this._courses;
+    get isTeacher(): boolean {
+        return this.#roles.includes("ROLE_TEACHER");
+    }
+
+    get courses(): Course[] | undefined {
+        return this.#courses;
+    }
+
+    public toDTO = (): UserDTO => {
+        return {
+            id: this.id,
+            username: this.username,
+            email: this.email,
+            name: this.name,
+            lastName: this.lastName,
+            roles: this.roles.map(roleName => ({ roleName: roleName })),
+            courses: this.courses?.map(course => course.toDTO()) ?? undefined
+        };
     }
 }

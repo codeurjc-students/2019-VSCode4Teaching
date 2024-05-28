@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { Data, Router, RoutesRecognized } from "@angular/router";
+import { ActivatedRoute, Data, Event, NavigationEnd, ResolveEnd, Router } from "@angular/router";
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-root',
@@ -12,16 +13,32 @@ export class AppComponent {
     showAside = true;
     showHeader = true;
 
-    constructor(private router: Router) {
-        router.events.subscribe((routerEvent) => {
-            if (routerEvent instanceof RoutesRecognized) {
-                this.readRouteData(routerEvent.state.root.firstChild?.data ?? {});
+    nextShowAside: boolean | undefined = undefined;
+    nextShowHeader: boolean | undefined = undefined;
+
+    constructor(private router: Router, private activatedRoute: ActivatedRoute) {
+        (<Observable<Event>>this.router.events).subscribe((routerEvent: Event) => {
+            if (routerEvent instanceof ResolveEnd) {
+                const deepestChild = ((e) => {
+                    while (e.firstChild !== null) e = e.firstChild;
+                    return e;
+                })(routerEvent.state.root);
+
+                this.readRouteData(deepestChild.data ?? {});
             }
-        })
+            if (routerEvent instanceof NavigationEnd) {
+                this.changeLayout();
+            }
+        });
     }
 
     private readRouteData = (currentRouteData: Data) => {
-        this.showAside = !("showAside" in currentRouteData && !currentRouteData["showAside"]);
-        this.showHeader = !("showHeader" in currentRouteData && !currentRouteData["showHeader"]);
+        this.nextShowAside = !("showAside" in currentRouteData && !currentRouteData["showAside"]);
+        this.nextShowHeader = !("showHeader" in currentRouteData && !currentRouteData["showHeader"]);
+    }
+
+    private changeLayout = () => {
+        this.showAside = this.nextShowAside ?? this.showAside;
+        this.showHeader = this.nextShowHeader ?? this.showHeader;
     }
 }

@@ -3,7 +3,6 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 import { UrlService } from "../../url/url.service";
 import { AuthPersistenceMethodInterface } from "../../auth/persistence-methods/auth-persistence-method-interface.service";
-import { AppModule } from "../../../app.module";
 
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
@@ -13,8 +12,8 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
     intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
         const newRequest = request.clone({
-            url: this.commonURLService.baseURL + request.url,
-            headers: request.headers.set(this.authPersistence.USER_INFO_ITEM_NAME, this.authPersistence.getAuthenticatedUser()),
+            url: this.commonURLService.apiBaseURL + request.url,
+            ...((this.authPersistence.existsUserAuthenticated()) ? {setHeaders: {[this.authPersistence.USER_INFO_ITEM_NAME]: "Bearer " + this.authPersistence.getAuthenticatedUser()}} : {}),
             withCredentials: true
         });
 

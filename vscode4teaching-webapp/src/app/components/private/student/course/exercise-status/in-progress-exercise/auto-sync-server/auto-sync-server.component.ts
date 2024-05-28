@@ -8,6 +8,7 @@ import { FileExchangeService } from "../../../../../../../services/rest-api/file
 import { Observable } from "rxjs";
 import { HttpEvent, HttpEventType } from "@angular/common/http";
 import * as bootstrap from "bootstrap";
+import { ExerciseUserInfoService } from "../../../../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
 
 @Component({
   selector: 'app-student-exercise-sync',
@@ -31,7 +32,8 @@ export class AutoSyncServerComponent implements OnInit, OnDestroy {
 
 
     constructor(private fileSystemReadDirectoryService: FileSystemReadDirectoryService,
-                private fileExchangeService: FileExchangeService) {
+                private fileExchangeService: FileExchangeService,
+                private euiService: ExerciseUserInfoService) {
         this.syncJobs = {
             pending: new SyncJobPriorityQueue(2),
             current: undefined,
@@ -110,24 +112,31 @@ export class AutoSyncServerComponent implements OnInit, OnDestroy {
                  * - The returned Observable is "flattened" in the form of a promise and waits for that promise to be finished (httpEventObservableAsPromise)
                  * - The job is moved to the completed list when promise is finished to continue with other job (httpEventPromiseFinalizationHandler).
                  */
+                let fileReqPromise: Promise<any> = Promise.resolve();
                 if (this.syncJobs.current.type === "CREATION") {
-                    await this.httpEventPromiseFinalizationHandler(this.httpEventObservableAsPromise(
+                    fileReqPromise = this.httpEventObservableAsPromise(
                         this.fileExchangeService.createExerciseSingleFileByExerciseIdRelativePath(
                             this.eui.exercise.id, this.syncJobs.current.node.relativePath, this.syncJobs.current.node.fileBlob
                         )
-                    ));
+                    );
                 } else if (this.syncJobs.current.type === "MODIFICATION") {
-                    await this.httpEventPromiseFinalizationHandler(this.httpEventObservableAsPromise(
-                        this.fileExchangeService.modifyExerciseSingleFileByExerciseIdRelativePath(
+                    fileReqPromise = this.httpEventObservableAsPromise(
+                        this.fileExchangeService.editExerciseSingleFileByExerciseIdRelativePath(
                             this.eui.exercise.id, this.syncJobs.current.node.relativePath, this.syncJobs.current.node.fileBlob
                         )
-                    ));
+                    );
                 } else if (this.syncJobs.current.type === "DELETION") {
-                    await this.httpEventPromiseFinalizationHandler(this.httpEventObservableAsPromise(
+                    fileReqPromise = this.httpEventObservableAsPromise(
                         this.fileExchangeService.deleteExerciseSingleFileByExerciseIdRelativePath(
                             this.eui.exercise.id, this.syncJobs.current.node.relativePath
                         )
-                    ));
+                    );
+                }
+
+                if (fileReqPromise !== undefined) {
+                    this.eui.modifiedFiles = [this.syncJobs.current.node.relativePath];
+                    await this.euiService.editExerciseUserInfoByExercise(this.eui.exercise, this.eui);
+                    await this.httpEventPromiseFinalizationHandler(fileReqPromise);
                 }
             }
 

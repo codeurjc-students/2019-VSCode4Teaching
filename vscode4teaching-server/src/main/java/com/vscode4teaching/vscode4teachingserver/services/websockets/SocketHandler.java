@@ -15,10 +15,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
@@ -84,7 +81,7 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     public void refreshExerciseDashboards(Set<User> teachers) {
-        logger.info("Exercise user info updated, sending updates to teachers " + teachers.toString() + "...");
+        logger.info("SocketHandler: changes happened in a course or exercise, notifying teachers " + teachers.toString() + "...");
         for (User teacher : teachers) {
             sessions.stream()
                     .filter(t -> t.isOpen() && Objects.requireNonNull(t.getPrincipal()).getName().equals(teacher.getUsername()))

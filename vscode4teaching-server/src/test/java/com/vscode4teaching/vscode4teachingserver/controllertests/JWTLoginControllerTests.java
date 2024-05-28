@@ -169,7 +169,7 @@ public class JWTLoginControllerTests {
         course.setId(4L);
         expectedUser.addCourse(course);
         when(userService.findByUsername("johndoe")).thenReturn(expectedUser);
-        when(jwtTokenUtil.getUsernameFromToken(any(HttpServletRequest.class))).thenReturn("johndoe");
+        when(jwtTokenUtil.getUsernameFromAuthenticatedRequest(any(HttpServletRequest.class))).thenReturn("johndoe");
         MvcResult mvcResult = mockMvc.perform(get("/api/currentuser").contentType("application/json").with(csrf()))
                 .andExpect(status().isOk()).andReturn();
         String actualResponseBody = mvcResult.getResponse().getContentAsString();

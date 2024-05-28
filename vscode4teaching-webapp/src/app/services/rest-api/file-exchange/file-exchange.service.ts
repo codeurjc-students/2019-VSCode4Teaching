@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent } from "@angular/common/http";
+import { Injectable } from '@angular/core';
 import { Observable } from "rxjs";
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class FileExchangeService {
 
     constructor(private http: HttpClient) {
     }
 
-    public getExerciseFilesByExerciseId = (exerciseId: number): Observable<HttpEvent<Blob>> => {
+    public getOwnProposalByExerciseId = (exerciseId: number): Observable<HttpEvent<Blob>> => {
         return this.http.get("/exercises/" + exerciseId + "/files", {
             observe: "events",
             reportProgress: true,
@@ -18,6 +18,32 @@ export class FileExchangeService {
         });
     }
 
+    public getAllProposalsByExerciseId = (exerciseId: number): Observable<HttpEvent<Blob>> => {
+        return this.http.get("/exercises/" + exerciseId + "/teachers/files", {
+            observe: "events",
+            reportProgress: true,
+            responseType: "blob"
+        });
+    }
+
+    public getTemplateByExerciseId = (exerciseId: number): Observable<HttpEvent<Blob>> => {
+        return this.http.get("/exercises/" + exerciseId + "/files/template", {
+            observe: "events",
+            reportProgress: true,
+            responseType: "blob"
+        });
+    }
+
+    public getSolutionByExerciseId = (exerciseId: number): Observable<HttpEvent<Blob>> => {
+        return this.http.get("/exercises/" + exerciseId + "/files/solution", {
+            observe: "events",
+            reportProgress: true,
+            responseType: "blob"
+        });
+    }
+
+
+    // Creation, edition and deletion of single files
     public createExerciseSingleFileByExerciseIdRelativePath = (exerciseId: number, relativePath: string, file: Blob) => {
         const formData: FormData = new FormData();
         formData.append("relativePath", relativePath);
@@ -29,7 +55,7 @@ export class FileExchangeService {
         });
     }
 
-    public modifyExerciseSingleFileByExerciseIdRelativePath = (exerciseId: number, relativePath: string, file: Blob) => {
+    public editExerciseSingleFileByExerciseIdRelativePath = (exerciseId: number, relativePath: string, file: Blob) => {
         const formData: FormData = new FormData();
         formData.append("relativePath", relativePath);
         formData.append("file", file);

@@ -1,17 +1,15 @@
 import escapeRegExp from "lodash.escaperegexp";
+import * as fs from "fs";
 import * as vscode from "vscode";
 import { APIClient } from "../client/APIClient";
 import { FileZipUtil } from "../utils/FileZipUtil";
 
 export class EUIUpdateService {
 
-    public static addModifiedPath(uri: vscode.Uri) {
-        const matches = (this.URI_REGEX.exec(uri.path));
-        if (!matches) {
-            return null;
+    public static addModifiedPath(uri: vscode.Uri, cwdUri: vscode.Uri) {
+        if(uri.path.startsWith(cwdUri.path) && fs.statSync(uri.fsPath).isFile()) {
+            this.modifiedPaths.add(uri.path.slice(cwdUri.path.length));
         }
-        matches.shift();
-        this.modifiedPaths.add(matches[0]);
     }
 
     public static async updateExercise(exerciseId: number) {
@@ -21,9 +19,5 @@ export class EUIUpdateService {
         this.modifiedPaths.clear();
     }
 
-    // Regex to extract the path for the file.
-    // Group is the path with username, course and exercise included.
-    private static readonly URI_REGEX: RegExp = new RegExp(escapeRegExp(vscode.Uri.file(FileZipUtil.downloadDir).path) + "(\/[^\/]+\/[^\/]+\/[^\/]+\/.+)$", "i");
     private static modifiedPaths: Set<string> = new Set();
-
 }

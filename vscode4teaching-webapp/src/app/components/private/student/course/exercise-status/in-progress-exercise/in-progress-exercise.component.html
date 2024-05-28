@@ -7,7 +7,7 @@
             <ng-container *ngIf="this.existingFilesInLocalDirectory">
                 <app-student-exercise-existing-files (userSelected)="this.exerciseFilesReadyHandler($event)"></app-student-exercise-existing-files>
             </ng-container>
-            <!-- Scenario 1.2: directory did not exist or has no content => show possibility to download and unzip from online -->
+            <!-- Scenario 1.2: directory did not exist or has no content => show possibility to download and unzip from server -->
             <ng-container *ngIf="!this.existingFilesInLocalDirectory">
                 <app-student-exercise-download-unzip [exerciseDirectoryHandle]="this.exerciseDirectory" [eui]="this.eui" (exercisePrepared)="this.exerciseFilesReadyHandler($event)"></app-student-exercise-download-unzip>
             </ng-container>

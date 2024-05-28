@@ -3,5 +3,11 @@
         "target": "http://localhost:8080",
         "secure": false,
         "logLevel": "debug"
+    },
+    "/dashboard-refresh": {
+        "target": "ws://localhost:8080",
+        "secure": false,
+        "logLevel": "debug",
+        "ws": true
     }
 }

@@ -59,6 +59,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasAnyRole(teacherRole)
                 .antMatchers(HttpMethod.DELETE, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                 .hasAnyRole(teacherRole)
+                .antMatchers(HttpMethod.GET, "/dashboard-refresh")
+                .hasAnyRole(teacherRole)
 
                 // Every other endpoint in /api requires student role
                 .antMatchers("/api/**")

@@ -1,0 +1,60 @@
+<div class="row d-flex justify-content-between align-items-center">
+    <div class="col">
+        <h3>Students' progress</h3>
+    </div>
+    <div class="col">
+        <div class="form-check form-switch d-flex justify-content-end">
+            <input class="form-check-input v4t me-2" type="checkbox" id="showStudentsNames" (change)="this.toggleStudentsIdentities()">
+            <label class="form-check-label fw-light" for="showStudentsNames">Show students' names</label>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="this.isPreview">
+    <div class="alert alert-v4t">
+        <i class="fas fa-info-circle"></i> Currently, <strong>preview mode</strong> is enabled. You can only see the progress of the students.
+        <br>To enable the <strong>full mode</strong>, choose a directory at your local computer where the students' submissions will be synchronized on demand.
+    </div>
+
+    <div class="text-center">
+        <button class="btn btn-v4t-coloured" (click)="pickExerciseLocalDirectory()" *ngIf="this.isPreview">
+            <i class="fas fa-folder"></i>Choose directory
+        </button>
+    </div>
+</ng-container>
+
+<div *ngIf="!this.isPreview" class="alert alert-light">
+    <div>
+        <i class="fas fa-info-circle"></i> Dashboard is now in <strong>full mode</strong>. Files will be synchronized to the chosen directory when requested.
+    </div>
+    <div *ngIf="filesLastUpdateTimestamp !== undefined">
+        Last sync: <strong>{{ this.filesLastUpdateTimestamp | date: 'HH:mm:ss' }}</strong>
+        (<app-helper-delay-since [since]="filesLastUpdateTimestamp"></app-helper-delay-since> ago).
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center">
+        <button class="btn btn-v4t-coloured" (click)="getAllStudentsFiles()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
+            <i class="fas fa-sync" [ngClass]="{ 'fa-spin': this.isActiveDownload }"></i> {{ this.isActiveDownload === "STUDENTS" ? 'Syncing…' : 'Sync files' }}
+        </button>
+        <button class="btn btn-sm btn-v4t" (click)="getTemplateFiles()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
+            <i class="fas fa-download"></i> {{ this.isActiveDownload === "TEMPLATE" ? 'Downloading template…' : 'Download template' }}
+        </button>
+        <button class="btn btn-sm btn-v4t" (click)="getSolutionFiles()" *ngIf="!this.isPreview && this.exercise.includesTeacherSolution" [disabled]="this.isActiveDownload">
+            <i class="fas fa-download"></i> {{ this.isActiveDownload === "SOLUTION" ? 'Downloading solution…' : 'Download template' }}
+        </button>
+        <button class="btn btn-sm btn-v4t" (click)="dismissExerciseLocalDirectory()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
+            <i class="fas fa-folder-open"></i> Dismiss directory
+        </button>
+    </div>
+    <app-helper-progress-bar [info]="this.downloadProgressBar"></app-helper-progress-bar>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem">
+    <app-teacher-exercise-individual-student-progress
+        *ngFor="let eui of this.exerciseUsersInfo"
+        [eui]="eui"
+        [exerciseLocalDirectory]="this.courseDirectory"
+        [studentIdentityShown]="this.studentIdentitiesShown"
+    />
+</div>
+

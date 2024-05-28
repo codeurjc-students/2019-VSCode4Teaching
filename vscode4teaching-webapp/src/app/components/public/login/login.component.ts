@@ -5,7 +5,6 @@ import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn,
 import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
 
 
-// TODO ENCAPSULAR DE ALGUNA OTRA FORMA
 function usernameRequiredPattern(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
         if (!/^(?:(?!(template)|(solution)|(student)).)+$/.test(control.value)) {

@@ -1,45 +1,65 @@
 import { Course } from "./course.model";
+import { ExerciseDTO } from "./rest-api/exercise.dto";
 
 export class Exercise {
-    private readonly _id: number;
-    private readonly _name: string;
-    private readonly _course: Course;
-    private readonly _includesTeacherSolution: boolean;
-    private readonly _solutionIsPublic: boolean;
-    private readonly _allowEditionAfterSolutionDownloaded: boolean;
+    readonly #id: number;
+    readonly #name: string;
+    readonly #course: Course;
+    readonly #includesTeacherSolution: boolean;
+    #solutionIsPublic: boolean;
+    #allowEditionAfterSolutionDownloaded: boolean;
 
 
-    constructor(id: number, name: string, course: Course, includesTeacherSolution: boolean, solutionIsPublic: boolean, allowEditionAfterSolutionDownloaded: boolean) {
-        this._id = id;
-        this._name = name;
-        this._course = course;
-        this._includesTeacherSolution = includesTeacherSolution;
-        this._solutionIsPublic = solutionIsPublic;
-        this._allowEditionAfterSolutionDownloaded = allowEditionAfterSolutionDownloaded;
+    constructor(dto: ExerciseDTO) {
+        this.#id = dto.id;
+        this.#name = dto.name;
+        this.#course = new Course(dto.course);
+        this.#includesTeacherSolution = dto.includesTeacherSolution;
+        this.#solutionIsPublic = dto.solutionIsPublic;
+        this.#allowEditionAfterSolutionDownloaded = dto.allowEditionAfterSolutionDownloaded;
     }
 
 
     get id(): number {
-        return this._id;
+        return this.#id;
     }
 
     get name(): string {
-        return this._name;
+        return this.#name;
     }
 
     get course(): Course {
-        return this._course;
+        return this.#course;
     }
 
     get includesTeacherSolution(): boolean {
-        return this._includesTeacherSolution;
+        return this.#includesTeacherSolution;
     }
 
     get solutionIsPublic(): boolean {
-        return this._solutionIsPublic;
+        return this.#solutionIsPublic;
+    }
+
+    set solutionIsPublic(value: boolean) {
+        this.#solutionIsPublic = value;
     }
 
     get allowEditionAfterSolutionDownloaded(): boolean {
-        return this._allowEditionAfterSolutionDownloaded;
+        return this.#allowEditionAfterSolutionDownloaded;
+    }
+
+    set allowEditionAfterSolutionDownloaded(value: boolean) {
+        this.#allowEditionAfterSolutionDownloaded = value;
+    }
+
+    public toDTO = (): ExerciseDTO => {
+        return {
+            id: this.id,
+            name: this.name,
+            course: this.course.toDTO(),
+            includesTeacherSolution: this.includesTeacherSolution,
+            solutionIsPublic: this.solutionIsPublic,
+            allowEditionAfterSolutionDownloaded: this.allowEditionAfterSolutionDownloaded
+        };
     }
 }

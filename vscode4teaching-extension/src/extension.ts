@@ -344,12 +344,15 @@ export function activate(context: vscode.ExtensionContext) {
         }
     };
 
-    const showExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showexercisedashboard", (item: V4TItem) => {
+    const showExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showexercisedashboard", async (item: V4TItem) => {
         if (item.item && instanceOfExercise(item.item) && item.item.course) {
-            showDashboardFunction(item.item, item.item.course, false);
-        } else {
-            vscode.window.showErrorMessage("Not performabble action. Please try downloading exercise and accessing Dashboard.");
+            const exercise = (await APIClient.getExercise(item.item.id)).data;
+            if (exercise.course) {
+                showDashboardFunction(exercise, exercise.course, false);
+                return;
+            }
         }
+        vscode.window.showErrorMessage("Not performable action. Please try downloading exercise and accessing Dashboard.");
     });
 
     const showCurrentExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {
@@ -667,7 +670,7 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
     const pattern = new vscode.RelativePattern(cwd, "**/*");
     const fsw = vscode.workspace.createFileSystemWatcher(pattern);
     changeEvent = fsw.onDidChange((e: vscode.Uri) => {
-        EUIUpdateService.addModifiedPath(e);
+        EUIUpdateService.addModifiedPath(e, cwd.uri);
         if (uploadTimeout) {
             global.clearTimeout(uploadTimeout);
         }
@@ -679,7 +682,7 @@ function setStudentEvents(jszipFile: JSZip, cwd: vscode.WorkspaceFolder, zipUri:
         }, 500);
     });
     createEvent = fsw.onDidCreate((e: vscode.Uri) => {
-        EUIUpdateService.addModifiedPath(e);
+        EUIUpdateService.addModifiedPath(e, cwd.uri);
         if (uploadTimeout) {
             global.clearTimeout(uploadTimeout);
         }

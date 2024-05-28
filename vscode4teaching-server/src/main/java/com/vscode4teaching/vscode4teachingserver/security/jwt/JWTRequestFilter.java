@@ -14,7 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 
 @Component
 public class JWTRequestFilter extends OncePerRequestFilter {
@@ -30,47 +29,28 @@ public class JWTRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        String requestTokenHeader = request.getHeader("Authorization");
-        if (request.getHeader("encrypted-authorization") != null) {
-            requestTokenHeader = jwtTokenUtil.decryptToken(request.getHeader("encrypted-authorization"));
-        }
         String username = null;
-        String jwtToken = null;
-        String query = request.getQueryString();
-        if (requestTokenHeader == null && query != null)
-            requestTokenHeader = getBearerFromQuery(query);
+        String requestTokenHeader = jwtTokenUtil.getCleanTokenFromRequest(request);
 
-        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7); // remove Bearer
+        if (requestTokenHeader != null) {
             try {
-                username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                username = jwtTokenUtil.getUsernameFromToken(requestTokenHeader);
             } catch (IllegalArgumentException e) {
                 logger.warn("Cannot get JWT Token");
             } catch (ExpiredJwtException e) {
                 logger.warn("JWT Token has expired");
             }
-        } else {
-            logger.warn("JWT Token does not begin with Bearer");
-        }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(username);
-            if (Boolean.TRUE.equals(jwtTokenUtil.validateToken(jwtToken, userDetails))) {
-                UsernamePasswordAuthenticationToken userPassAuthToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                userPassAuthToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(userPassAuthToken);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(username);
+                if (jwtTokenUtil.validateToken(requestTokenHeader, userDetails)) {
+                    UsernamePasswordAuthenticationToken userPassAuthToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    userPassAuthToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(userPassAuthToken);
+                }
             }
         }
         filterChain.doFilter(request, response);
     }
-
-    private String getBearerFromQuery(String queryString) {
-        return Arrays.stream(queryString.split("&"))
-                .filter(q -> q.startsWith("bearer="))
-                .map(q -> "Bearer " + q.substring(q.indexOf("=") + 1))
-                .findFirst().orElse(null);
-    }
-
 }

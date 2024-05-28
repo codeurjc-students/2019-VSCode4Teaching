@@ -9,8 +9,11 @@ export class FileSystemWriteDirectoryService {
     constructor() {
     }
 
-    getDirectoryNameByExerciseUserInfo(eui: ExerciseUserInfo) {
+    public getExerciseDirectoryNameByExerciseUserInfo(eui: ExerciseUserInfo) {
         return `${eui.exercise.name.toLowerCase().replace(" ", "_")}_${eui.exercise.id}#${eui.id}`;
     }
 
+    public getStudentDirectoryNameByExerciseUserInfo(eui: ExerciseUserInfo) {
+        return `student_${eui.id}`;
+    }
 }

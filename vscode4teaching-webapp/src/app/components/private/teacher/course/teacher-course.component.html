@@ -1,0 +1,46 @@
+<div class="container" *ngIf="!this.error && (!this.course || !this.exercises)">
+    <div class="alert alert-v4t my-2 text-center">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading course information...
+    </div>
+</div>
+<div class="container" *ngIf="this.error">
+    <div class="alert alert-danger my-2 text-center">
+        <div class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Error loading information about course.</div>
+        <div>
+            An error has occurred when obtaining the course information and exercises from the server.
+            <br>Please try reloading the page or returning to the dashboard and accessing a valid course.
+        </div>
+    </div>
+</div>
+<div class="container" *ngIf="this.course && this.exercises">
+    <h2>{{ this.course.name }}</h2>
+
+    <hr>
+    <h3>Exercises</h3>
+    <div class="exercises">
+        <div class="exercise" *ngFor="let exercise of this.exercises">
+            <div class="name">
+                <img *ngIf="!exercise.exercise.includesTeacherSolution" ngSrc="/assets/exercise-icons/no_solution.png" alt="Exercise with no solution embedded" height="192" width="192" class="icon">
+                <img *ngIf="exercise.exercise.includesTeacherSolution && !exercise.exercise.solutionIsPublic" ngSrc="/assets/exercise-icons/solution_not_public.png" alt="Exercise with solution embedded and not published" height="192" width="192" class="icon">
+                <img *ngIf="exercise.exercise.includesTeacherSolution && exercise.exercise.solutionIsPublic" ngSrc="/assets/exercise-icons/solution_public.png" alt="Exercise with solution embedded and published" height="192" width="192" class="icon">
+                {{ exercise.exercise.name }}
+            </div>
+            <div class="info-summary">
+                <div class="not-started badge py-2 text-success-emphasis bg-danger-subtle border border-danger-subtle rounded-pill">
+                    <img ngSrc="/assets/exercise-icons/exercise_not_started.png" alt="Not started" class="icon" height="192" width="192">{{ exercise.notStarted }}
+                </div>
+                <div class="in-progress badge py-2 text-success-emphasis bg-warning-subtle border border-warning-subtle rounded-pill">
+                    <img ngSrc="/assets/exercise-icons/exercise_in_progress.png" alt="In progress" class="icon" height="192" width="192">{{ exercise.inProgress }}
+                </div>
+                <div class="finished badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <img ngSrc="/assets/exercise-icons/exercise_finished.png" alt="Finished" class="icon" height="192" width="192">{{ exercise.finished }}
+                </div>
+            </div>
+            <div class="actions">
+                <button [routerLink]="['exercises', exercise.exercise.id]" class="btn btn-sm btn-v4t">
+                    <i class="fa fa-book-open"></i> Details of exercise
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

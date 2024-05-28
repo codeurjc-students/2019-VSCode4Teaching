@@ -1,0 +1,56 @@
+<div class="container" *ngIf="!this.course">
+    <div class="alert alert-v4t my-2 text-center">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading course information...
+    </div>
+</div>
+<div class="container" *ngIf="this.course && !this.exercise">
+    <div class="alert alert-danger my-2 text-center">
+        <div class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Error loading information about course.</div>
+        <div>
+            An error has occurred when obtaining the course information and exercises from the server.
+            <br>Please try reloading the page or returning to the dashboard and accessing a valid course.
+        </div>
+    </div>
+</div>
+<div class="container" *ngIf="this.course">
+    <a [routerLink]="['/', 'teacher', 'courses', this.course.id]" class="btn btn-xs btn-v4t">
+        <i class="fa fa-chevron-left"></i> Back to course
+    </a>
+    <h2>{{ this.course.name }}</h2>
+</div>
+<div class="container" *ngIf="this.course && this.exercise && this.studentEUIs">
+    <h3>{{ this.exercise.name }}</h3>
+
+    <ng-container *ngIf="this.exercise.includesTeacherSolution">
+        <hr>
+
+        <h4>Exercise properties</h4>
+        <div class="alert alert-light">
+            <ul>
+                <li>The <strong>publish solution to students</strong> option allows teachers to decide when the solution to an exercise can be downloaded by students. This action is irrevocable, disabling this control when it is enabled. By default it is disabled.</li>
+                <li>The <strong>allow edition after downloading solution</strong> option allows you to decide whether the exercises can be edited by the students once they have downloaded the solution. This behavior cannot be changed from the moment the solution is published. By default it is deactivated.</li>
+            </ul>
+        </div>
+        <div class="row">
+            <div class="col form-switch d-flex flex-column justify-content-center align-items-center">
+                <label class="name" for="publishSolution">Publish solution to students</label>
+                <input type="checkbox" id="publishSolution" class="form-check-input v4t" [disabled]="this.exercise.solutionIsPublic" [(ngModel)]="this.exercise.solutionIsPublic" (ngModelChange)="this.saveExerciseChanges()">
+            </div>
+            <div class="col form-switch d-flex flex-column justify-content-center align-items-center">
+                <label class="name" for="allowEditionAfterSolutionDownloaded">Allow edition after downloading solution</label>
+                <input type="checkbox" id="allowEditionAfterSolutionDownloaded" class="form-check-input v4t" [disabled]="this.exercise.solutionIsPublic" [(ngModel)]="this.exercise.allowEditionAfterSolutionDownloaded" (ngModelChange)="this.saveExerciseChanges()">
+            </div>
+        </div>
+    </ng-container>
+
+    <hr>
+    <app-teacher-exercise-general-statistics
+        [euis]="this.studentEUIs"
+    />
+
+    <hr>
+    <app-teacher-exercise-students-progress
+        [euis]="this.studentEUIs"
+        [exercise]="this.exercise"
+    />
+</div>

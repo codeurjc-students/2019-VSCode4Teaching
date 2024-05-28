@@ -21,11 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +56,7 @@ public class JWTLoginController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         final String token = jwtTokenUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JWTResponse(token, jwtTokenUtil.encryptToken("Bearer " + token)));
+        return ResponseEntity.ok(new JWTResponse(token, jwtTokenUtil.encryptToken(token)));
     }
 
     private void login(String username, String password) {
@@ -102,8 +100,8 @@ public class JWTLoginController {
     @JsonView(UserViews.CourseView.class)
     public ResponseEntity<User> getCurrentUser(HttpServletRequest request) throws NotFoundException {
         logger.info("Request to GET '/api/currentuser'");
-        jwtTokenUtil.getUsernameFromToken(request);
-        User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(request));
+        jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
+        User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
 
         return ResponseEntity.ok(user);
     }
@@ -127,7 +125,7 @@ public class JWTLoginController {
         // Step 1. User ID coming from request URL and body have to be the same
         User user;
         try {
-            user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromToken(req));
+            user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromAuthenticatedRequest(req));
         } catch (NotFoundException e) {
             // If user is not found, an Unauthorized response is sent
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -19,8 +19,7 @@ export class DashboardComponent implements OnInit {
 
     constructor(private asideService: AsideService,
                 private courseService: CourseService,
-                private curUserService: CurrentUserService,
-                public router: Router) {
+                private curUserService: CurrentUserService) {
         this.coursesLoaded = false;
     }
 
@@ -28,7 +27,8 @@ export class DashboardComponent implements OnInit {
         const currentUser = await this.curUserService.currentUser;
         if (currentUser !== undefined) this.curUser = currentUser;
 
-        this.asideService.lanzarBusquedaInfoAside();
+        // TODO PENDIENTE REFACTORIZAR
+        // this.asideService.lanzarBusquedaInfoAside();
 
         this.userCourses = await this.courseService.getCoursesByUser(this.curUser);
         this.coursesLoaded = true;

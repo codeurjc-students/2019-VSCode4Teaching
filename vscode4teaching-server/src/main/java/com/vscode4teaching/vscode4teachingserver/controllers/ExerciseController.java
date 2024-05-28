@@ -49,7 +49,7 @@ public class ExerciseController {
     public ResponseEntity<List<Exercise>> getExercises(HttpServletRequest request, @PathVariable @Min(1) Long courseId)
             throws CourseNotFoundException, NotInCourseException {
         logger.info("Request to GET '/api/courses/{}/exercises'", courseId);
-        List<Exercise> exercises = courseService.getExercises(courseId, jwtTokenUtil.getUsernameFromToken(request));
+        List<Exercise> exercises = courseService.getExercises(courseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
         return exercises.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(exercises);
     }
 
@@ -61,7 +61,7 @@ public class ExerciseController {
         logger.info("Request to POST '/api/courses/{}/exercises' with body '{}' (deprecated API endpoint)", courseId, exerciseDTO);
         Exercise exercise = new Exercise(exerciseDTO.name);
         Exercise savedExercise = courseService.addExerciseToCourse(courseId, exercise,
-                jwtTokenUtil.getUsernameFromToken(request));
+                jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
         return new ResponseEntity<>(savedExercise, HttpStatus.CREATED);
     }
 
@@ -77,7 +77,7 @@ public class ExerciseController {
             exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
             exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
             exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
-            savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
+            savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
         }
         return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
     }
@@ -98,7 +98,7 @@ public class ExerciseController {
         exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
         exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
         exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
-        return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromToken(request)));
+        return ResponseEntity.ok(courseService.editExercise(exerciseId, exercise, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
     }
 
     @DeleteMapping("/exercises/{exerciseId}")
@@ -106,7 +106,7 @@ public class ExerciseController {
     public ResponseEntity<Void> deleteExercise(HttpServletRequest request, @PathVariable @Min(1) Long exerciseId)
             throws ExerciseNotFoundException, NotInCourseException {
         logger.info("Request to DELETE '/api/exercises/{}'", exerciseId);
-        courseService.deleteExercise(exerciseId, jwtTokenUtil.getUsernameFromToken(request));
+        courseService.deleteExercise(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
         return ResponseEntity.noContent().build();
     }
 
@@ -114,28 +114,28 @@ public class ExerciseController {
     public ResponseEntity<String> getCode(@PathVariable Long exerciseId, HttpServletRequest request)
             throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
         logger.info("Request to GET '/api/exercises/{}/code'", exerciseId);
-        return ResponseEntity.ok(courseService.getExerciseCode(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
+        return ResponseEntity.ok(courseService.getExerciseCode(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
     }
 
     @GetMapping("/exercises/{exerciseId}/info")
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     public ResponseEntity<ExerciseUserInfo> getExerciseUserInfo(@PathVariable Long exerciseId, HttpServletRequest request) throws NotFoundException {
         logger.info("Request to GET '/api/exercises/{}/info'", exerciseId);
-        return ResponseEntity.ok(exerciseInfoService.getExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request)));
+        return ResponseEntity.ok(exerciseInfoService.getExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
     }
 
     @PutMapping("/exercises/{exerciseId}/info")
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     public ResponseEntity<ExerciseUserInfo> updateExerciseUserInfo(@PathVariable Long exerciseId, @RequestBody ExerciseUserInfoDTO exerciseUserInfoDTO, HttpServletRequest request) throws NotFoundException {
         logger.info("Request to PUT '/api/exercises/{}/info' with body '{}'", exerciseId, exerciseUserInfoDTO);
-        return ResponseEntity.ok(exerciseInfoService.updateExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request), exerciseUserInfoDTO.getStatus(), exerciseUserInfoDTO.getModifiedFiles()));
+        return ResponseEntity.ok(exerciseInfoService.updateExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request), exerciseUserInfoDTO.getStatus(), exerciseUserInfoDTO.getModifiedFiles()));
     }
 
     @GetMapping("/exercises/{exerciseId}/info/teacher")
     @JsonView(ExerciseUserInfoViews.GeneralView.class)
     public ResponseEntity<List<ExerciseUserInfo>> getAllExerciseUserInfo(@PathVariable Long exerciseId, HttpServletRequest request) throws NotInCourseException, ExerciseNotFoundException {
         logger.info("Request to GET '/api/exercises/{}/info/teacher", exerciseId);
-        List<ExerciseUserInfo> euis = exerciseInfoService.getAllStudentExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromToken(request));
+        List<ExerciseUserInfo> euis = exerciseInfoService.getAllStudentExerciseUserInfo(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
         return !euis.isEmpty() ? ResponseEntity.ok(euis) : ResponseEntity.noContent().build();
     }
 }

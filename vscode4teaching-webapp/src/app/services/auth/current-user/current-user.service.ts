@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { User } from "../../../model/user.model";
 import { AuthPersistenceMethodInterface } from "../persistence-methods/auth-persistence-method-interface.service";
+import { lastValueFrom, map } from 'rxjs';
+import { UserDTO } from "../../../model/rest-api/user.dto";
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +13,7 @@ export class CurrentUserService {
     private _currentUser: User | undefined;
 
     constructor(private authPersistence: AuthPersistenceMethodInterface<string>, private http: HttpClient) {
-        this._currentUser = undefined;
+        // this._currentUser = undefined;
     }
 
     get currentUser(): Promise<User | undefined> {
@@ -35,11 +37,7 @@ export class CurrentUserService {
     }
 
     private reloadCurrentUserInfo = (): Promise<User> => {
-        return new Promise((resolve, reject) => {
-            this.http.get<User>("/currentuser").subscribe({
-                next: (res: User) => resolve(res),
-                error: () => reject()
-            });
-        })
+        return lastValueFrom(this.http.get<UserDTO>("/currentuser")
+            .pipe(map((userDTO: UserDTO) => new User(userDTO))));
     }
 }

@@ -1,0 +1,46 @@
+<h3>General statistics</h3>
+<div class="row" style="align-items: center">
+    <!-- Col 1: semicircle graphic with student's progress -->
+    <div class="col">
+        <canvas #semicircle></canvas>
+    </div>
+    <!-- Col 2: students in course and exercise status -->
+    <div class="col" style="display: flex; gap: .5rem; flex-direction: column">
+        <div>
+            <div class="info-row standalone">
+                <div class="description">Students in course</div>
+                <div class="value">{{ this.exerciseUsersInfo?.length }}</div>
+            </div>
+        </div>
+        <div class="exercise-all-status">
+            <div class="status bg-not-started color-not-started">
+                <div class="info-row">
+                    <img class="icon" ngSrc="/assets/exercise-icons/exercise_not_started.png" alt="Not started" height="192" width="192">
+                    <div class="value">{{ this.euisByStatus.NOT_STARTED }}</div>
+                </div>
+                <div class="description">Not started</div>
+            </div>
+            <div class="status bg-in-progress color-in-progress">
+                <div class="info-row">
+                    <img class="icon" ngSrc="/assets/exercise-icons/exercise_in_progress.png" alt="In progress" height="192" width="192">
+                    <div class="value">{{ this.euisByStatus.IN_PROGRESS }}</div>
+                </div>
+                <div class="description">In progress</div>
+            </div>
+            <div class="status bg-finished color-finished">
+                <div class="info-row">
+                    <img class="icon" ngSrc="/assets/exercise-icons/exercise_finished.png" alt="Finished" height="192" width="192">
+                    <div class="value">{{ this.euisByStatus.FINISHED }}</div>
+                </div>
+                <div class="description">Finished</div>
+            </div>
+        </div>
+    </div>
+    <!-- Col 3: modifications in the last N minutes -->
+    <div class="col" style="display: flex; flex-direction: column; gap: .5rem">
+        <div *ngFor="let timePeriod of this.modificationsByTimePeriod" class="info-row standalone">
+            <div class="description">Modifications in the last {{ timePeriod.textRepresentation }}</div>
+            <div class="value">{{ timePeriod.value }}</div>
+        </div>
+    </div>
+</div>

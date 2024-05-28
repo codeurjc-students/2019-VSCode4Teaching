@@ -1,13 +1,11 @@
 package com.vscode4teaching.vscode4teachingserver.controllers;
 
 import com.vscode4teaching.vscode4teachingserver.controllers.dtos.UploadFileResponse;
-import com.vscode4teaching.vscode4teachingserver.model.Exercise;
 import com.vscode4teaching.vscode4teachingserver.security.jwt.JWTTokenUtil;
 import com.vscode4teaching.vscode4teachingserver.services.ExerciseSingleFileService;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.ExerciseFinishedException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotFoundException;
 import com.vscode4teaching.vscode4teachingserver.services.exceptions.NotInCourseException;
-import io.swagger.models.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -48,7 +46,7 @@ public class ExerciseSingleFileController {
             throws NotInCourseException, NotFoundException, IOException, ExerciseFinishedException {
         logger.info("Request to {} '/api/exercises/{}/file' with relativePath {} and a file", request.getMethod(), exerciseId, relativePath);
 
-        String username = jwtTokenUtil.getUsernameFromToken(request);
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
 
         File savedFile = exerciseSingleFileService.saveExerciseSingleFile(exerciseId, username, file, relativePath);
         return ResponseEntity.ok(new UploadFileResponse(savedFile.getName(), savedFile.toURI().toURL().openConnection().getContentType(), savedFile.length()));
@@ -66,7 +64,7 @@ public class ExerciseSingleFileController {
 
         logger.info("Request to DELETE '/api/exercises/{}/file' with relativePath {}", exerciseId, relativePath);
 
-        String username = jwtTokenUtil.getUsernameFromToken(request);
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
 
         if (exerciseSingleFileService.deleteExerciseSingleFile(exerciseId, username, relativePath)) {
             return new ResponseEntity<>(HttpStatus.OK);
