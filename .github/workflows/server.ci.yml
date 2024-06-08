@@ -1,0 +1,108 @@
+name: "Server pipeline"
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+    branches:
+      - master
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vscode4teaching-server
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Java version
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: temurin
+    - name: Test
+      run: ./mvnw clean dependency:resolve test
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') }}
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Get deployed version from POM
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo VERSION=$VERSION >> $GITHUB_ENV
+        working-directory: ./vscode4teaching-server
+      - name: Build Docker image
+        run: |
+          env | grep DOCKER
+          DOCKER_IMAGE="$DOCKER_HUB_USERNAME/$DOCKER_HUB_IMAGE_NAME"
+          echo DOCKER_IMAGE=$DOCKER_IMAGE >> $GITHUB_ENV
+          docker build -t $DOCKER_IMAGE:$VERSION -t $DOCKER_IMAGE:latest .
+        env:
+          DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_IMAGE_NAME: ${{ vars.DOCKER_HUB_IMAGE_NAME }}
+          VERSION: ${{ env.VERSION }}
+      - name: Push to Docker Hub
+        run: |
+          echo $DOCKER_HUB_PAT | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+          docker push $DOCKER_IMAGE:$VERSION
+          docker push $DOCKER_IMAGE:latest
+        env:
+          DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          VERSION: ${{ env.VERSION }}
+          DOCKER_HUB_PAT: ${{ secrets.DOCKER_HUB_PAT }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') }}
+    needs: publish
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Setup SSH agent to connect to deploy server
+        run: |
+          mkdir -p ~/.ssh
+          echo "${EDUKAFORA_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 ${EDUKAFORA_HOST} >> ~/.ssh/known_hosts
+        env:
+          EDUKAFORA_SSH_KEY: ${{ secrets.EDUKAFORA_SSH_KEY }}
+          EDUKAFORA_HOST: ${{ vars.EDUKAFORA_HOST }}
+      - name: Prepare new VSCode4Teaching version
+        run: |
+          scp docker-compose.yml ${EDUKAFORA_USER}@${EDUKAFORA_HOST}:${EDUKAFORA_PATH}/compose-new.yml
+          ssh ${EDUKAFORA_USER}@${EDUKAFORA_HOST} "cd ${EDUKAFORA_PATH} && docker compose -f compose-new.yml pull --policy missing"
+        env:
+          EDUKAFORA_HOST: ${{ vars.EDUKAFORA_HOST }}
+          EDUKAFORA_USER: ${{ vars.EDUKAFORA_USER }}
+          EDUKAFORA_PATH: ${{ vars.EDUKAFORA_PATH }}
+      - name: Stop VSCode4Teaching and change by new version
+        run: |
+          ssh ${EDUKAFORA_USER}@${EDUKAFORA_HOST} "cd ${EDUKAFORA_PATH} && docker compose down"
+          ssh ${EDUKAFORA_USER}@${EDUKAFORA_HOST} "cd ${EDUKAFORA_PATH} && mv compose.yml compose-old.yml && mv compose-new.yml compose.yml"
+          ssh ${EDUKAFORA_USER}@${EDUKAFORA_HOST} "cd ${EDUKAFORA_PATH} && docker compose up -d"
+        env:
+          EDUKAFORA_USER: ${{ vars.EDUKAFORA_USER }}
+          EDUKAFORA_HOST: ${{ vars.EDUKAFORA_HOST }}
+          EDUKAFORA_PATH: ${{ vars.EDUKAFORA_PATH }}
+      - name: Clean up old version and SSH keys
+        run: |
+          ssh ${EDUKAFORA_USER}@${EDUKAFORA_HOST} "cd ${EDUKAFORA_PATH} && rm compose-old.yml"
+          rm -r ~/.ssh
+        env:
+          EDUKAFORA_USER: ${{ vars.EDUKAFORA_USER }}
+          EDUKAFORA_HOST: ${{ vars.EDUKAFORA_HOST }}
+          EDUKAFORA_PATH: ${{ vars.EDUKAFORA_PATH }}

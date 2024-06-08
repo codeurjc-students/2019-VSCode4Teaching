@@ -1,0 +1,25 @@
+name: vscode4teaching
+
+services:
+    app:
+        image: vscode4teaching/vscode4teaching:2.2.1
+        depends_on:
+            - db
+        env_file:
+            - path: .env
+              required: true
+        ports:
+            - ${SERVER_PORT}:${SERVER_PORT}
+        volumes:
+            - ./volume-v4t:${V4T_FILEDIRECTORY}
+        restart: on-failure:6
+    db:
+        image: mysql:8.4.0
+        restart: on-failure:3
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+            MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+        volumes:
+            - ./volume-mysql:/var/lib/mysql

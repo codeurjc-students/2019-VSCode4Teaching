@@ -1,0 +1,26 @@
+# VSCode4Teaching
+**Developer documentation on the Continuous Integration, Delivery and Deployment (*CI/CD*) system of this project**
+
+This project is configured with a continuous integration, deployment and delivery system through [GitHub Actions](https://github.com/features/actions). This system comprises two *workflows*: one for the extension (file [`extension.ci.yml`](extension.ci.yml)) and one for the server and web application (file [`server.ci.yml`](server.ci.yml)).
+
+### Detailed description of declared jobs
+The aforementioned files define the jobs that will be executed sequentially based on the type of changes registered in the repository. These jobs are:
+- `test`. This job runs when changes are pushed to the `master` (or `main`) and `develop` branches or when a *pull request* is opened targeting any of these branches. After setting up the execution environment on the pipeline runner, it executes the complete test suite implemented in the component on which the pipeline is launched, returning success if the tests pass.
+- `publish`. This job runs when a change is made to the `master` branch, meaning a new version of VSCode4Teaching is being released. This step requires the deployed version to be correctly configured in each component's manifest, which are POM (`pom.xml`) for the server, and `package.json` for both the extension and web application.
+    - For the extension, this job will compile and package the extension source code into VSIX format and deploy it to the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/VSCode) in its new version. This job will fail if a version with the same identifier has already been deployed previously or if the authentication token has expired or is invalid for publishing.
+    - For the server, it will execute a Docker image build process defined through the `Dockerfile` file, which is *multistage*: it will build the web application in a first Node container to produce the static files (HTML, CSS, JS) needed to run the application without Node, compile the server source code along with the frontend static resources in a second Maven container with JDK 11, and use a third container to define the final image on JDK 11, setting the *entrypoint* command to run the JAR obtained in the previous stage. The resulting image is tagged with the version declared in the POM and also as `latest`. Both images are pushed to the specified [Docker Hub](https://hub.docker.com) repository.
+- `deploy`. Executed only under the same conditions as `publish`, and declared just in the server workflow, this job allows deploying the built Docker image to the defined production server. It connects via SSH to the remote computer, copies the `docker-compose.yml` file, pulls the new image generated in the previous job and restarts the Docker Compose instance running the configured production server.
+
+### Parameterized definition of variables and secrets
+To run the previously explained jobs, certain variables and secrets must be properly defined in the repository:
+- Publishing the server image to Docker Hub. These variables are used during the server (embedding the built web application) image publishing to Docker Hub and subsequent production deployment.
+    - `DOCKER_HUB_USERNAME` (variable). The username used to create the Docker image for the VSCode4Teaching server (and web application as static frontend resource). It will be the first part of the image name (preceding the `/`) and must match the name specified in the `docker-compose.yml` file to ensure successful production deployment.
+    - `DOCKER_HUB_IMAGE_NAME` (variable). Properly, the name of the image (following the `/` that separates it from the username). It must match the name used in the Docker Compose definition to complete the deployment job correctly.
+    - `DOCKER_HUB_PAT` (secret). The personal access token required to publish the built image to Docker Hub. If it is incorrect or invalid, the pipeline execution will fail.
+- Deploying on the production server. These variables are used to access the remote computer that hosts the production server.
+    - `EDUKAFORA_HOST` (variable). The address to which the pipeline executor will connect via SSH during deployment through the default port (22).
+    - `EDUKAFORA_USER` (variable). The user hosting the VSCode4Teaching project on the production machine.
+    - `EDUKAFORA_SSH_KEY` (secret). The private key used to authenticate the SSH connection.
+    - `EDUKAFORA_PATH` (variable). The path, preferably absolute, on the production environment where the existing deployment is located and will be replaced.
+- Publishing the extension to the Visual Studio Code Marketplace. This variable is used in the extension workflow for publishing new versions.
+    - `VSCODE_MARKETPLACE_PAT` (secret). The personal access token required to authenticate the publication to the Visual Studio Code Marketplace. It has a scheduled expiration, so it may need to be replaced or renewed if an error occurs during the pipeline execution. The definition of the extension name, publisher, and other deployment and publication details are contained in its `package.json`, and the configured token must be able to authenticate and published according to the parameters set in the manifest file.

@@ -352,7 +352,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
         }
-        vscode.window.showErrorMessage("Not performable action. Please try downloading exercise and accessing Dashboard.");
+        vscode.window.showErrorMessage("Not performabble action. Please try downloading exercise and accessing Dashboard.");
     });
 
     const showCurrentExerciseDashboard = vscode.commands.registerCommand("vscode4teaching.showcurrentexercisedashboard", () => {

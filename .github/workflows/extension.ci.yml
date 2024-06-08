@@ -1,0 +1,61 @@
+name: "Extension pipeline"
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+    branches:
+      - master
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vscode4teaching-extension
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Set up Node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm run test
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vscode4teaching-extension
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') }}
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Set up Node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies and VSCode extension manager (vsce)
+        run: npm ci && npm install -g @vscode/vsce
+      - name: Check VSCode Marketplace token validity
+        run: npx vsce verify-pat
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_PAT }}
+      - name: Publish to VSCode Marketplace
+        run: npx vsce publish --allow-star-activation
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_PAT }}

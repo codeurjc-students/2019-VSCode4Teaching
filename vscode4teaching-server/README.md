@@ -35,7 +35,7 @@ The VSCode4Teaching server can be built in two ways: as a conventional Java appl
 
 ### Common Java application
 As the Spring Boot application makes use of Maven, it is possible to build the Java application in the following way:
-- Build the web application and insert the result as a static resource of the *backend* (in the ``src/main/resources/static`` directory). If this process is not performed, the application will be built successfully but executing the web application's dependent features (such as the custom help page or the teacher registration by invitation) will not be possible.
+- Build the web application and insert the result as a static resource of the *backend* (in the ``src/main/resources/static`` directory). If this process is not performed, the application will be built successfully but web application will not be available as frontend of this VSCode4Teaching server instance.
 - Generate a JAR executable using the following command:
   ```
   mvn package
@@ -43,9 +43,9 @@ As the Spring Boot application makes use of Maven, it is possible to build the J
   When the execution is finished, a JAR file can be found in the ``target`` directory.
 
 ### Docker
-On the other hand, a [``Dockerfile``](Dockerfile) file is provided. It contains the necessary coding to build the webapp and insert it as a view in the server, which is built and launched in a Java container.
+On the other hand, a [``Dockerfile``](Dockerfile) file is provided at the root of the project. It defines the necessary steps to build the webapp and copy it as the server frontend, which is built and then launched in a Java container.
 
-To build it, it is necessary to execute the following command:
+To build it, it is necessary to execute the following command (at the root of the project):
 ```
 docker build .
 ```
@@ -54,7 +54,7 @@ This image resulting from this building process is also published in [*Docker Hu
 
 Note: the application is accessible through port 8080 by default. To modify this behavior, it is possible to enter an argument when executing the program (read more information in section [Arguments and environment variables](#arguments-and-environment-variables)).
 
-On the other hand, in addition, a file [``docker-compose.yml``](vscode4teaching-server/docker/docker-compose.yml) is introduced. It allows to use Docker Compose to run two containers: one for the MySQL database used (``db``) and another for the image built from the ``Dockerfile`` file above (``app``). In addition, a third container is introduced for running a graphical database manager (``adminer``), which is optional and can be removed without affecting the operation of the server.
+In addition, a file [``docker-compose.yml``](../docker-compose.yml) is introduced. It allows to use Docker Compose (version 2.0 or higher) to run two containers: one for the MySQL database used (aliased ``db``) and another for the image built from the ``Dockerfile`` file above (alias ``app``).
 
 
 ## Execution
@@ -68,12 +68,12 @@ Depending on the building mode of the application, it is possible to execute the
   ```
   mvn spring-boot:run
   ```
-- On the other hand, in case of using Docker, it is advisable to use Docker Compose to launch both the database and the application in containers. To do this, go to the directory containing the ``docker-compose.yml`` file and run the following command:
+- On the other hand, in case of using Docker, it is advisable to use Docker Compose to launch both the database and the application in containers. To do this, go to the root path of the project, which contains the ``docker-compose.yml`` file, and run the following command:
   ```
   docker-compose up -d
   ```
 
-On the other hand, to run the tests implemented in this component, it is possible to execute the following command:
+On the other hand, to only run the tests implemented in this component, it is possible to execute the following command:
 ```
 mvn test
 ```

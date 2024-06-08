@@ -1,8 +1,0 @@
-out
-node_modules
-.vscode-test/
-*.vsix
-.scannerwork/
-.nyc_output/
-coverage/
-tslint_report.txt

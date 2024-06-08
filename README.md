@@ -1,8 +1,12 @@
 # VSCode4Teaching
 
-[![Travis CI build status](https://img.shields.io/travis/com/codeurjc-students/2019-VSCode4Teaching?label=Travis%20CI&style=flat-square)](https://app.travis-ci.com/github/codeurjc-students/2019-VSCode4Teaching)
+[![VSCode server CI/CD status at master branch](https://img.shields.io/github/actions/workflow/status/codeurjc-students/2019-VSCode4Teaching/server.ci.yml?branch=master&style=flat-square&label=Server%20CI%2FCD%20(master))](https://github.com/codeurjc-students/2019-VSCode4Teaching/actions/workflows/server.ci.yml?query=branch%3Amaster)
+[![VSCode server CI status at develop branch](https://img.shields.io/github/actions/workflow/status/codeurjc-students/2019-VSCode4Teaching/server.ci.yml?branch=develop&style=flat-square&label=Server%20CI%20(develop))](https://github.com/codeurjc-students/2019-VSCode4Teaching/actions/workflows/server.ci.yml?query=branch%3Adevelop)
 [![Docker Hub Repository](https://img.shields.io/docker/v/vscode4teaching/vscode4teaching?color=0db7ed&label=Docker%20Hub&sort=date&style=flat-square)](https://hub.docker.com/r/vscode4teaching/vscode4teaching)
 [![Docker Hub pulls](https://img.shields.io/docker/pulls/vscode4teaching/vscode4teaching?color=0db7ed&label=Docker%20Hub%20pulls&style=flat-square)](https://hub.docker.com/r/vscode4teaching/vscode4teaching)
+
+[![VSCode extension CI/CD status at master branch](https://img.shields.io/github/actions/workflow/status/codeurjc-students/2019-VSCode4Teaching/extension.ci.yml?branch=master&style=flat-square&label=Extension%20CI%2FCD%20(master))](https://github.com/codeurjc-students/2019-VSCode4Teaching/actions/workflows/extension.ci.yml?query=branch%3Amaster)
+[![VSCode extension CI status at develop branch](https://img.shields.io/github/actions/workflow/status/codeurjc-students/2019-VSCode4Teaching/extension.ci.yml?branch=develop&style=flat-square&label=Extension%20CI%20(develop))](https://github.com/codeurjc-students/2019-VSCode4Teaching/actions/workflows/extension.ci.yml?query=branch%3Adevelop)
 [![VS Marketplace extension's version](https://img.shields.io/visual-studio-marketplace/v/vscode4teaching.vscode4teaching?color=0078d7&label=VS%20Marketplace&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
 [![VS Marketplace extension's installs](https://img.shields.io/visual-studio-marketplace/i/vscode4teaching.vscode4teaching?color=0078d7&label=VS%20Marketplace%20installs&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=VSCode4Teaching.vscode4teaching)
 
@@ -46,7 +50,7 @@ VSCode4Teaching is composed of three components that work cooperatively with eac
 ### How to quickly start up a server
 To set up a VSCode4Teaching server, the fastest method is to use **Docker**, which is a lightweight container-based technology to speed up application deployment. For this purpose, some relevant files are inserted into the repository:
 - A [``Dockerfile``](Dockerfile) file containing the necessary coding to compile the webapp and insert it as a server view, which is compiled and launched in a Java container. The image resulting from this compilation is published in [*Docker Hub*](https://hub.docker.com/r/vscode4teaching/vscode4teaching) each time a new version of the application is released.
-- A file [``vscode4teaching-server/docker/docker-compose.yml``](vscode4teaching-server/docker/docker-compose.yml) that allows using Docker Compose to quickly run two containers: one for the MySQL database used (``db``), for the image compiled from the ``Dockerfile`` above (``app``) and for the execution of a graphical database manager (``adminer``), which is optional and can be removed without affecting the operation of the server.
+- A file [``vscode4teaching-server/docker/docker-compose.yml``](docker-compose.yml) that allows using Docker Compose to quickly run two containers: one for the MySQL database used (``db``) and another for the image compiled from the ``Dockerfile`` above (``app``), which is optional and can be removed without affecting the operation of the server.
 - A file [``vscode4teaching-server/docker/.env``](vscode4teaching-server/docker/.env) with user-customizable environment variables for the execution of the ``docker-compose.yml`` above.
 
 Therefore, it is possible to run a VSCode4Teaching server directly using the ``docker-compose.yml`` file, by pointing a terminal to the directory containing it and running the command ``docker compose up -d`` (or ``docker-compose up -d`` in earlier versions of Docker).

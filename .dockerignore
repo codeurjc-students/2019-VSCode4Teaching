@@ -1,1 +1,43 @@
-.git
+# Ignore VSCode4Teaching unnecesary directories
+**/v4t-course/
+
+# Ignore Maven build directories
+**/target/
+**/logs/
+**/tmp/
+
+# Ignore Node/Angular build directories and dependencies
+**/node_modules/
+**/dist/
+**/.angular/
+**/.cache/
+
+# Ignore IDE specific directories and files
+**/.vscode/
+**/.idea/
+**/.project
+**/.classpath
+
+# Ignore documentation files
+**/*.md
+
+# Ignore MacOS specific files
+**/.DS_Store
+**/.AppleDouble
+**/.LSOverride
+
+# Ignore other unnecesary system files
+**/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+**/$RECYCLE.BIN/
+
+# Ignore git files
+**/.git/
+**/.gitignore
+
+# Ignore Dockerfile and Dockerignore themselves
+**/docker-compose.yml
+**/compose.yml
+**/Dockerfile
+**/.dockerignore
