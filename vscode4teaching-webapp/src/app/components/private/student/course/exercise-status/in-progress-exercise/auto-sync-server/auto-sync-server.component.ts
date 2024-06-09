@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 import { ExerciseUserInfo } from "../../../../../../../model/exercise-user-info.model";
 import { DirectoryNode, TreeDiffResult } from "../../../../../../../model/file-system/file-system.model";
 import { SyncJobPriorityQueue } from "../../../../../../../model/file-system/syncjob-priority-queue";
@@ -81,7 +82,7 @@ export class AutoSyncServerComponent implements OnInit, OnDestroy {
         // The current directory structure is obtained in the same way as in step 2.
         // If a FileSystemDirectoryHandle already exists (in case the File System Access API can be used), it is not necessary to ask user for the directory again.
         let currentDirectoryStructure: DirectoryNode | undefined;
-        if (this.fileSystemReadDirectoryService.fileSystemAccessAPISupported() && this.exerciseDirectoryHandle) {
+        if (fileSystemAccessApiSupported && this.exerciseDirectoryHandle) {
             currentDirectoryStructure = await this.fileSystemReadDirectoryService.supportedFileSystemAPI(this.exerciseDirectoryHandle);
         }
 

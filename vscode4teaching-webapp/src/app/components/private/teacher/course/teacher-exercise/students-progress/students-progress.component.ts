@@ -1,5 +1,6 @@
 import { HttpEvent } from "@angular/common/http";
 import { Component, Input } from '@angular/core';
+import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 import { Observable } from "rxjs";
 import { ExerciseUserInfo } from "../../../../../../model/exercise-user-info.model";
 import { Exercise } from "../../../../../../model/exercise.model";
@@ -19,6 +20,8 @@ export class StudentsProgressComponent {
     // Preview mode (true) means that the user has not selected a local directory to save the files and the dashboard only shows real-time information on the progress of students
     // Full mode (false) means that the user has selected a local directory to save the files and the dashboard allows them to download the files on demand
     public isPreview: boolean;
+    // File System Access API is supported by the browser
+    public fsaApiSupported: boolean;
     // Files last update timestamp (only for full mode)
     public filesLastUpdateTimestamp: Date | undefined;
     // Only one download can be active at a time (either students files, template files or solution files)
@@ -35,6 +38,7 @@ export class StudentsProgressComponent {
                 private fileExchangeService: FileExchangeService
     ) {
         this.isPreview = true;
+        this.fsaApiSupported = fileSystemAccessApiSupported;
         this.isActiveDownload = false;
         this.downloadProgressBar = { visible: false, process: undefined, percentage: 0 };
         this.studentIdentitiesShown = true;

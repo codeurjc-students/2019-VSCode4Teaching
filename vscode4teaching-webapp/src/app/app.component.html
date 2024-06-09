@@ -7,6 +7,7 @@
             <app-layout-aside></app-layout-aside>
         </aside>
         <section [ngClass]='{"col-9": this.showAside, "col-12": !this.showAside}'>
+            <app-not-supported-file-system-access-api></app-not-supported-file-system-access-api>
             <router-outlet></router-outlet>
         </section>
     </div>

@@ -21,7 +21,7 @@
                 </div>
                 <div class="name">{{ course.name }}</div>
                 <div class="buttons">
-                    <ng-container *ngIf="!this.curUser.isTeacher">
+                    <ng-container *ngIf="!this.curUser.isTeacher && this.fsaApiSupported">
                         <a [routerLink]="['/', 'student', 'course', course.id]" class="btn btn-v4t-coloured btn-sm my-0">
                             <i class="fas fa-book-open"></i> Exercises
                         </a>

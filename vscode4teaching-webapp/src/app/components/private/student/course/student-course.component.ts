@@ -5,6 +5,7 @@ import { ExerciseUserInfo } from "../../../../model/exercise-user-info.model";
 import { Exercise } from "../../../../model/exercise.model";
 import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
 import { ExerciseUserInfoService } from "../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 
 @Component({
     selector: 'app-student-course',
@@ -32,7 +33,7 @@ export class StudentCourseComponent implements OnInit {
 
         this.courseDirectory = undefined;
 
-        this.error = false;
+        this.error = !fileSystemAccessApiSupported;
     }
 
 

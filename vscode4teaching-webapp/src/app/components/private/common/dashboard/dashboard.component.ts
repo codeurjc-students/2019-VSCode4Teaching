@@ -3,7 +3,7 @@ import { CourseService } from "../../../../services/rest-api/model-entities/cour
 import { CurrentUserService } from "../../../../services/auth/current-user/current-user.service";
 import { Course } from "../../../../model/course.model";
 import { User } from "../../../../model/user.model";
-import { Router } from "@angular/router";
+import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 import { AsideService } from "../../../../services/aside/aside.service";
 
 @Component({
@@ -17,10 +17,13 @@ export class DashboardComponent implements OnInit {
 
     coursesLoaded: boolean;
 
+    fsaApiSupported: boolean;
+
     constructor(private asideService: AsideService,
                 private courseService: CourseService,
                 private curUserService: CurrentUserService) {
         this.coursesLoaded = false;
+        this.fsaApiSupported = fileSystemAccessApiSupported;
     }
 
     async ngOnInit(): Promise<void> {

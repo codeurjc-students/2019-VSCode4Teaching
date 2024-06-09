@@ -12,7 +12,7 @@
         </div>
     </div>
 </div>
-<div class="container" *ngIf="this.course">
+<div class="container" *ngIf="this.course && !this.error">
     <h2>{{ this.course.name }}</h2>
 
     <ng-container *ngIf="this.courseDirectory === undefined">
@@ -23,7 +23,7 @@
     <ng-container *ngIf="this.courseDirectory !== undefined">
         <div class="row">
             <div class="col-10">
-                <input type="text" class="form-control" readonly [value]="courseDirectory?.name" aria-describedby="basic-addon2">
+                <input type="text" class="form-control" readonly [value]="courseDirectory?.name">
             </div>
             <div class="col-2 text-center">
                 <button class="btn btn-v4t" (click)="pickCourseLocalDirectory()"><i class="fas fa-folder"></i> Change directory</button>

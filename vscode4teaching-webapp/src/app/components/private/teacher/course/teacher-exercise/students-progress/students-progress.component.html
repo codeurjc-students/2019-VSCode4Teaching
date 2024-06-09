@@ -13,11 +13,16 @@
 <ng-container *ngIf="this.isPreview">
     <div class="alert alert-v4t">
         <i class="fas fa-info-circle"></i> Currently, <strong>preview mode</strong> is enabled. You can only see the progress of the students.
-        <br>To enable the <strong>full mode</strong>, choose a directory at your local computer where the students' submissions will be synchronized on demand.
+        <ng-container *ngIf="this.fsaApiSupported">
+            <br>To enable the <strong>full mode</strong>, choose a directory at your local computer where the students' submissions will be synchronized on demand.
+        </ng-container>
+        <ng-container *ngIf="!this.fsaApiSupported">
+            <br><strong>Full mode is not supported</strong> in this browser. To enable it, use a browser that supports interacting with the local file system.
+        </ng-container>
     </div>
 
     <div class="text-center">
-        <button class="btn btn-v4t-coloured" (click)="pickExerciseLocalDirectory()" *ngIf="this.isPreview">
+        <button class="btn btn-v4t-coloured" (click)="pickExerciseLocalDirectory()" *ngIf="this.isPreview && this.fsaApiSupported">
             <i class="fas fa-folder"></i>Choose directory
         </button>
     </div>

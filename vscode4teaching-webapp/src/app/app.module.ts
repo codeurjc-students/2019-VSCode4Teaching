@@ -32,6 +32,7 @@ import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-req
 import { UrlService } from "./services/url/url.service";
 import { WebSocketHandler } from "./services/ws/web-socket-handler";
 import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factory.service";
+import { NotSupportedFileSystemAccessApiComponent } from './components/helpers/not-supported-file-system-access-api/not-supported-file-system-access-api.component';
 
 @NgModule({
     declarations: [
@@ -42,6 +43,7 @@ import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factor
 
         // helpers
         ProgressBarComponent,
+        NotSupportedFileSystemAccessApiComponent,
         DelaySinceComponent,
 
         // public

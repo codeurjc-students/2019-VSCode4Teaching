@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { supported } from "browser-fs-access";
-import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../../model/file-system/file-system.model";
+ import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../../model/file-system/file-system.model";
 
 /**
  * File System service
@@ -14,10 +13,6 @@ import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../../model/fi
 export class FileSystemReadDirectoryService {
 
     constructor() {
-    }
-
-    public fileSystemAccessAPISupported(): boolean {
-        return supported && window.hasOwnProperty("showDirectoryPicker");
     }
 
     /**

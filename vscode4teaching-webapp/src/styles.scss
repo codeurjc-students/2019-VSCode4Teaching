@@ -13,6 +13,16 @@ button.btn-xs {
     }
 }
 
+a.link-v4t {
+    color: #F44A3E;
+    text-decoration-color: #F44A3E;
+
+    &:hover {
+        color: #F33326;
+        text-decoration-color: #F33326;
+    }
+}
+
 
 a.btn-v4t,
 button.btn-v4t {
