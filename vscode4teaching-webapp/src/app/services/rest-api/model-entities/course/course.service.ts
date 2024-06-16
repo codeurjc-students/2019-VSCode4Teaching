@@ -34,7 +34,12 @@ export class CourseService {
 
     public getCoursesByUser = (user: User): Promise<Course[]> => {
         return lastValueFrom(this.http.get<CourseDTO[]>("/users/" + user.id + "/courses")
-            .pipe(map((courseDTOList: CourseDTO[]) => courseDTOList.map((courseDTO: CourseDTO) => new Course(courseDTO))))
+            .pipe(map((courseDTOList: CourseDTO[]) => courseDTOList?.map((courseDTO: CourseDTO) => new Course(courseDTO)) ?? []))
         );
+    }
+
+
+    public getSharingCodeByCourse = (course: Course): Promise<string> => {
+        return lastValueFrom(this.http.get("/courses/" + course.id + "/code", { responseType: "text" }));
     }
 }

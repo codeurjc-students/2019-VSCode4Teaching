@@ -5,6 +5,9 @@ import { Injectable } from '@angular/core';
 })
 export class UrlService {
 
+    // Base URL of deployed web (same as API without /api)
+    public webBaseURL: string;
+
     // Base URL of REST API
     public apiBaseURL: string;
 
@@ -14,9 +17,10 @@ export class UrlService {
     constructor(private window: Window) {
         let baseURL = "//" + this.window.location.hostname;
         if (this.window.location.port) {
-            baseURL += ":" + "4200";
+            baseURL += ":" + this.window.location.port;
         }
+        this.webBaseURL = this.window.location.protocol + baseURL;
+        this.apiBaseURL = this.webBaseURL + "/api";
         this.wsBaseURL = baseURL;
-        this.apiBaseURL = baseURL + "/api";
     }
 }

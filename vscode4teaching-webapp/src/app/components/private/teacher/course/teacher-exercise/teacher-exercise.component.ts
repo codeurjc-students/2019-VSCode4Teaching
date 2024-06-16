@@ -51,7 +51,7 @@ export class TeacherExerciseComponent implements OnInit, OnDestroy {
                 this.studentEUIs = await this.euiService.getAllStudentsExerciseUsersInfoByExercise(this.course?.exercises?.find(e => e.id === this.exerciseId) as Exercise);
             },
             onError: (err) => {
-                console.warn(err);
+                // TODO To be implemented
             }
         });
     }

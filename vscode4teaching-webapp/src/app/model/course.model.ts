@@ -6,7 +6,7 @@ import { ExerciseDTO } from "./rest-api/exercise.dto";
 export class Course {
     readonly #id: number;
     readonly #name: string;
-    #creator: User | undefined;
+    readonly #creator: User | undefined;
     #exercises: Exercise[] | undefined;
 
     constructor(dto: CourseDTO) {

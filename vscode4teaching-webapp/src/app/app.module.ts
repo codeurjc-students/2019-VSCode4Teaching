@@ -7,6 +7,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DelaySinceComponent } from "./components/helpers/delay-since/delay-since.component";
+import { NotSupportedFileSystemAccessApiComponent } from './components/helpers/not-supported-file-system-access-api/not-supported-file-system-access-api.component';
 import { ProgressBarComponent } from './components/helpers/progress-bar/progress-bar.component';
 import { AsideComponent } from "./components/layout/aside/aside.component";
 import { HeaderComponent } from "./components/layout/header/header.component";
@@ -19,6 +20,7 @@ import { ExistingFilesDetectedComponent } from './components/private/student/cou
 import { InProgressExerciseComponent } from './components/private/student/course/exercise-status/in-progress-exercise/in-progress-exercise.component';
 import { NotStartedExerciseComponent } from "./components/private/student/course/exercise-status/not-started-exercise/not-started-exercise.component";
 import { StudentCourseComponent } from './components/private/student/course/student-course.component';
+import { SharingCodeComponent } from './components/private/teacher/course/course-details/sharing-code/sharing-code.component';
 import { TeacherCourseComponent } from "./components/private/teacher/course/teacher-course.component";
 import { GeneralStatisticsComponent } from './components/private/teacher/course/teacher-exercise/general-statistics/general-statistics.component';
 import { IndividualStudentProgressComponent } from './components/private/teacher/course/teacher-exercise/students-progress/individual-student-progress/individual-student-progress.component';
@@ -32,7 +34,6 @@ import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-req
 import { UrlService } from "./services/url/url.service";
 import { WebSocketHandler } from "./services/ws/web-socket-handler";
 import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factory.service";
-import { NotSupportedFileSystemAccessApiComponent } from './components/helpers/not-supported-file-system-access-api/not-supported-file-system-access-api.component';
 
 @NgModule({
     declarations: [
@@ -66,6 +67,7 @@ import { NotSupportedFileSystemAccessApiComponent } from './components/helpers/n
 
         // private/teacher/course
         TeacherCourseComponent,
+        SharingCodeComponent,
         TeacherExerciseComponent,
         GeneralStatisticsComponent,
         StudentsProgressComponent,

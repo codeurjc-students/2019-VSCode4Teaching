@@ -1,0 +1,47 @@
+<button class="btn btn-v4t btn-sm" (click)="this.getSharingCode()">
+    <i class="fa fa-share-alt"></i> Share with students
+</button>
+<div class="modal fade" tabindex="-1" #sharingCodeModal>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sharing course with students</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" *ngIf="!this.sharingCode">
+                <div class="alert alert-v4t text-center">
+                    <i class="fa fa-circle-notch fa-spin"></i> Loading sharing information...
+                </div>
+            </div>
+            <div class="modal-body sharingCode" *ngIf="this.course && this.sharingCode">
+                <div class="description">
+                    This share code can be used by students to join this course. They can join this course by inserting it in the application when logged in.
+                </div>
+                <div class="shareInput">
+                    <label for="sharingCode">Sharing code</label>
+                    <div class="input-group">
+                        <input type="text" id="sharingCode" class="form-control form-control-sm form-control-v4t text-center" [value]="this.sharingCode.value" readonly>
+                        <button class="btn btn-v4t btn-sm" (click)="this.copySharingCode(this.sharingCode)">
+                            <span *ngIf="!this.sharingCode.copied"><i class="fa fa-clipboard"></i> Copy</span>
+                            <span *ngIf="this.sharingCode.copied"><i class="fa fa-check"></i> Copied!</span>
+                        </button>
+                    </div>
+                </div>
+                <hr>
+                <div class="description">
+                    In addition, the following URL can be shared with students. That URL will contain a step-by-step guide for students to join the course customized with current course's sharing code.
+                </div>
+                <div class="shareInput">
+                    <label for="sharingURL">Sharing URL</label>
+                    <div class="input-group">
+                        <input type="text" id="sharingURL" class="form-control form-control-sm form-control-v4t text-center" [value]="this.sharingUrl.value" readonly>
+                        <button class="btn btn-v4t btn-sm" (click)="this.copySharingCode(this.sharingUrl)">
+                            <span *ngIf="!this.sharingUrl.copied"><i class="fa fa-clipboard"></i> Copy</span>
+                            <span *ngIf="this.sharingUrl.copied"><i class="fa fa-check"></i> Copied!</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

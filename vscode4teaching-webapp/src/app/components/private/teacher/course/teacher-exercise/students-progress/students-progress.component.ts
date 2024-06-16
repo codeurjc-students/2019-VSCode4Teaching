@@ -71,17 +71,19 @@ export class StudentsProgressComponent {
     public getAllStudentsFiles(): void {
         if (this.courseDirectory && !this.isActiveDownload) {
             this.isActiveDownload = "STUDENTS";
-            return this.handleDownloadUnzip(
+            this.handleDownloadUnzip(
                 this.fileExchangeService.getAllProposalsByExerciseId(this.exercise.id),
                 this.courseDirectory
-            );
+            ).then(() => {
+                this.filesLastUpdateTimestamp = new Date();
+            })
         }
     }
 
     public async getTemplateFiles(): Promise<void> {
         if (this.courseDirectory && !this.isActiveDownload) {
             this.isActiveDownload = "TEMPLATE";
-            this.handleDownloadUnzip(
+            await this.handleDownloadUnzip(
                 this.fileExchangeService.getTemplateByExerciseId(this.exercise.id),
                 await this.courseDirectory.getDirectoryHandle("template", { create: true })
             );
@@ -91,7 +93,7 @@ export class StudentsProgressComponent {
     public async getSolutionFiles(): Promise<void> {
         if (this.courseDirectory && !this.isActiveDownload) {
             this.isActiveDownload = "SOLUTION";
-            this.handleDownloadUnzip(
+            await this.handleDownloadUnzip(
                 this.fileExchangeService.getSolutionByExerciseId(this.exercise.id),
                 await this.courseDirectory.getDirectoryHandle("solution", { create: true })
             );
@@ -100,18 +102,20 @@ export class StudentsProgressComponent {
 
     private handleDownloadUnzip(fileRequest: Observable<HttpEvent<Blob>>,
                                 targetDirectory: FileSystemDirectoryHandle
-    ) {
+    ): Promise<void> {
         this.downloadProgressBar.visible = true;
-        this.downloadUnzipService.downloadAndUnzip(fileRequest, targetDirectory).subscribe({
-            next: (downloadUnzipDTO: DownloadUnzipDTO) => {
-                this.downloadProgressBar.process = downloadUnzipDTO.operation;
-                this.downloadProgressBar.percentage = downloadUnzipDTO.percentage;
-            },
-            complete: () => {
-                this.isActiveDownload = false;
-                this.downloadProgressBar.visible = false;
-                this.filesLastUpdateTimestamp = new Date();
-            }
-        });
+        return new Promise((res) =>
+            this.downloadUnzipService.downloadAndUnzip(fileRequest, targetDirectory).subscribe({
+                next: (downloadUnzipDTO: DownloadUnzipDTO) => {
+                    this.downloadProgressBar.process = downloadUnzipDTO.operation;
+                    this.downloadProgressBar.percentage = downloadUnzipDTO.percentage;
+                },
+                complete: () => {
+                    this.isActiveDownload = false;
+                    this.downloadProgressBar.visible = false;
+                    res();
+                }
+            })
+        );
     }
 }
