@@ -3,6 +3,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { BrowserModule } from '@angular/platform-browser';
+import { NgSelectModule } from "@ng-select/ng-select";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -21,6 +22,7 @@ import { InProgressExerciseComponent } from './components/private/student/course
 import { NotStartedExerciseComponent } from "./components/private/student/course/exercise-status/not-started-exercise/not-started-exercise.component";
 import { StudentCourseComponent } from './components/private/student/course/student-course.component';
 import { SharingCodeComponent } from './components/private/teacher/course/course-details/sharing-code/sharing-code.component';
+import { EnrolledUsersManagementComponent } from "./components/private/teacher/course/course-details/enrolled-users-management/enrolled-users-management.component";
 import { TeacherCourseComponent } from "./components/private/teacher/course/teacher-course.component";
 import { GeneralStatisticsComponent } from './components/private/teacher/course/teacher-exercise/general-statistics/general-statistics.component';
 import { IndividualStudentProgressComponent } from './components/private/teacher/course/teacher-exercise/students-progress/individual-student-progress/individual-student-progress.component';
@@ -67,6 +69,7 @@ import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factor
 
         // private/teacher/course
         TeacherCourseComponent,
+        EnrolledUsersManagementComponent,
         SharingCodeComponent,
         TeacherExerciseComponent,
         GeneralStatisticsComponent,
@@ -79,6 +82,7 @@ import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factor
         HttpClientModule,
         ReactiveFormsModule,
         FormsModule,
+        NgSelectModule,
         NgOptimizedImage
     ],
     providers: [

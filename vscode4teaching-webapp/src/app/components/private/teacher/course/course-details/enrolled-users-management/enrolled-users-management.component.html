@@ -1,0 +1,87 @@
+<button class="btn btn-v4t btn-sm" (click)="this.openStudentManagementModal()">
+    <i class="fa fa-users-gear"></i> Manage enrolled users
+</button>
+<div class="modal modal-xl fade" tabindex="-1" #enrolledUsersModal>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-users-gear"></i> Enrolled users management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" *ngIf="!this.enrolledStudents || !this.enrolledTeachers">
+                <div class="alert alert-v4t text-center">
+                    <i class="fa fa-circle-notch fa-spin"></i> Loading enrolled students information...
+                </div>
+            </div>
+            <div class="modal-body" *ngIf="this.enrolledStudents && this.enrolledTeachers">
+                <div class="subtitle">Teachers</div>
+                <div *ngFor="let enrolledTeacher of this.enrolledTeachers" class="user">
+                    <div style="display: flex; flex-direction: row; align-items: center">
+                        <i class="fa fa-user-secret"></i>
+                        <div style="margin-left: .5rem">
+                            <div>{{ enrolledTeacher.name }} {{ enrolledTeacher.lastName }}</div>
+                            <div *ngIf="enrolledTeacher.username === creator?.username" class="badge color-not-started bg-not-started border-not-started py-1 px-3 rounded-pill">Creator</div>
+                        </div>
+                    </div>
+                    <div class="username">{{ enrolledTeacher.username }}</div>
+                    <div class="actions">
+                        <button class="btn btn-v4t btn-xs" *ngIf="enrolledTeacher.username !== creator?.username && enrolledTeacher.username !== this.curUserUsername" (click)="this.showRemoveUserConfirmation(enrolledTeacher)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="subtitle">Students</div>
+                <div *ngIf="this.enrolledStudents.length === 0" class="alert alert-light mx-1 my-2">
+                    <i class="fas fa-info-circle"></i> There are no students enrolled in this course.
+                </div>
+                <div *ngFor="let enrolledStudent of this.enrolledStudents" class="user">
+                    <div style="display: flex; flex-direction: row; align-items: center">
+                        <i class="fa fa-user"></i>
+                        <div style="margin-left: .5rem">{{ enrolledStudent.name }} {{ enrolledStudent.lastName }}</div>
+                    </div>
+                    <div class="username">{{ enrolledStudent.username }}</div>
+                    <div class="actions">
+                        <button class="btn btn-v4t btn-xs" (click)="this.showRemoveUserConfirmation(enrolledStudent)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="subtitle">Enroll new user</div>
+                <div class="alert alert-light mx-1 my-2">
+                    <i class="fas fa-info-circle"></i> New users can be enrolled in this course by selecting them from the list below and clicking the "Enroll" button.
+                    <br><i class="fa fa-exclamation-circle"></i> If a teacher is enrolled, they will be granted permissions to create, edit, and delete course content.
+                </div>
+                <div style="display: flex; flex-direction: row; align-items: center; column-gap: .5rem">
+                    <ng-select [(ngModel)]="this.selectedUser" [clearable]="false" [searchable]="true" placeholder="Select user…" notFoundText="No users found" style="flex: 1 0">
+                        <ng-option *ngFor="let enrolledUser of this.availableUsers" [value]="enrolledUser">{{ enrolledUser.name }} {{ enrolledUser.lastName }} ({{ enrolledUser.username }}){{ enrolledUser.isTeacher ? " (teacher)" : "" }}</ng-option>
+                    </ng-select>
+                    <button class="btn btn-v4t" style="flex: 0 0 15%" (click)="this.enrollSelectedUser()"><i class="fa fa-user-plus"></i> Enroll user</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" #confirmUserToRemove>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body modal-alert" *ngIf="this.userToRemove">
+                <div class="icon color-in-progress">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </div>
+                <div class="title">
+                    Remove user
+                </div>
+                <div class="message">
+                    Are you sure you want to remove <strong>{{ this.userToRemove.name }} {{ this.userToRemove.lastName }}</strong> ({{ this.userToRemove.username }}) from this course?
+                </div>
+                <div class="actions">
+                    <button class="btn btn-sm btn-outline-secondary" (click)="this.hideRemoveUserConfirmation()"><i class="fa fa-chevron-left"></i> Cancel</button>
+                    <button class="btn btn-sm btn-outline-v4t" (click)="this.removeUser()"><i class="fa fa-times"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

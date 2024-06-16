@@ -1,0 +1,66 @@
+.subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.user {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    background-color: #FFF0F0;
+    border-radius: 200px;
+    padding: .5rem 1.5rem;
+    margin: .5rem 0;
+
+    > * {
+        flex: 1 0;
+        border-right: 1px solid #F44A3E;
+
+        &.username {
+            text-align: center;
+        }
+
+        &.actions {
+            display: flex;
+            justify-content: right;
+        }
+
+        &:last-child {
+            border-right: none;
+        }
+    }
+
+    &:nth-child(2n) {
+        background-color: #FEE2E1;
+    }
+}
+
+.modal-alert {
+    > .icon {
+        text-align: center;
+        font-size: 3rem;
+    }
+
+    > .title {
+        font-weight: 500;
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    > .message {
+        margin: .5rem 1rem;
+        text-align: center;
+    }
+
+    > .actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #F44A3E;
+    }
+}

@@ -16,6 +16,7 @@
     <h2>{{ this.course.name }}</h2>
 
     <div class="col">
+        <app-teacher-course-details-enrolled-users-management [course]="this.course" (enrolledUsersUpdated)="this.refreshCourseInformation()"></app-teacher-course-details-enrolled-users-management>
         <app-teacher-course-details-sharing-code [course]="this.course"></app-teacher-course-details-sharing-code>
     </div>
 

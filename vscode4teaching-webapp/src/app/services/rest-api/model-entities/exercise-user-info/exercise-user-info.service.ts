@@ -20,7 +20,7 @@ export class ExerciseUserInfoService {
 
     public getAllStudentsExerciseUsersInfoByExercise = (exercise: Exercise): Promise<ExerciseUserInfo[]> => {
         return lastValueFrom(this.http.get<ExerciseUserInfoDTO[]>(`/exercises/${exercise.id}/info/teacher`)
-            .pipe(map((euiDTOList: ExerciseUserInfoDTO[]) => euiDTOList.map((euiDTO: ExerciseUserInfoDTO) => new ExerciseUserInfo(euiDTO))))
+            .pipe(map((euiDTOList: ExerciseUserInfoDTO[]) => euiDTOList?.map((euiDTO: ExerciseUserInfoDTO) => new ExerciseUserInfo(euiDTO)) ?? []))
         );
     }
 

@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
 import { Course } from "../../../../model/course.model";
-import { ExerciseUserInfo } from "../../../../model/exercise-user-info.model";
 import { Exercise } from "../../../../model/exercise.model";
 import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
 import { ExerciseUserInfoService } from "../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+
+type ExerciseInfoSummary = { exercise: Exercise, notStarted: number, inProgress: number, finished: number };
 
 @Component({
     selector: 'app-teacher-course',
@@ -15,7 +16,7 @@ export class TeacherCourseComponent implements OnInit {
     public courseId: number | undefined;
     public course: Course | undefined;
 
-    public exercises: { exercise: Exercise, notStarted: number, inProgress: number, finished: number }[] | null;
+    public exercises: ExerciseInfoSummary[] | null;
 
     public error: boolean;
 
@@ -30,21 +31,29 @@ export class TeacherCourseComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         try {
             this.courseId = parseInt(this.activatedRoute.snapshot.paramMap.get("courseId") ?? "0");
-            this.course = await this.courseService.getCourseById(this.courseId, true);
-
-            const exerciseUserInfos: ExerciseUserInfo[][] = await Promise.all(this.course.exercises?.map(exercise => this.euiService.getAllStudentsExerciseUsersInfoByExercise(exercise)) ?? []);
-            exerciseUserInfos.forEach((exerciseEuis: ExerciseUserInfo[]) => {
-                // Check if EUI exercise is contained in course exercises
-                if (this.exercises !== null && this.course?.exercises?.map(e => e.id).includes(exerciseEuis[0].exercise.id)) {
-                    const exercise = exerciseEuis[0].exercise;
-                    const notStarted = exerciseEuis.filter(eui => eui.status === "NOT_STARTED").length;
-                    const inProgress = exerciseEuis.filter(eui => eui.status === "IN_PROGRESS").length;
-                    const finished = exerciseEuis.filter(eui => eui.status === "FINISHED").length;
-                    this.exercises.push({ exercise, notStarted, inProgress, finished });
-                }
-            });
+            await this.refreshCourseInformation();
         } catch (e) {
             this.error = true;
         }
+    }
+
+    public async refreshCourseInformation(): Promise<void> {
+        const newExercises: ExerciseInfoSummary[] = [];
+        if (this.courseId) {
+            this.course = await this.courseService.getCourseById(this.courseId, true);
+            await Promise.all(
+                this.course.exercises?.map(exercise => this.euiService.getAllStudentsExerciseUsersInfoByExercise(exercise).then(euis => {
+                        const notStarted = euis.filter(eui => eui.status === "NOT_STARTED").length;
+                        const inProgress = euis.filter(eui => eui.status === "IN_PROGRESS").length;
+                        const finished = euis.filter(eui => eui.status === "FINISHED").length;
+                        newExercises.push({ exercise, notStarted, inProgress, finished });
+                    })
+                ) ?? []
+            );
+            newExercises.sort((a, b) => a.exercise.id - b.exercise.id);
+        } else {
+            this.error = true;
+        }
+        this.exercises = newExercises;
     }
 }

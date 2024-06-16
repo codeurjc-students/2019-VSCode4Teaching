@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from "rxjs";
 import { Course } from "../../../../model/course.model";
 import { CourseDTO } from "../../../../model/rest-api/course.dto";
+import { UserDTO } from "../../../../model/rest-api/user.dto";
 import { User } from "../../../../model/user.model";
 import { ExerciseService } from "../exercise/exercise.service";
 
@@ -41,5 +42,21 @@ export class CourseService {
 
     public getSharingCodeByCourse = (course: Course): Promise<string> => {
         return lastValueFrom(this.http.get("/courses/" + course.id + "/code", { responseType: "text" }));
+    }
+
+
+    public getEnrolledUsersByCourse = (course: Course): Promise<User[]> => {
+        return lastValueFrom(this.http.get<UserDTO[]>("/courses/" + course.id + "/users")
+            .pipe(map((userDTOList: UserDTO[]) => userDTOList?.map((userDTO: UserDTO) => new User(userDTO)) ?? [])));
+    }
+
+    public addUserToCourse = (course: Course, user: User): Promise<Course> => {
+        return lastValueFrom(this.http.post<CourseDTO>("/courses/" + course.id + "/users", { ids: [ user.id ] })
+            .pipe(map((courseDTO: CourseDTO) => new Course(courseDTO))));
+    }
+
+    public removeUserFromCourse = (course: Course, user: User): Promise<Course> => {
+        return lastValueFrom(this.http.delete<CourseDTO>("/courses/" + course.id + "/users", { body: { ids: [ user.id ] } })
+            .pipe(map((courseDTO: CourseDTO) => new Course(courseDTO))));
     }
 }

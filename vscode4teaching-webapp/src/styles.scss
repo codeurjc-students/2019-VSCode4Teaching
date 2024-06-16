@@ -43,6 +43,25 @@ button.btn-v4t {
     }
 }
 
+a.btn-outline-v4t,
+button.btn-outline-v4t {
+    color: #F44A3E;
+    border: 1px solid #F44A3E;
+    margin-right: .25rem;
+
+    &:hover {
+        background-color: #F44A3E;
+        border-color: #F44A3E;
+        color: white;
+    }
+
+    &:active, &.active, &:focus, &:focus-visible {
+        background-color: #F33326 !important;
+        border-color: #F33326 !important;
+        color: white !important;
+    }
+}
+
 a.btn-v4t-coloured,
 button.btn-v4t-coloured {
     background-color: #F44A3E;
@@ -72,6 +91,29 @@ button.btn-v4t-coloured {
 
     > svg[data-fa-i2svg] {
         margin-right: .5rem;
+    }
+}
+
+.ng-select {
+    border-color: #FF7F6C;
+
+    &.ng-select-focused > .ng-select-container,
+    &.ng-select-focused > .ng-select-container:hover,
+    &.ng-select-opened > .ng-select-container,
+    &.ng-select-opened > .ng-select-container:hover,
+    &.ng-select-focused:not(.ng-select-opened) > .ng-select-container,
+    &.ng-select-focused:not(.ng-select-opened) > .ng-select-container:hover
+    {
+        border-color: #F44A3E;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(244, 74, 62, 0.1);
+    }
+
+    .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+        background-color: #FEE8E7;
+    }
+
+    .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected {
+        background-color: #FDDBD8;
     }
 }
 
@@ -122,6 +164,25 @@ hr {
         --bs-form-switch-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3' fill='%23FFFFFF'/%3E%3Cline x1='0' y1='-1.75' x2='0' y2='1.75' stroke='rgba(51%2C 51%2C 51%2C 0.7)' stroke-width='1'/%3E%3C/svg%3E");
         background-color: #F44A3E;
         border-color: #F44A3E;
+    }
+}
+
+
+.form-control-v4t {
+    border-color: #FF7F6C;
+    font-size: .9rem;
+
+    &:focus {
+        border-color: #F44A3E;
+        box-shadow: 0 0 0 .25rem rgba(244, 74, 62, .25);
+    }
+
+    &.is-invalid {
+        border-color: #F44A3E;
+    }
+
+    &.is-valid {
+        border-color: #66BB6A;
     }
 }
 
