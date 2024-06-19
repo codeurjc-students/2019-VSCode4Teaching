@@ -1,0 +1,40 @@
+<button class="btn btn-sm btn-v4t" (click)="this.openAddExercisesModal()">
+    <i class="fa fa-plus"></i> Add exercises
+</button>
+<div class="modal modal-lg fade" tabindex="-1" #addExercisesModal>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-plus"></i> Add new exercises</h5>
+                <button type="button" class="btn-close" (click)="this.closeAddExercisesModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="description">
+                    Pick a directory from your local file system. When chosen, directory will be displayed and a checkbox will be available to choose if directory contains subdirectories with exercises or not.
+                </div>
+                <div class="text-center" style="display: flex; flex-direction: row; align-items: center">
+                    <button class="btn btn-v4t" style="flex: 1 0" (click)="this.pickDirectory()" [disabled]="this.status === 'IN_PROGRESS'">
+                        <i class="fa fa-folder-open"></i> Pick directory
+                    </button>
+                    <div style="flex: 1 0" class="form-check form-switch p-0 d-flex justify-content-center">
+                        <input class="form-check-input v4t" type="checkbox" id="subdirectories" [(ngModel)]="this.checkSubdirectories" (change)="this.refreshSelection()" [disabled]="this.status === 'IN_PROGRESS'">
+                        <label class="form-check-label" for="subdirectories">Look for exercises in subdirectories</label>
+                    </div>
+                </div>
+
+                <app-teacher-course-add-exercise-exercise-directory #exerciseDirectory
+                    *ngFor="let entry of this.potentialEntries" [entry]="entry"
+                    [course]="this.course" (uploadFinished)="this.refreshParentCourses()">
+                </app-teacher-course-add-exercise-exercise-directory>
+
+                <div class="text-center mt-2">
+                    <button class="btn btn-v4t" [disabled]="this.potentialEntries?.length === 0 || this.status !== 'NOT_STARTED'" (click)="this.uploadExercises()">
+                        <div *ngIf="this.status === 'NOT_STARTED'"><i class="fa fa-save"></i> Save new exercises</div>
+                        <div *ngIf="this.status === 'IN_PROGRESS'"><i class="fa fa-circle-notch fa-spin"></i> In progress…</div>
+                        <div *ngIf="this.status === 'FINISHED'"><i class="fa fa-check"></i> Finished</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -25,6 +25,12 @@ export class ExerciseService {
         );
     }
 
+    public addExercisesToCourse = (exerciseDTOs: ExerciseDTO[], course: Course): Promise<Exercise[]> => {
+        return lastValueFrom(this.http.post<ExerciseDTO[]>(`/v2/courses/${ course.id }/exercises`, exerciseDTOs)
+            .pipe(map((exerciseDTOList: ExerciseDTO[]) => exerciseDTOList.map((exerciseDTO: ExerciseDTO) => new Exercise(exerciseDTO))))
+        );
+    }
+
     public editExercise = (exercise: Exercise): Promise<Exercise> => {
         return lastValueFrom(this.http.put<ExerciseDTO>("/exercises/" + exercise.id, exercise.toDTO())
             .pipe(map((exerciseDTO: ExerciseDTO) => new Exercise(exerciseDTO)))

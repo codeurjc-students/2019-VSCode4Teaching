@@ -36,6 +36,8 @@ import { HttpRequestInterceptor } from "./services/rest-api/interceptor/http-req
 import { UrlService } from "./services/url/url.service";
 import { WebSocketHandler } from "./services/ws/web-socket-handler";
 import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factory.service";
+import { AddExercisesComponent } from './components/private/teacher/course/add-exercises/add-exercises.component';
+import { ExerciseDirectoryComponent } from './components/private/teacher/course/add-exercises/exercise-directory/exercise-directory.component';
 
 @NgModule({
     declarations: [
@@ -74,7 +76,9 @@ import { WebSocketHandlerFactory } from "./services/ws/web-socket-handler-factor
         TeacherExerciseComponent,
         GeneralStatisticsComponent,
         StudentsProgressComponent,
-        IndividualStudentProgressComponent
+        IndividualStudentProgressComponent,
+        AddExercisesComponent,
+        ExerciseDirectoryComponent
     ],
     imports: [
         BrowserModule,

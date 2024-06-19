@@ -28,7 +28,11 @@ export class FileSystemReadDirectoryService {
     public async supportedFileSystemAPI(rootDirectoryHandle: FileSystemDirectoryHandle, parentDirectoryNode?: DirectoryNode): Promise<DirectoryNode | undefined> {
         // Step 1: DirectoryNode representing current rootDirectoryHandle is initialized
         const childrenNodesList: Node[] = [];
-        const directoryNode: DirectoryNode = new DirectoryNode(rootDirectoryHandle.name, childrenNodesList, parentDirectoryNode);
+        const directoryNode: DirectoryNode = new DirectoryNode({
+            name: rootDirectoryHandle.name,
+            children: childrenNodesList,
+            parentDirectoryNode: parentDirectoryNode
+        });
 
         // Step 2: existing entries (both files and directories) in current directory are analyzed
         for await (const entry of rootDirectoryHandle.values()) {
@@ -38,7 +42,12 @@ export class FileSystemReadDirectoryService {
             // Browser asks for information about it and a new FileNode is generated and fulfilled.
             if (entry instanceof FileSystemFileHandle && entry.kind === "file") {
                 let fileInformation = await entry.getFile();
-                childrenNodesList.push(new FileNode(entry.name, fileInformation.lastModified, fileInformation, directoryNode));
+                childrenNodesList.push(new FileNode({
+                    name: entry.name,
+                    lastModifiedTime: fileInformation.lastModified,
+                    fileBlob: fileInformation,
+                    parentDirectoryNode: directoryNode
+                }));
             }
 
             // Recursive case: entry is a directory.
@@ -73,7 +82,10 @@ export class FileSystemReadDirectoryService {
         if (recursiveFileList.length === 0) return undefined;
 
         // Step 1: DirectoryNode representing current rootDirectoryHandle is initialized
-        const rootDirectoryNode = new DirectoryNode(recursiveFileList[0].webkitRelativePath.split(/\/|\\/)[0], []);
+        const rootDirectoryNode = new DirectoryNode({
+            name: recursiveFileList[0].webkitRelativePath.split(/\/|\\/)[0],
+            children: []
+        });
 
         // Step 2: file list including entries from all subdirectories is traversed
         for (const handler of recursiveFileList) {
@@ -98,7 +110,12 @@ export class FileSystemReadDirectoryService {
         // Base case: path parameter includes only one string (file name).
         // This file belongs to current directoryNode, it is registered and analysis has finished
         if (pathParameter.length === 1) {
-            directoryNode.children.push(new FileNode(pathParameter[0], file.lastModified, file, directoryNode));
+            directoryNode.children.push(new FileNode({
+                name: pathParameter[0],
+                lastModifiedTime: file.lastModified,
+                fileBlob: file,
+                parentDirectoryNode: directoryNode
+            }));
 
             // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
             directoryNode.children = directoryNode.children.sort((x, y) => x.name.localeCompare(y.name));
@@ -116,7 +133,11 @@ export class FileSystemReadDirectoryService {
             // Case 2: the first directory of the relative path is not yet registered,
             // so a new entry is generated in the node list and the insertion is continued recursively
             else {
-                const newSubdirectoryNode = new DirectoryNode(pathParameter[0], [], directoryNode);
+                const newSubdirectoryNode = new DirectoryNode({
+                    name: pathParameter[0],
+                    children: [],
+                    parentDirectoryNode: directoryNode
+                });
 
                 // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
                 directoryNode.children.push(newSubdirectoryNode);

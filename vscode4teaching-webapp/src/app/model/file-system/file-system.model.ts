@@ -31,11 +31,11 @@ export class FileNode implements Node {
     lastModifiedTime: number;
     fileBlob: Blob;
 
-    constructor(name: string, lastModifiedTime: number, fileBlob: Blob, parentDirectoryNode: DirectoryNode) {
-        this.name = name;
-        this.lastModifiedTime = lastModifiedTime;
-        this.fileBlob = fileBlob;
-        this.parentDirectoryNode = parentDirectoryNode;
+    constructor(properties: { name: string, lastModifiedTime: number, fileBlob: Blob, parentDirectoryNode: DirectoryNode }) {
+        this.name = properties.name;
+        this.lastModifiedTime = properties.lastModifiedTime;
+        this.fileBlob = properties.fileBlob;
+        this.parentDirectoryNode = properties.parentDirectoryNode;
     }
 
     get relativePath(): string {
@@ -55,10 +55,10 @@ export class DirectoryNode implements Node {
 
     children: Node[];
 
-    constructor(name: string, children: Node[], parentDirectoryNode?: DirectoryNode) {
-        this.name = name;
-        this.children = children;
-        this.parentDirectoryNode = parentDirectoryNode ?? undefined;
+    constructor(properties: { name: string, children: Node[], parentDirectoryNode?: DirectoryNode }) {
+        this.name = properties.name;
+        this.children = properties.children;
+        this.parentDirectoryNode = properties.parentDirectoryNode ?? undefined;
     }
 
     get relativePath(): string {

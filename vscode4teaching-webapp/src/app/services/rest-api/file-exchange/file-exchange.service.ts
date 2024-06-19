@@ -1,6 +1,7 @@
 import { HttpClient, HttpEvent } from "@angular/common/http";
 import { Injectable } from '@angular/core';
 import { Observable } from "rxjs";
+import { Exercise } from "../../../model/exercise.model";
 
 @Injectable({
     providedIn: 'root'
@@ -69,6 +70,28 @@ export class FileExchangeService {
     public deleteExerciseSingleFileByExerciseIdRelativePath = (exerciseId: number, relativePath: string) => {
         return this.http.delete(`/exercises/${exerciseId}/file`, {
             body: { relativePath },
+            observe: "events",
+            reportProgress: true,
+            responseType: "json"
+        });
+    }
+
+
+    // Uploading of template and solution files
+    public addTemplateToExercise = (zippedTemplate: Blob, exercise: Exercise) => {
+        const formData: FormData = new FormData();
+        formData.append("file", zippedTemplate);
+        return this.http.post(`/exercises/${exercise.id}/files/template`, formData, {
+            observe: "events",
+            reportProgress: true,
+            responseType: "json"
+        });
+    }
+
+    public addSolutionToExercise = (zippedTemplate: Blob, exercise: Exercise) => {
+        const formData: FormData = new FormData();
+        formData.append("file", zippedTemplate);
+        return this.http.post(`/exercises/${exercise.id}/files/solution`, formData, {
             observe: "events",
             reportProgress: true,
             responseType: "json"

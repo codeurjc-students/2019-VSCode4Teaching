@@ -21,7 +21,12 @@
     </div>
 
     <hr>
-    <h3>Exercises</h3>
+    <div style="display: flex; flex-direction: row; padding-bottom: .75rem">
+        <h3 style="flex: 1 0; margin-bottom: 0">Exercises</h3>
+        <div style="flex: 0 0 15%; display: flex; justify-content: flex-end; align-items: center">
+            <app-teacher-course-add-exercises [course]="this.course" (uploadFinished)="this.refreshCourseInformation()"></app-teacher-course-add-exercises>
+        </div>
+    </div>
     <div class="exercises">
         <div class="exercise" *ngFor="let exercise of this.exercises">
             <div class="name">

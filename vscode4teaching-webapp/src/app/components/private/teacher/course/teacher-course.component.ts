@@ -50,7 +50,7 @@ export class TeacherCourseComponent implements OnInit {
                     })
                 ) ?? []
             );
-            newExercises.sort((a, b) => a.exercise.id - b.exercise.id);
+            newExercises.sort((a, b) => a.exercise.name.localeCompare(b.exercise.name));
         } else {
             this.error = true;
         }

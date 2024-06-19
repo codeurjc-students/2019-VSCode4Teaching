@@ -1,0 +1,73 @@
+<div *ngIf="!this.directory">
+    <div class="alert alert-v4t my-2 text-center">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading directory information…
+    </div>
+</div>
+<div *ngIf="this.directory" class="exercise">
+    <div class="exerciseInfo">
+        <div class="directory">
+            <div style="display: flex; flex-direction: row; align-items: center">
+                <i class="fa fa-folder"></i>
+                <div style="margin-left: .5rem">
+                    <div>{{ this.directory.name }}</div>
+                </div>
+            </div>
+            <div class="bg-in-progress color-in-progress badge py-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-pill" *ngIf="!this.exerciseIncludesSolution">
+                No solution included
+            </div>
+            <div class="bg-finished color-finished badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill" *ngIf="this.exerciseIncludesSolution">
+                Solution included
+            </div>
+        </div>
+        <div class="name" style="display: flex; flex-direction: row">
+            <label [for]="'exerciseName_' + this.directory.name" class="form-label" style="flex: 0 0 30%; align-self: center; margin-bottom: 0; text-align: center">Exercise name</label>
+            <div class="input-group has-validation" style="flex: 1 0">
+                <input type="text" [id]="'exerciseName_' + this.directory.name" [formControl]="this.exerciseName" placeholder="Name for the exercise…" class="form-control form-control-sm form-control-v4t">
+                <div class="invalid-feedback" *ngIf="!this.exerciseName.valid && this.exerciseName.hasError('required')">
+                    Exercise name is required
+                </div>
+                <div class="invalid-feedback" *ngIf="!this.exerciseName.valid && this.exerciseName.hasError('minlength')">
+                    Exercise name must be at least 4 characters long
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="uploadStatus" *ngIf="this.uploadStatus.status !== 'NOT_STARTED'">
+        <div class="progressBadges">
+            <ng-container [ngSwitch]="this.uploadStatus.steps.createdExercise">
+                <div *ngSwitchCase="'NOT_STARTED'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <i class="far fa-circle" style="margin-right: .25rem"></i> Exercise info not saved
+                </div>
+                <div *ngSwitchCase="'IN_PROGRESS'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                    <i class="far fa-circle-play" style="margin-right: .25rem"></i> Saving exercise info…
+                </div>
+                <div *ngSwitchCase="'FINISHED'" class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <i class="fa fa-circle-check" style="margin-right: .25rem"></i> Exercise info saved
+                </div>
+            </ng-container>
+            <ng-container [ngSwitch]="this.uploadStatus.steps.uploadedTemplate">
+                <div *ngSwitchCase="'NOT_STARTED'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <i class="far fa-circle" style="margin-right: .25rem"></i> Template not uploaded
+                </div>
+                <div *ngSwitchCase="'IN_PROGRESS'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                    <i class="far fa-circle-play" style="margin-right: .25rem"></i> Uploading template…
+                </div>
+                <div *ngSwitchCase="'FINISHED'" class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <i class="fa fa-circle-check" style="margin-right: .25rem"></i> Template uploaded
+                </div>
+            </ng-container>
+            <ng-container *ngIf="this.uploadStatus.steps.uploadedSolution" [ngSwitch]="this.uploadStatus.steps.uploadedSolution">
+                <div *ngSwitchCase="'NOT_STARTED'" class="badge py-2 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <i class="far fa-circle" style="margin-right: .25rem"></i> Solution not uploaded
+                </div>
+                <div *ngSwitchCase="'IN_PROGRESS'" class="badge py-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                    <i class="far fa-circle-play" style="margin-right: .25rem"></i> Uploading solution…
+                </div>
+                <div *ngSwitchCase="'FINISHED'" class="badge py-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                    <i class="fa fa-circle-check" style="margin-right: .25rem"></i> Solution uploaded
+                </div>
+            </ng-container>
+        </div>
+        <app-helper-progress-bar [info]="this.uploadStatus.progress"></app-helper-progress-bar>
+    </div>
+</div>
