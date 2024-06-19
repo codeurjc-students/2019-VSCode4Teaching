@@ -10,7 +10,7 @@ export class Course {
     #exercises: Exercise[] | undefined;
 
     constructor(dto: CourseDTO) {
-        this.#id = parseInt(dto.id);
+        this.#id = dto.id as number;
         this.#name = dto.name;
         this.#creator = dto.creator ? new User(dto.creator) : undefined;
         this.#exercises = dto.exercises?.map((dto: ExerciseDTO) => new Exercise(dto)) ?? undefined;
@@ -40,7 +40,7 @@ export class Course {
 
     public toDTO = (): CourseDTO => {
         return {
-            id: this.id.toString(),
+            id: this.id,
             name: this.name,
             creator: this.creator?.toDTO(),
             exercises: this.exercises?.map((exercise: Exercise) => exercise.toDTO())

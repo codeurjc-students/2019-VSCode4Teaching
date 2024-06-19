@@ -4,16 +4,16 @@ import { ExerciseDTO } from "./rest-api/exercise.dto";
 export class Exercise {
     readonly #id: number;
     readonly #name: string;
-    readonly #course: Course;
+    readonly #course?: Course;
     readonly #includesTeacherSolution: boolean;
     #solutionIsPublic: boolean;
     #allowEditionAfterSolutionDownloaded: boolean;
 
 
     constructor(dto: ExerciseDTO) {
-        this.#id = dto.id;
+        this.#id = dto.id as number;
         this.#name = dto.name;
-        this.#course = new Course(dto.course);
+        if (dto.course) this.#course = new Course(dto.course);
         this.#includesTeacherSolution = dto.includesTeacherSolution;
         this.#solutionIsPublic = dto.solutionIsPublic;
         this.#allowEditionAfterSolutionDownloaded = dto.allowEditionAfterSolutionDownloaded;
@@ -28,7 +28,7 @@ export class Exercise {
         return this.#name;
     }
 
-    get course(): Course {
+    get course(): Course | undefined {
         return this.#course;
     }
 
@@ -56,7 +56,7 @@ export class Exercise {
         return {
             id: this.id,
             name: this.name,
-            course: this.course.toDTO(),
+            ...(this.course ? { course: this.course.toDTO() } : {}),
             includesTeacherSolution: this.includesTeacherSolution,
             solutionIsPublic: this.solutionIsPublic,
             allowEditionAfterSolutionDownloaded: this.allowEditionAfterSolutionDownloaded

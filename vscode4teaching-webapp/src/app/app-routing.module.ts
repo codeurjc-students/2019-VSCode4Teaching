@@ -10,7 +10,7 @@ import { isLoggedIn, isTeacher } from "./services/auth/guards/guards.service";
 
 const routes: Routes = [
     // private/common
-    { path: "dashboard", component: DashboardComponent, data: {}, canActivate: [isLoggedIn] },
+    { path: "dashboard", component: DashboardComponent, data: { showAside: false }, canActivate: [isLoggedIn] },
 
     // private/student
     {

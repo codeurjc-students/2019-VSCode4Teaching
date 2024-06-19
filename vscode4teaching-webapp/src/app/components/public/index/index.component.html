@@ -5,20 +5,22 @@
     <h1>VSCode4Teaching</h1>
     <h2>Extension for Visual Studio Code</h2>
     <hr/>
-    <!-- <ng-container>
-        <div class="alert alert-secondary"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+    <ng-container *ngIf="this.course === null">
         <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> The code you entered could not be related to a course.</div>
-    </ng-container> -->
+    </ng-container>
+    <ng-container *ngIf="this.course === undefined && this.sharingCode !== undefined">
+        <div class="alert alert-secondary"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+    </ng-container>
     <ng-container>
-        <!-- <ng-container>
-            <div class="text-big">
-                <kbd>NAME</kbd> <kbd>SURNAME</kbd> invited you to join <kbd>COURSENAME</kbd> at VSCode4Teaching!
+        <ng-container *ngIf="this.course !== undefined && this.course !== null">
+            <div class="text-big" style="font-size: 1.5rem">
+                <strong>{{ this.course.creator?.name }} {{ this.course.creator?.lastName }} invited you to join {{ this.course.name }} at VSCode4Teaching!</strong>
             </div>
             <div class="text-big">
                 If you want to join this course, please follow this steps:
             </div>
-        </ng-container> -->
-        <ng-container>
+        </ng-container>
+        <ng-container *ngIf="this.course === undefined || this.course === null">
             <div class="text-big">
                 Bring the programming exercises of a course directly to the student's editor, so that the teacher of that course can check the progress of the students and help them.
             </div>
@@ -54,16 +56,19 @@
             <img class="stepImage" src="/assets/img/gif2_login.gif" alt="Animated image of demo student logging in">
         </div>
         <div class="step" id="step5">
-            <ng-container>
+            <ng-container *ngIf="!this.course">
                 <div class="stepDescription">Join a course (the teacher will give you the code!):</div>
             </ng-container>
-            <!-- <ng-container>
+            <ng-container *ngIf="!!this.course">
                 <div class="stepDescription">Join the course using this code:</div>
                 <div class="codeBlock">
-                    <input id="givenCodeInput" [value]="this.code" readonly #codeCopyInput />
-                    <button type="button" id="codeCopyBtn" #codeCopyBtn>Copy</button>
+                    <input id="givenCodeInput" [value]="this.sharingCode" readonly />
+                    <button type="button" id="codeCopyBtn" (click)="this.copySharingCode()">
+                        <div *ngIf="this.sharingCodeCopied"><i class="fa fa-check"></i> Copied!</div>
+                        <div *ngIf="!this.sharingCodeCopied">Copy</div>
+                    </button>
                 </div>
-            </ng-container> -->
+            </ng-container>
             <img class="stepImage" src="/assets/img/gif3_joincourse.gif" alt="Animated image of demo student enrolling in a course using an enrollment code" />
         </div>
         <div class="step" id="step6">

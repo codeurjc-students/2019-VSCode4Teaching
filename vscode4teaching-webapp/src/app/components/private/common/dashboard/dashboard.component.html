@@ -1,4 +1,4 @@
-<div class="dashboard">
+<div class="dashboard px-5">
     <h3>My Courses</h3>
 
     <ng-container *ngIf="!this.coursesLoaded">
@@ -8,13 +8,13 @@
     </ng-container>
 
     <ng-container *ngIf="this.coursesLoaded && this.userCourses.length === 0">
-        <div class="alert alert-v4t">
+        <div class="alert alert-v4t my-2">
             <i class="fas fa-exclamation-triangle"></i> No courses for this user.
         </div>
     </ng-container>
 
-    <ng-container *ngIf="this.coursesLoaded && this.userCourses.length > 0">
-        <div class="courseGrid">
+    <div class="courseGrid">
+        <ng-container *ngIf="this.coursesLoaded && this.userCourses.length > 0">
             <div class="course" *ngFor="let course of this.userCourses">
                 <div class="icon">
                     <i class="fas fa-book"></i>
@@ -33,6 +33,23 @@
                     </ng-container>
                 </div>
             </div>
+        </ng-container>
+
+        <div class="course" style="justify-content: center">
+            <div class="name">
+                Join a new course with a sharing code:
+            </div>
+            <div class="input-group">
+                <input type="text" class="form-control form-control-v4t" [(ngModel)]="this.joinSharingCode" placeholder="Sharing code provided by teacher…">
+                <button class="btn btn-v4t" (click)="this.joinCourse()" [disabled]="this.joinStatus === 'IN_PROGRESS'">
+                    <div *ngIf="this.joinStatus === 'NOT_STARTED' || this.joinStatus === 'ERROR'"><i class="fas fa-right-to-bracket"></i> Join course</div>
+                    <div *ngIf="this.joinStatus === 'IN_PROGRESS'"><i class="fas fa-circle-notch fa-spin"></i> Joining…</div>
+                    <div *ngIf="this.joinStatus === 'FINISHED'"><i class="fas fa-check"></i> Joined!</div>
+                </button>
+            </div>
+            <div class="alert alert-v4t mt-2 text-center" *ngIf="this.joinStatus === 'ERROR'">
+                <i class="fa fa-info-circle"></i> There was an error joining the course: sharing code is not valid or you are already in the course.
+            </div>
         </div>
-    </ng-container>
+    </div>
 </div>

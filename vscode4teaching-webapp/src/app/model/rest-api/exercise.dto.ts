@@ -1,9 +1,9 @@
 import { CourseDTO } from "./course.dto";
 
 export interface ExerciseDTO {
-    id: number;
+    id?: number;
     name: string;
-    course: CourseDTO;
+    course?: CourseDTO;
     includesTeacherSolution: boolean;
     solutionIsPublic: boolean;
     allowEditionAfterSolutionDownloaded: boolean;

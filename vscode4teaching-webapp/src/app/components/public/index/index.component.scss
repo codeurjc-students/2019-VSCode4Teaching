@@ -105,28 +105,30 @@
 
 .codeBlock {
     display: flex;
-    width: 40%;
+    width: 50%;
     margin: 0 auto 0.5rem auto;
-}
 
-#givenCodeInput {
-    border: 2px solid #f44a3e;
-    padding: 12px 40px;
-    flex-grow: 9;
-    transition: all 0.25s;
 
-    &:focus {
-        outline: none;
-        box-shadow: 0 0 20px #f38078;
+    > #givenCodeInput {
+        border: 2px solid #f44a3e;
+        padding: 12px 40px;
+        flex-grow: 9;
         transition: all 0.25s;
-    }
-}
+        text-align: center;
 
-#codeCopyBtn {
-    background-color: #f44a3e;
-    padding: 12px 40px;
-    color: white;
-    border: 0;
-    flex-grow: 1;
-    cursor: pointer;
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 20px #f38078;
+            transition: all 0.25s;
+        }
+    }
+
+    #codeCopyBtn {
+        background-color: #f44a3e;
+        padding: 12px 40px;
+        color: white;
+        border: 0;
+        flex-grow: 1;
+        cursor: pointer;
+    }
 }

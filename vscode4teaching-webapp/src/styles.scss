@@ -187,6 +187,23 @@ hr {
 }
 
 
+.progressBadges {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: 1rem;
+
+    margin-bottom: .5rem;
+
+    width: 100%;
+
+    > div {
+        flex: 1 1 0;
+    }
+}
+
+
 .bg-finished {
     background-color: #E8F5E9;
 }
