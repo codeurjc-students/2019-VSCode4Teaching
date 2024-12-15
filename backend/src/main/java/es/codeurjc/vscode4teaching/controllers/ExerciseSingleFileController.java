@@ -1,0 +1,75 @@
+package es.codeurjc.vscode4teaching.controllers;
+
+import es.codeurjc.vscode4teaching.controllers.dtos.UploadFileResponse;
+import es.codeurjc.vscode4teaching.security.jwt.JWTTokenUtil;
+import es.codeurjc.vscode4teaching.services.ExerciseSingleFileService;
+import es.codeurjc.vscode4teaching.services.exceptions.ExerciseFinishedException;
+import es.codeurjc.vscode4teaching.services.exceptions.NotFoundException;
+import es.codeurjc.vscode4teaching.services.exceptions.NotInCourseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+
+@RestController
+@CrossOrigin
+@Validated
+@RequestMapping("/api")
+public class ExerciseSingleFileController {
+    private static final String templateFolderName = "template";
+    private static final String solutionFolderName = "solution";
+
+    private final ExerciseSingleFileService exerciseSingleFileService;
+    private final JWTTokenUtil jwtTokenUtil;
+
+    private final Logger logger = LoggerFactory.getLogger(ExerciseZipFileController.class);
+
+    public ExerciseSingleFileController(ExerciseSingleFileService exerciseSingleFileService,
+                                        JWTTokenUtil jwtTokenUtil) {
+        this.exerciseSingleFileService = exerciseSingleFileService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
+
+    @RequestMapping(value = "/exercises/{exerciseId}/file", method = {RequestMethod.POST, RequestMethod.PATCH})
+    public ResponseEntity<UploadFileResponse> uploadSingleFile(@PathVariable Long exerciseId,
+                                                               @RequestPart("relativePath") String relativePath,
+                                                               @RequestPart("file") MultipartFile file,
+                                                               HttpServletRequest request)
+            throws NotInCourseException, NotFoundException, IOException, ExerciseFinishedException {
+        logger.info("Request to {} '/api/exercises/{}/file' with relativePath {} and a file", request.getMethod(), exerciseId, relativePath);
+
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
+
+        File savedFile = exerciseSingleFileService.saveExerciseSingleFile(exerciseId, username, file, relativePath);
+        return ResponseEntity.ok(new UploadFileResponse(savedFile.getName(), savedFile.toURI().toURL().openConnection().getContentType(), savedFile.length()));
+    }
+
+    @RequestMapping(value = "/exercises/{exerciseId}/file", method = {RequestMethod.DELETE})
+    public ResponseEntity<Void> deleteSingleFile(@PathVariable Long exerciseId,
+                                                 @RequestBody Map<String, String> requestBody,
+                                                 HttpServletRequest request)
+            throws NotInCourseException, NotFoundException {
+        if (!requestBody.containsKey("relativePath")) {
+            throw new NotFoundException("Relative path not included in request body");
+        }
+        String relativePath = requestBody.get("relativePath");
+
+        logger.info("Request to DELETE '/api/exercises/{}/file' with relativePath {}", exerciseId, relativePath);
+
+        String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
+
+        if (exerciseSingleFileService.deleteExerciseSingleFile(exerciseId, username, relativePath)) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+}
