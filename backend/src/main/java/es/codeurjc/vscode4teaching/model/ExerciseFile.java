@@ -7,8 +7,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "file")
@@ -27,10 +25,6 @@ public class ExerciseFile {
     @ManyToOne
     @JsonView(FileViews.OwnerView.class)
     private User owner;
-
-    @OneToMany(mappedBy = "file", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonView(FileViews.CommentView.class)
-    private List<CommentThread> comments = new ArrayList<>();
 
     @CreationTimestamp
     @JsonView(FileViews.GeneralView.class)
@@ -82,23 +76,5 @@ public class ExerciseFile {
 
     public LocalDateTime getUpdateDateTime() {
         return updateDateTime;
-    }
-
-    public List<CommentThread> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<CommentThread> comments) {
-        this.comments = comments;
-    }
-
-    public void addCommentThread(CommentThread commentThread) {
-        for (CommentThread fileCommentThread : this.getComments()) {
-            if (fileCommentThread.getLine().equals(commentThread.getLine())) {
-                this.getComments().remove(fileCommentThread);
-                break;
-            }
-        }
-        this.comments.add(commentThread);
     }
 }

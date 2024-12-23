@@ -63,39 +63,6 @@ public class ExerciseControllerTests {
     }
 
     @Test
-    public void addExercise_valid() throws Exception {
-        logger.info("Test addExercise_valid() begins.");
-
-        Course course = new Course("Spring Boot Course");
-        Long courseId = 1L;
-        course.setId(courseId);
-        Exercise expectedExercise = new Exercise();
-        expectedExercise.setName("Spring Boot Exercise 1");
-        expectedExercise.setId(2L);
-        expectedExercise.setCourse(course);
-        ExerciseDTO exerciseDTO = new ExerciseDTO();
-        exerciseDTO.name = "Spring Boot Exercise 1";
-        when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
-                .thenReturn(expectedExercise);
-
-        MvcResult mvcResult = mockMvc
-                .perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json")
-                        .with(csrf()).content(objectMapper.writeValueAsString(List.of(exerciseDTO)))
-                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
-                .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
-
-        ArgumentCaptor<Exercise> exerciseCaptor = ArgumentCaptor.forClass(Exercise.class);
-        verify(courseService, times(1)).addExerciseToCourse(any(Long.class), exerciseCaptor.capture(), anyString());
-        assertThat(exerciseCaptor.getValue().getName()).isEqualTo("Spring Boot Exercise 1");
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
-                .writeValueAsString(List.of(expectedExercise));
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-
-        logger.info("Test addExercise_valid() ends.");
-    }
-
-    @Test
     public void addExercise_invalid() throws Exception {
         logger.info("Test addExercise_invalid() begins.");
 
@@ -104,7 +71,7 @@ public class ExerciseControllerTests {
         course.setId(courseId);
         ExerciseDTO exercise = new ExerciseDTO();
 
-        mockMvc.perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json").with(csrf())
+        mockMvc.perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json").with(csrf())
                 .header("Authorization", "Bearer " + jwtToken.getJwtToken())
                 .content(objectMapper.writeValueAsString(exercise))).andExpect(status().isBadRequest());
 
@@ -114,41 +81,33 @@ public class ExerciseControllerTests {
     }
 
     @Test
-    public void addMultipleExercises_valid() throws Exception {
-        logger.info("Test addMultipleExercises_valid() begins.");
-        int number = (int) (Math.random() * 11);
-        logger.info("Number: " + number);
+    public void addExercise_valid() throws Exception {
+        logger.info("Test addExercise_valid() begins.");
         Course course = new Course("Spring Boot Course");
         Long courseId = 1L;
         course.setId(courseId);
-        List<ExerciseDTO> exercisesList = new ArrayList<>();
-        List<Exercise> expectedExercises = new ArrayList<>();
-        for (int i = 1; i <= number; i++) {
-            ExerciseDTO dto = new ExerciseDTO();
-            dto.name = "Exercise " + i;
-            Exercise exercise = new Exercise();
-            exercise.setName("Exercise " + i);
-            exercise.setId((long) (1 + i));
-            exercise.setCourse(course);
-            exercisesList.add(dto);
-            expectedExercises.add(exercise);
-        }
 
-        when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString()))
-                .then(returnsElementsOf(expectedExercises));
+        ExerciseDTO exerciseDTO = new ExerciseDTO();
+        exerciseDTO.name = "Exercise";
+
+        Exercise expectedExercise = new Exercise();
+        expectedExercise.setName("Exercise");
+        expectedExercise.setId(2L);
+        expectedExercise.setCourse(course);
+
+        when(courseService.addExerciseToCourse(any(Long.class), any(Exercise.class), anyString())).thenReturn(expectedExercise);
 
         MvcResult mvcResult = mockMvc
-                .perform(post("/api/v2/courses/{courseId}/exercises", courseId).contentType("application/json")
-                        .with(csrf()).content(objectMapper.writeValueAsString(exercisesList.toArray()))
+                .perform(post("/api/courses/{courseId}/exercises", courseId).contentType("application/json")
+                        .with(csrf()).content(objectMapper.writeValueAsString(exerciseDTO))
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isCreated()).andReturn();
 
         String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class)
-                .writeValueAsString(expectedExercises.toArray());
+        String expectedResponseBody = objectMapper.writerWithView(ExerciseViews.CourseView.class).writeValueAsString(expectedExercise);
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
-        logger.info("Test addMultipleExercises_valid() ends.");
+        logger.info("Test addExercise_valid() ends.");
     }
 
     @Test
@@ -250,24 +209,6 @@ public class ExerciseControllerTests {
         verify(courseService, times(1)).deleteExercise(anyLong(), anyString());
 
         logger.info("Test deleteExercise_valid() ends.");
-    }
-
-    @Test
-    public void getCode_valid() throws Exception {
-        Exercise ex = new Exercise("Spring Boot Exercise 1");
-        ex.setId(1L);
-        String code = ex.getUuid();
-
-        when(courseService.getExerciseCode(1L, "johndoe")).thenReturn(code);
-
-        MvcResult mvcResult = mockMvc
-                .perform(get("/api/exercises/1/code").contentType("application/json").with(csrf())
-                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
-                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
-
-        verify(courseService, times(1)).getExerciseCode(1L, "johndoe");
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        assertThat(code).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 
     @Test

@@ -1,10 +1,7 @@
 package es.codeurjc.vscode4teaching.controllers;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import es.codeurjc.vscode4teaching.controllers.dtos.UploadFileResponse;
 import es.codeurjc.vscode4teaching.model.Exercise;
-import es.codeurjc.vscode4teaching.model.ExerciseFile;
-import es.codeurjc.vscode4teaching.model.views.FileViews;
 import es.codeurjc.vscode4teaching.security.jwt.JWTTokenUtil;
 import es.codeurjc.vscode4teaching.services.ExerciseZipFileService;
 import es.codeurjc.vscode4teaching.services.exceptions.*;
@@ -133,15 +130,6 @@ public class ExerciseZipFileController {
         exportToZipAllStudents(response, files, exerciseDirectory);
     }
 
-    @JsonView(FileViews.GeneralView.class)
-    @GetMapping("/users/{username}/exercises/{exerciseId}/files")
-    public ResponseEntity<List<ExerciseFile>> getFileInfoByOwnerAndExercise(@PathVariable String username,
-                                                                            @PathVariable Long exerciseId) throws NotFoundException {
-        logger.info("Request to GET '/api/users/{}/exercises/{}/files'", username, exerciseId);
-        List<ExerciseFile> files = exerciseZipFileService.getFileIdsByExerciseAndId(exerciseId, username);
-        return files.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(files);
-    }
-
     private String[] headerFilename(String filename) {
         String[] headerElements = new String[2];
         headerElements[0] = "Content-Disposition";
@@ -172,16 +160,14 @@ public class ExerciseZipFileController {
 
 
     // POST endpoint
-
-    @PostMapping(value = {"/exercises/{id}/files", "/exercises/{id}/files/{type:template|solution}"})
+    @PostMapping("/exercises/{id}/files/{type:template|solution}")
     public ResponseEntity<List<UploadFileResponse>> uploadFiles(@PathVariable Long id, @PathVariable(required = false) String type,
                                                                 @RequestParam("file") MultipartFile zip, HttpServletRequest request)
-            throws NotFoundException, NotInCourseException, IOException, ExerciseFinishedException {
+            throws NotFoundException, NotInCourseException, IOException {
         logger.info("Request to POST '/api/exercises/{}/files/{}' with a MultipartFile (ZIP) as body", id, type);
 
         // Stage 1: All the information necessary to execute the process is obtained and files are saved using
         // filesService specific methods. This process distinguishes between the different possible cases:
-        // - Uploading of individual files for each student's exercise
         // - Uploading of an exercise template.
         // - Uploading of the proposed solution to an exercise (if existing).
         String username = jwtTokenUtil.getUsernameFromAuthenticatedRequest(request);
@@ -196,8 +182,7 @@ public class ExerciseZipFileController {
             filesMap = exerciseZipFileService.saveExerciseSolution(id, zip, username);
             pattern = fileSeparatorPattern + ExerciseZipFileController.solutionFolderName + fileSeparatorPattern;
         } else {
-            filesMap = exerciseZipFileService.saveExerciseFiles(id, zip, username);
-            pattern = fileSeparatorPattern + "student_[0-9]*" + fileSeparatorPattern;
+            return ResponseEntity.badRequest().build();
         }
 
         // Stage 2: saved files in previous stage are now collected and response is prepared and sent.

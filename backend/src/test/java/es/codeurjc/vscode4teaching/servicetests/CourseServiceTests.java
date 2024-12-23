@@ -8,7 +8,6 @@ import es.codeurjc.vscode4teaching.model.repositories.UserRepository;
 import es.codeurjc.vscode4teaching.services.exceptions.*;
 import es.codeurjc.vscode4teaching.services.CourseService;
 import es.codeurjc.vscode4teaching.services.websockets.SocketHandler;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,10 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.convention.TestBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -543,7 +539,7 @@ public class CourseServiceTests {
 
     @Test
     public void getCourseCode_valid()
-            throws CourseNotFoundException, NotInCourseException, UserNotFoundException {
+            throws CourseNotFoundException, NotInCourseException {
         Course course = new Course("Spring Boot Course");
         String courseCode = course.getUuid();
         Long courseTestId = 1L;
@@ -571,7 +567,7 @@ public class CourseServiceTests {
 
     @Test
     public void getExerciseCode_valid()
-            throws NotInCourseException, ExerciseNotFoundException, UserNotFoundException {
+            throws NotInCourseException, ExerciseNotFoundException {
         User teacher = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
         Role studentRole = new Role("ROLE_STUDENT");
         studentRole.setId(2L);

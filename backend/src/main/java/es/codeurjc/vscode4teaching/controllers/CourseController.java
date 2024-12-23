@@ -40,27 +40,12 @@ public class CourseController {
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
-    @GetMapping("/courses")
-    @JsonView(CourseViews.CreatorView.class)
-    public ResponseEntity<List<Course>> getAllCourses() {
-        logger.info("Request to GET '/api/courses'");
-        List<Course> courses = courseService.getAllCourses();
-        return !courses.isEmpty() ? ResponseEntity.ok(courses) : ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/courses/{courseId}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> getCourse(@PathVariable @Min(1) Long courseId) {
         logger.info("Request to GET '/api/courses/{}'", courseId);
         Optional<Course> course = courseService.getCourseById(courseId);
         return course.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
-    }
-
-    @GetMapping("/courses/{courseId}/creator")
-    @JsonView(UserViews.GeneralView.class)
-    public ResponseEntity<User> getCreator(@PathVariable @Min(1) Long courseId) throws CourseNotFoundException {
-        logger.info("Request to GET '/api/courses/{}/creator'", courseId);
-        return ResponseEntity.ok(courseService.getCreator(courseId));
     }
 
     @PostMapping("/courses")
@@ -129,21 +114,12 @@ public class CourseController {
 
     @GetMapping("/courses/{courseId}/code")
     public ResponseEntity<String> getCode(@PathVariable Long courseId, HttpServletRequest request)
-            throws UserNotFoundException, CourseNotFoundException, NotInCourseException {
+            throws CourseNotFoundException, NotInCourseException {
         logger.info("Request to GET '/api/courses/{}/code'", courseId);
         return ResponseEntity.ok(courseService.getCourseCode(courseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
     }
 
-    @Deprecated // VERSION 2.1 AND LATER ARE NOT USING THIS METHOD, READ DOCS FOR FURTHER INFORMATION
     @GetMapping("/courses/code/{courseCode}")
-    @JsonView(CourseViews.ExercisesView.class)
-    public ResponseEntity<Course> getExercisesWithCode(HttpServletRequest request, @PathVariable String courseCode)
-            throws CourseNotFoundException, UserNotFoundException {
-        logger.info("Request to GET '/api/courses/code/{}' (deprecated API endpoint)", courseCode);
-        return ResponseEntity.ok(courseService.joinCourseWithSharingCode(courseCode, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
-    }
-
-    @GetMapping("/v2/courses/code/{courseCode}")
     @JsonView(CourseViews.CreatorView.class)
     public ResponseEntity<Course> getCourseInformationBySharingCode(@PathVariable String courseCode)
             throws CourseNotFoundException {

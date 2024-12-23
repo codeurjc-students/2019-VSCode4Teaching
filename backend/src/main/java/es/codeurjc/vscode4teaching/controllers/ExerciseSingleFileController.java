@@ -24,13 +24,10 @@ import java.util.Map;
 @Validated
 @RequestMapping("/api")
 public class ExerciseSingleFileController {
-    private static final String templateFolderName = "template";
-    private static final String solutionFolderName = "solution";
-
     private final ExerciseSingleFileService exerciseSingleFileService;
     private final JWTTokenUtil jwtTokenUtil;
 
-    private final Logger logger = LoggerFactory.getLogger(ExerciseZipFileController.class);
+    private final Logger logger = LoggerFactory.getLogger(ExerciseSingleFileController.class);
 
     public ExerciseSingleFileController(ExerciseSingleFileService exerciseSingleFileService,
                                         JWTTokenUtil jwtTokenUtil) {

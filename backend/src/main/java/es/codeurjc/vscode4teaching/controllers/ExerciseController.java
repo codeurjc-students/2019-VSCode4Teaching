@@ -19,10 +19,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import java.util.ArrayList;
+
 import java.util.List;
 
 @RestController
@@ -53,33 +52,17 @@ public class ExerciseController {
         return exercises.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(exercises);
     }
 
-    @Deprecated
     @PostMapping("/courses/{courseId}/exercises")
     @JsonView(ExerciseViews.CourseView.class)
     public ResponseEntity<Exercise> addExercise(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
                                                 @Valid @RequestBody ExerciseDTO exerciseDTO) throws CourseNotFoundException, NotInCourseException {
-        logger.info("Request to POST '/api/courses/{}/exercises' with body '{}' (deprecated API endpoint)", courseId, exerciseDTO);
+        logger.info("Request to POST '/api/courses/{}/exercises' with body '{}'", courseId, exerciseDTO);
         Exercise exercise = new Exercise(exerciseDTO.name);
-        Exercise savedExercise = courseService.addExerciseToCourse(courseId, exercise,
-                jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
-        return new ResponseEntity<>(savedExercise, HttpStatus.CREATED);
-    }
-
-    @PostMapping("/v2/courses/{courseId}/exercises")
-    @JsonView(ExerciseViews.CourseView.class)
-    @Transactional
-    public ResponseEntity<List<Exercise>> addExercises(HttpServletRequest request, @PathVariable @Min(1) Long courseId,
-                                                       @Valid @RequestBody ExerciseDTO[] exercisesDTO) throws CourseNotFoundException, NotInCourseException {
-        logger.info("Request to POST '/api/v2/courses/{}/exercises' with body '{}'", courseId, exercisesDTO);
-        ArrayList<Exercise> savedExercises = new ArrayList<>();
-        for (ExerciseDTO exerciseDTO : exercisesDTO) {
-            Exercise exercise = new Exercise(exerciseDTO.name);
-            exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
-            exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
-            exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
-            savedExercises.add(courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
-        }
-        return new ResponseEntity<>(savedExercises, HttpStatus.CREATED);
+        exercise.setIncludesTeacherSolution(exerciseDTO.includesTeacherSolution);
+        exercise.setSolutionIsPublic(exerciseDTO.solutionIsPublic);
+        exercise.setAllowEditionAfterSolutionDownloaded(exerciseDTO.allowEditionAfterSolutionDownloaded);
+        exercise = courseService.addExerciseToCourse(courseId, exercise, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
+        return new ResponseEntity<>(exercise, HttpStatus.CREATED);
     }
 
     @GetMapping("/exercises/{exerciseId}")
@@ -108,13 +91,6 @@ public class ExerciseController {
         logger.info("Request to DELETE '/api/exercises/{}'", exerciseId);
         courseService.deleteExercise(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/exercises/{exerciseId}/code")
-    public ResponseEntity<String> getCode(@PathVariable Long exerciseId, HttpServletRequest request)
-            throws UserNotFoundException, ExerciseNotFoundException, NotInCourseException {
-        logger.info("Request to GET '/api/exercises/{}/code'", exerciseId);
-        return ResponseEntity.ok(courseService.getExerciseCode(exerciseId, jwtTokenUtil.getUsernameFromAuthenticatedRequest(request)));
     }
 
     @GetMapping("/exercises/{exerciseId}/info")

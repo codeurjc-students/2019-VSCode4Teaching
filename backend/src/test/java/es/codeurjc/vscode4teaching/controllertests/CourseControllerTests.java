@@ -14,7 +14,6 @@ import es.codeurjc.vscode4teaching.services.CourseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,70 +77,6 @@ public class CourseControllerTests {
         assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
 
         logger.info("Test getCourse() ends.");
-    }
-
-    @Test
-    public void getAllCourses_withContent() throws Exception {
-        logger.info("Test getAllCourses_withContent() begins.");
-
-        List<Course> courses = new ArrayList<>();
-        Course c0 = new Course("Spring Boot Course");
-        Course c1 = new Course("Angular Course");
-        Course c2 = new Course("VS Code API Course");
-
-        courses.add(c0);
-        courses.add(c1);
-        courses.add(c2);
-        when(courseService.getAllCourses()).thenReturn(courses);
-
-        MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json").with(csrf()))
-                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
-
-        verify(courseService, times(1)).getAllCourses();
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(CourseViews.CreatorView.class)
-                .writeValueAsString(courses);
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-
-        logger.info("Test getAllCourses_withContent() ends.");
-    }
-
-    @Test
-    public void getAllCourses_empty() throws Exception {
-        logger.info("Test getAllCourses_empty() begins.");
-
-        List<Course> courses = new ArrayList<>();
-        when(courseService.getAllCourses()).thenReturn(courses);
-
-        MvcResult mvcResult = mockMvc.perform(get("/api/courses").contentType("application/json").with(csrf()))
-                .andDo(MockMvcResultHandlers.print()).andExpect(status().isNoContent()).andReturn();
-
-        verify(courseService, times(1)).getAllCourses();
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = "";
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-
-        logger.info("Test getAllCourses_empty() ends.");
-    }
-
-    @Test
-    public void getCreator_valid() throws Exception {
-        logger.info("Test getCreator_valid() begins.");
-
-        User user = new User("johndoejr@gmail.com", "johndoe", "pass", "John", "Doe");
-        when(courseService.getCreator(anyLong())).thenReturn(user);
-
-        MvcResult mvcResult = mockMvc
-                .perform(get("/api/courses/1/creator").contentType("application/json")
-                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
-                .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
-
-        verify(courseService, times(1)).getCreator(anyLong());
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(UserViews.GeneralView.class).writeValueAsString(user);
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
-
-        logger.info("Test getCreator_valid() ends.");
     }
 
     @Test
@@ -417,7 +352,7 @@ public class CourseControllerTests {
         when(courseService.getCourseInformationWithSharingCode(courseUuid)).thenReturn(course);
 
         MvcResult mvcResult = mockMvc
-                .perform(get("/api/v2/courses/code/" + courseUuid).contentType("application/json").with(csrf())
+                .perform(get("/api/courses/code/" + courseUuid).contentType("application/json").with(csrf())
                         .header("Authorization", "Bearer " + jwtToken.getJwtToken()))
                 .andDo(MockMvcResultHandlers.print()).andExpect(status().isOk()).andReturn();
 

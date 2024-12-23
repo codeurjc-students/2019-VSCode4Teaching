@@ -55,16 +55,15 @@ public class SecurityConfig {
             .authorizeHttpRequests((auth) ->
                 auth
                     // Specific endpoints for every user (logged in or not)
-                    .requestMatchers(HttpMethod.GET, "/api/courses", "/api/csrf", "/api/courses/code/*", "/api/v2/courses/code/*", "/api/courses/*/creator")
+                    .requestMatchers(HttpMethod.GET, "/api/csrf", "/api/courses/code/*")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/teachers/register", "/api/teachers/invitation")
+                    .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/teachers/invitation")
                     .permitAll()
 
                     // Specific endpoints for teachers
                     .requestMatchers(HttpMethod.GET, "/api/exercises/*/info/teacher")
-                    // .hasAnyRole(teacherRole)
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users", "/api/exercises/*/teachers/**", "/api/exercises/*/files/template", "/api/exercises/*/files/solution", "/api/v2/courses/*/exercises")
+                    .hasAnyRole(teacherRole)
+                    .requestMatchers(HttpMethod.POST, "/api/courses", "/api/courses/*/exercises", "/api/courses/*/users", "/api/exercises/*/teachers/**", "/api/exercises/*/files/template", "/api/exercises/*/files/solution")
                     .hasAnyRole(teacherRole)
                     .requestMatchers(HttpMethod.PUT, "/api/courses/*", "/api/courses/*/exercises/*", "/api/exercises/*")
                     .hasAnyRole(teacherRole)

@@ -170,60 +170,6 @@ public class ExerciseZipFileControllerTests {
     }
 
     @Test
-    public void uploadFile() throws Exception {
-        Exercise exercise = new Exercise("Exercise 1");
-        exercise.setId(1L);
-        byte[] mock = null;
-        MockMultipartFile mockMultiFile1 = new MockMultipartFile("file", "exs.zip", "application/zip", mock);
-        Files.createDirectories(Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex3"));
-        Path path1 = Paths.get("src/test/java/es/codeurjc/vscode4teaching/files/ex1.html");
-        Path path1Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex1.html");
-        Files.copy(path1, path1Copy, StandardCopyOption.REPLACE_EXISTING);
-        Path path2 = Paths.get("src/test/java/es/codeurjc/vscode4teaching/files/ex2.html");
-        Path path2Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex2.html");
-        Files.copy(path2, path2Copy, StandardCopyOption.REPLACE_EXISTING);
-        Path path3 = Paths.get("src/test/java/es/codeurjc/vscode4teaching/files/ex3/ex3.html");
-        Path path3Copy = Paths.get("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/ex3/ex3.html");
-        Files.copy(path3, path3Copy, StandardCopyOption.REPLACE_EXISTING);
-
-        File mockFile1 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex1.html");
-        File mockFile2 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex2.html");
-        File mockFile3 = new File("v4t-course-test/spring_boot_course_2/exercise_1_1/student_13/", "ex3/ex3.html");
-        Map<Exercise, List<File>> returnMap = new HashMap<>();
-        returnMap.put(exercise, Arrays.asList(mockFile1, mockFile2, mockFile3));
-        when(filesService.saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString())).thenReturn(returnMap);
-
-        MvcResult result = mockMvc.perform(multipart("/api/exercises/1/files").file(mockMultiFile1).with(csrf())
-                .header("Authorization", "Bearer " + jwtToken.getJwtToken())).andExpect(status().isOk()).andReturn();
-
-        List<UploadFileResponse> expectedResponse = new ArrayList<>();
-        expectedResponse.add(new UploadFileResponse("ex1.html", "text/html", 23L));
-        expectedResponse.add(new UploadFileResponse("ex2.html", "text/html", 23L));
-        expectedResponse.add(new UploadFileResponse("ex3" + File.separator + "ex3.html", "text/html", 23L));
-
-        assertThat(result.getResponse().getContentAsString())
-                .isEqualToIgnoringWhitespace(objectMapper.writeValueAsString(expectedResponse));
-
-        logger.info(result.getResponse().getContentAsString());
-        verify(filesService, times(1)).saveExerciseFiles(anyLong(), any(MultipartFile.class), anyString());
-    }
-
-    @Test
-    public void uploadFile_noBody() throws Exception {
-        mockMvc.perform(multipart("/api/exercises/1/files").with(csrf()).header("Authorization",
-                "Bearer " + jwtToken.getJwtToken())).andExpect(status().isBadRequest());
-
-    }
-
-    @Test
-    public void uploadFile_noMultipart() throws Exception {
-
-        mockMvc.perform(
-                        post("/api/exercises/1/files").with(csrf()).header("Authorization", "Bearer " + jwtToken.getJwtToken()))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void uploadTemplate() throws Exception {
         Exercise exercise = new Exercise("Exercise 1");
         exercise.setId(1L);
@@ -410,24 +356,5 @@ public class ExerciseZipFileControllerTests {
         assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej1.txt");
         assertThat(zis.getNextEntry().getName()).isEqualTo("student_15/ej2.txt");
         verify(filesService, times(1)).getAllStudentsFiles(anyLong(), anyString());
-    }
-
-    @Test
-    public void getFileInfo() throws Exception {
-        ExerciseFile ex1 = new ExerciseFile("test1");
-        List<ExerciseFile> exFiles = new ArrayList<>();
-        exFiles.add(ex1);
-        when(filesService.getFileIdsByExerciseAndId(anyLong(), any(String.class))).thenReturn(exFiles);
-
-        MvcResult mvcResult = mockMvc
-                .perform(get("/api/users/johndoejr1/exercises/2/files").contentType("application/json")
-                        .header("Authorization", "Bearer " + jwtToken.getJwtToken()).with(csrf()))
-                .andExpect(status().isOk()).andReturn();
-
-        verify(filesService, times(1)).getFileIdsByExerciseAndId(anyLong(), any(String.class));
-        String actualResponseBody = mvcResult.getResponse().getContentAsString();
-        String expectedResponseBody = objectMapper.writerWithView(FileViews.GeneralView.class)
-                .writeValueAsString(exFiles);
-        assertThat(expectedResponseBody).isEqualToIgnoringWhitespace(actualResponseBody);
     }
 }

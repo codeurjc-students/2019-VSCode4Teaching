@@ -45,7 +45,7 @@ export class CourseService {
     }
 
     public getCourseBySharingCode = (sharingCode: string): Promise<Course> => {
-        return lastValueFrom(this.http.get<CourseDTO>("/v2/courses/code/" + sharingCode)
+        return lastValueFrom(this.http.get<CourseDTO>("/courses/code/" + sharingCode)
             .pipe(map((courseDTO: CourseDTO) => new Course(courseDTO))));
     }
 

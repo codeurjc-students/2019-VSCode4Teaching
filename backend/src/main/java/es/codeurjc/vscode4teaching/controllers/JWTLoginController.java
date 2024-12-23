@@ -51,15 +51,11 @@ public class JWTLoginController {
     public ResponseEntity<JWTResponse> generateLoginToken(@Valid @RequestBody JWTRequest loginRequest, HttpServletResponse response) {
         logger.info("Request to POST '/api/login'");
         String username = loginRequest.getUsername();
-        login(username, loginRequest.getPassword());
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         final String token = jwtTokenUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new JWTResponse(token, jwtTokenUtil.encryptToken(token)));
-    }
-
-    private void login(String username, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
     }
 
     @PostMapping("/register")
@@ -67,22 +63,9 @@ public class JWTLoginController {
     public ResponseEntity<User> saveUser(@Valid @RequestBody UserDTO userDto) {
         logger.info("Request to POST '/api/register' with body '{}'", userDto);
         String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
-        User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
-                userDto.getLastName());
+        User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(), userDto.getLastName());
         User saveduser = userDetailsService.save(user, false);
         return new ResponseEntity<>(saveduser, HttpStatus.CREATED);
-    }
-
-    @Deprecated // VERSION 2.1 AND LATER ARE NOT USING THIS METHOD, READ DOCS FOR FURTHER INFORMATION
-    @PostMapping("/teachers/register")
-    @JsonView(UserViews.EmailView.class)
-    public ResponseEntity<User> saveTeacher(@Valid @RequestBody UserDTO userDto) {
-        logger.info("Request to POST '/api/teachers/register' with body '{}' (deprecated API endpoint)", userDto);
-        String encodedPassword = bCryptPasswordEncoder.encode(userDto.getPassword());
-        User user = new User(userDto.getEmail(), userDto.getUsername(), encodedPassword, userDto.getName(),
-                userDto.getLastName());
-        User savedUser = userDetailsService.save(user, true);
-        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/teachers/invitation")
@@ -103,11 +86,6 @@ public class JWTLoginController {
         User user = userDetailsService.findByUsername(jwtTokenUtil.getUsernameFromAuthenticatedRequest(request));
 
         return ResponseEntity.ok(user);
-    }
-
-    @GetMapping("/csrf")
-    public ResponseEntity<Void> getCsrfToken() {
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/users")

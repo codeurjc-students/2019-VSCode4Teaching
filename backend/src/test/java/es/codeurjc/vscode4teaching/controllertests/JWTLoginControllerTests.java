@@ -11,7 +11,6 @@ import es.codeurjc.vscode4teaching.security.jwt.JWTTokenUtil;
 import es.codeurjc.vscode4teaching.servicesimpl.JWTUserDetailsService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

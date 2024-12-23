@@ -34,8 +34,6 @@ public class CourseService {
     private final ExerciseUserInfoRepository exerciseUserInfoRepo;
     private final SocketHandler websocketHandler;
 
-    private final Logger logger = LoggerFactory.getLogger(CourseService.class);
-
     @Autowired
     public CourseService(CourseRepository courseRepo, ExerciseRepository exerciseRepo, UserRepository userRepo,
                          ExerciseUserInfoRepository exerciseUserInfoRepo, SocketHandler websocketHandler) {

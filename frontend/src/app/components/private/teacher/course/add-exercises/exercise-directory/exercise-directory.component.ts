@@ -93,7 +93,7 @@ export class ExerciseDirectoryComponent implements OnInit {
                 allowEditionAfterSolutionDownloaded: false,
             }
             this.uploadStatus.steps.createdExercise = "IN_PROGRESS";
-            const exercise = (await this.exerciseService.addExercisesToCourse([exerciseDTO], this.course))[0];
+            const exercise = await this.exerciseService.addExerciseToCourse(exerciseDTO, this.course);
             this.uploadStatus.steps.createdExercise = "FINISHED";
 
             // Upload template
