@@ -1,7 +1,7 @@
 # VSCode4Teaching
 **Developer documentation on the Continuous Integration, Delivery and Deployment (*CI/CD*) system of this project**
 
-This project is configured with a continuous integration, deployment and delivery system through [GitHub Actions](https://github.com/features/actions). This system includes a single workflow that comprises both server and web application ([`server.ci.yml`](server.ci.yml)).
+This project is configured with a continuous integration, deployment and delivery system through [GitHub Actions](https://github.com/features/actions). This system includes a single workflow that comprises both server and web application ([`ci.yml`](ci.yml)).
 
 ### Detailed description of declared jobs
 The aforementioned files define the jobs that will be executed sequentially based on the type of changes registered in the repository. These jobs are:
