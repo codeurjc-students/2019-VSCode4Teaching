@@ -1,4 +1,4 @@
-name: "Server pipeline"
+name: "VSCode4Teaching pipeline"
 
 on:
   push:
@@ -17,14 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./vscode4teaching-server
+        working-directory: ./backend
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Set up Java version
       uses: actions/setup-java@v4
       with:
-        java-version: 11
+        java-version: 21
         distribution: temurin
     - name: Test
       run: ./mvnw clean dependency:resolve test
@@ -41,7 +41,7 @@ jobs:
         run: |
           VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo VERSION=$VERSION >> $GITHUB_ENV
-        working-directory: ./vscode4teaching-server
+        working-directory: ./backend
       - name: Build Docker image
         run: |
           env | grep DOCKER
