@@ -2,8 +2,7 @@ import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@
 
 @Component({
     selector: 'app-helper-delay-since',
-    templateUrl: './delay-since.component.html',
-    standalone: false
+    templateUrl: './delay-since.component.html'
 })
 export class DelaySinceComponent implements OnInit, OnChanges, OnDestroy {
     @Input("since") since!: Date;
@@ -31,7 +30,7 @@ export class DelaySinceComponent implements OnInit, OnChanges, OnDestroy {
     ngOnDestroy() {
         // Clear the interval when the component is destroyed
         if (this.elapsedTimeIntervalId) {
-            clearInterval(this.elapsedTimeIntervalId);
+            window.clearInterval(this.elapsedTimeIntervalId);
         }
     }
 
@@ -69,9 +68,9 @@ export class DelaySinceComponent implements OnInit, OnChanges, OnDestroy {
         this.readableElapsedTime = `${Math.floor(elapsedTime)} ${unit}`;
 
         if (this.elapsedTimeIntervalId !== undefined) {
-            clearInterval(this.elapsedTimeIntervalId);
+            window.clearInterval(this.elapsedTimeIntervalId);
         }
-        this.elapsedTimeIntervalId = setInterval(() => {
+        this.elapsedTimeIntervalId = window.setInterval(() => {
             this.getInterpretedElapsedTime();
         }, nextDelay);
     }

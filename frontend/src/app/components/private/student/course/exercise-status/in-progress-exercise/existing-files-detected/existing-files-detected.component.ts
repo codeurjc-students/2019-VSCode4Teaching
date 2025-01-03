@@ -3,8 +3,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 @Component({
     selector: 'app-student-exercise-existing-files',
     templateUrl: './existing-files-detected.component.html',
-    styleUrls: ['../in-progress-exercise.component.scss'],
-    standalone: false
+    styleUrls: ['../in-progress-exercise.component.scss']
 })
 export class ExistingFilesDetectedComponent {
 

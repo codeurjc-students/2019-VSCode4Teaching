@@ -1,20 +1,29 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from "@angular/router";
-import { Course } from "../../../../../model/course.model";
-import { ExerciseUserInfo } from "../../../../../model/exercise-user-info.model";
-import { Exercise } from "../../../../../model/exercise.model";
-import { CourseService } from "../../../../../services/rest-api/model-entities/course/course.service";
-import { ExerciseUserInfoService } from "../../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
-import { ExerciseService } from "../../../../../services/rest-api/model-entities/exercise/exercise.service";
-import { WebSocketHandler } from "../../../../../services/ws/web-socket-handler";
-import { WebSocketHandlerFactory } from "../../../../../services/ws/web-socket-handler-factory.service";
+import { FormsModule } from "@angular/forms";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { Course } from "@app-model/course.model";
+import { ExerciseUserInfo } from "@app-model/exercise-user-info.model";
+import { Exercise } from "@app-model/exercise.model";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
+import { ExerciseUserInfoService } from "@app-services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { ExerciseService } from "@app-services/rest-api/model-entities/exercise/exercise.service";
+import { WebSocketHandler } from "@app-services/ws/web-socket-handler";
+import { WebSocketHandlerFactory } from "@app-services/ws/web-socket-handler-factory.service";
+import { GeneralStatisticsComponent } from "./general-statistics/general-statistics.component";
+import { StudentsProgressComponent } from "./students-progress/students-progress.component";
 
 type RefreshWSMessage = { handle: "refresh" };
 
 @Component({
     selector: 'app-teacher-exercise',
-    templateUrl: './teacher-exercise.component.html',
-    standalone: false
+    imports: [
+        GeneralStatisticsComponent,
+        StudentsProgressComponent,
+
+        FormsModule,
+        RouterLink
+    ],
+    templateUrl: './teacher-exercise.component.html'
 })
 export class TeacherExerciseComponent implements OnInit, OnDestroy {
     public courseId: number | undefined;

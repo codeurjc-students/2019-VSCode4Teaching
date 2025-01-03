@@ -1,14 +1,16 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ExerciseUserInfo, ExerciseUserInfoStatus } from "../../../../../../../model/exercise-user-info.model";
-import { DownloadUnzipDTO, DownloadUnzipService } from "../../../../../../../services/file-system/download-unzip/download-unzip.service";
-import { FileExchangeService } from "../../../../../../../services/rest-api/file-exchange/file-exchange.service";
-import { ProgressBarDTO } from "../../../../../../helpers/progress-bar/progress-bar.component";
+import { ProgressBarComponent, ProgressBarDTO } from "@app-components/helpers/progress-bar/progress-bar.component";
+import { ExerciseUserInfo, ExerciseUserInfoStatus } from "@app-model/exercise-user-info.model";
+import { DownloadUnzipDTO, DownloadUnzipService } from "@app-services/file-system/download-unzip/download-unzip.service";
+import { FileExchangeService } from "@app-services/rest-api/file-exchange/file-exchange.service";
 
 @Component({
     selector: 'app-student-exercise-download-unzip',
+    imports: [
+        ProgressBarComponent
+    ],
     templateUrl: './download-unzip-files.component.html',
-    styleUrls: ['../in-progress-exercise.component.scss'],
-    standalone: false
+    styleUrls: ['../in-progress-exercise.component.scss']
 })
 export class DownloadUnzipFilesComponent {
     @Input("exerciseDirectoryHandle") exerciseDirectoryHandle!: FileSystemDirectoryHandle | undefined;

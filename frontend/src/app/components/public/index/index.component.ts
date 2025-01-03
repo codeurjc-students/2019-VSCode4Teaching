@@ -1,14 +1,17 @@
+import { NgOptimizedImage } from "@angular/common";
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from "@angular/router";
+import { Course } from "@app-model/course.model";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
 import { Subscription } from "rxjs";
-import { Course } from "../../../model/course.model";
-import { CourseService } from "../../../services/rest-api/model-entities/course/course.service";
 
 @Component({
     selector: 'app-index',
     templateUrl: './index.component.html',
-    styleUrls: ['./index.component.scss'],
-    standalone: false
+    imports: [
+        NgOptimizedImage
+    ],
+    styleUrls: ['./index.component.scss']
 })
 export class IndexComponent implements OnInit, OnDestroy {
 

@@ -1,3 +1,4 @@
+import { CommonModule } from "@angular/common";
 import { Component, Input } from '@angular/core';
 
 export interface ProgressBarDTO {
@@ -8,9 +9,10 @@ export interface ProgressBarDTO {
 
 @Component({
     selector: 'app-helper-progress-bar',
-    templateUrl: './progress-bar.component.html',
-    styleUrls: ['./progress-bar.component.scss'],
-    standalone: false
+    imports: [
+        CommonModule
+    ],
+    templateUrl: './progress-bar.component.html'
 })
 export class ProgressBarComponent {
     @Input("info") public info!: ProgressBarDTO;

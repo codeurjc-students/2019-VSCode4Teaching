@@ -12,6 +12,7 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: .5rem;
+        margin-top: .5rem;
 
         > .course {
             flex: 0 0 calc(100% / 3 - (.5rem * 2 / 3));

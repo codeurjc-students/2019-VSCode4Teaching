@@ -1,32 +1,31 @@
 <nav class="navbar fixed-top">
     <div class="leftSide">
-        <img src="/assets/img/v4ticon.png" alt="VSCode4Teaching Logo" class="logo">
+        <img ngSrc="/assets/img/v4ticon.png" alt="VSCode4Teaching Logo" class="logo" height="192" width="192">
         <h1>VSCode4Teaching</h1>
     </div>
     <div class="rightSide">
-        <ng-container *ngIf="this.currentUserInfo === undefined">
+        @if (this.currentUserInfo === undefined) {
             <button class="btn btn-sm btn-outline-danger" disabled>
                 <i class="fas fa-spin fa-circle-notch" style="color: #F44A3E"></i>&nbsp;
                 Loading...
             </button>
-        </ng-container>
-        <ng-container *ngIf="this.currentUserInfo === null">
+        } @else if (this.currentUserInfo === null) {
             <button [routerLink]="['/login']" class="btn btn-sm btn-v4t"><i class="fas fa-user"></i> Sign In</button>
-        </ng-container>
-        <ng-container *ngIf="this.currentUserInfo">
-            <div *ngIf="this.currentUserInfo" class="userProfileInfo">
-                <i class="fas fa-user"></i>&nbsp;
-                {{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}
-            </div>&nbsp;
+        } @else {
+            @if (this.currentUserInfo) {
+                <div class="userProfileInfo me-3">
+                    <i class="fas fa-user"></i>&nbsp;
+                    {{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}
+                </div>
+            }
             <button class="btn btn-sm btn-v4t" (click)="this.navigateToDashboard()">
                 <i class="fas fa-gauge"></i>&nbsp;
                 Dashboard
             </button>
-            &nbsp;
             <button class="btn btn-sm btn-v4t" (click)="this.logout()">
                 <i class="fas fa-power-off"></i>&nbsp;
                 Sign Out
             </button>
-        </ng-container>
+        }
     </div>
 </nav>

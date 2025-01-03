@@ -1,44 +1,53 @@
-<ng-container *ngIf="this.asideContent === undefined">
+@if (this.asideContent === undefined) {
     <div class="alert alert-secondary">
         <i class="fas fa-circle-notch fa-spin"></i> Loading aside content...
     </div>
-</ng-container>
-<ng-container *ngIf="this.asideContent !== undefined">
+} @else {
     <ul class="list-unstyled px-2">
-        <li class="mb-1" *ngFor="let item of this.asideContent">
-            <button [ngClass]="{'btn btn-toggle': true, 'collapsed': item.collapsed}" data-bs-toggle="collapse" [attr.data-bs-target]="'#course' + item.id" [attr.aria-expanded]="!item.collapsed">
-                {{ item.name }}
-            </button>
-            <div [ngClass]="{'collapse courseExercisesList px-2': true, 'show': !item.collapsed}" [id]="'course' + item.id">
-                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                    <li class="courseActions">
-                        <button class="btn btn-xs btn-v4t"
-                                *ngFor="let itemAction of item.actions"
-                                (click)="itemAction.callback(item.id)">
-                            <i *ngIf="itemAction.icon !== undefined" [class]="itemAction.icon"></i>
-                            <span *ngIf="itemAction.icon === undefined">{{ itemAction.name }}</span>
-                        </button>
-                    </li>
-
-                    <li class="exercise" *ngFor="let subitem of item.subitems" (click)="subitem.callback(item.id, subitem.id)">
-                        <div class="row">
-                            <div class="col-9">
-                                <span class="link-dark text-decoration-none">
-                                    {{ subitem.name }}
-                                </span>
-                            </div>
-                            <div class="col-3 d-flex justify-content-end">
-                                <button class="btn btn-xs btn-v4t"
-                                        *ngFor="let subitemAction of subitem.actions"
-                                        (click)="$event.stopPropagation(); subitemAction.callback(item.id, subitem.id)">
-                                    <i *ngIf="subitemAction.icon !== undefined" [class]="subitemAction.icon"></i>
-                                    <span *ngIf="subitemAction.icon === undefined">{{ subitemAction.name }}</span>
+        @for (item of this.asideContent; track $index) {
+            <li class="mb-1">
+                <button [ngClass]="{'btn btn-toggle': true, 'collapsed': item.collapsed}" data-bs-toggle="collapse" [attr.data-bs-target]="'#course' + item.id" [attr.aria-expanded]="!item.collapsed">
+                    {{ item.name }}
+                </button>
+                <div [ngClass]="{'collapse courseExercisesList px-2': true, 'show': !item.collapsed}" [id]="'course' + item.id">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                        <li class="courseActions">
+                            @for (itemAction of item.actions; track $index) {
+                                <button class="btn btn-xs btn-v4t" (click)="itemAction.callback(item.id)">
+                                    @if (itemAction.icon !== undefined) {
+                                        <i [class]="itemAction.icon"></i>
+                                    } @else {
+                                        <span>{{ itemAction.name }}</span>
+                                    }
                                 </button>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </li>
+                            }
+                        </li>
+
+                        @for (subitem of item.subitems; track $index) {
+                            <li class="exercise" (click)="subitem.callback(item.id, subitem.id)">
+                                <div class="row">
+                                    <div class="col-9">
+                                        <span class="link-dark text-decoration-none">
+                                            {{ subitem.name }}
+                                        </span>
+                                    </div>
+                                    <div class="col-3 d-flex justify-content-end">
+                                        @for (subitemAction of subitem.actions; track $index) {
+                                            <button class="btn bt-xs btn-v4t" (click)="$event.stopPropagation(); subitemAction.callback(item.id, subitem.id)">
+                                                @if (subitemAction.icon !== undefined) {
+                                                    <i [class]="subitemAction.icon"></i>
+                                                } @else {
+                                                    <span>{{ subitemAction.name }}</span>
+                                                }
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </li>
+        }
     </ul>
-</ng-container>
+}

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
-import { AuthService, LoginCredentials } from "../../../services/rest-api/auth/auth.service";
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
-import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
+import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
+import { AuthService, LoginCredentials } from "@app-services/rest-api/auth/auth.service";
 
 
 function usernameRequiredPattern(): ValidatorFn {
@@ -24,8 +24,10 @@ enum LoginFormSubmissionStatus {
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss'],
-    standalone: false
+    imports: [
+        ReactiveFormsModule
+    ],
+    styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
 
@@ -50,13 +52,15 @@ export class LoginComponent implements OnInit {
         this.loginFormSubmissionStatus = LoginFormSubmissionStatus.NOT_SUBMITTED;
     }
 
-    ngOnInit(): void {
-        this.currentUserService.currentUser
-            .then(currentUser => { if (currentUser !== undefined) this.router.navigate(["/dashboard"]) });
-    }
-
     get formValue(): LoginCredentials {
         return this.loginForm.getRawValue() as LoginCredentials;
+    }
+
+    ngOnInit(): void {
+        this.currentUserService.currentUser
+            .then(currentUser => {
+                if (currentUser !== undefined) this.router.navigate(["/dashboard"])
+            });
     }
 
     async submitLoginForm(event: SubmitEvent) {

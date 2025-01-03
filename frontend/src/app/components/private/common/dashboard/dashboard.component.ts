@@ -1,16 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { ExerciseUserInfoStatus } from "../../../../model/exercise-user-info.model";
-import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
-import { CurrentUserService } from "../../../../services/auth/current-user/current-user.service";
-import { Course } from "../../../../model/course.model";
-import { User } from "../../../../model/user.model";
+import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
+import { Course } from "@app-model/course.model";
+import { ExerciseUserInfoStatus } from "@app-model/exercise-user-info.model";
+import { User } from "@app-model/user.model";
+import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
 import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 
 @Component({
     selector: 'app-dashboard',
+    imports: [
+        FormsModule,
+        RouterLink
+    ],
     templateUrl: './dashboard.component.html',
-    styleUrls: ['./dashboard.component.scss'],
-    standalone: false
+    styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
     userCourses!: Course[];

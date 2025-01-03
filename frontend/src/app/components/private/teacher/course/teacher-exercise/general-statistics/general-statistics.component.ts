@@ -1,14 +1,17 @@
+import { NgOptimizedImage } from "@angular/common";
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { ExerciseUserInfo, ExerciseUserInfoStatus } from "@app-model/exercise-user-info.model";
 import { Chart } from "chart.js/auto";
-import { ExerciseUserInfo, ExerciseUserInfoStatus } from "../../../../../../model/exercise-user-info.model";
 
 type ConsideredTimePeriods = 5 | 30 | 60 | 120;
 
 @Component({
     selector: 'app-teacher-exercise-general-statistics',
+    imports: [
+        NgOptimizedImage
+    ],
     templateUrl: './general-statistics.component.html',
-    styleUrls: ['./general-statistics.component.scss'],
-    standalone: false
+    styleUrls: ['./general-statistics.component.scss']
 })
 export class GeneralStatisticsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
     @Input("euis") public exerciseUsersInfo: ExerciseUserInfo[] | undefined;
@@ -50,7 +53,7 @@ export class GeneralStatisticsComponent implements OnInit, OnChanges, AfterViewI
 
     ngOnDestroy(): void {
         if (this.modificationsByTimePeriodInterval) {
-            clearInterval(this.modificationsByTimePeriodInterval);
+            window.clearInterval(this.modificationsByTimePeriodInterval);
         }
     }
 
@@ -76,9 +79,9 @@ export class GeneralStatisticsComponent implements OnInit, OnChanges, AfterViewI
         updateModificationValues();
 
         if (this.modificationsByTimePeriodInterval) {
-            clearInterval(this.modificationsByTimePeriodInterval);
+            window.clearInterval(this.modificationsByTimePeriodInterval);
         }
-        this.modificationsByTimePeriodInterval = setInterval(updateModificationValues, 1000);
+        this.modificationsByTimePeriodInterval = window.setInterval(updateModificationValues, 1000);
     }
 
     private renderChart() {

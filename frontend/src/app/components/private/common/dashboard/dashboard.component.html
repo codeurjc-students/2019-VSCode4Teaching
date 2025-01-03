@@ -1,40 +1,38 @@
 <div class="dashboard px-5">
     <h3>My Courses</h3>
 
-    <ng-container *ngIf="!this.coursesLoaded">
+    @if (!this.coursesLoaded) {
         <div class="alert alert-v4t">
             <i class="fas fa-circle-notch fa-spin"></i> Loading courses...
         </div>
-    </ng-container>
-
-    <ng-container *ngIf="this.coursesLoaded && this.userCourses.length === 0">
+    } @else if (this.coursesLoaded && this.userCourses.length === 0) {
         <div class="alert alert-v4t my-2">
             <i class="fas fa-exclamation-triangle"></i> No courses for this user.
         </div>
-    </ng-container>
-
+    } @else {
+        <div class="courseGrid">
+            @for (course of this.userCourses; track $index) {
+                <div class="course">
+                    <div class="icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="name">{{ course.name }}</div>
+                    <div class="buttons">
+                        @if (!this.curUser.isTeacher && this.fsaApiSupported) {
+                            <a [routerLink]="['/', 'student', 'course', course.id]" class="btn btn-v4t-coloured btn-sm my-0">
+                                <i class="fas fa-book-open"></i> Exercises
+                            </a>
+                        } @else if (this.curUser.isTeacher) {
+                            <a [routerLink]="['/', 'teacher', 'courses', course.id]" class="btn btn-v4t-coloured btn-sm my-0">
+                                <i class="fas fa-dashboard"></i> Dashboard
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
     <div class="courseGrid">
-        <ng-container *ngIf="this.coursesLoaded && this.userCourses.length > 0">
-            <div class="course" *ngFor="let course of this.userCourses">
-                <div class="icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="name">{{ course.name }}</div>
-                <div class="buttons">
-                    <ng-container *ngIf="!this.curUser.isTeacher && this.fsaApiSupported">
-                        <a [routerLink]="['/', 'student', 'course', course.id]" class="btn btn-v4t-coloured btn-sm my-0">
-                            <i class="fas fa-book-open"></i> Exercises
-                        </a>
-                    </ng-container>
-                    <ng-container *ngIf="this.curUser.isTeacher">
-                        <a [routerLink]="['/', 'teacher', 'courses', course.id]" class="btn btn-v4t-coloured btn-sm my-0">
-                            <i class="fas fa-dashboard"></i> Dashboard
-                        </a>
-                    </ng-container>
-                </div>
-            </div>
-        </ng-container>
-
         <div class="course" style="justify-content: center">
             <div class="name">
                 Join a new course with a sharing code:
@@ -42,14 +40,20 @@
             <div class="input-group">
                 <input type="text" class="form-control form-control-v4t" [(ngModel)]="this.joinSharingCode" placeholder="Sharing code provided by teacher…">
                 <button class="btn btn-v4t" (click)="this.joinCourse()" [disabled]="this.joinStatus === 'IN_PROGRESS'">
-                    <div *ngIf="this.joinStatus === 'NOT_STARTED' || this.joinStatus === 'ERROR'"><i class="fas fa-right-to-bracket"></i> Join course</div>
-                    <div *ngIf="this.joinStatus === 'IN_PROGRESS'"><i class="fas fa-circle-notch fa-spin"></i> Joining…</div>
-                    <div *ngIf="this.joinStatus === 'FINISHED'"><i class="fas fa-check"></i> Joined!</div>
+                    @if (this.joinStatus === 'NOT_STARTED' || this.joinStatus === 'ERROR') {
+                        <i class="fas fa-right-to-bracket"></i> Join course
+                    } @else if (this.joinStatus === 'IN_PROGRESS') {
+                        <i class="fas fa-circle-notch fa-spin"></i> Joining…
+                    } @else if (this.joinStatus === 'FINISHED') {
+                        <i class="fas fa-check"></i> Joined!
+                    }
                 </button>
             </div>
-            <div class="alert alert-v4t mt-2 text-center" *ngIf="this.joinStatus === 'ERROR'">
-                <i class="fa fa-info-circle"></i> There was an error joining the course: sharing code is not valid or you are already in the course.
-            </div>
+            @if (this.joinStatus === 'ERROR') {
+                <div class="alert alert-v4t mt-2 text-center">
+                    <i class="fa fa-info-circle"></i> There was an error joining the course: sharing code is not valid or you are already in the course.
+                </div>
+            }
         </div>
     </div>
 </div>

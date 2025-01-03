@@ -38,9 +38,11 @@
     </div>
     <!-- Col 3: modifications in the last N minutes -->
     <div class="col" style="display: flex; flex-direction: column; gap: .5rem">
-        <div *ngFor="let timePeriod of this.modificationsByTimePeriod" class="info-row standalone">
-            <div class="description">Modifications in the last {{ timePeriod.textRepresentation }}</div>
-            <div class="value">{{ timePeriod.value }}</div>
-        </div>
+        @for (timePeriod of this.modificationsByTimePeriod; track $index) {
+            <div class="info-row standalone">
+                <div class="description">Modifications in the last {{ timePeriod.textRepresentation }}</div>
+                <div class="value">{{ timePeriod.value }}</div>
+            </div>
+        }
     </div>
 </div>

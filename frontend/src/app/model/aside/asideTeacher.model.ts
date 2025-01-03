@@ -32,17 +32,19 @@ export class AsideTeacherCourse implements AsideItem {
 export class AsideTeacherExercise implements AsideSubitem {
     name: string;
     id: number;
+    icon: string;
     actions: AsideAction[];
     callback: (itemId: number, subitemId: number, ...info: string[]) => any;
 
     constructor(name: string, id: number) {
         this.name = name;
         this.id = id;
+        this.icon = "fas fa-book";
 
         // TODO Actions to be implemented when course screens are ready
         this.actions = [
             { name: "Open dashboard", icon: "fas fa-dashboard", callback: (courseId: number, exerciseId?: number) => console.log(`Dashboard exercise ${exerciseId} course ${courseId}`) },
-            { name: "Edit course", icon: "fas fa-pen", callback: (courseId: number, exerciseId? :number) => console.log(`Edit exercise ${exerciseId} course ${courseId}`) },
+            { name: "Edit course", icon: "fas fa-pen", callback: (courseId: number, exerciseId?: number) => console.log(`Edit exercise ${exerciseId} course ${courseId}`) },
             { name: "Delete course", icon: "fas fa-trash", callback: (courseId: number, exerciseId?: number) => console.log(`Delete exercise ${exerciseId} course ${courseId}`) },
         ];
         this.callback = (courseId, exerciseId) => console.log(`Click exercise ${exerciseId} course ${courseId}`);

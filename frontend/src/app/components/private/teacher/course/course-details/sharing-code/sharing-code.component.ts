@@ -1,16 +1,15 @@
 import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { Course } from "@app-model/course.model";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
+import { UrlService } from "@app-services/url/url.service";
 import { Modal } from "bootstrap";
-import { Course } from "../../../../../../model/course.model";
-import { CourseService } from "../../../../../../services/rest-api/model-entities/course/course.service";
-import { UrlService } from "../../../../../../services/url/url.service";
 
 type SharingCode = { value?: string, copied: boolean };
 
 @Component({
     selector: 'app-teacher-course-details-sharing-code',
     templateUrl: './sharing-code.component.html',
-    styleUrls: ['./sharing-code.component.scss'],
-    standalone: false
+    styleUrls: ['./sharing-code.component.scss']
 })
 export class SharingCodeComponent implements AfterViewInit {
     @Input("course") course?: Course;

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { lastValueFrom, map } from "rxjs";
-import { Course } from "../../../../model/course.model";
-import { Exercise } from "../../../../model/exercise.model";
-import { ExerciseDTO } from "../../../../model/rest-api/exercise.dto";
+import { Course } from "@app-model/course.model";
+import { Exercise } from "@app-model/exercise.model";
+import { ExerciseDTO } from "@app-model/rest-api/exercise.dto";
 
 @Injectable({
     providedIn: 'root'

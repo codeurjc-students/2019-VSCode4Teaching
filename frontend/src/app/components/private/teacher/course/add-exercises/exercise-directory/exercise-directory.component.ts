@@ -1,18 +1,22 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, Validators } from "@angular/forms";
-import { Course } from "../../../../../../model/course.model";
-import { ExerciseUserInfoStatus } from "../../../../../../model/exercise-user-info.model";
-import { ExerciseDTO } from "../../../../../../model/rest-api/exercise.dto";
-import { ZipUploadDTO, ZipUploadService } from "../../../../../../services/file-system/zip-upload/zip-upload.service";
-import { FileExchangeService } from "../../../../../../services/rest-api/file-exchange/file-exchange.service";
-import { ExerciseService } from "../../../../../../services/rest-api/model-entities/exercise/exercise.service";
-import { ProgressBarDTO } from "../../../../../helpers/progress-bar/progress-bar.component";
+import { FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
+import { ProgressBarComponent, ProgressBarDTO } from "@app-components/helpers/progress-bar/progress-bar.component";
+import { Course } from "@app-model/course.model";
+import { ExerciseUserInfoStatus } from "@app-model/exercise-user-info.model";
+import { ExerciseDTO } from "@app-model/rest-api/exercise.dto";
+import { ZipUploadDTO, ZipUploadService } from "@app-services/file-system/zip-upload/zip-upload.service";
+import { FileExchangeService } from "@app-services/rest-api/file-exchange/file-exchange.service";
+import { ExerciseService } from "@app-services/rest-api/model-entities/exercise/exercise.service";
 
 @Component({
     selector: 'app-teacher-course-add-exercise-exercise-directory',
+    imports: [
+        ProgressBarComponent,
+
+        ReactiveFormsModule
+    ],
     templateUrl: './exercise-directory.component.html',
-    styleUrls: ['./exercise-directory.component.scss'],
-    standalone: false
+    styleUrls: ['./exercise-directory.component.scss']
 })
 export class ExerciseDirectoryComponent implements OnInit {
     @Input("entry") directory!: FileSystemDirectoryHandle;

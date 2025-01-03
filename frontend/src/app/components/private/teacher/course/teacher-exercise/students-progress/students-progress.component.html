@@ -10,56 +10,62 @@
     </div>
 </div>
 
-<ng-container *ngIf="this.isPreview">
+@if (this.isPreview) {
     <div class="alert alert-v4t">
         <i class="fas fa-info-circle"></i> Currently, <strong>preview mode</strong> is enabled. You can only see the progress of the students.
-        <ng-container *ngIf="this.fsaApiSupported">
+        @if (this.fsaApiSupported) {
             <br>To enable the <strong>full mode</strong>, choose a directory at your local computer where the students' submissions will be synchronized on demand.
-        </ng-container>
-        <ng-container *ngIf="!this.fsaApiSupported">
+        } @else {
             <br><strong>Full mode is not supported</strong> in this browser. To enable it, use a browser that supports interacting with the local file system.
-        </ng-container>
+        }
     </div>
 
-    <div class="text-center">
-        <button class="btn btn-v4t-coloured" (click)="pickExerciseLocalDirectory()" *ngIf="this.isPreview && this.fsaApiSupported">
-            <i class="fas fa-folder"></i>Choose directory
-        </button>
-    </div>
-</ng-container>
+    @if (this.isPreview && this.fsaApiSupported) {
+        <div class="text-center">
+            <button class="btn btn-v4t-coloured" (click)="pickExerciseLocalDirectory()">
+                <i class="fas fa-folder"></i>Choose directory
+            </button>
+        </div>
+    }
+} @else {
+    <div class="alert alert-light">
+        <div>
+            <i class="fas fa-info-circle"></i> Dashboard is now in <strong>full mode</strong>. Files will be synchronized to the chosen directory when requested.
+        </div>
+        @if (filesLastUpdateTimestamp !== undefined) {
+            Last sync: <strong>{{ this.filesLastUpdateTimestamp | date: 'HH:mm:ss' }}</strong>
+            (
+            <app-helper-delay-since [since]="filesLastUpdateTimestamp"></app-helper-delay-since> ago).
+        }
 
-<div *ngIf="!this.isPreview" class="alert alert-light">
-    <div>
-        <i class="fas fa-info-circle"></i> Dashboard is now in <strong>full mode</strong>. Files will be synchronized to the chosen directory when requested.
+        <div class="d-flex justify-content-center align-items-center">
+            @if (!this.isPreview) {
+                <button class="btn btn-v4t-coloured" (click)="getAllStudentsFiles()" [disabled]="this.isActiveDownload">
+                    <i class="fas fa-sync" [ngClass]="{ 'fa-spin': this.isActiveDownload }"></i> {{ this.isActiveDownload === "STUDENTS" ? 'Syncing…' : 'Sync files' }}
+                </button>
+                <button class="btn btn-sm btn-v4t" (click)="getTemplateFiles()" [disabled]="this.isActiveDownload">
+                    <i class="fas fa-download"></i> {{ this.isActiveDownload === "TEMPLATE" ? 'Downloading template…' : 'Download template' }}
+                </button>
+                @if (this.exercise.includesTeacherSolution) {
+                    <button class="btn btn-sm btn-v4t" (click)="getSolutionFiles()" [disabled]="this.isActiveDownload">
+                        <i class="fas fa-download"></i> {{ this.isActiveDownload === "SOLUTION" ? 'Downloading solution…' : 'Download solution' }}
+                    </button>
+                }
+                <button class="btn btn-sm btn-v4t" (click)="dismissExerciseLocalDirectory()" [disabled]="this.isActiveDownload">
+                    <i class="fas fa-folder-open"></i> Dismiss directory
+                </button>
+            }
+        </div>
+        <app-helper-progress-bar [info]="this.downloadProgressBar"></app-helper-progress-bar>
     </div>
-    <div *ngIf="filesLastUpdateTimestamp !== undefined">
-        Last sync: <strong>{{ this.filesLastUpdateTimestamp | date: 'HH:mm:ss' }}</strong>
-        (<app-helper-delay-since [since]="filesLastUpdateTimestamp"></app-helper-delay-since> ago).
-    </div>
-
-    <div class="d-flex justify-content-center align-items-center">
-        <button class="btn btn-v4t-coloured" (click)="getAllStudentsFiles()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
-            <i class="fas fa-sync" [ngClass]="{ 'fa-spin': this.isActiveDownload }"></i> {{ this.isActiveDownload === "STUDENTS" ? 'Syncing…' : 'Sync files' }}
-        </button>
-        <button class="btn btn-sm btn-v4t" (click)="getTemplateFiles()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
-            <i class="fas fa-download"></i> {{ this.isActiveDownload === "TEMPLATE" ? 'Downloading template…' : 'Download template' }}
-        </button>
-        <button class="btn btn-sm btn-v4t" (click)="getSolutionFiles()" *ngIf="!this.isPreview && this.exercise.includesTeacherSolution" [disabled]="this.isActiveDownload">
-            <i class="fas fa-download"></i> {{ this.isActiveDownload === "SOLUTION" ? 'Downloading solution…' : 'Download template' }}
-        </button>
-        <button class="btn btn-sm btn-v4t" (click)="dismissExerciseLocalDirectory()" *ngIf="!this.isPreview" [disabled]="this.isActiveDownload">
-            <i class="fas fa-folder-open"></i> Dismiss directory
-        </button>
-    </div>
-    <app-helper-progress-bar [info]="this.downloadProgressBar"></app-helper-progress-bar>
-</div>
+}
 
 <div style="display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem">
-    <app-teacher-exercise-individual-student-progress
-        *ngFor="let eui of this.exerciseUsersInfo"
-        [eui]="eui"
-        [exerciseLocalDirectory]="this.courseDirectory"
-        [studentIdentityShown]="this.studentIdentitiesShown"
-    />
+    @for (eui of this.exerciseUsersInfo; track eui.id) {
+        <app-teacher-exercise-individual-student-progress
+            [eui]="eui"
+            [exerciseLocalDirectory]="this.courseDirectory"
+            [studentIdentityShown]="this.studentIdentitiesShown"
+        />
+    }
 </div>
-

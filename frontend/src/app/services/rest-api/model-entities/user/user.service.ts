@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from '@angular/core';
+import { UserDTO } from "@app-model/rest-api/user.dto";
+import { User } from "@app-model/user.model";
 import { lastValueFrom, map } from "rxjs";
-import { UserDTO } from "../../../../model/rest-api/user.dto";
-import { User } from "../../../../model/user.model";
 
 @Injectable({
     providedIn: 'root'

@@ -1,6 +1,6 @@
 import { AuthPersistenceMethodInterface } from "./auth-persistence-method-interface.service";
 
-export class AuthSessionstorage implements AuthPersistenceMethodInterface<string>{
+export class AuthSessionstorage implements AuthPersistenceMethodInterface<string> {
 
     public readonly USER_INFO_ITEM_NAME = "Encrypted-Authorization";
 

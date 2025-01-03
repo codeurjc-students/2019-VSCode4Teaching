@@ -1,21 +1,24 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
-import { ExerciseUserInfo } from "../../../../../../../model/exercise-user-info.model";
-import { DirectoryNode, TreeDiffResult } from "../../../../../../../model/file-system/file-system.model";
-import { SyncJobPriorityQueue } from "../../../../../../../model/file-system/syncjob-priority-queue";
-import { SyncJob } from "../../../../../../../model/file-system/sync-job.model";
-import { FileSystemReadDirectoryService } from "../../../../../../../services/file-system/read-directory/file-system-read-directory.service";
-import { FileExchangeService } from "../../../../../../../services/rest-api/file-exchange/file-exchange.service";
-import { Observable } from "rxjs";
+import { CommonModule } from "@angular/common";
 import { HttpEvent, HttpEventType } from "@angular/common/http";
-import * as bootstrap from "bootstrap";
-import { ExerciseUserInfoService } from "../../../../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { ExerciseUserInfo } from "@app-model/exercise-user-info.model";
+import { DirectoryNode, TreeDiffResult } from "@app-model/file-system/file-system.model";
+import { SyncJob } from "@app-model/file-system/sync-job.model";
+import { SyncJobPriorityQueue } from "@app-model/file-system/syncjob-priority-queue";
+import { FileSystemReadDirectoryService } from "@app-services/file-system/read-directory/file-system-read-directory.service";
+import { FileExchangeService } from "@app-services/rest-api/file-exchange/file-exchange.service";
+import { ExerciseUserInfoService } from "@app-services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { Modal } from "bootstrap";
+import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
+import { Observable } from "rxjs";
 
 @Component({
     selector: 'app-student-exercise-sync',
+    imports: [
+        CommonModule
+    ],
     templateUrl: './auto-sync-server.component.html',
-    styleUrls: ['../in-progress-exercise.component.scss'],
-    standalone: false
+    styleUrls: ['../in-progress-exercise.component.scss']
 })
 export class AutoSyncServerComponent implements OnInit, OnDestroy {
     @Input("eui") eui!: ExerciseUserInfo;
@@ -30,7 +33,7 @@ export class AutoSyncServerComponent implements OnInit, OnDestroy {
     syncIntervalId: number | undefined;
 
     @ViewChild("syncDetailsModal") syncDetailsModalElementRef!: ElementRef;
-    syncDetailsModal!: bootstrap.Modal;
+    syncDetailsModal!: Modal;
 
 
     constructor(private fileSystemReadDirectoryService: FileSystemReadDirectoryService,
@@ -53,13 +56,13 @@ export class AutoSyncServerComponent implements OnInit, OnDestroy {
             this.exerciseStructure = await this.fileSystemReadDirectoryService.supportedFileSystemAPI(this.exerciseDirectoryHandle);
         }
 
-        this.syncDetailsModal = new bootstrap.Modal(`#${this.syncDetailsModalElementRef.nativeElement.id}`, {});
+        this.syncDetailsModal = new Modal(`#${this.syncDetailsModalElementRef.nativeElement.id}`, {});
 
-        this.syncIntervalId = setInterval(() => this.completeSync(), 500);
+        this.syncIntervalId = window.setInterval(() => this.completeSync(), 500);
     }
 
     ngOnDestroy() {
-        if (this.syncIntervalId !== undefined) clearInterval(this.syncIntervalId);
+        if (this.syncIntervalId !== undefined) window.clearInterval(this.syncIntervalId);
     }
 
 

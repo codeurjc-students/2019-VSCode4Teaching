@@ -1,17 +1,27 @@
+import { NgOptimizedImage } from "@angular/common";
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
-import { Course } from "../../../../model/course.model";
-import { ExerciseUserInfo } from "../../../../model/exercise-user-info.model";
-import { Exercise } from "../../../../model/exercise.model";
-import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
-import { ExerciseUserInfoService } from "../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { Course } from "@app-model/course.model";
+import { ExerciseUserInfo } from "@app-model/exercise-user-info.model";
+import { Exercise } from "@app-model/exercise.model";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
+import { ExerciseUserInfoService } from "@app-services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
 import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
+import { FinishedExerciseComponent } from "./exercise-status/finished-exercise/finished-exercise.component";
+import { InProgressExerciseComponent } from "./exercise-status/in-progress-exercise/in-progress-exercise.component";
+import { NotStartedExerciseComponent } from "./exercise-status/not-started-exercise/not-started-exercise.component";
 
 @Component({
     selector: 'app-student-course',
     templateUrl: './student-course.component.html',
-    styleUrls: ['./student-course.component.scss'],
-    standalone: false
+    imports: [
+        FinishedExerciseComponent,
+        InProgressExerciseComponent,
+        NotStartedExerciseComponent,
+
+        NgOptimizedImage
+    ],
+    styleUrls: ['./student-course.component.scss']
 })
 export class StudentCourseComponent implements OnInit {
     public courseId: number | undefined;

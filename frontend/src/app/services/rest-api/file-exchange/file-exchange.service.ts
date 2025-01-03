@@ -1,7 +1,7 @@
 import { HttpClient, HttpEvent } from "@angular/common/http";
 import { Injectable } from '@angular/core';
 import { Observable } from "rxjs";
-import { Exercise } from "../../../model/exercise.model";
+import { Exercise } from "@app-model/exercise.model";
 
 @Injectable({
     providedIn: 'root'

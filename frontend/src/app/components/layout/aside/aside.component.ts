@@ -1,12 +1,15 @@
+import { NgClass } from "@angular/common";
 import { Component } from '@angular/core';
-import { AsideItem } from "../../../model/aside/aside.model";
-import { AsideService } from "../../../services/aside/aside.service";
+import { AsideItem } from "@app-model/aside/aside.model";
+import { AsideService } from "@app-services/aside/aside.service";
 
 @Component({
     selector: 'app-layout-aside',
     templateUrl: './aside.component.html',
-    styleUrls: ['./aside.component.scss'],
-    standalone: false
+    imports: [
+        NgClass
+    ],
+    styleUrls: ['./aside.component.scss']
 })
 export class AsideComponent {
 

@@ -1,20 +1,20 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
-import { User } from "../../../model/user.model";
-import { AuthPersistenceMethodInterface } from "../persistence-methods/auth-persistence-method-interface.service";
+import { Injectable } from '@angular/core';
+import { UserDTO } from "@app-model/rest-api/user.dto";
+import { User } from "@app-model/user.model";
 import { lastValueFrom, map } from 'rxjs';
-import { UserDTO } from "../../../model/rest-api/user.dto";
+import { AuthPersistenceMethodInterface } from "../persistence-methods/auth-persistence-method-interface.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class CurrentUserService {
 
-    private _currentUser: User | undefined;
-
     constructor(private authPersistence: AuthPersistenceMethodInterface<string>, private http: HttpClient) {
         // this._currentUser = undefined;
     }
+
+    private _currentUser: User | undefined;
 
     get currentUser(): Promise<User | undefined> {
         return (async () => {

@@ -1,14 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Event, NavigationStart, Router } from "@angular/router";
+import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
 import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 import { Subscription } from "rxjs";
-import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
 
 @Component({
     selector: 'app-not-supported-file-system-access-api',
-    templateUrl: './not-supported-file-system-access-api.component.html',
-    styleUrls: ['./not-supported-file-system-access-api.component.scss'],
-    standalone: false
+    templateUrl: './not-supported-file-system-access-api.component.html'
 })
 export class NotSupportedFileSystemAccessApiComponent implements OnInit, OnDestroy {
     public showFsaAPINotSupportedMessage: boolean;

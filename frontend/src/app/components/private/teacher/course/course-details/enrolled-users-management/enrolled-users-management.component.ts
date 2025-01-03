@@ -1,16 +1,22 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { FormsModule } from "@angular/forms";
+import { Course } from "@app-model/course.model";
+import { User } from "@app-model/user.model";
+import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
+import { UserService } from "@app-services/rest-api/model-entities/user/user.service";
+import { NgOptionComponent, NgSelectComponent } from "@ng-select/ng-select";
 import { Modal } from "bootstrap";
-import { Course } from "../../../../../../model/course.model";
-import { User } from "../../../../../../model/user.model";
-import { CurrentUserService } from "../../../../../../services/auth/current-user/current-user.service";
-import { CourseService } from "../../../../../../services/rest-api/model-entities/course/course.service";
-import { UserService } from "../../../../../../services/rest-api/model-entities/user/user.service";
 
 @Component({
     selector: 'app-teacher-course-details-enrolled-users-management',
+    imports: [
+        FormsModule,
+        NgOptionComponent,
+        NgSelectComponent,
+    ],
     templateUrl: './enrolled-users-management.component.html',
-    styleUrls: ['./enrolled-users-management.component.scss'],
-    standalone: false
+    styleUrls: ['./enrolled-users-management.component.scss']
 })
 export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
     // Course (coming from parent component)
@@ -33,12 +39,11 @@ export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
     public selectedUser?: User;
     // Selected user to remove (coming from pressing the remove button in the template)
     public userToRemove?: User;
-
+    // Elements to manage the remove user confirmation modal
+    protected confirmRemoveUserModal!: Modal;
     // Elements to manage the main modal
     private enrolledUsersManagementModal!: Modal;
     @ViewChild("enrolledUsersModal") private enrolledUsersManagementModalElementRef!: ElementRef;
-    // Elements to manage the remove user confirmation modal
-    protected confirmRemoveUserModal!: Modal;
     @ViewChild("confirmUserToRemove") private confirmRemoveUserModalElementRef!: ElementRef;
 
     constructor(private courseService: CourseService,

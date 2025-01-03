@@ -1,5 +1,4 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { DashboardComponent } from "./components/private/common/dashboard/dashboard.component";
 import { StudentCourseComponent } from "./components/private/student/course/student-course.component";
 import { TeacherCourseComponent } from "./components/private/teacher/course/teacher-course.component";
@@ -8,7 +7,7 @@ import { IndexComponent } from "./components/public/index/index.component";
 import { LoginComponent } from "./components/public/login/login.component";
 import { isLoggedIn, isTeacher } from "./services/auth/guards/guards.service";
 
-const routes: Routes = [
+export const routes: Routes = [
     // private/common
     { path: "dashboard", component: DashboardComponent, data: { showAside: false }, canActivate: [isLoggedIn] },
 
@@ -33,12 +32,3 @@ const routes: Routes = [
     { path: "login", component: LoginComponent, data: { showAside: false, showHeader: false } },
     { path: "", component: IndexComponent, data: { showAside: false } }
 ];
-
-@NgModule({
-    imports: [RouterModule.forRoot(routes, {
-        onSameUrlNavigation: 'reload'
-    })],
-    exports: [RouterModule]
-})
-export class AppRoutingModule {
-}

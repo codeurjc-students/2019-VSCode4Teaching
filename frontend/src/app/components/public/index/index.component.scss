@@ -13,6 +13,7 @@
 
         > img {
             height: 100%;
+            width: auto;
         }
     }
 
@@ -47,6 +48,7 @@
     > .stepImage {
         width: 75%;
         max-width: 1200px;
+        height: auto !important;
         margin-top: .25rem;
     }
 }
@@ -64,6 +66,21 @@
 
     &:hover {
         transition: all 0.5s;
+    }
+
+    > img {
+        width: 25px;
+        height: auto;
+        margin-right: 16px;
+    }
+
+    > span {
+        color: black;
+    }
+
+    &:link,
+    &:visited {
+        text-decoration: none;
     }
 }
 
@@ -84,22 +101,6 @@
     &:hover {
         background-color: #fbb7b1;
         box-shadow: 0 0 10px #fbb7b1;
-    }
-}
-
-.downloadBtn {
-    > img {
-        width: 25px;
-        margin-right: 16px;
-    }
-
-    > span {
-        color: black;
-    }
-
-    &:link,
-    &:visited {
-        text-decoration: none;
     }
 }
 

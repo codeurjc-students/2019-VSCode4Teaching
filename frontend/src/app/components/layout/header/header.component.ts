@@ -1,17 +1,20 @@
+import { NgOptimizedImage } from "@angular/common";
 import { Component, OnInit } from '@angular/core';
-import { CurrentUserService } from "../../../services/auth/current-user/current-user.service";
-import { User } from "../../../model/user.model";
-import { AuthService } from "../../../services/rest-api/auth/auth.service";
-import { Event, NavigationStart, Router } from "@angular/router";
+import { Event, NavigationStart, Router, RouterLink } from "@angular/router";
+import { User } from "@app-model/user.model";
+import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
+import { AuthService } from "@app-services/rest-api/auth/auth.service";
 
 @Component({
     selector: 'app-layout-header',
+    imports: [
+        NgOptimizedImage,
+        RouterLink
+    ],
     templateUrl: './header.component.html',
-    styleUrls: ['./header.component.scss'],
-    standalone: false
+    styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
-
     // User if existing any user, null if no user authenticated, undefined while checking backend
     public currentUserInfo: User | null | undefined;
 
@@ -29,12 +32,6 @@ export class HeaderComponent implements OnInit {
         await this.checkCurrentUserInfo();
     }
 
-    private async checkCurrentUserInfo() {
-        this.currentUserInfo = (this.authService.isUserLogged())
-            ? await this.currentUserService.currentUser
-            : null;
-    }
-
     // Header buttons' actions
     public navigateToDashboard = async () => {
         await this.router.navigate(["/dashboard"]);
@@ -45,5 +42,11 @@ export class HeaderComponent implements OnInit {
         this.authService.logout();
         this.currentUserService.disposeCurrentUserInfo();
         await this.router.navigate(["/"]);
+    }
+
+    private async checkCurrentUserInfo() {
+        this.currentUserInfo = (this.authService.isUserLogged())
+            ? await this.currentUserService.currentUser
+            : null;
     }
 }

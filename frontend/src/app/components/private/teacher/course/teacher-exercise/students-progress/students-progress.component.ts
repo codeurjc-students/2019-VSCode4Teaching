@@ -1,17 +1,26 @@
+import { CommonModule } from "@angular/common";
 import { HttpEvent } from "@angular/common/http";
 import { Component, Input } from '@angular/core';
+import { DelaySinceComponent } from "@app-components/helpers/delay-since/delay-since.component";
+import { ProgressBarComponent, ProgressBarDTO } from "@app-components/helpers/progress-bar/progress-bar.component";
+import { ExerciseUserInfo } from "@app-model/exercise-user-info.model";
+import { Exercise } from "@app-model/exercise.model";
+import { DownloadUnzipDTO, DownloadUnzipService } from "@app-services/file-system/download-unzip/download-unzip.service";
+import { FileExchangeService } from "@app-services/rest-api/file-exchange/file-exchange.service";
 import { supported as fileSystemAccessApiSupported } from "browser-fs-access";
 import { Observable } from "rxjs";
-import { ExerciseUserInfo } from "../../../../../../model/exercise-user-info.model";
-import { Exercise } from "../../../../../../model/exercise.model";
-import { DownloadUnzipDTO, DownloadUnzipService } from "../../../../../../services/file-system/download-unzip/download-unzip.service";
-import { FileExchangeService } from "../../../../../../services/rest-api/file-exchange/file-exchange.service";
-import { ProgressBarDTO } from "../../../../../helpers/progress-bar/progress-bar.component";
+import { IndividualStudentProgressComponent } from "./individual-student-progress/individual-student-progress.component";
 
 @Component({
     selector: 'app-teacher-exercise-students-progress',
-    templateUrl: './students-progress.component.html',
-    standalone: false
+    imports: [
+        DelaySinceComponent,
+        IndividualStudentProgressComponent,
+        ProgressBarComponent,
+
+        CommonModule
+    ],
+    templateUrl: './students-progress.component.html'
 })
 export class StudentsProgressComponent {
     @Input("exercise") public exercise!: Exercise;

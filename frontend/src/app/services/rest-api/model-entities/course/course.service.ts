@@ -1,10 +1,10 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from "rxjs";
-import { Course } from "../../../../model/course.model";
-import { CourseDTO } from "../../../../model/rest-api/course.dto";
-import { UserDTO } from "../../../../model/rest-api/user.dto";
-import { User } from "../../../../model/user.model";
+import { Course } from "@app-model/course.model";
+import { CourseDTO } from "@app-model/rest-api/course.dto";
+import { UserDTO } from "@app-model/rest-api/user.dto";
+import { User } from "@app-model/user.model";
 import { ExerciseService } from "../exercise/exercise.service";
 
 @Injectable({

@@ -4,9 +4,13 @@
             <h4 class="centeredTitle">VSCode4Teaching</h4>
 
             <div class="alertRegion" id="alertRegion">
-                <div class="alert alert-danger" *ngIf="this.loginFormSubmissionStatus === LoginFormSubmissionStatus.RESPONSE_ERROR">Authentication failed: username or password were not registered.</div>
+                @if (this.loginFormSubmissionStatus === LoginFormSubmissionStatus.RESPONSE_ERROR) {
+                    <div class="alert alert-danger">Authentication failed: username or password were not registered.</div>
+                }
                 <!-- Currently unavailable -->
-                <!-- <div class="alert alert-danger" *ngIf="this.loginForm.dirty && this.loginForm.invalid">Authentication failed: username or password entered are not valid.</div> -->
+                <!-- @if (this.loginForm.dirty && this.loginForm.invalid) {
+                    <div class="alert alert-danger">Authentication failed: username or password entered are not valid.</div>
+                } -->
             </div>
 
             <div class="formInput">
@@ -18,12 +22,13 @@
                 <input type="password" name="password" id="password" formControlName="password" autocomplete="off" placeholder="Password">
             </div>
             <button type="submit" class="formButton">
-                <span *ngIf="this.loginFormSubmissionStatus === LoginFormSubmissionStatus.SUBMITTED">
-                    <i class="fas fa-spin fa-circle-notch"></i> Loading...
-                </span>
-                <span *ngIf="this.loginFormSubmissionStatus !== LoginFormSubmissionStatus.SUBMITTED">
-                    Sign In
-                </span>
+                @if (this.loginFormSubmissionStatus === LoginFormSubmissionStatus.SUBMITTED) {
+                    <span>
+                        <i class="fas fa-spin fa-circle-notch"></i> Loading...
+                    </span>
+                } @else {
+                    <span>Sign In</span>
+                }
             </button>
         </form>
     </div>

@@ -1,17 +1,28 @@
+import { NgOptimizedImage } from "@angular/common";
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from "@angular/router";
-import { Course } from "../../../../model/course.model";
-import { Exercise } from "../../../../model/exercise.model";
-import { CourseService } from "../../../../services/rest-api/model-entities/course/course.service";
-import { ExerciseUserInfoService } from "../../../../services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { Course } from "@app-model/course.model";
+import { Exercise } from "@app-model/exercise.model";
+import { CourseService } from "@app-services/rest-api/model-entities/course/course.service";
+import { ExerciseUserInfoService } from "@app-services/rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { AddExercisesComponent } from "./add-exercises/add-exercises.component";
+import { EnrolledUsersManagementComponent } from "./course-details/enrolled-users-management/enrolled-users-management.component";
+import { SharingCodeComponent } from "./course-details/sharing-code/sharing-code.component";
 
 type ExerciseInfoSummary = { exercise: Exercise, notStarted: number, inProgress: number, finished: number };
 
 @Component({
     selector: 'app-teacher-course',
     templateUrl: './teacher-course.component.html',
-    styleUrls: ['./teacher-course.component.scss'],
-    standalone: false
+    imports: [
+        AddExercisesComponent,
+        EnrolledUsersManagementComponent,
+        SharingCodeComponent,
+
+        NgOptimizedImage,
+        RouterLink
+    ],
+    styleUrls: ['./teacher-course.component.scss']
 })
 export class TeacherCourseComponent implements OnInit {
     public courseId: number | undefined;

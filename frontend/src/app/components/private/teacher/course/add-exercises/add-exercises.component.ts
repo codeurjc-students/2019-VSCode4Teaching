@@ -1,14 +1,19 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild, ViewChildren } from '@angular/core';
+import { FormsModule } from "@angular/forms";
+import { Course } from "@app-model/course.model";
+import { ExerciseUserInfoStatus } from "@app-model/exercise-user-info.model";
 import { Modal } from "bootstrap";
-import { Course } from "../../../../../model/course.model";
-import { ExerciseUserInfoStatus } from "../../../../../model/exercise-user-info.model";
 import { ExerciseDirectoryComponent } from "./exercise-directory/exercise-directory.component";
 
 @Component({
     selector: 'app-teacher-course-add-exercises',
+    imports: [
+        ExerciseDirectoryComponent,
+
+        FormsModule
+    ],
     templateUrl: './add-exercises.component.html',
-    styleUrls: ['./add-exercises.component.scss'],
-    standalone: false
+    styleUrls: ['./add-exercises.component.scss']
 })
 export class AddExercisesComponent implements AfterViewInit {
     @Input("course") course!: Course;

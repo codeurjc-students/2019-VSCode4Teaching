@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
- import { DirectoryNode, FileNode, Node, TreeDiffResult } from "../../../model/file-system/file-system.model";
+import { DirectoryNode, FileNode, Node, TreeDiffResult } from "@app-model/file-system/file-system.model";
 
 /**
  * File System service
@@ -100,54 +100,6 @@ export class FileSystemReadDirectoryService {
         return rootDirectoryNode;
     }
 
-    /** @deprecated */
-    private notSupportedRecursiveAlgorithm(file: File, directoryNode: DirectoryNode, relativePath?: string[]) {
-        // Step 1: path parameter (an array including every part of relative path of current file) is generated
-        // It can come either from method call (relativePath, when recursive calls are instantiated for subdirectories' contents)
-        // or from file object relative path parameter (that has to exist because it was checked before calling this algorithm)
-        let pathParameter = relativePath ?? file.webkitRelativePath.split(/\/|\\/).slice(1);
-
-        // Base case: path parameter includes only one string (file name).
-        // This file belongs to current directoryNode, it is registered and analysis has finished
-        if (pathParameter.length === 1) {
-            directoryNode.children.push(new FileNode({
-                name: pathParameter[0],
-                lastModifiedTime: file.lastModified,
-                fileBlob: file,
-                parentDirectoryNode: directoryNode
-            }));
-
-            // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
-            directoryNode.children = directoryNode.children.sort((x, y) => x.name.localeCompare(y.name));
-        }
-        // Recursive case: path parameter includes N strings (N-1 directories' names and a file name)
-        // This file is allocated in other directory that can either exist from previous iterations or not
-        else {
-            const filteredChildrenList = directoryNode.children.filter(hijo => hijo.name === pathParameter[0]);
-
-            // Case 1: the first directory of the relative path is already registered in the list of children
-            // of the current DirectoryNode, so the insertion is continued recursively
-            if (filteredChildrenList.length === 1) {
-                this.notSupportedRecursiveAlgorithm(file, filteredChildrenList[0] as DirectoryNode, pathParameter.slice(1));
-            }
-            // Case 2: the first directory of the relative path is not yet registered,
-            // so a new entry is generated in the node list and the insertion is continued recursively
-            else {
-                const newSubdirectoryNode = new DirectoryNode({
-                    name: pathParameter[0],
-                    children: [],
-                    parentDirectoryNode: directoryNode
-                });
-
-                // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
-                directoryNode.children.push(newSubdirectoryNode);
-                directoryNode.children = directoryNode.children.sort((x, y) => x.name.localeCompare(y.name));
-
-                this.notSupportedRecursiveAlgorithm(file, newSubdirectoryNode, pathParameter.slice(1));
-            }
-        }
-    }
-
     /**
      * Algorithm that, given two DirectoryNode, examines their lists of child nodes recursively and returns
      * lists of created, deleted and modified files between the old and the new one.
@@ -222,5 +174,53 @@ export class FileSystemReadDirectoryService {
 
         // Analysis is finished and tree diff result is returned
         return treeDiffResult;
+    }
+
+    /** @deprecated */
+    private notSupportedRecursiveAlgorithm(file: File, directoryNode: DirectoryNode, relativePath?: string[]) {
+        // Step 1: path parameter (an array including every part of relative path of current file) is generated
+        // It can come either from method call (relativePath, when recursive calls are instantiated for subdirectories' contents)
+        // or from file object relative path parameter (that has to exist because it was checked before calling this algorithm)
+        let pathParameter = relativePath ?? file.webkitRelativePath.split(/\/|\\/).slice(1);
+
+        // Base case: path parameter includes only one string (file name).
+        // This file belongs to current directoryNode, it is registered and analysis has finished
+        if (pathParameter.length === 1) {
+            directoryNode.children.push(new FileNode({
+                name: pathParameter[0],
+                lastModifiedTime: file.lastModified,
+                fileBlob: file,
+                parentDirectoryNode: directoryNode
+            }));
+
+            // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
+            directoryNode.children = directoryNode.children.sort((x, y) => x.name.localeCompare(y.name));
+        }
+            // Recursive case: path parameter includes N strings (N-1 directories' names and a file name)
+        // This file is allocated in other directory that can either exist from previous iterations or not
+        else {
+            const filteredChildrenList = directoryNode.children.filter(hijo => hijo.name === pathParameter[0]);
+
+            // Case 1: the first directory of the relative path is already registered in the list of children
+            // of the current DirectoryNode, so the insertion is continued recursively
+            if (filteredChildrenList.length === 1) {
+                this.notSupportedRecursiveAlgorithm(file, filteredChildrenList[0] as DirectoryNode, pathParameter.slice(1));
+            }
+                // Case 2: the first directory of the relative path is not yet registered,
+            // so a new entry is generated in the node list and the insertion is continued recursively
+            else {
+                const newSubdirectoryNode = new DirectoryNode({
+                    name: pathParameter[0],
+                    children: [],
+                    parentDirectoryNode: directoryNode
+                });
+
+                // Children nodes list is sorted (for compatibility with supportedFileSystemAPI and tree comparison algorithms)
+                directoryNode.children.push(newSubdirectoryNode);
+                directoryNode.children = directoryNode.children.sort((x, y) => x.name.localeCompare(y.name));
+
+                this.notSupportedRecursiveAlgorithm(file, newSubdirectoryNode, pathParameter.slice(1));
+            }
+        }
     }
 }

@@ -1,11 +1,11 @@
 import { EventEmitter, Injectable } from '@angular/core';
-import { CourseService } from "../rest-api/model-entities/course/course.service";
-import { ExerciseService } from "../rest-api/model-entities/exercise/exercise.service";
-import { CurrentUserService } from "../auth/current-user/current-user.service";
-import { ExerciseUserInfoService } from "../rest-api/model-entities/exercise-user-info/exercise-user-info.service";
-import { AsideItem, AsideSubitem } from "../../model/aside/aside.model";
-import { AsideStudentCourse, AsideStudentExercise } from "../../model/aside/asideStudent.model";
 import { Router } from "@angular/router";
+import { AsideItem, AsideSubitem } from "@app-model/aside/aside.model";
+import { AsideStudentCourse, AsideStudentExercise } from "@app-model/aside/asideStudent.model";
+import { CurrentUserService } from "../auth/current-user/current-user.service";
+import { CourseService } from "../rest-api/model-entities/course/course.service";
+import { ExerciseUserInfoService } from "../rest-api/model-entities/exercise-user-info/exercise-user-info.service";
+import { ExerciseService } from "../rest-api/model-entities/exercise/exercise.service";
 
 @Injectable({
     providedIn: 'root'
@@ -42,9 +42,11 @@ export class AsideService {
                 const courses = await this.courseService.getCoursesByUser(currentUser);
                 for (const course of courses) {
                     const asideSubitems: AsideSubitem[] = [];
-                    asideItems.push(new AsideStudentCourse(course.name, course.id, asideSubitems, (itemId) => { console.log(itemId) }));
+                    asideItems.push(new AsideStudentCourse(course.name, course.id, asideSubitems, (itemId) => {
+                        console.log(itemId)
+                    }));
 
-                    for (let exercise of await this.exerciseService.getExercisesInCourse(course)){
+                    for (let exercise of await this.exerciseService.getExercisesInCourse(course)) {
                         // const exerciseUserInfo: ExerciseUserInfo = this.exerciseUserInfoService.getExerciseUserInfoByExercise(course);
                         asideSubitems.push(new AsideStudentExercise(exercise.name, exercise.id, "asd", () => {
                             this.router.navigateByUrl(`/exercise/${exercise.id}`, { onSameUrlNavigation: "reload" });

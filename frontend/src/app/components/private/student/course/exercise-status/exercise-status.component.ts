@@ -1,10 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ExerciseUserInfo } from "../../../../../model/exercise-user-info.model";
-import { FileSystemWriteDirectoryService } from "../../../../../services/file-system/write-directory/file-system-write-directory.service";
+import { ExerciseUserInfo } from "@app-model/exercise-user-info.model";
+import { FileSystemWriteDirectoryService } from "@app-services/file-system/write-directory/file-system-write-directory.service";
 
 @Component({
-    template: "",
-    standalone: false
+    template: ""
 })
 export class ExerciseStatusComponent {
     @Input("eui") public eui!: ExerciseUserInfo;
