@@ -56,6 +56,9 @@
                             <button [routerLink]="['exercises', exercise.exercise.id]" class="btn btn-sm btn-v4t">
                                 <i class="fa fa-book-open"></i> Details of exercise
                             </button>
+                            <button (click)="this.removeExercise(exercise.exercise)" class="btn btn-sm btn-outline-danger">
+                                <i class="fa fa-times"></i> Remove exercise
+                            </button>
                         </div>
                     </div>
                 }
@@ -63,3 +66,5 @@
         }
     }
 </div>
+
+<app-helper-dialog #dialog></app-helper-dialog>

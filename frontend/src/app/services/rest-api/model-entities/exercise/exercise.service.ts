@@ -36,4 +36,8 @@ export class ExerciseService {
             .pipe(map((exerciseDTO: ExerciseDTO) => new Exercise(exerciseDTO)))
         );
     }
+
+    public deleteExercise = (exercise: Exercise): Promise<void> => {
+        return lastValueFrom(this.http.delete<void>("/exercises/" + exercise.id));
+    }
 }
