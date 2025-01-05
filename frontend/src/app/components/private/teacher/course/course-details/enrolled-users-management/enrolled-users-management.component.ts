@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormsModule } from "@angular/forms";
+import { DialogComponent } from "@app-components/helpers/dialog/dialog.component";
 import { Course } from "@app-model/course.model";
 import { User } from "@app-model/user.model";
 import { CurrentUserService } from "@app-services/auth/current-user/current-user.service";
@@ -11,6 +12,8 @@ import { Modal } from "bootstrap";
 @Component({
     selector: 'app-teacher-course-details-enrolled-users-management',
     imports: [
+        DialogComponent,
+
         FormsModule,
         NgOptionComponent,
         NgSelectComponent,
@@ -39,12 +42,12 @@ export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
     public selectedUser?: User;
     // Selected user to remove (coming from pressing the remove button in the template)
     public userToRemove?: User;
-    // Elements to manage the remove user confirmation modal
-    protected confirmRemoveUserModal!: Modal;
     // Elements to manage the main modal
     private enrolledUsersManagementModal!: Modal;
     @ViewChild("enrolledUsersModal") private enrolledUsersManagementModalElementRef!: ElementRef;
-    @ViewChild("confirmUserToRemove") private confirmRemoveUserModalElementRef!: ElementRef;
+
+    // Dialog helper to show confirmation messages
+    @ViewChild("dialog") private dialog!: DialogComponent;
 
     constructor(private courseService: CourseService,
                 private userService: UserService,
@@ -58,7 +61,6 @@ export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
 
     public ngAfterViewInit(): void {
         this.enrolledUsersManagementModal = new Modal(this.enrolledUsersManagementModalElementRef.nativeElement);
-        this.confirmRemoveUserModal = new Modal(this.confirmRemoveUserModalElementRef.nativeElement, { backdrop: "static", keyboard: false });
     }
 
 
@@ -71,17 +73,27 @@ export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
     }
 
     public showRemoveUserConfirmation(pickedUser: User): void {
-        this.enrolledUsersManagementModal.hide();
         this.userToRemove = pickedUser;
-        this.confirmRemoveUserModal.show();
+        this.dialog.open({
+            title: "Remove user",
+            message: `Are you sure you want to remove <strong>${this.userToRemove.name} ${this.userToRemove.lastName}</strong> (${this.userToRemove.username}) from this course?`,
+            buttons: [
+                {
+                    class: "btn btn-sm btn-outline-secondary",
+                    icon: "fa-chevron-left",
+                    text: "Cancel",
+                    callback: () => this.dialog.close()
+                },
+                {
+                    class: "btn btn-sm btn-outline-v4t",
+                    icon: "fa-times",
+                    text: "Delete",
+                    callback: async () => await this.removeUser()
+                }
+            ],
+            parentModal: this.enrolledUsersManagementModal
+        });
     }
-
-    public hideRemoveUserConfirmation(): void {
-        this.confirmRemoveUserModal.hide();
-        this.userToRemove = undefined;
-        this.enrolledUsersManagementModal.show();
-    }
-
 
     public async enrollSelectedUser(): Promise<void> {
         if (this.course && this.selectedUser) {
@@ -98,7 +110,7 @@ export class EnrolledUsersManagementComponent implements OnInit, AfterViewInit {
             this.enrolledUsersUpdated.emit();
             this.refreshEnrollmentData();
             this.userToRemove = undefined;
-            this.hideRemoveUserConfirmation();
+            this.dialog.close();
         }
     }
 

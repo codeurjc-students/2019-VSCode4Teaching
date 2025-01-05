@@ -1,0 +1,18 @@
+<div class="modal fade" tabindex="-1" #modalElement>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body modal-alert">
+                <div class="icon color-in-progress">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </div>
+                <div class="title" [innerHTML]="title"></div>
+                <div class="message" [innerHTML]="message"></div>
+                <div class="actions">
+                    @for (button of buttons; track $index) {
+                        <button [class]="button.class" (click)="button.callback()"><i [class]="['fa', button.icon]"></i> {{ button.text }}</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -79,26 +79,5 @@
         </div>
     </div>
 </div>
-<div class="modal fade" tabindex="-1" #confirmUserToRemove>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            @if (this.userToRemove) {
-                <div class="modal-body modal-alert">
-                    <div class="icon color-in-progress">
-                        <i class="fa fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="title">
-                        Remove user
-                    </div>
-                    <div class="message">
-                        Are you sure you want to remove <strong>{{ this.userToRemove.name }} {{ this.userToRemove.lastName }}</strong> ({{ this.userToRemove.username }}) from this course?
-                    </div>
-                    <div class="actions">
-                        <button class="btn btn-sm btn-outline-secondary" (click)="this.hideRemoveUserConfirmation()"><i class="fa fa-chevron-left"></i> Cancel</button>
-                        <button class="btn btn-sm btn-outline-v4t" (click)="this.removeUser()"><i class="fa fa-times"></i> Delete</button>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
+
+<app-helper-dialog #dialog></app-helper-dialog>
