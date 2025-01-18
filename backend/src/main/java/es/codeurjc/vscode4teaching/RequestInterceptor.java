@@ -43,6 +43,7 @@ public class RequestInterceptor implements WebMvcConfigurer {
                 // If incoming request maps to any path handled by Spring or to a static resource, let framework handle it
                 if (pathsHandledBySpring.stream().anyMatch(pattern -> pattern.matcher(requestURI).matches())
                     || isStaticResource(requestURI)
+                    || !isStaticResource("/index.html")
                 ) {
                     return true;
                 }

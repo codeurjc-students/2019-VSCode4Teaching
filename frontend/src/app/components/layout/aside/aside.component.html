@@ -13,7 +13,7 @@
                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                         <li class="courseActions">
                             @for (itemAction of item.actions; track $index) {
-                                <button class="btn btn-xs btn-v4t" (click)="itemAction.callback(item.id)">
+                                <button class="btn btn-xs btn-outline-v4t" (click)="itemAction.callback(item.id)">
                                     @if (itemAction.icon !== undefined) {
                                         <i [class]="itemAction.icon"></i>
                                     } @else {
@@ -33,7 +33,7 @@
                                     </div>
                                     <div class="col-3 d-flex justify-content-end">
                                         @for (subitemAction of subitem.actions; track $index) {
-                                            <button class="btn bt-xs btn-v4t" (click)="$event.stopPropagation(); subitemAction.callback(item.id, subitem.id)">
+                                            <button class="btn bt-xs btn-outline-v4t" (click)="$event.stopPropagation(); subitemAction.callback(item.id, subitem.id)">
                                                 @if (subitemAction.icon !== undefined) {
                                                     <i [class]="subitemAction.icon"></i>
                                                 } @else {

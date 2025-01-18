@@ -1,0 +1,92 @@
+<main class="container">
+    <h1>Sign up</h1>
+    <p>
+        Welcome to VSCode4Teaching! Please fill in the following form to create a new <strong>student</strong> account.
+        <br>Want to be a <strong>teacher</strong>? Ask another teacher to invite you and create your account.
+    </p>
+
+    <hr>
+
+    <!-- Inputs for name, surname, email, password and password confirmation -->
+    <form [formGroup]="this.signupForm" (submit)="signUp()" novalidate>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-4">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('name'))"
+                    name="Name"
+                    [validationMessages]="{ required: 'Name is required.' }"
+                />
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('surname'))"
+                    name="Surname"
+                    [validationMessages]="{ required: 'Surname is required.' }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-4">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('username'))"
+                    name="Username"
+                    [validationMessages]="{
+                        required: 'Username is required.',
+                        minlength: 'Username must be at least 4 characters long.',
+                        maxlength: 'Username must be at most 50 characters long.',
+                        pattern: 'Username not valid, it must contain only letters, numbers and underscores.'
+                    }"
+                />
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('email'))"
+                    name="E-mail address"
+                    type="email"
+                    [validationMessages]="{
+                        required: 'E-mail address is required.',
+                        email: 'E-mail address not valid.'
+                    }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-3">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('password'))"
+                    name="Password"
+                    type="password"
+                    [validationMessages]="{
+                        required: 'Password is required.',
+                        minlength: 'Password must be at least 8 characters long.'
+                    }"
+                />
+            </div>
+            <div class="col-12 col-md-6 mb-3">
+                <app-helper-form-input
+                    [formControl]="$any(this.signupForm.get('passwordConfirmation'))"
+                    name="Password confirmation"
+                    type="password"
+                    [validationMessages]="{
+                        required: 'Password confirmation is required.',
+                        minlength: 'Password must be at least 8 characters long.',
+                        confirmPassword: 'Password confirmation must match the password.'
+                    }"
+                />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-v4t-coloured" [disabled]="this.isLoading">
+                    @if (this.isLoading) {
+                        <i class="fa fa-spinner fa-spin"></i> Loading...
+                    } @else {
+                        <i class="fa fa-user-plus"></i> Sign up
+                    }
+                </button>
+            </div>
+        </div>
+    </form>
+</main>
+
+<app-helper-dialog #dialog/>

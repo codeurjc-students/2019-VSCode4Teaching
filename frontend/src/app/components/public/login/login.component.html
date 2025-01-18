@@ -23,11 +23,9 @@
             </div>
             <button type="submit" class="formButton">
                 @if (this.loginFormSubmissionStatus === LoginFormSubmissionStatus.SUBMITTED) {
-                    <span>
-                        <i class="fas fa-spin fa-circle-notch"></i> Loading...
-                    </span>
+                    <i class="fas fa-spin fa-circle-notch"></i> Loading...
                 } @else {
-                    <span>Sign In</span>
+                    Sign In
                 }
             </button>
         </form>

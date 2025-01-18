@@ -13,7 +13,7 @@ export class User {
     readonly #courses: Course[] | undefined;
 
     constructor(dto: UserDTO) {
-        this.#id = dto.id;
+        this.#id = dto.id ?? -1;
         this.#username = dto.username;
         this.#name = dto.name;
         this.#lastName = dto.lastName;

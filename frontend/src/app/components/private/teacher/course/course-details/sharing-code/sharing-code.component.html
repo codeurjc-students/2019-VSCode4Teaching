@@ -1,4 +1,4 @@
-<button class="btn btn-v4t btn-sm" (click)="this.getSharingCode()">
+<button class="btn btn-outline-v4t btn-sm" (click)="this.getSharingCode()">
     <i class="fa fa-share-alt"></i> Share with students
 </button>
 <div class="modal fade" tabindex="-1" #sharingCodeModal>
@@ -22,7 +22,7 @@
                             <label for="sharingCode">Sharing code</label>
                             <div class="input-group">
                                 <input type="text" id="sharingCode" class="form-control form-control-sm form-control-v4t text-center" [value]="this.sharingCode.value" readonly>
-                                <button class="btn btn-v4t btn-sm" (click)="this.copySharingCode(this.sharingCode)">
+                                <button class="btn btn-outline-v4t btn-sm" (click)="this.copySharingCode(this.sharingCode)">
                                     @if (!this.sharingCode.copied) {
                                         <i class="fa fa-clipboard"></i> Copy
                                     } @else {
@@ -39,7 +39,7 @@
                             <label for="sharingURL">Sharing URL</label>
                             <div class="input-group">
                                 <input type="text" id="sharingURL" class="form-control form-control-sm form-control-v4t text-center" [value]="this.sharingUrl.value" readonly>
-                                <button class="btn btn-v4t btn-sm" (click)="this.copySharingCode(this.sharingUrl)">
+                                <button class="btn btn-outline-v4t btn-sm" (click)="this.copySharingCode(this.sharingUrl)">
                                     @if (!this.sharingUrl.copied) {
                                         <i class="fa fa-clipboard"></i> Copy
                                     } @else {

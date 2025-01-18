@@ -10,6 +10,7 @@
                 Loading...
             </button>
         } @else if (this.currentUserInfo === null) {
+            <button [routerLink]="['/sign-up']" class="btn btn-sm btn-outline-v4t"><i class="fas fa-user-plus"></i> Sign Up</button>
             <button [routerLink]="['/login']" class="btn btn-sm btn-v4t"><i class="fas fa-user"></i> Sign In</button>
         } @else {
             @if (this.currentUserInfo) {
@@ -18,7 +19,7 @@
                     {{ this.currentUserInfo.name }} {{ this.currentUserInfo.lastName }}
                 </div>
             }
-            <button class="btn btn-sm btn-v4t" (click)="this.navigateToDashboard()">
+            <button class="btn btn-sm btn-outline-v4t" (click)="this.navigateToDashboard()">
                 <i class="fas fa-gauge"></i>&nbsp;
                 Dashboard
             </button>

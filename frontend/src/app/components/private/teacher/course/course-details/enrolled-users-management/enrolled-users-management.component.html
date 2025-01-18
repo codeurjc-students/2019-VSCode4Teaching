@@ -1,4 +1,4 @@
-<button class="btn btn-v4t btn-sm" (click)="this.openStudentManagementModal()">
+<button class="btn btn-outline-v4t btn-sm" (click)="this.openStudentManagementModal()">
     <i class="fa fa-users-gear"></i> Manage enrolled users
 </button>
 <div class="modal modal-xl fade" tabindex="-1" #enrolledUsersModal>
@@ -31,7 +31,7 @@
                             <div class="username">{{ enrolledTeacher.username }}</div>
                             <div class="actions">
                                 @if (enrolledTeacher.username !== creator?.username && enrolledTeacher.username !== this.curUserUsername) {
-                                    <button class="btn btn-v4t btn-xs" (click)="this.showRemoveUserConfirmation(enrolledTeacher)">
+                                    <button class="btn btn-outline-v4t btn-xs" (click)="this.showRemoveUserConfirmation(enrolledTeacher)">
                                         <i class="fa fa-times"></i>
                                     </button>
                                 }
@@ -52,7 +52,7 @@
                             </div>
                             <div class="username">{{ enrolledStudent.username }}</div>
                             <div class="actions">
-                                <button class="btn btn-v4t btn-xs" (click)="this.showRemoveUserConfirmation(enrolledStudent)">
+                                <button class="btn btn-outline-v4t btn-xs" (click)="this.showRemoveUserConfirmation(enrolledStudent)">
                                     <i class="fa fa-times"></i>
                                 </button>
                             </div>
@@ -72,7 +72,7 @@
                                 <ng-option [value]="enrolledUser">{{ enrolledUser.name }} {{ enrolledUser.lastName }} ({{ enrolledUser.username }}){{ enrolledUser.isTeacher ? " (teacher)" : "" }}</ng-option>
                             }
                         </ng-select>
-                        <button class="btn btn-v4t" style="flex: 0 0 15%" (click)="this.enrollSelectedUser()"><i class="fa fa-user-plus"></i> Enroll user</button>
+                        <button class="btn btn-outline-v4t" style="flex: 0 0 15%" (click)="this.enrollSelectedUser()"><i class="fa fa-user-plus"></i> Enroll user</button>
                     </div>
                 </div>
             }

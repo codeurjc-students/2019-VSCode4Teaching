@@ -2,8 +2,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body modal-alert">
-                <div class="icon color-in-progress">
-                    <i class="fa fa-exclamation-triangle"></i>
+                <div [class]="['icon', this.icon.class]">
+                    <i [class]="['fa', this.icon.icon]"></i>
                 </div>
                 <div class="title" [innerHTML]="title"></div>
                 <div class="message" [innerHTML]="message"></div>

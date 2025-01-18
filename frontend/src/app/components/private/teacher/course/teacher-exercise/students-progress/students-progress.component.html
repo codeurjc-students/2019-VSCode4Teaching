@@ -43,15 +43,15 @@
                 <button class="btn btn-v4t-coloured" (click)="getAllStudentsFiles()" [disabled]="this.isActiveDownload">
                     <i class="fas fa-sync" [ngClass]="{ 'fa-spin': this.isActiveDownload }"></i> {{ this.isActiveDownload === "STUDENTS" ? 'Syncing…' : 'Sync files' }}
                 </button>
-                <button class="btn btn-sm btn-v4t" (click)="getTemplateFiles()" [disabled]="this.isActiveDownload">
+                <button class="btn btn-sm btn-outline-v4t" (click)="getTemplateFiles()" [disabled]="this.isActiveDownload">
                     <i class="fas fa-download"></i> {{ this.isActiveDownload === "TEMPLATE" ? 'Downloading template…' : 'Download template' }}
                 </button>
                 @if (this.exercise.includesTeacherSolution) {
-                    <button class="btn btn-sm btn-v4t" (click)="getSolutionFiles()" [disabled]="this.isActiveDownload">
+                    <button class="btn btn-sm btn-outline-v4t" (click)="getSolutionFiles()" [disabled]="this.isActiveDownload">
                         <i class="fas fa-download"></i> {{ this.isActiveDownload === "SOLUTION" ? 'Downloading solution…' : 'Download solution' }}
                     </button>
                 }
-                <button class="btn btn-sm btn-v4t" (click)="dismissExerciseLocalDirectory()" [disabled]="this.isActiveDownload">
+                <button class="btn btn-sm btn-outline-v4t" (click)="dismissExerciseLocalDirectory()" [disabled]="this.isActiveDownload">
                     <i class="fas fa-folder-open"></i> Dismiss directory
                 </button>
             }

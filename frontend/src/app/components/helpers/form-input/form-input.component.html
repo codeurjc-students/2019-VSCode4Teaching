@@ -1,0 +1,13 @@
+<div class="form-floating">
+    <input [type]="this.type" class="form-control form-control-v4t form-control-sm" [id]="this.name" [name]="this.name" [formControl]="this.formControl" placeholder=""
+           [ngClass]="{
+                 'is-invalid': this.formControl.invalid && this.formControl.touched,
+                 'is-valid': this.formControl.valid && this.formControl.touched
+           }">
+    <label [for]="this.name">{{ this.name }}</label>
+    @if (this.formControl.invalid && this.formControl.touched) {
+        <div class="invalid-feedback">
+            {{ this.validationMessage }}
+        </div>
+    }
+</div>

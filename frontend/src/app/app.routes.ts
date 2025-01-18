@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { SignupComponent } from "@app-components/public/signup/signup.component";
 import { DashboardComponent } from "./components/private/common/dashboard/dashboard.component";
 import { StudentCourseComponent } from "./components/private/student/course/student-course.component";
 import { TeacherCourseComponent } from "./components/private/teacher/course/teacher-course.component";
@@ -30,5 +31,6 @@ export const routes: Routes = [
 
     // public
     { path: "login", component: LoginComponent, data: { showAside: false, showHeader: false } },
+    { path: "sign-up", component: SignupComponent, data: { showAside: false, showHeader: true } },
     { path: "", component: IndexComponent, data: { showAside: false } }
 ];

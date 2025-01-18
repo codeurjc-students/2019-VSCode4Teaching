@@ -39,7 +39,7 @@
             </div>
             <div class="input-group">
                 <input type="text" class="form-control form-control-v4t" [(ngModel)]="this.joinSharingCode" placeholder="Sharing code provided by teacher…">
-                <button class="btn btn-v4t" (click)="this.joinCourse()" [disabled]="this.joinStatus === 'IN_PROGRESS'">
+                <button class="btn btn-outline-v4t" (click)="this.joinCourse()" [disabled]="this.joinStatus === 'IN_PROGRESS'">
                     @if (this.joinStatus === 'NOT_STARTED' || this.joinStatus === 'ERROR') {
                         <i class="fas fa-right-to-bracket"></i> Join course
                     } @else if (this.joinStatus === 'IN_PROGRESS') {

@@ -16,4 +16,9 @@ export class UserService {
         return lastValueFrom(this.http.get<UserDTO[]>("/users")
             .pipe(map((userDTOList: UserDTO[]) => userDTOList?.map((userDTO: UserDTO) => new User(userDTO)) ?? [])));
     }
+
+    public signUp = (userDTO: UserDTO): Promise<User> => {
+        return lastValueFrom(this.http.post<UserDTO>("/register", userDTO)
+            .pipe(map((userDTO: UserDTO) => new User(userDTO))));
+    }
 }
